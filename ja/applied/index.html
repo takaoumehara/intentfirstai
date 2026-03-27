@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プロジェクト — Context Grammarの実践</title>
+<meta name="description" content="Context Grammarが機能することを証明する3つのワーキングプロトタイプ。8つのトークンによる実際のシナリオと実際のソリューション。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@100;200;300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #ffffff;
+  --bg-cool: #f4f4f2;
+  --bg-dark: #08080a;
+  --text: #18181b;
+  --text-2: #52525b;
+  --text-3: #a1a1aa;
+  --border: #e4e4e7;
+  --accent: #2563eb;
+  --font: 'Google Sans', 'Google Sans Text', 'Noto Sans JP', -apple-system, sans-serif;
+  --mono: 'DM Mono', monospace;
+  --max-w: min(1200px, 88vw);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  font-size: clamp(15px, 1.05vw, 19px);
+}
+body { overflow-x: hidden; }
+
+/* ═══ ANIMATIONS ═══ */
+.reveal {
+  opacity: 0; transform: translateY(36px);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.d1 { transition-delay: 0.08s; }
+.d2 { transition-delay: 0.16s; }
+.d3 { transition-delay: 0.24s; }
+.d4 { transition-delay: 0.32s; }
+.d5 { transition-delay: 0.4s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bob {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(6px); }
+}
+
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(220,225,232,0.7);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav.scrolled {
+  background: rgba(255,255,255,0.92);
+  border-bottom-color: rgba(0,0,0,0.06);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--accent); }
+.nav-links a[href="../applied/index.html"] { color: var(--accent); font-weight: 500; }
+.nav-links a[href="../context-grammar/index.html"] { color: var(--accent); font-weight: 500; }
+@media (max-width: 768px) {
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ COMMON ═══ */
+.sec { padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px); }
+.sec-inner { max-width: var(--max-w); margin: 0 auto; }
+.sec-label {
+  font-family: var(--mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.sec-title {
+  font-weight: 200;
+  font-size: clamp(28px, 3.2vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+.sec-sub {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.7;
+  max-width: 540px;
+}
+
+/* ═══ HERO ═══ */
+#hero {
+  background: var(--bg);
+  padding-top: 80px;
+}
+
+/* ═══════════════════════════════════════
+   PROJECT SECTIONS — DEEP DIVE CASE STUDIES
+   ═══════════════════════════════════════ */
+
+.project-section {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.project-section:nth-child(odd) { background: var(--bg-cool); }
+.project-section:nth-child(even) { background: var(--bg); }
+
+.project-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 5vw, 80px);
+  align-items: start;
+  margin-bottom: clamp(60px, 8vw, 100px);
+}
+@media (max-width: 800px) {
+  .project-header { grid-template-columns: 1fr; }
+}
+
+.project-num {
+  font-family: var(--mono);
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 300;
+  color: var(--text-3);
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+
+.project-name {
+  font-weight: 200;
+  font-size: clamp(28px, 2.8vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+
+.token-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.token-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--accent);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 8px;
+}
+
+.project-scenario {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--text-2);
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.project-scenario-title {
+  font-family: var(--mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+.project-content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(40px, 5vw, 60px);
+}
+
+.project-insight {
+  background: rgba(37, 99, 235, 0.04);
+  border-left: 3px solid var(--accent);
+  padding: clamp(20px, 2.5vw, 32px);
+  border-radius: 8px;
+}
+
+.project-insight-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.project-insight-text {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+
+.project-happens {
+  padding: clamp(20px, 2.5vw, 32px);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.project-happens-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 14px;
+}
+
+.project-happens-text {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+
+.project-screenshot {
+  width: 100%;
+  aspect-ratio: 16/10;
+  background: linear-gradient(135deg, var(--bg-cool) 0%, #e8e8e6 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: clamp(12px, 1vw, 14px);
+  color: var(--text-3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+}
+
+/* ═══ CTA SECTION ═══ */
+#cta {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: clamp(80px, 10vw, 120px) clamp(24px, 4vw, 48px);
+}
+
+.cta-text {
+  font-size: clamp(16px, 1.2vw, 18px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.75;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.cta-subscribe {
+  margin-top: 28px;
+}
+
+.cta-subscribe a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  padding: 12px 28px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+
+.cta-subscribe a:hover {
+  background: rgba(37, 99, 235, 0.04);
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-dark);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--mono); font-size: 11px;
+}
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--accent); }
+.footer-links { display: flex; gap: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../context-grammar/index.html">Context Grammar</a>
+      <a href="../applied/index.html">Projects</a>
+      <a href="../journal/index.html">Essays</a>
+      <a href="../about/index.html">About</a>
+      <a href="../../applied/index.html" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;">EN</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     HERO — PAGE HEADER
+     ═══════════════════════════════════════ -->
+<section id="hero" class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal">プロジェクト</p>
+    <h1 class="sec-title reveal d1">Context Grammar<br>の実践。</h1>
+    <p class="sec-sub reveal d2">各プロジェクトは8つのトークンを実際のシナリオに適用しています。モックアップではなく、AIが人間のコンテキストを理解するとき何が起こるかを示すプロトタイプです。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PROJECT 01 — THE LIVING HOME
+     ═══════════════════════════════════════ -->
+<section id="project-01" class="project-section sec">
+  <div class="sec-inner reveal">
+
+    <div class="project-header">
+      <div>
+        <p class="project-num">01</p>
+        <h2 class="project-name">リビングホーム</h2>
+        <div class="token-badges">
+          <span class="token-badge">⑤ Priority Weight</span>
+          <span class="token-badge">⑥ Synchro Rate</span>
+          <span class="token-badge">⑧ Feasibility</span>
+        </div>
+      </div>
+      <div>
+        <p class="project-scenario-title">シナリオ</p>
+        <p class="project-scenario">出張中のビジネスパーソン、夜11時にフライトがキャンセル、疲労困憊。外気温は28度、自宅まで2時間。決断を迫られる：深夜便を再予約するか、朝の電車を待つか、レンタカーを借りるか。頭は回らない。選択肢ではなく、答えが欲しい。</p>
+      </div>
+    </div>
+
+    <div class="project-content">
+      <div class="project-happens">
+        <p class="project-happens-title">何が起こるか</p>
+        <p class="project-happens-text">ロック画面が解決ダッシュボードに変わる。検索もアプリの切り替えも不要。システムはあなたのCognitive Load（パニック＋疲労）、Priority Weight（快適さではなく帰宅すること）、Feasibility（実際のフライト料金、電車の時刻表、利用可能な車に基づく）を読み取る。3つの選択肢すべてをコンテキストの中で評価する — 移動時間だけでなく、今のあなたにとってどれが最も実現可能かを。1つ、多くても2つを提示する。それだけ。インターフェースは答え以外のすべてを消し去る。</p>
+      </div>
+
+      <div class="project-insight">
+        <p class="project-insight-label">キーインサイト</p>
+        <p class="project-insight-text">Cognitive Load = パニック のとき、maxOptions = 1。インターフェースはあなたの精神状態に適応する。この瞬間に選択肢を増やせば、さらに麻痺するだけだ。デザイン契約が変わる：選択の自由を与える代わりに、明確さを与える。</p>
+      </div>
+
+      <div class="project-screenshot">プロジェクト 01 — プロトタイプ</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PROJECT 02 — CONSTRAINT-AWARE EXECUTION
+     ═══════════════════════════════════════ -->
+<section id="project-02" class="project-section sec">
+  <div class="sec-inner reveal">
+
+    <div class="project-header">
+      <div>
+        <p class="project-num">02</p>
+        <h2 class="project-name">ファミリートリップ</h2>
+        <div class="token-badges">
+          <span class="token-badge">① Intent</span>
+          <span class="token-badge">⑧ Feasibility</span>
+          <span class="token-badge">⑦ Form Factor</span>
+        </div>
+      </div>
+      <div>
+        <p class="project-scenario-title">シナリオ</p>
+        <p class="project-scenario">車で帰宅中、夕食まで28分。家族はお腹を空かせている。冷蔵庫には鶏肉、ご飯、そして時間がある。でもソースに必要なレモンがない。別の料理にする？途中で買い物する？それとも、システムには見える第三の方法がある？</p>
+      </div>
+    </div>
+
+    <div class="project-content">
+      <div class="project-happens">
+        <p class="project-happens-title">何が起こるか</p>
+        <p class="project-happens-text">AIがスマート冷蔵庫の在庫をリアルタイムでチェックし、利用可能な食材と12のレシピを照合、不足しているレモンをInstacart経由で自動注文する（15分配達、$1.29）。キッチンに入る頃にはInstacartの通知が届き、レシピはすでにキッチンディスプレイに表示され、すぐに料理を始められる。Intentトークン（素晴らしい夕食を作る）が満たされる。Feasibilityトークンがあなたの制約条件の中で実際に可能かどうかを確認する。理想的なものは提案されない — 現実的なものだけが提示される。</p>
+      </div>
+
+      <div class="project-insight">
+        <p class="project-insight-label">キーインサイト</p>
+        <p class="project-insight-text">Feasibility TokenがAIを「理想的な推薦者」から「現実の実行パートナー」に変える。レシピの推薦は悪くない。しかし、その夕食を実現するためにサプライチェーンを再構成するシステムは革命的だ。インターフェースは判断しない — 実行する。</p>
+      </div>
+
+      <div class="project-screenshot">プロジェクト 02 — プロトタイプ</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PROJECT 03 — FLUID HANDOFF & SHARED ARBITRATION
+     ═══════════════════════════════════════ -->
+<section id="project-03" class="project-section sec">
+  <div class="sec-inner reveal">
+
+    <div class="project-header">
+      <div>
+        <p class="project-num">03</p>
+        <h2 class="project-name">フルイド・ハンドオフ＆シェアード・アービトレーション</h2>
+        <div class="token-badges">
+          <span class="token-badge">② Physical</span>
+          <span class="token-badge">④ Social Exposure</span>
+          <span class="token-badge">⑦ Form Factor</span>
+        </div>
+      </div>
+      <div>
+        <p class="project-scenario-title">シナリオ</p>
+        <p class="project-scenario">土曜の午後、パートナーと一緒に買い物。二人でソファに座り、テレビで靴を見ている（大画面、ビジュアルが重要）。パートナーはスマホを持っている。そこに仕事の電話が入り、一人で電車に乗って帰ることに。体験は途切れるのではなく、変化する必要がある。</p>
+      </div>
+    </div>
+
+    <div class="project-content">
+      <div class="project-happens">
+        <p class="project-happens-title">何が起こるか</p>
+        <p class="project-happens-text">ソファでは、テレビが高解像度の商品画像を大きく表示する。スマホはリモコンになる — 左右にスワイプして閲覧、タップでズーム。価格とスペックはテレビに表示。そして電車に乗る。すると突然、スマホが認識する：Physical Stateが変化（座り → 立ち＋移動中）、Social Exposureが変化（自宅のプライベート空間 → 混雑した公共の電車）。UIが変化する。片手モードが起動。価格がぼかされる（満員電車で予算を見せたくない）。テレビのグリッドが縦フィードに折りたたまれる。スマホが体験全体を引き継ぐ。移動が止まり静かな場所に入ると、インターフェースが再び展開する。設定メニューを一度もタップすることなく、すべてが起こる。</p>
+      </div>
+
+      <div class="project-insight">
+        <p class="project-insight-label">キーインサイト</p>
+        <p class="project-insight-text">Form Factor + Physical State + Social Exposureが連携して、コンテキストが変わるたびにインターフェース全体を再構成する。システムに「モバイルビュー」と「テレビビュー」は不要だ — どのフォームファクターが利用可能か、身体的にどのような姿勢か、どの程度周囲にさらされているかを理解する必要がある。そしてUIをリアルタイムで描画する。</p>
+      </div>
+
+      <div class="project-screenshot">プロジェクト 03 — プロトタイプ</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     BOTTOM CTA
+     ═══════════════════════════════════════ -->
+<section id="cta">
+  <div class="sec-inner">
+    <p class="cta-text reveal">Context Grammarは進化するフレームワークです。これが最初の3つのアプリケーションです。ジャーナルを購読して最新情報を受け取ってください。</p>
+    <div class="cta-subscribe reveal d1">
+      <a href="https://intentfirst.substack.com">Substackで購読 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2025 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// Nav style on scroll
+const nav = document.getElementById('nav');
+const hero = document.getElementById('hero');
+new IntersectionObserver(([e]) => {
+  nav.classList.toggle('scrolled', !e.isIntersecting);
+}, { threshold: 0.05 }).observe(hero);
+</script>
+
+</body>
+</html>
