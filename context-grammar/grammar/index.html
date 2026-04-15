@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar — 8 Context Tokens | Context Grammar</title>
+<meta name="description" content="The 8 Context Tokens that give AI the instinct to read the room. Six situation sensors plus two relationship dials — the vocabulary of Context Grammar.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<style>
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* ═══ COMMON ═══ */
+.sec-label { font-family: var(--font-mono); font-size: clamp(10px, 0.8vw, 13px); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; }
+.sec-title { font-weight: 500; font-size: clamp(28px, 3.2vw, 50px); line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 16px; }
+.sec-title em { font-style: normal; color: var(--color-grammar); }
+.sec-desc { font-size: clamp(15px, 1.1vw, 18px); font-weight: 300; color: var(--text-2); line-height: 1.75; max-width: 620px; }
+
+/* ═══ HERO ═══ */
+.hero {
+  background: #08070b;
+  color: #f0ece4;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: clamp(100px, 14vh, 160px) clamp(24px, 5vw, 80px) clamp(60px, 8vh, 100px);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(74,106,144,0.06), transparent);
+  pointer-events: none;
+}
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(240,236,228,0.3);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+.hero-title {
+  font-weight: 500;
+  font-size: clamp(36px, 5vw, 72px);
+  line-height: 1.06;
+  letter-spacing: -2.5px;
+  margin-bottom: 24px;
+  max-width: 800px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+.hero-sub {
+  font-size: clamp(15px, 1.15vw, 19px);
+  font-weight: 300;
+  color: rgba(240,236,228,0.45);
+  max-width: 580px;
+  line-height: 1.75;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+
+/* ═══ CONTENT SECTIONS ═══ */
+.content-section {
+  padding: clamp(60px, 8vh, 100px) clamp(24px, 5vw, 80px);
+  display: flex;
+  justify-content: center;
+}
+.content-section--light { background: var(--bg); }
+.content-section--alt { background: var(--bg-2); }
+.content-section--dark { background: #08070b; color: #f0ece4; }
+.content-inner {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* ═══ INTRO PROSE ═══ */
+.prose { max-width: 680px; }
+.prose p {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 400;
+  line-height: 1.8;
+  color: var(--text-2);
+  margin-bottom: 1.2em;
+}
+.prose p:last-child { margin-bottom: 0; }
+.prose strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.content-section--dark .prose p { color: rgba(240,236,228,0.55); }
+.content-section--dark .prose strong { color: #f0ece4; }
+
+/* ═══ TOKEN CARDS ═══ */
+.token-grid {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(28px, 4vw, 48px);
+}
+.token-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--illust-blue);
+  border-radius: 0;
+  padding: clamp(24px, 2.5vw, 36px);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(16px, 2vw, 28px);
+  align-items: start;
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.token-card:hover {
+  border-color: var(--border-hover);
+  border-left-color: var(--illust-blue);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+}
+.token-card--dial {
+  border-left-color: var(--illust-amber);
+}
+.token-card--dial:hover {
+  border-left-color: var(--illust-amber);
+}
+
+.token-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.token-badge--blue {
+  background: var(--chip-blue-bg);
+  color: var(--chip-blue-text);
+}
+.token-badge--amber {
+  background: var(--chip-amber-bg);
+  color: var(--chip-amber-text);
+}
+
+.token-body { display: flex; flex-direction: column; gap: 10px; }
+.token-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.token-name {
+  font-size: clamp(18px, 1.4vw, 22px);
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.token-tagline {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 300;
+  color: var(--text-3);
+}
+.token-desc { display: flex; flex-direction: column; gap: 14px; }
+.token-metaphor, .token-tech {
+  font-size: clamp(14px, 1vw, 16px);
+  line-height: 1.7;
+  color: var(--text-2);
+  font-weight: 400;
+}
+.token-metaphor-label, .token-tech-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+}
+.token-metaphor-label { color: var(--color-grammar); }
+.token-tech-label { color: var(--text-3); }
+
+/* Readiness badge */
+.readiness {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-2);
+  margin-top: 4px;
+  width: fit-content;
+}
+.readiness-stars { letter-spacing: 1px; }
+
+/* ═══ INSIGHT CALLOUT ═══ */
+.insight {
+  padding: clamp(16px, 1.5vw, 24px);
+  background: rgba(74,106,144,0.04);
+  border: 1px solid rgba(74,106,144,0.12);
+  border-radius: 0;
+  margin-top: 8px;
+}
+.insight--amber {
+  background: rgba(122,85,32,0.04);
+  border-color: rgba(122,85,32,0.12);
+}
+.insight-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--color-grammar);
+  margin-bottom: 6px;
+  display: block;
+}
+.insight--amber .insight-label { color: var(--color-intent); }
+.insight p {
+  font-size: clamp(14px, 1vw, 16px);
+  line-height: 1.7;
+  color: var(--text-2);
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ═══ FORMULA SECTION ═══ */
+.formula-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 28px);
+  flex-wrap: wrap;
+  margin-top: clamp(32px, 5vw, 56px);
+  padding: clamp(32px, 4vw, 56px) clamp(16px, 2vw, 32px);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+.formula-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  min-width: 140px;
+}
+.formula-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.formula-icon--blue { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.formula-icon--amber { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.formula-icon--green { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.formula-label {
+  font-size: clamp(13px, 1vw, 15px);
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.formula-sub {
+  font-size: clamp(12px, 0.85vw, 14px);
+  color: var(--text-3);
+  font-weight: 300;
+}
+.formula-arrow {
+  font-size: clamp(20px, 2vw, 28px);
+  color: var(--text-3);
+  font-weight: 300;
+}
+
+/* ═══ CTA SECTION ═══ */
+.cta {
+  background: #08070b;
+  color: #f0ece4;
+  padding: clamp(80px, 10vh, 120px) clamp(24px, 5vw, 80px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(106,74,144,0.05), transparent);
+  pointer-events: none;
+}
+.cta-title {
+  font-size: clamp(26px, 3.2vw, 48px);
+  font-weight: 500;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  position: relative;
+}
+.cta-sub {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 300;
+  color: rgba(240,236,228,0.45);
+  max-width: 480px;
+  line-height: 1.7;
+  margin-bottom: 36px;
+  position: relative;
+}
+.cta-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+}
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 0;
+  transition: all 0.3s var(--ease);
+}
+.cta-btn--primary {
+  background: #f0ece4;
+  color: #08070b;
+}
+.cta-btn--primary:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(240,236,228,0.12);
+}
+.cta-btn--ghost {
+  background: transparent;
+  color: rgba(240,236,228,0.6);
+  border: 1px solid rgba(240,236,228,0.12);
+}
+.cta-btn--ghost:hover {
+  color: #f0ece4;
+  border-color: rgba(240,236,228,0.3);
+}
+
+/* ═══ SECTION DIVIDER ═══ */
+.section-divider {
+  width: 100%;
+  padding: clamp(18px, 2.5vh, 28px) clamp(24px, 5vw, 80px);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+}
+.section-divider--grammar { background: var(--color-grammar); }
+.section-divider--intent { background: var(--color-intent); }
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg);
+  text-align: center;
+  padding: 40px 24px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+.footer a {
+  color: var(--text-2);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.footer a:hover { color: var(--color-grammar); }
+
+/* ═══ STAGES LIST (Autonomy Dial) ═══ */
+.stages {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+@media (max-width: 600px) { .stages { grid-template-columns: repeat(2, 1fr); } }
+.stage {
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  text-align: center;
+}
+.stage-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+.stage-name {
+  font-size: clamp(13px, 1vw, 15px);
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ═══ DISCLOSURE LEVELS ═══ */
+.levels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+@media (max-width: 600px) { .levels { grid-template-columns: repeat(2, 1fr); } }
+.level {
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  text-align: center;
+}
+.level-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+.level-name {
+  font-size: clamp(13px, 1vw, 15px);
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 768px) {
+  .token-card { grid-template-columns: 1fr; }
+  .token-badge { margin-bottom: -4px; }
+  .formula-row { flex-direction: column; }
+  .formula-arrow { transform: rotate(90deg); }
+}
+
+/* ═══ Part Banner ═══ */
+.part-banner {
+  padding: 20px clamp(24px, 4vw, 48px);
+}
+.part-banner-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex; align-items: center; gap: 20px;
+  flex-wrap: wrap;
+}
+.part-banner-tag {
+  font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+  white-space: nowrap;
+}
+.part-banner-title {
+  font-size: clamp(16px, 1.3vw, 20px);
+  font-weight: 500; letter-spacing: -0.3px;
+}
+
+/* ═══ Rule Engine ═══ */
+.rules-grid {
+  display: grid; gap: 12px; margin-top: 32px;
+  max-width: 800px;
+}
+.rule-item {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 20px;
+  flex-wrap: wrap;
+}
+.rule-item code {
+  font-family: var(--font-mono); font-size: 13px;
+  color: var(--text-2); background: var(--bg-2, #f7f5f2);
+  padding: 4px 10px; border-radius: 4px; white-space: nowrap;
+}
+.rule-arrow {
+  font-family: var(--font-mono); font-size: 16px;
+  color: var(--color-grammar, #4a6a90); flex-shrink: 0;
+}
+.rule-then {
+  color: #3a6a3a !important;
+  background: rgba(58,106,58,0.06) !important;
+}
+
+/* ═══ ANIMATION ═══ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body data-dark-nav>
+
+<!-- ═══════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-label">Context Grammar / Grammar</div>
+  <h1 class="hero-title">8 Tokens That Teach AI<br>to Read the Room</h1>
+  <p class="hero-sub">Every waiter reads the room before speaking. Context Grammar gives AI the same instinct — through 8 measurable dimensions of human state.</p>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     WHY TOKENS?
+     ═══════════════════════════════════════ -->
+<section class="content-section content-section--light">
+  <div class="content-inner">
+    <div class="sec-label" style="color: var(--color-grammar);">Why Tokens?</div>
+    <h2 class="sec-title reveal">The Waiter Who <em>Notices</em></h2>
+    <div class="prose reveal d1">
+      <p>A great waiter doesn't just take orders. They notice you're rushing. They see your boss is at the table. They remember you were here last Tuesday. They adjust everything — tone, timing, recommendations — without being asked.</p>
+      <p><strong>AI today is the waiter who recites the daily specials to someone crying at the table.</strong></p>
+      <p>It knows what you asked for. It has no idea what's happening around you. Context Tokens fix that. They give AI 8 dimensions to read the room — six that describe your situation, two that control the relationship.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     PART 1 DIVIDER
+     ═══════════════════════════════════════ -->
+<div class="section-divider section-divider--grammar">Part 1 — The 6 Situation Tokens</div>
+
+
+<!-- ═══════════════════════════════════════
+     6 SITUATION TOKENS
+     ═══════════════════════════════════════ -->
+<section class="content-section content-section--alt">
+  <div class="content-inner">
+    <div class="sec-label" style="color: var(--color-grammar);">Situation Tokens</div>
+    <h2 class="sec-title reveal">Six Sensors for <em>What's Happening</em></h2>
+    <p class="sec-desc reveal d1">These tokens describe the world around the user. They're inputs — raw signals that AI reads, not settings the user controls.</p>
+
+    <div class="token-grid">
+
+      <!-- TOKEN 1 ─────────────────────────── -->
+      <div class="token-card reveal d1">
+        <div class="token-badge token-badge--blue">①</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Physical State</span>
+            <span class="token-tagline">"Are they rushing or relaxed?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              Customer rushes in, coat half-off, scanning for a seat. The waiter brings water before the menu. A couple strolls in on a Saturday evening. Full welcome, wine list, no rush. Same restaurant. Different service. The waiter read the body, not the booking.
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              Activity Recognition API detects walking, running, driving, still. Galaxy Watch adds heart rate, stress index, sleep debt. Accelerometer data is cheap and reliable. The gap: combining these signals into a single "state" that drives design decisions.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKEN 2 ─────────────────────────── -->
+      <div class="token-card reveal d2">
+        <div class="token-badge token-badge--blue">②</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Cognitive Load</span>
+            <span class="token-tagline">"How much mental bandwidth remains?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              Two people deep in conversation, leaning in, hands moving. The waiter watches from a distance. A solo diner staring at the ceiling, looking around. The waiter approaches. Reading cognitive load is reading the moment between "I'm available" and "don't interrupt me."
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              This is estimation only. Time of day, calendar density, recent activity patterns, number of app switches in the last 10 minutes. No brain scanner. No EEG. The model infers bandwidth from observable proxies — and it will be wrong sometimes. Honesty matters here.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9733;&#9734;&#9734;&#9734;</span> Speculative — estimation only
+            </div>
+            <div class="insight">
+              <span class="insight-label">Honest Design Note</span>
+              <p>Cognitive Load is the most speculative token. There is no direct measurement today. Context Grammar uses it as an estimation layer, not a certainty. Design decisions based on this token should always include graceful fallbacks.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKEN 3 ─────────────────────────── -->
+      <div class="token-card reveal d3">
+        <div class="token-badge token-badge--blue">③</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Social Exposure</span>
+            <span class="token-tagline">"Who else is watching?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              Date night. The waiter dims the energy. Quiet suggestions. No mention of the loyalty card discount. Business lunch with the CEO. No casual banter. Precise timing. Who's at the table changes everything about how service is delivered.
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              Proximity sensors detect nearby devices. Voice ID distinguishes family members. Samsung's Family Hub already supports up to 6 member profiles. Visual detection (on-device) can estimate crowd density. The gap: a unified protocol that tells AI "you're in public" vs "you're alone" across all devices.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKEN 4 ─────────────────────────── -->
+      <div class="token-card reveal d4">
+        <div class="token-badge token-badge--blue">④</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Priority Weight</span>
+            <span class="token-tagline">"When demands collide, what wins?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              A child has a nut allergy. The meal must taste great. The bill should stay reasonable. When these three demands collide, allergy wins. Always. A great waiter never needs to be told this hierarchy. They know: safety beats taste beats price.
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              Calendar priority levels, notification settings, Gmail Priority Inbox — pieces of the puzzle exist. The gap: cross-domain priority that resolves "your meeting starts in 5 minutes but your daughter's school is calling" without asking the user to build rules manually.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Partially shipping
+            </div>
+            <div class="insight">
+              <span class="insight-label">Design Note</span>
+              <p>Priority Weight has two layers: current urgency (this token) and learned tradeoff patterns (stored in the Brain). The token captures what's pressing right now. The Brain remembers how you've resolved similar collisions before.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKEN 5 ─────────────────────────── -->
+      <div class="token-card reveal d5">
+        <div class="token-badge token-badge--blue">⑤</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Form Factor</span>
+            <span class="token-tagline">"What screens surround them?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              Counter seat — one dish at a time, quick bites, minimal conversation. Private dining room — full course presentation, multiple plates, space to linger. The physical space shapes the service. The screen shapes the experience.
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              Device type detection is trivial. Samsung DeX, Apple CarPlay, Continuity Handoff — all production-ready. The gap: dynamic multi-screen allocation. Knowing "the TV is on and you're holding your phone" should change what appears on each screen simultaneously.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKEN 6 ─────────────────────────── -->
+      <div class="token-card reveal d6">
+        <div class="token-badge token-badge--blue">⑥</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Feasibility</span>
+            <span class="token-tagline">"What's actually possible right now?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              "That fish is sold out tonight." A bad waiter stops there. A great waiter says: "But the sea bass came in this morning, and the chef does it the same way." Feasibility isn't about saying no. It's about proposing what's possible instead.
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              Inventory APIs, weather APIs, real-time delivery estimates, store hours — individual feasibility checks are mature. The gap: multi-constraint optimization. Combining "it's raining + the store closes in 20 minutes + you have a toddler in the car" into a single feasibility score.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Partially shipping
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     PART 2 DIVIDER
+     ═══════════════════════════════════════ -->
+<div class="section-divider section-divider--intent">Part 2 — The 2 Relationship Dials</div>
+
+
+<!-- ═══════════════════════════════════════
+     2 RELATIONSHIP DIALS
+     ═══════════════════════════════════════ -->
+<section class="content-section content-section--light">
+  <div class="content-inner">
+    <div class="sec-label" style="color: var(--color-intent);">Relationship Dials</div>
+    <h2 class="sec-title reveal">Two Controls for <span style="color: var(--color-intent);">How Far AI Can Go</span></h2>
+    <p class="sec-desc reveal d1">Situation Tokens describe what's happening. Relationship Dials control what AI is allowed to do about it. They're not sensors — they're boundaries.</p>
+
+    <div class="token-grid">
+
+      <!-- TOKEN 7 ─────────────────────────── -->
+      <div class="token-card token-card--dial reveal d1">
+        <div class="token-badge token-badge--amber">⑦</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Autonomy Dial</span>
+            <span class="token-tagline">"How much can AI act on its own?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="stages">
+              <div class="stage"><div class="stage-num">Stage 1</div><div class="stage-name">Suggest</div></div>
+              <div class="stage"><div class="stage-num">Stage 2</div><div class="stage-name">Confirm</div></div>
+              <div class="stage"><div class="stage-num">Stage 3</div><div class="stage-name">Notify</div></div>
+              <div class="stage"><div class="stage-num">Stage 4</div><div class="stage-name">Auto</div></div>
+            </div>
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              First visit. "Here's the menu. Take your time." Third visit. "The usual?" Twentieth visit. The food just appears. The progression from full menu to automatic is trust earned through consistency. Not a switch you flip on day one.
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              Claude Code uses 3-stage autonomy modes. Cursor IDE has an autonomy slider. Agent frameworks ship with suggest/confirm/auto patterns as standard. The gap: consumer-facing gradual dial that adjusts per-domain, not a binary on/off.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Shipping in dev tools
+            </div>
+            <div class="insight insight--amber">
+              <span class="insight-label">Key Insight</span>
+              <p>The Autonomy Dial is <strong>not purely user-controlled</strong>. Three forces shape it: the service's default setting (Netflix starts high), AI adjustment based on observed trust patterns, and the user's active choice. Your Uber Eats doesn't ask permission to reorder — because the service default already assumed autonomy.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOKEN 8 ─────────────────────────── -->
+      <div class="token-card token-card--dial reveal d2">
+        <div class="token-badge token-badge--amber">⑧</div>
+        <div class="token-body">
+          <div class="token-header">
+            <span class="token-name">Disclosure Dial</span>
+            <span class="token-tagline">"How much does AI know about you?"</span>
+          </div>
+          <div class="token-desc">
+            <div class="levels">
+              <div class="level"><div class="level-label">Level 1</div><div class="level-name">Full</div></div>
+              <div class="level"><div class="level-label">Level 2</div><div class="level-name">Summary</div></div>
+              <div class="level"><div class="level-label">Level 3</div><div class="level-name">Existence</div></div>
+              <div class="level"><div class="level-label">Level 4</div><div class="level-name">Hidden</div></div>
+            </div>
+            <div class="token-metaphor">
+              <span class="token-metaphor-label">Restaurant</span>
+              Tell the waiter your allergies, your anniversary, your wine preference. You get a perfect evening. Tell them nothing. You get the generic menu and a "is everything okay?" every ten minutes. The more you share, the better the service. But sharing is always your choice.
+            </div>
+            <div class="token-tech">
+              <span class="token-tech-label">Technology Reality</span>
+              App-level permissions exist. Gemini Connected Apps lets you choose which services share data. Samsung privacy dashboard shows what's accessed. The gap: a unified cross-domain dial. "Full disclosure to my health AI, summary only for shopping, hidden from social media" — one interface, granular control.
+            </div>
+            <div class="readiness">
+              <span class="readiness-stars">&#9733;&#9734;&#9734;&#9734;&#9734;</span> Concept stage
+            </div>
+            <div class="insight insight--amber">
+              <span class="insight-label">Key Insight</span>
+              <p>Disclosure is the <strong>prerequisite for Autonomy</strong>. You cannot say "don't tell AI anything about me" and also expect "but handle everything automatically." That combination is logically dangerous. The Disclosure Dial must open before the Autonomy Dial can advance.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     RULE ENGINE
+     ═══════════════════════════════════════ -->
+<div class="part-banner" style="background:var(--color-brain);">
+  <div class="part-banner-inner">
+    <div class="part-banner-tag" style="color:rgba(255,255,255,0.6);">Bridge</div>
+    <div class="part-banner-title" style="color:#fff;">Rule Engine — Translating Context into Action</div>
+  </div>
+</div>
+<section class="content-section content-section--light">
+  <div class="content-inner">
+    <div class="sec-label" style="color:var(--color-brain);">Rule Engine</div>
+    <h2 class="sec-title reveal">8 tokens go in.<br>Specific design rules come out.</h2>
+    <p class="sec-desc reveal d1">The Rule Engine transforms the token/brain combination into concrete behavioral rules. Not recommendations — rules. If/then logic at scale, running silently on every interaction.</p>
+
+    <div class="rules-grid reveal d2">
+      <div class="rule-item">
+        <code>if Physical State = driving</code>
+        <span class="rule-arrow">→</span>
+        <code class="rule-then">UI = audio only</code>
+      </div>
+      <div class="rule-item">
+        <code>if Social Exposure = boss_nearby</code>
+        <span class="rule-arrow">→</span>
+        <code class="rule-then">hide personal notifications</code>
+      </div>
+      <div class="rule-item">
+        <code>if Autonomy = Auto AND price &lt; ¥500</code>
+        <span class="rule-arrow">→</span>
+        <code class="rule-then">purchase without confirmation</code>
+      </div>
+      <div class="rule-item">
+        <code>if Cognitive Load = high</code>
+        <span class="rule-arrow">→</span>
+        <code class="rule-then">reduce options to top 3</code>
+      </div>
+      <div class="rule-item">
+        <code>if Autonomy = Auto AND price &gt; ¥15,000</code>
+        <span class="rule-arrow">→</span>
+        <code class="rule-then">always confirm (Dynamic Friction)</code>
+      </div>
+      <div class="rule-item">
+        <code>if Disclosure = hidden AND Autonomy &gt; Confirm</code>
+        <span class="rule-arrow">→</span>
+        <code class="rule-then">constraint violation → reset Autonomy</code>
+      </div>
+    </div>
+
+    <p class="reveal d3" style="margin-top:28px;font-size:clamp(15px,1vw,16px);color:var(--text-2);font-weight:300;line-height:1.7;max-width:620px;font-style:italic;">The restaurant waiter's intuition — "this table needs minimal interruption," "the regular wants their usual," "check before suggesting the spicy dish" — expressed as computable if/then rules.</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     THE CORE FORMULA
+     ═══════════════════════════════════════ -->
+<section class="content-section content-section--alt">
+  <div class="content-inner">
+    <div class="sec-label" style="color: var(--color-grammar);">The Core Formula</div>
+    <h2 class="sec-title reveal">From <em>Signals</em> to Design Rules</h2>
+    <p class="sec-desc reveal d1">Eight tokens. One engine. Infinite combinations. Here's how they connect.</p>
+
+    <div class="formula-row reveal d2">
+      <div class="formula-block">
+        <div class="formula-icon formula-icon--blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        </div>
+        <div class="formula-label">6 Situation Tokens</div>
+        <div class="formula-sub">"Here's what's happening"</div>
+      </div>
+      <div class="formula-arrow">+</div>
+      <div class="formula-block">
+        <div class="formula-icon formula-icon--amber">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="formula-label">2 Relationship Dials</div>
+        <div class="formula-sub">"Here's how far AI can go"</div>
+      </div>
+      <div class="formula-arrow">=</div>
+      <div class="formula-block">
+        <div class="formula-icon formula-icon--green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="formula-label">Rule Engine</div>
+        <div class="formula-sub">Generates design rules</div>
+      </div>
+    </div>
+
+    <div class="prose reveal d3" style="margin-top: clamp(24px, 3vw, 40px);">
+      <p>The six Situation Tokens declare context. The two Dials set boundaries. The Rule Engine takes both and generates specific design decisions — what to show, when to interrupt, how much detail to include, which device to use.</p>
+      <p>No single token works alone. A rushing user (Physical State) with low cognitive bandwidth (Cognitive Load) at a business dinner (Social Exposure) on a watch (Form Factor) gets a fundamentally different experience than the same person, relaxed at home, on a TV. Same person. Same AI. Different grammar.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════ -->
+<section class="cta">
+  <h2 class="cta-title reveal">Now you know the vocabulary.<br>Next: how AI remembers.</h2>
+  <p class="cta-sub reveal d1">Context Tokens describe the moment. The Brain remembers who you are across moments. Together, they give AI judgment — not just reaction.</p>
+  <div class="cta-buttons reveal d2">
+    <a href="../../brain-explainer/index.html" class="cta-btn cta-btn--primary">Explore the Brain &rarr;</a>
+    <a href="../../context-grammar/index.html" class="cta-btn cta-btn--ghost">Back to Overview &rarr;</a>
+  </div>
+</section>
+
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <p><a href="../../context-grammar/index.html">&larr; Back to Context Grammar</a></p>
+  <p style="margin-top: 8px;">intentfirst.ai &middot; Takao Umehara &middot; 2026</p>
+</footer>
+
+
+<script>
+// ─── Scroll Reveal ───
+(function(){
+  var els = document.querySelectorAll('.reveal');
+  if (!els.length) return;
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+  els.forEach(function(el) { observer.observe(el); });
+})();
+</script>
+<script src="../../assets/js/nav.js"></script>
+<script>initNav({ basePath: '../../', activePage: 'grammar', lang: 'en' });</script>
+</body>
+</html>
