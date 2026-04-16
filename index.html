@@ -1,728 +1,1195 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>intentfirst.ai — A new design language for AI</title>
-<meta name="description" content="Context Grammar gives AI the ability to understand human state. 8 tokens that translate who you are into language AI can read.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@100;200;300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/img/intentFirst-hero-m.jpg">
-<style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>intentfirst.ai — A new design language for AI</title>
+  <meta name="description"
+    content="Context Grammar gives AI the ability to understand human state. 8 tokens that translate who you are into language AI can read.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/context-grammar.css">
+  <link rel="stylesheet" href="assets/css/nav.css">
+  <link rel="preload" as="image" href="assets/img/intentFirst-hero-m.jpg">
+  <style>
+    /* ═══ PAGE-SPECIFIC LAYOUT (tokens.css handles resets, fonts, animations, colors) ═══ */
 
-:root {
-  --bg: #ffffff;
-  --bg-cool: #f4f4f2;
-  --bg-dark: #08080a;
-  --text: #18181b;
-  --text-2: #52525b;
-  --text-3: #a1a1aa;
-  --border: #e4e4e7;
-  --accent: #2563eb;
-  --accent-light: #3b82f6;
-  --amber: #d97706;
-  --rose: #c48a7c;
-  --font: 'Google Sans', 'Google Sans Text', -apple-system, sans-serif;
-  --mono: 'DM Mono', monospace;
-  --max-w: min(1200px, 88vw);
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-}
+    /* ── bob animation (page-specific) ── */
+    @keyframes bob {
 
-html {
-  scroll-behavior: smooth;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  font-size: clamp(15px, 1.05vw, 19px);
-}
-body { overflow-x: hidden; }
+      0%,
+      100% {
+        transform: translateY(0);
+      }
 
-/* ═══ ANIMATIONS ═══ */
-.reveal {
-  opacity: 0; transform: translateY(36px);
-  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
-}
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.d1 { transition-delay: 0.08s; }
-.d2 { transition-delay: 0.16s; }
-.d3 { transition-delay: 0.24s; }
-.d4 { transition-delay: 0.32s; }
-.d5 { transition-delay: 0.4s; }
+      50% {
+        transform: translateY(6px);
+      }
+    }
 
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes bob {
-  0%,100% { transform: translateY(0); }
-  50%     { transform: translateY(6px); }
-}
+    /* ═══ COMMON ═══ */
+    .sec {
+      padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+    }
 
-/* ═══ NAV ═══ */
-.nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  height: 56px;
-  background: rgba(220,225,232,0.7);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.5s var(--ease);
-}
-.nav.scrolled {
-  background: rgba(255,255,255,0.92);
-  border-bottom-color: rgba(0,0,0,0.06);
-}
-.nav-inner {
-  width: var(--max-w);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 clamp(24px, 4vw, 48px);
-}
-.nav-logo { text-decoration: none; display: flex; align-items: center; }
-.nav-logo-img { height: 22px; width: auto; }
-.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
-.nav-links a {
-  font-size: 13px; font-weight: 400; color: var(--text-3);
-  text-decoration: none; transition: color 0.3s var(--ease);
-}
-.nav-links a:hover { color: var(--accent); }
-.nav-cta {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 8px 20px; background: var(--accent); color: #fff !important;
-  border-radius: 8px; text-decoration: none;
-  transition: background 0.3s var(--ease);
-}
-.nav-cta:hover { background: #1d4ed8; }
-@media (max-width: 768px) {
-  .nav-links a:not(.nav-cta) { display: none; }
-}
+    .sec-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
 
-/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
-.lang-switch {
-  position: fixed;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-left: none;
-  border-radius: 0 10px 10px 0;
-  padding: 6px 8px;
-  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
-}
-.lang-switch a {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-decoration: none;
-  color: var(--text-3);
-  padding: 8px 6px;
-  transition: color 0.3s var(--ease);
-  line-height: 1;
-}
-.lang-switch a:hover { color: var(--accent); }
-.lang-switch a.active {
-  color: var(--text);
-  font-weight: 700;
-}
-.lang-switch-divider {
-  width: 16px;
-  height: 1px;
-  background: var(--border);
-}
-@media (max-width: 768px) {
-  .lang-switch {
-    top: auto;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    flex-direction: row;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px 10px;
-    gap: 0;
-  }
-  .lang-switch-divider {
-    width: 1px;
-    height: 14px;
-  }
-}
+    .sec-label {
+      font-family: var(--font-mono);
+      font-size: clamp(10px, 0.8vw, 12px);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      margin-bottom: 16px;
+    }
 
-/* ═══ COMMON ═══ */
-.sec { padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px); }
-.sec-inner { max-width: var(--max-w); margin: 0 auto; }
-.sec-label {
-  font-family: var(--mono);
-  font-size: clamp(10px, 0.8vw, 12px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 16px;
-}
-.sec-title {
-  font-weight: 200;
-  font-size: clamp(28px, 3.2vw, 52px);
-  line-height: 1.1;
-  letter-spacing: -1.5px;
-  margin-bottom: 16px;
-}
-.sec-sub {
-  font-size: clamp(15px, 1.1vw, 17px);
-  color: var(--text-2);
-  font-weight: 300;
-  line-height: 1.7;
-  max-width: 540px;
-}
-.btn {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 14px 32px; border-radius: 10px;
-  text-decoration: none;
-  transition: all 0.3s var(--ease);
-  display: inline-block;
-}
-.btn-primary {
-  background: var(--accent); color: #fff;
-  box-shadow: 0 4px 24px rgba(37,99,235,0.25);
-}
-.btn-primary:hover {
-  background: #1d4ed8;
-  box-shadow: 0 6px 32px rgba(37,99,235,0.4);
-  transform: translateY(-1px);
-}
-.btn-outline {
-  background: transparent; color: var(--text-2);
-  border: 1px solid var(--border);
-}
-.btn-outline:hover {
-  border-color: var(--accent); color: var(--accent);
-}
-.btn-dark { background: var(--bg-dark); color: #fff; }
-.btn-dark:hover { background: #1e1e22; }
+    .sec-title {
+      font-weight: 500;
+      font-size: clamp(28px, 3.2vw, 52px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
 
-/* ═══════════════════════════════════════
+    .sec-sub {
+      font-size: clamp(15px, 1.1vw, 17px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.7;
+      max-width: 540px;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.3s var(--ease);
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      box-shadow: 0 4px 24px rgba(26, 24, 22, 0.15);
+    }
+
+    .btn-primary:hover {
+      background: var(--text-2);
+      box-shadow: 0 6px 32px rgba(26, 24, 22, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--color-grammar);
+      color: var(--color-grammar);
+    }
+
+    .btn-dark {
+      background: var(--bg-inverse);
+      color: var(--bg);
+    }
+
+    .btn-dark:hover {
+      opacity: 0.85;
+    }
+
+    /* ═══════════════════════════════════════
    HERO — FULL SCREEN BACKGROUND IMAGE
    ═══════════════════════════════════════ */
-#hero {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
-.hero-bg {
-  position: absolute; inset: -20px;
-  background-image: url('assets/img/intentFirst-hero-m.jpg');
-  background-size: cover;
-  background-position: center 45%;
-  background-repeat: no-repeat;
-  transition: transform 0.15s ease-out;
-}
-.hero-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(
-    105deg,
-    rgba(225,229,236,0.93) 0%,
-    rgba(225,229,236,0.8) 30%,
-    rgba(225,229,236,0.3) 55%,
-    rgba(225,229,236,0.0) 75%
-  );
-  pointer-events: none;
-}
-@media (max-width: 900px) {
-  .hero-overlay {
-    background: linear-gradient(
-      to bottom,
-      rgba(225,229,236,0.5) 0%,
-      rgba(225,229,236,0.85) 45%,
-      rgba(225,229,236,0.95) 100%
-    );
-  }
-}
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
 
-.hero-content {
-  position: relative; z-index: 2;
-  max-width: 580px;
-  padding: clamp(100px, 14vw, 160px) clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
-  margin-left: max(calc((100vw - min(1200px, 88vw)) / 2 + 24px), 6vw);
-}
-@media (max-width: 900px) {
-  .hero-content {
-    margin-left: auto; margin-right: auto;
-    text-align: center;
-    max-width: 100%;
-    padding-top: clamp(120px, 18vw, 200px);
-  }
-}
-.hero-label {
-  font-family: var(--mono);
-  font-size: clamp(10px, 0.75vw, 12px);
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 28px;
-  opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
-}
-.hero-title {
-  font-weight: 200;
-  font-size: clamp(36px, 4.5vw, 72px);
-  line-height: 1.05;
-  letter-spacing: -2.5px;
-  color: var(--text);
-  margin-bottom: 24px;
-  opacity: 0; animation: fadeUp 0.8s 0.4s forwards;
-}
-.hero-title em {
-  font-style: normal;
-  background: linear-gradient(135deg, var(--accent) 0%, #6366f1 50%, var(--rose) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.hero-sub {
-  font-size: clamp(15px, 1.15vw, 18px);
-  font-weight: 300;
-  color: var(--text-2);
-  line-height: 1.75;
-  margin-bottom: 36px;
-  opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
-}
-.hero-buttons {
-  display: flex; gap: 12px; flex-wrap: wrap;
-  opacity: 0; animation: fadeUp 0.8s 0.8s forwards;
-}
-@media (max-width: 900px) {
-  .hero-buttons { justify-content: center; }
-}
-.hero-scroll {
-  position: absolute; bottom: 32px; left: 50%;
-  transform: translateX(-50%); z-index: 2;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  color: var(--text-3);
-  font-family: var(--mono);
-  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-  opacity: 0; animation: fadeUp 0.8s 1.2s forwards;
-}
-.hero-scroll-line {
-  width: 1px; height: 32px;
-  background: linear-gradient(to bottom, var(--text-3), transparent);
-  animation: bob 3s 2s ease-in-out infinite;
-}
+    .hero-bg {
+      position: absolute;
+      inset: -20px;
+      background-image: url('assets/img/intentFirst-hero-m.jpg');
+      background-size: cover;
+      background-position: center 45%;
+      background-repeat: no-repeat;
+      transition: transform 0.15s ease-out;
+    }
 
-/* ═══════════════════════════════════════
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg,
+          rgba(225, 229, 236, 0.93) 0%,
+          rgba(225, 229, 236, 0.8) 30%,
+          rgba(225, 229, 236, 0.3) 55%,
+          rgba(225, 229, 236, 0.0) 75%);
+      pointer-events: none;
+    }
+
+    @media (max-width: 900px) {
+      .hero-overlay {
+        background: linear-gradient(to bottom,
+            rgba(225, 229, 236, 0.5) 0%,
+            rgba(225, 229, 236, 0.85) 45%,
+            rgba(225, 229, 236, 0.95) 100%);
+      }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 580px;
+      padding: clamp(100px, 14vw, 160px) clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+      margin-left: max(calc((100vw - var(--max-w)) / 2 + 24px), 6vw);
+    }
+
+    @media (max-width: 900px) {
+      .hero-content {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+        max-width: 100%;
+        padding-top: clamp(120px, 18vw, 200px);
+      }
+    }
+
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: clamp(16px, 0.75vw, 12px);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    .hero-title {
+      font-weight: 500;
+      font-size: clamp(36px, 4.5vw, 72px);
+      line-height: 1.05;
+      letter-spacing: -2.5px;
+      color: var(--text);
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+    }
+
+    .hero-title em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--grad-from) 0%, var(--grad-mid) 50%, var(--grad-to) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 1.15vw, 18px);
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.75;
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    @media (max-width: 900px) {
+      .hero-buttons {
+        justify-content: center;
+      }
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeUp 0.8s 1.2s forwards;
+    }
+
+    .hero-scroll-line {
+      width: 1px;
+      height: 32px;
+      background: linear-gradient(to bottom, var(--text-3), transparent);
+      animation: bob 3s 2s ease-in-out infinite;
+    }
+
+    /* ═══════════════════════════════════════
+   AT A GLANCE
+   ═══════════════════════════════════════ */
+    #at-a-glance {
+      background: var(--bg);
+      padding: clamp(64px, 8vw, 100px) clamp(24px, 4vw, 48px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .glance-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+
+    .glance-statement {
+      font-weight: 300;
+      font-size: clamp(24px, 2.8vw, 44px);
+      line-height: 1.35;
+      letter-spacing: -1px;
+      color: var(--text);
+      max-width: 860px;
+      margin-bottom: clamp(48px, 6vw, 72px);
+    }
+
+    .glance-statement strong {
+      font-weight: 600;
+      color: var(--color-grammar);
+    }
+
+    .glance-pillars {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: clamp(16px, 2vw, 24px);
+    }
+
+    @media (max-width: 960px) {
+      .glance-pillars {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .glance-pillars {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .glance-pillars {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glance-pillar {
+      text-decoration: none;
+      color: inherit;
+      padding: clamp(20px, 2vw, 28px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: all 0.3s var(--ease);
+      display: block;
+    }
+
+    .glance-pillar:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+    }
+
+    .glance-pillar-num {
+      font-family: var(--font-mono);
+      font-size: clamp(32px, 3.5vw, 48px);
+      font-weight: 300;
+      color: var(--color-grammar);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .glance-pillar-label {
+      font-size: clamp(15px, 1.1vw, 17px);
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .glance-pillar-desc {
+      font-size: clamp(13px, 0.85vw, 14px);
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════
    INTRODUCING CONTEXT GRAMMAR
    ═══════════════════════════════════════ */
-#intro { background: var(--bg); }
+    #intro {
+      background: var(--bg);
+    }
 
-.intro-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(40px, 5vw, 80px);
-  align-items: center;
-}
-.intro-img {
-  width: 100%;
-  border-radius: 24px;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.08);
-}
-.intro-text {}
-.intro-text .sec-sub {
-  max-width: 100%;
-  margin-bottom: 20px;
-}
-.intro-detail {
-  font-size: clamp(14px, 1vw, 16px);
-  color: var(--text-2);
-  font-weight: 300;
-  line-height: 1.75;
-  margin-bottom: 36px;
-}
-.intro-cta {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: 13px;
-  color: var(--accent);
-  text-decoration: none; letter-spacing: 0.5px;
-  padding: 14px 32px;
-  background: rgba(37,99,235,0.04);
-  border: 1px solid rgba(37,99,235,0.15);
-  border-radius: 12px;
-  transition: all 0.3s var(--ease);
-}
-.intro-cta:hover {
-  gap: 14px;
-  background: rgba(37,99,235,0.08);
-  border-color: var(--accent);
-  box-shadow: 0 4px 20px rgba(37,99,235,0.12);
-}
-.intro-cta .arrow {
-  transition: transform 0.3s var(--ease);
-}
-.intro-cta:hover .arrow { transform: translateX(4px); }
+    .intro-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(40px, 5vw, 80px);
+      align-items: center;
+    }
 
-@media (max-width: 768px) {
-  .intro-layout { grid-template-columns: 1fr; }
-  .intro-img { order: -1; }
-}
+    .intro-img {
+      width: 100%;
+      border-radius: 24px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+    }
 
-/* ═══════════════════════════════════════
+    .intro-text {}
+
+    .intro-text .sec-sub {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .intro-detail {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.75;
+      margin-bottom: 36px;
+    }
+
+    .intro-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--color-grammar);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      padding: 14px 32px;
+      background: rgba(104, 137, 180, 0.06);
+      border: 1px solid rgba(104, 137, 180, 0.18);
+      border-radius: 12px;
+      transition: all 0.3s var(--ease);
+    }
+
+    .intro-cta:hover {
+      gap: 14px;
+      background: rgba(104, 137, 180, 0.10);
+      border-color: var(--color-grammar);
+      box-shadow: 0 4px 20px rgba(104, 137, 180, 0.12);
+    }
+
+    .intro-cta .arrow {
+      transition: transform 0.3s var(--ease);
+    }
+
+    .intro-cta:hover .arrow {
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 768px) {
+      .intro-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .intro-img {
+        order: -1;
+      }
+    }
+
+    /* ═══════════════════════════════════════
+   BRAIN
+   ═══════════════════════════════════════ */
+    #brain {
+      background: var(--bg-2);
+    }
+
+    .brain-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(40px, 5vw, 80px);
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .brain-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .brain-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 32px;
+    }
+
+    .brain-layer {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brain-layer:last-child {
+      border-bottom: none;
+    }
+
+    .brain-layer-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-3);
+      letter-spacing: 1px;
+      padding-top: 3px;
+      flex-shrink: 0;
+      width: 24px;
+    }
+
+    .brain-layer-content {
+      flex: 1;
+    }
+
+    .brain-layer-name {
+      font-size: clamp(15px, 1.1vw, 17px);
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brain-layer-name .layer-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .layer-dot--identity {
+      background: var(--color-grammar);
+    }
+
+    .layer-dot--learned {
+      background: var(--color-intent);
+    }
+
+    .layer-dot--now {
+      background: var(--color-success);
+    }
+
+    .brain-layer-desc {
+      font-size: clamp(13px, 0.9vw, 15px);
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+
+    .brain-img {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .brain-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--color-brain);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      padding: 14px 32px;
+      background: rgba(138, 106, 176, 0.06);
+      border: 1px solid rgba(138, 106, 176, 0.18);
+      border-radius: 12px;
+      margin-top: 32px;
+      transition: all 0.3s var(--ease);
+    }
+
+    .brain-cta:hover {
+      gap: 14px;
+      background: rgba(138, 106, 176, 0.10);
+      border-color: var(--color-brain);
+      box-shadow: 0 4px 20px rgba(138, 106, 176, 0.12);
+    }
+
+    .brain-cta .arrow {
+      transition: transform 0.3s var(--ease);
+    }
+
+    .brain-cta:hover .arrow {
+      transform: translateX(4px);
+    }
+
+    /* ═══════════════════════════════════════
    APPLIED — CASE STUDIES
    ═══════════════════════════════════════ */
-#applied { background: var(--bg-cool); }
-.cs-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 16px; margin-top: 48px;
-}
-@media (max-width: 768px) { .cs-grid { grid-template-columns: 1fr; } }
-.cs-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  text-decoration: none; color: inherit;
-  transition: all 0.4s var(--ease);
-  display: block;
-}
-.cs-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px);
-  box-shadow: 0 16px 48px rgba(24,24,27,0.08);
-}
-.cs-card-img-placeholder {
-  width: 100%; aspect-ratio: 16/10;
-  background: linear-gradient(135deg, var(--bg-cool) 0%, #e8e8e6 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-size: 11px; color: var(--text-3);
-  letter-spacing: 1px; text-transform: uppercase;
-}
-.cs-card-body { padding: clamp(18px, 2vw, 24px); }
-.cs-card-label {
-  font-family: var(--mono); font-size: clamp(10px, 0.7vw, 11px);
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 6px;
-}
-.cs-card-title {
-  font-weight: 400; font-size: clamp(16px, 1.2vw, 19px);
-  letter-spacing: -0.3px; margin-bottom: 6px;
-}
-.cs-card-desc {
-  font-size: clamp(13px, 0.9vw, 15px);
-  color: var(--text-2); font-weight: 300; line-height: 1.6;
-}
+    #applied {
+      background: var(--bg);
+    }
 
-/* ═══════════════════════════════════════
+    .cs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 768px) {
+      .cs-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .cs-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.4s var(--ease);
+      display: block;
+    }
+
+    .cs-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(26, 24, 22, 0.06);
+    }
+
+    .cs-card-img-placeholder {
+      width: 100%;
+      aspect-ratio: 16/10;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .cs-card-body {
+      padding: clamp(18px, 2vw, 24px);
+    }
+
+    .cs-card-label {
+      font-family: var(--font-mono);
+      font-size: clamp(10px, 0.7vw, 11px);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      margin-bottom: 6px;
+    }
+
+    .cs-card-title {
+      font-weight: 400;
+      font-size: clamp(16px, 1.2vw, 19px);
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+
+    .cs-card-desc {
+      font-size: clamp(13px, 0.9vw, 15px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    /* ═══════════════════════════════════════
    JOURNAL
    ═══════════════════════════════════════ */
-#journal { background: var(--bg); }
-.journal-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 12px; margin-top: 48px;
-}
-@media (max-width: 768px) { .journal-grid { grid-template-columns: 1fr; } }
-.journal-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  text-decoration: none; color: inherit;
-  transition: all 0.3s var(--ease);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-.journal-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
-}
-.journal-card-img {
-  width: 100%; aspect-ratio: 16/9; object-fit: cover;
-  display: block;
-  transition: transform 0.5s var(--ease);
-}
-.journal-card:hover .journal-card-img { transform: scale(1.04); }
-.journal-card-body {
-  padding: clamp(16px, 1.5vw, 24px);
-  display: flex; flex-direction: column; flex-grow: 1;
-}
-.journal-card-date {
-  font-family: var(--mono); font-size: 11px;
-  color: var(--text-3); margin-bottom: 10px;
-}
-.journal-card-title {
-  font-weight: 400; font-size: clamp(15px, 1.1vw, 18px);
-  letter-spacing: -0.3px; margin-bottom: 8px; flex-grow: 1;
-}
-.journal-card-excerpt {
-  font-size: clamp(13px, 0.85vw, 14px);
-  color: var(--text-2); font-weight: 300; line-height: 1.6;
-}
-.journal-subscribe {
-  margin-top: 36px; text-align: center;
-}
-.journal-subscribe a {
-  font-family: var(--mono); font-size: 12px; color: var(--accent);
-  text-decoration: none; letter-spacing: 0.5px;
-  padding: 12px 28px;
-  border: 1px solid rgba(37,99,235,0.2);
-  border-radius: 10px;
-  transition: all 0.3s var(--ease);
-}
-.journal-subscribe a:hover {
-  background: rgba(37,99,235,0.04);
-  border-color: var(--accent);
-}
+    #journal {
+      background: var(--bg);
+    }
 
-/* ═══════════════════════════════════════
+    .journal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 48px;
+    }
+
+    @media (max-width: 768px) {
+      .journal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .journal-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s var(--ease);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .journal-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .journal-card-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s var(--ease);
+    }
+
+    .journal-card:hover .journal-card-img {
+      transform: scale(1.04);
+    }
+
+    .journal-card-body {
+      padding: clamp(16px, 1.5vw, 24px);
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .journal-card-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      margin-bottom: 10px;
+    }
+
+    .journal-card-title {
+      font-weight: 400;
+      font-size: clamp(15px, 1.1vw, 18px);
+      letter-spacing: -0.3px;
+      margin-bottom: 8px;
+      flex-grow: 1;
+    }
+
+    .journal-card-excerpt {
+      font-size: clamp(13px, 0.85vw, 14px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .journal-subscribe {
+      margin-top: 36px;
+      text-align: center;
+    }
+
+    .journal-subscribe a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-grammar);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      padding: 12px 28px;
+      border: 1px solid rgba(104, 137, 180, 0.2);
+      border-radius: 10px;
+      transition: all 0.3s var(--ease);
+    }
+
+    .journal-subscribe a:hover {
+      background: rgba(104, 137, 180, 0.06);
+      border-color: var(--color-grammar);
+    }
+
+    /* ═══════════════════════════════════════
    CTA
    ═══════════════════════════════════════ */
-#cta {
-  background: var(--bg-dark); color: #fff;
-  text-align: center;
-}
-.cta-title {
-  font-weight: 200; font-size: clamp(28px, 3.2vw, 48px);
-  line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 16px;
-  color: #fff;
-}
-.cta-sub {
-  font-size: clamp(15px, 1.1vw, 17px);
-  color: rgba(255,255,255,0.4);
-  font-weight: 300; line-height: 1.7;
-  max-width: 480px; margin: 0 auto 36px;
-}
-.cta-buttons {
-  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-}
+    #cta {
+      background: var(--bg-inverse);
+      color: var(--bg);
+      text-align: center;
+    }
 
-/* ═══ FOOTER ═══ */
-.footer {
-  background: var(--bg-dark);
-  color: rgba(255,255,255,0.3);
-  padding: 20px clamp(24px, 4vw, 48px);
-  border-top: 1px solid rgba(255,255,255,0.04);
-}
-.footer-inner {
-  max-width: var(--max-w); margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
-  font-family: var(--mono); font-size: 11px;
-}
-.footer a {
-  color: rgba(255,255,255,0.3); text-decoration: none;
-  transition: color 0.3s var(--ease);
-}
-.footer a:hover { color: var(--accent); }
-.footer-logo { height: 16px; width: auto; opacity: 0.3; }
-.footer-links { display: flex; gap: 16px; }
-</style>
+    .cta-title {
+      font-weight: 500;
+      font-size: clamp(28px, 3.2vw, 48px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+      color: var(--bg);
+    }
+
+    .cta-sub {
+      font-size: clamp(15px, 1.1vw, 17px);
+      color: rgba(240, 236, 228, 0.4);
+      font-weight: 300;
+      line-height: 1.7;
+      max-width: 480px;
+      margin: 0 auto 36px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ═══ FOOTER ═══ */
+    .footer {
+      background: var(--bg-inverse);
+      color: rgba(240, 236, 228, 0.3);
+      padding: 20px clamp(24px, 4vw, 48px);
+      border-top: 1px solid rgba(240, 236, 228, 0.04);
+    }
+
+    .footer-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .footer a {
+      color: rgba(240, 236, 228, 0.3);
+      text-decoration: none;
+      transition: color 0.3s var(--ease);
+    }
+
+    .footer a:hover {
+      color: var(--color-grammar);
+    }
+
+    .footer-logo {
+      height: 16px;
+      width: auto;
+      opacity: 0.3;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ═══ NAV ═══ -->
-<nav class="nav" id="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo"><img src="assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
-    <div class="nav-links">
-      <a href="context-grammar/index.html">Context Grammar</a>
-      <a href="applied/index.html">Projects</a>
-      <a href="journal/index.html">Essays</a>
-      <a href="about/index.html">About</a>
-    </div>
-  </div>
-</nav>
-
-<!-- ═══ LANGUAGE SWITCHER ═══ -->
-<div class="lang-switch">
-  <a href="index.html" class="active">EN</a>
-  <div class="lang-switch-divider"></div>
-  <a href="ja/index.html">JA</a>
-</div>
-
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      HERO
      ═══════════════════════════════════════ -->
-<section id="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-overlay"></div>
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
 
-  <div class="hero-content">
-    <p class="hero-label">Context Grammar</p>
-    <h1 class="hero-title">AI knows what you <em>ask</em>.<br>Not what you <em>need</em>.</h1>
-    <p class="hero-sub">Your phone knows your location, your schedule, your search history. But it has no idea you're exhausted, stressed, or in a rush. Context Grammar bridges that gap — 8 tokens that translate human state into language AI can read.</p>
-    <div class="hero-buttons">
-      <a href="context-grammar/index.html" class="btn btn-primary">Explore the Tokens</a>
-      <a href="#intro" class="btn btn-outline">Learn More</a>
+    <div class="hero-content">
+      <p class="hero-label">Context Grammar</p>
+      <h1 class="hero-title">The age of AI is here.<br>But AI still doesn't <em>know</em> you.</h1>
+      <p class="hero-sub">Your phone can book flights, answer questions, write emails. But it doesn't know you're
+        exhausted. Or that your son hates fuzzy shoes. Or that your boss is standing behind you.<br><br>AI understands
+        commands. Not <em>context</em>.<br>Context Grammar changes that.</p>
+      <div class="hero-buttons">
+        <a href="context-grammar/index.html" class="btn btn-primary">Read the Spec</a>
+        <a href="applied/index.html" class="btn btn-outline">See It in Action</a>
+      </div>
     </div>
-  </div>
 
-  <div class="hero-scroll">
-    Scroll
-    <div class="hero-scroll-line"></div>
-  </div>
-</section>
+    <div class="hero-scroll">
+      Scroll
+      <div class="hero-scroll-line"></div>
+    </div>
+  </section>
 
-<!-- ═══════════════════════════════════════
-     INTRODUCING CONTEXT GRAMMAR
+  <!-- ═══════════════════════════════════════
+     AT A GLANCE
      ═══════════════════════════════════════ -->
-<section id="intro" class="sec">
-  <div class="sec-inner">
-    <div class="intro-layout">
+  <section id="at-a-glance">
+    <div class="glance-inner">
+      <p class="glance-statement reveal">
+        2026. AI writes emails, generates code, creates images. But it still doesn't know you're
+        <strong>exhausted</strong>, that your <strong>child is beside you</strong>, or that you <strong>can't see the
+          screen while driving</strong>. Context Grammar gives AI the ability to <strong>read the room</strong> and
+        <strong>respond with meaning</strong>. Your <strong>intent</strong> becomes the interface.
+      </p>
 
-      <img class="intro-img reveal" src="assets/img/Small/ImageC_ContextGrammarBridgesGap.jpg" alt="Context Grammar — translating invisible human states into structured signals AI can read" loading="lazy">
-
-      <div class="intro-text">
-        <p class="sec-label reveal">Introducing Context Grammar</p>
-        <h2 class="sec-title reveal d1">The missing layer<br>between humans and AI.</h2>
-        <p class="sec-sub reveal d2">Today's AI can process your words, but it can't sense your world. It doesn't know you're walking through a crowded station with one free hand, mentally drained after a long day, trying to make a quick decision for your family.</p>
-        <p class="intro-detail reveal d3">Context Grammar defines 8 tokens — dimensions like Intent, Physical State, Cognitive Load, and Social Exposure — that capture these invisible human states and translate them into a structured language AI can actually read. The result: AI that doesn't just respond to what you type, but adapts to who you are and what you need, right now.</p>
-        <a href="context-grammar/index.html" class="intro-cta reveal d4">
-          Explore all 8 tokens in detail <span class="arrow">→</span>
+      <div class="glance-pillars">
+        <a href="context-grammar/index.html" class="glance-pillar reveal d1">
+          <div class="glance-pillar-num">01</div>
+          <div class="glance-pillar-label">Foundation</div>
+          <p class="glance-pillar-desc">Learn the architecture. 8 Context Tokens, 3-layer Brain, Autonomy Dial, and the
+            trust mechanics that hold it all together.</p>
+        </a>
+        <a href="ax-patterns/index.html" class="glance-pillar reveal d2">
+          <div class="glance-pillar-num">02</div>
+          <div class="glance-pillar-label">AX Patterns</div>
+          <p class="glance-pillar-desc">22 interaction patterns for human-AI collaboration. Approval gates, social-aware
+            filtering, dynamic friction, and more.</p>
+        </a>
+        <a href="context-grammar/index.html#part2" class="glance-pillar reveal d3">
+          <div class="glance-pillar-num">03</div>
+          <div class="glance-pillar-label">Output Grammar</div>
+          <p class="glance-pillar-desc">How AI responds: 3 Directions, Temporal Arc, and the trust mechanics that make
+            AI relationships grow over time.</p>
+        </a>
+        <a href="applied/index.html" class="glance-pillar reveal d4">
+          <div class="glance-pillar-num">05</div>
+          <div class="glance-pillar-label">Projects</div>
+          <p class="glance-pillar-desc">Watch it work. 5 end-to-end implementations — from family kitchens to insurance
+            claims floors and field assessments.</p>
+        </a>
+        <a href="journal/index.html" class="glance-pillar reveal d5">
+          <div class="glance-pillar-num">15+</div>
+          <div class="glance-pillar-label">Essays</div>
+          <p class="glance-pillar-desc">Follow the thinking. The research, reasoning, and intellectual pivots behind
+            every design decision.</p>
         </a>
       </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
+     INTRODUCING CONTEXT GRAMMAR
+     ═══════════════════════════════════════ -->
+  <section id="intro" class="sec">
+    <div class="sec-inner">
+      <div class="intro-layout">
+
+        <img class="intro-img reveal" src="assets/img/Small/ImageC_ContextGrammarBridgesGap.jpg"
+          alt="Context Grammar — translating invisible human states into structured signals AI can read" loading="lazy">
+
+        <div class="intro-text">
+          <p class="sec-label reveal">Introducing Context Grammar</p>
+          <h2 class="sec-title reveal d1">The missing layer<br>between humans and AI.</h2>
+          <p class="sec-sub reveal d2">Today's AI can process your words, but it can't sense your world. It doesn't know
+            you're walking through a crowded station with one free hand, mentally drained after a long day, trying to
+            make a quick decision for your family.</p>
+          <p class="intro-detail reveal d3">Context Grammar defines 8 tokens — dimensions like Intent, Physical State,
+            Cognitive Load, and Social Exposure — that capture these invisible human states and translate them into a
+            structured language AI can actually read. The result: AI that doesn't just respond to what you type, but
+            adapts to who you are and what you need, right now.</p>
+          <a href="context-grammar/grammar/index.html" class="intro-cta reveal d4">
+            Explore all 8 tokens in detail <span class="arrow">→</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     BRAIN
+     ═══════════════════════════════════════ -->
+  <section id="brain" class="sec">
+    <div class="sec-inner">
+      <div class="brain-layout">
+
+        <img class="brain-img reveal" src="brain-explainer/images/brain-3-layers.png"
+          alt="Brain — 3-layer memory structure: Identity, Accumulated Learning, Right Now" loading="lazy">
+
+        <div>
+          <p class="sec-label reveal">Context Grammar — Brain</p>
+          <h2 class="sec-title reveal d1">The memory that makes<br><em>context</em> possible.</h2>
+          <p class="sec-sub reveal d2">Tokens read your situation right now. Brain is what makes that situation
+            meaningful. A 3-layer memory structure that knows who you are, what you've learned together, and what's
+            happening this moment.</p>
+
+          <div class="brain-layers reveal d3">
+            <div class="brain-layer">
+              <div class="brain-layer-num">01</div>
+              <div class="brain-layer-content">
+                <div class="brain-layer-name">
+                  <span class="layer-dot layer-dot--identity"></span>
+                  Identity
+                </div>
+                <p class="brain-layer-desc">The stable foundation. Family structure, dietary restrictions, values,
+                  cultural context. This layer rarely changes — it's who you are, not what you're doing.</p>
+              </div>
+            </div>
+            <div class="brain-layer">
+              <div class="brain-layer-num">02</div>
+              <div class="brain-layer-content">
+                <div class="brain-layer-name">
+                  <span class="layer-dot layer-dot--learned"></span>
+                  Accumulated Learning
+                </div>
+                <p class="brain-layer-desc">Grows through repeated interactions. Shopping patterns, schedule rhythms,
+                  taste preferences, tradeoff habits. What a great assistant learns over months of working together.</p>
+              </div>
+            </div>
+            <div class="brain-layer">
+              <div class="brain-layer-num">03</div>
+              <div class="brain-layer-content">
+                <div class="brain-layer-name">
+                  <span class="layer-dot layer-dot--now"></span>
+                  Right Now
+                </div>
+                <p class="brain-layer-desc">Ephemeral and real-time. Current location, active devices, recent activity.
+                  This layer is alive — it updates every minute and disappears when the moment passes.</p>
+              </div>
+            </div>
+          </div>
+
+          <a href="context-grammar/brain/index.html" class="brain-cta reveal d4">
+            Explore Brain in detail <span class="arrow">→</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     CONTEXT GRAMMAR QUICK GUIDE
+     ═══════════════════════════════════════ -->
+  <section class="sec" id="quick-guide">
+    <div class="sec-inner">
+      <p class="sec-label label-grammar reveal">Quick Guide</p>
+      <h2 class="sec-title reveal d1">Explore Context Grammar</h2>
+      <p class="sec-sub reveal d2">Five chapters that explain the full design language — from the problem it solves to machine-readable specs.</p>
+
+      <div class="toc-grid" style="max-width:100%;margin-top:48px;">
+        <a href="context-grammar/index.html" class="toc-card reveal d2">
+          <img src="context-grammar/images/ISO-GREEN/IF-01-overview.png" alt="Context Grammar overview diagram" class="toc-card-thumb" loading="lazy">
+          <div class="toc-card-body">
+            <h3 class="toc-card-title">Introduction</h3>
+            <p class="toc-card-desc">The problem no one named — why AI needs a design language for human context. Start here for the full architecture.</p>
+            <span class="toc-card-tag toc-card-tag--everyone">For everyone</span>
+          </div>
+        </a>
+
+        <a href="context-grammar/grammar/index.html" class="toc-card reveal d3">
+          <img src="context-grammar/images/ISO-GREEN/IF-04.8tokens.png" alt="8 Context Tokens" class="toc-card-thumb" loading="lazy">
+          <div class="toc-card-body">
+            <h3 class="toc-card-title">Grammar — 8 Context Tokens</h3>
+            <p class="toc-card-desc">8 measurable dimensions of human state — from physical motion to social exposure — that teach AI to read the room.</p>
+            <span class="toc-card-tag toc-card-tag--designers">For designers</span>
+          </div>
+        </a>
+
+        <a href="context-grammar/brain/index.html" class="toc-card reveal d3">
+          <img src="context-grammar/images/ISO-GREEN/IF-05-brain3layers.png" alt="Context Brain 3 layers" class="toc-card-thumb" loading="lazy">
+          <div class="toc-card-body">
+            <h3 class="toc-card-title">Context Brain — Memory Architecture</h3>
+            <p class="toc-card-desc">Three layers of AI memory — Identity, Learning, Right Now. Plus Disposable Brain and multi-agent orchestration.</p>
+            <span class="toc-card-tag toc-card-tag--everyone">For everyone</span>
+          </div>
+        </a>
+
+        <a href="context-grammar/trust-design/index.html" class="toc-card reveal d4">
+          <img src="context-grammar/images/ISO-GREEN/Trust-01.png" alt="Trust design" class="toc-card-thumb" loading="lazy">
+          <div class="toc-card-body">
+            <h3 class="toc-card-title">Trust Design — Disclosure &amp; Autonomy</h3>
+            <p class="toc-card-desc">How trust builds over 6 months — two dials, dynamic friction, temporal arc, and 6 principles of trust design.</p>
+            <span class="toc-card-tag toc-card-tag--designers">For designers</span>
+          </div>
+        </a>
+
+        <a href="context-grammar/specs/index.html" class="toc-card reveal d4">
+          <img src="context-grammar/images/ISO-GREEN/IF_Specs_02_Tokens_Brains_Rules.png" alt="Specs YAML files" class="toc-card-thumb" loading="lazy">
+          <div class="toc-card-body">
+            <h3 class="toc-card-title">Specs — Open Specification</h3>
+            <p class="toc-card-desc">YAML schemas, JSON structures, and 33 design rules — ready for agent frameworks and AI systems.</p>
+            <span class="toc-card-tag toc-card-tag--engineers">For engineers</span>
+          </div>
+        </a>
+
+        <a href="ax-patterns/index.html" class="toc-card reveal d5">
+          <img src="context-grammar/images/ISO-GREEN/IF-08-3directions.png" alt="AX Pattern Library" class="toc-card-thumb" loading="lazy">
+          <div class="toc-card-body">
+            <h3 class="toc-card-title">AX Patterns — 23 Interaction Patterns</h3>
+            <p class="toc-card-desc">Reusable design patterns for delegation, escalation, and adaptation — the building blocks of agent experience.</p>
+            <span class="toc-card-tag toc-card-tag--designers">For designers</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
      APPLIED — CASE STUDIES
      ═══════════════════════════════════════ -->
-<section id="applied" class="sec">
-  <div class="sec-inner">
-    <p class="sec-label reveal">Projects</p>
-    <h2 class="sec-title reveal d1">Context Grammar<br>in action.</h2>
-    <p class="sec-sub reveal d2">Each project applies the framework to a real scenario — not mockups, but working prototypes that show how 8 tokens change the way AI behaves.</p>
+  <section id="applied" class="sec">
+    <div class="sec-inner">
+      <p class="sec-label reveal">Projects</p>
+      <h2 class="sec-title reveal d1">Context Grammar<br>in action.</h2>
+      <p class="sec-sub reveal d2">Each project applies the framework to a real scenario — not mockups, but working
+        prototypes that show how 8 tokens change the way AI behaves.</p>
 
-    <div class="cs-grid">
-      <a href="applied/index.html#project-01" class="cs-card reveal d2">
-        <div class="cs-card-img-placeholder">Project 01</div>
-        <div class="cs-card-body">
-          <p class="cs-card-label">The Living Home</p>
-          <h3 class="cs-card-title">Samsung Ecosystem × Longitudinal Trust × Multi-Person Orchestration</h3>
-          <p class="cs-card-desc">Priority Weight, Synchro Rate, Feasibility tokens work together to orchestrate connected devices across a home ecosystem with multi-person awareness.</p>
-        </div>
-      </a>
-      <a href="applied/index.html#project-02" class="cs-card reveal d3">
-        <div class="cs-card-img-placeholder">Project 02</div>
-        <div class="cs-card-body">
-          <p class="cs-card-label">The Family Trip</p>
-          <h3 class="cs-card-title">Multi-Phase Living Project × Crisis Management × Post-Trip Synthesis</h3>
-          <p class="cs-card-desc">Intent, Feasibility, and Form Factor tokens navigate the complexity of multi-phase family activities with adaptive crisis management and synthesis.</p>
-        </div>
-      </a>
-      <a href="applied/index.html#project-03" class="cs-card reveal d4">
-        <div class="cs-card-img-placeholder">Project 03</div>
-        <div class="cs-card-body">
-          <p class="cs-card-label">Fluid Handoff & Shared Arbitration</p>
-          <h3 class="cs-card-title">Intent Translation & Form Factor Transformation</h3>
-          <p class="cs-card-desc">Physical, Social Exposure, and Form Factor tokens enable seamless handoff between devices and contexts while maintaining intent clarity and shared decision-making.</p>
-        </div>
-      </a>
+      <div class="cs-grid">
+        <a href="projects/project-01/p1-growing-family.html" class="cs-card reveal d2">
+          <div class="cs-card-img-placeholder"
+            style="background-image: url('projects/project-01/image-set02/IP-01_hero-fridge-v2.jpg');">Project 01</div>
+          <div class="cs-card-body">
+            <p class="cs-card-label">The Living Home</p>
+            <h3 class="cs-card-title">Intent Decomposition × Context Grammar × Family Orchestration</h3>
+            <p class="cs-card-desc">A family AI that learns who eats what, when to suggest, and when to just do it. From
+              Day 1 onboarding to Month 6 autonomy.</p>
+          </div>
+        </a>
+        <a href="projects/project-02/p2-family-trip.html" class="cs-card reveal d3">
+          <div class="cs-card-img-placeholder"
+            style="background-image: url('projects/project-02/image-set02/P2_FamilyTrip/P2-IP01_hero-rain-temple-v2.jpg');">
+            Project 02</div>
+          <div class="cs-card-body">
+            <p class="cs-card-label">The Family Trip</p>
+            <h3 class="cs-card-title">Intent Decomposition × Context Grammar × Disposable Interface</h3>
+            <p class="cs-card-desc">A disposable trip interface born from a single declaration, adapting to rain, fever,
+              and family votes across 5 phases.</p>
+          </div>
+        </a>
+        <a href="projects/project-03/p3-fluid-handoff-v3.html" class="cs-card reveal d4">
+          <div class="cs-card-img-placeholder"
+            style="background-image: url('projects/project-03/image-set03/generated/IP-01_hero-train-swipe-v2.jpg');">
+            Project 03</div>
+          <div class="cs-card-body">
+            <p class="cs-card-label">Fluid Handoff</p>
+            <h3 class="cs-card-title">Intent Translation × Form Factor Transformation × Shared Arbitration</h3>
+            <p class="cs-card-desc">A parent-child shoe shopping experience that translates intent across phone, TV, and
+              store — with the child as the decision maker.</p>
+          </div>
+        </a>
+        <a href="projects/project-04/p4-sales-floor.html" class="cs-card reveal d5">
+          <div class="cs-card-img-placeholder"
+            style="background: linear-gradient(135deg, #1a1816 0%, #2a2520 50%, #3a3530 100%); color: rgba(240,236,228,0.5);">
+            Project 04</div>
+          <div class="cs-card-body">
+            <p class="cs-card-label">The Claims Floor</p>
+            <h3 class="cs-card-title">Multi-Agent Dashboard × Social-Aware Filtering × Temporal Arc</h3>
+            <p class="cs-card-desc">Elena in Manhattan, 148 hurricane claims. Four AI agents orchestrated into a control
+              tower for insurance at scale.</p>
+          </div>
+        </a>
+        <a href="projects/project-05/p5-control-tower.html" class="cs-card reveal d6">
+          <div class="cs-card-img-placeholder"
+            style="background-image: url('projects/project-05/images/p5-hero-control-tower.jpg');">Project 05</div>
+          <div class="cs-card-body">
+            <p class="cs-card-label">The Field</p>
+            <h3 class="cs-card-title">Voice Mode × Care Architecture × Context-Aware Mode Switching</h3>
+            <p class="cs-card-desc">Marcos in San Francisco, 6 post-earthquake site visits. Three background AIs and
+              Voice Work Mode for hands-free field assessment.</p>
+          </div>
+        </a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      JOURNAL
      ═══════════════════════════════════════ -->
-<section id="journal" class="sec">
-  <div class="sec-inner">
-    <p class="sec-label reveal">Essays</p>
-    <h2 class="sec-title reveal d1">Latest thinking.</h2>
-    <p class="sec-sub reveal d2">Essays on Context Grammar, the intent-first future, and what changes when AI finally understands human context.</p>
+  <section id="journal" class="sec">
+    <div class="sec-inner">
+      <p class="sec-label reveal">Essays</p>
+      <h2 class="sec-title reveal d1">Latest thinking.</h2>
+      <p class="sec-sub reveal d2">Essays on Context Grammar, the intent-first future, and what changes when AI finally
+        understands human context.</p>
 
-    <div id="journal-feed" class="journal-grid">
-      <p style="color:var(--text-3);font-size:14px;font-weight:300;">Loading...</p>
+      <div id="journal-feed" class="journal-grid">
+        <p style="color:var(--text-3);font-size:14px;font-weight:300;">Loading...</p>
+      </div>
+
+      <div class="journal-subscribe reveal d5">
+        <a href="journal/index.html">Read all essays →</a>
+      </div>
     </div>
+  </section>
 
-    <div class="journal-subscribe reveal d5">
-      <a href="journal/index.html">Read all essays →</a>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      CTA
      ═══════════════════════════════════════ -->
-<section id="cta" class="sec">
-  <div class="sec-inner">
-    <h2 class="cta-title reveal">Context Grammar is open.<br>Build with it.</h2>
-    <p class="cta-sub reveal d1">Explore the framework, read the research, or reach out to discuss how Context Grammar applies to your product.</p>
-    <div class="cta-buttons reveal d2">
-      <a href="context-grammar/index.html" class="btn btn-primary">Explore the Tokens</a>
-      <a href="mailto:takaoumehara@gmail.com" class="btn btn-outline" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.12);">Get in Touch</a>
+  <section id="cta" class="sec">
+    <div class="sec-inner">
+      <h2 class="cta-title reveal">Context Grammar is open.<br>Build with it.</h2>
+      <p class="cta-sub reveal d1">Explore the framework, read the research, or reach out to discuss how Context Grammar
+        applies to your product.</p>
+      <div class="cta-buttons reveal d2">
+        <a href="context-grammar/grammar/index.html" class="btn btn-primary">Explore the Tokens</a>
+        <a href="mailto:takaoumehara@gmail.com" class="btn btn-outline"
+          style="color:rgba(240,236,228,0.5);border-color:rgba(240,236,228,0.12);">Get in Touch</a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ FOOTER ═══ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <img src="assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
-    <span>&copy; 2025 Creativity is Everywhere, LLC. All rights reserved.</span>
-    <div class="footer-links">
-      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
-      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
-      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <img src="assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+      <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+        <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+        <a href="mailto:takaoumehara@gmail.com">Contact</a>
+      </div>
     </div>
-  </div>
-</footer>
+  </footer>
 
-<!-- ═══ SCRIPTS ═══ -->
-<script>
-// Scroll reveal
-const io = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
-  });
-}, { threshold: 0.08 });
-document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  <!-- ═══ SCRIPTS ═══ -->
+  <script>
+    // Scroll reveal
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// Nav style on scroll
-const nav = document.getElementById('nav');
-const hero = document.getElementById('hero');
-new IntersectionObserver(([e]) => {
-  nav.classList.toggle('scrolled', !e.isIntersecting);
-}, { threshold: 0.05 }).observe(hero);
+    // Subtle parallax on hero background
+    const heroBg = document.querySelector('.hero-bg');
+    if (heroBg) {
+      document.addEventListener('mousemove', (e) => {
+        const cx = (e.clientX / window.innerWidth - 0.5) * 2;
+        const cy = (e.clientY / window.innerHeight - 0.5) * 2;
+        heroBg.style.transform = `translate(${cx * -8}px, ${cy * -8}px) scale(1.05)`;
+      });
+    }
 
-// Subtle parallax on hero background
-const heroBg = document.querySelector('.hero-bg');
-if (heroBg) {
-  document.addEventListener('mousemove', (e) => {
-    const cx = (e.clientX / window.innerWidth - 0.5) * 2;
-    const cy = (e.clientY / window.innerHeight - 0.5) * 2;
-    heroBg.style.transform = `translate(${cx * -8}px, ${cy * -8}px) scale(1.05)`;
-  });
-}
-
-// ─── RSS Feed for Journal section ───
-(async function() {
-  const el = document.getElementById('journal-feed');
-  if (!el) return;
-  try {
-    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fintentfirst.substack.com%2Ffeed');
-    const d = await r.json();
-    const items = (d.items || []).slice(0, 3);
-    if (!items.length) throw new Error('empty');
-    el.innerHTML = items.map((item, i) => {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = item.description || '';
-      const exc = tmp.textContent.slice(0, 120);
-      const date = new Date(item.pubDate);
-      const ds = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const imgUrl = item.thumbnail || (item.content && (item.content.match(/<img[^>]+src="([^"]+)"/) || [])[1]) || '';
-      const imgHTML = imgUrl ? `<img src="${imgUrl}" alt="" class="journal-card-img" loading="lazy">` : '';
-      return `<a href="${item.link}" target="_blank" class="journal-card reveal d${i+2}">
+    // ─── RSS Feed for Journal section ───
+    (async function () {
+      const el = document.getElementById('journal-feed');
+      if (!el) return;
+      try {
+        const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fintentfirst.substack.com%2Ffeed');
+        const d = await r.json();
+        const items = (d.items || []).slice(0, 3);
+        if (!items.length) throw new Error('empty');
+        el.innerHTML = items.map((item, i) => {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = item.description || '';
+          const exc = tmp.textContent.slice(0, 120);
+          const date = new Date(item.pubDate);
+          const ds = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const imgUrl = item.thumbnail || (item.content && (item.content.match(/<img[^>]+src="([^"]+)"/) || [])[1]) || '';
+          const imgHTML = imgUrl ? `<img src="${imgUrl}" alt="" class="journal-card-img" loading="lazy">` : '';
+          return `<a href="${item.link}" target="_blank" class="journal-card reveal d${i + 2}">
         ${imgHTML}
         <div class="journal-card-body">
           <p class="journal-card-date">${ds}</p>
@@ -730,17 +1197,22 @@ if (heroBg) {
           <p class="journal-card-excerpt">${exc}</p>
         </div>
       </a>`;
-    }).join('');
-    el.querySelectorAll('.reveal').forEach(c => io.observe(c));
-  } catch(e) {
-    el.innerHTML = `<a href="https://intentfirst.substack.com" target="_blank" class="journal-card">
+        }).join('');
+        el.querySelectorAll('.reveal').forEach(c => io.observe(c));
+      } catch (e) {
+        el.innerHTML = `<a href="https://intentfirst.substack.com" target="_blank" class="journal-card">
       <p class="journal-card-date">Latest</p>
       <h3 class="journal-card-title">Read on Substack</h3>
       <p class="journal-card-excerpt">Essays on Context Grammar, intent-first design, and what changes when AI understands human context.</p>
     </a>`;
-  }
-})();
-</script>
+      }
+    })();
+
+  </script>
+
+  <script src="assets/js/nav.js"></script>
+  <script>initNav({ basePath: '', activePage: 'home', lang: 'en' });</script>
 
 </body>
+
 </html>
