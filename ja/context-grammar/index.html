@@ -3,1269 +3,643 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Context Grammar — Intent + 7 Context Tokens</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@100;200;300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@100;200;300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Context Grammar — エージェンティックAIのためのデザイン言語</title>
+<meta name="description" content="Context Grammar は、人間の状態をAIが読み取るための構造化された言語である。8つのトークン。ひとつのGrammar。エージェンティック時代の新しいデザインレイヤー。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root {
-  --bg: #ffffff;
-  --bg-cool: #f4f4f2;
-  --bg-dark: #08080a;
-  --text: #18181b;
-  --text-2: #52525b;
-  --text-3: #a1a1aa;
-  --border: #e4e4e7;
-  --accent: #2563eb;
-  --accent-light: #dbeafe;
-  --accent-2: #3b82f6;
-  --amber: #d97706;
-  --amber-light: #fef3c7;
-  --green: #059669;
-  --green-light: #d1fae5;
-  --font: 'Google Sans', 'Google Sans Text', 'Noto Sans JP', -apple-system, sans-serif;
-  --mono: 'DM Mono', monospace;
-  --max-w: min(1200px, 88vw);
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-html { scroll-behavior: smooth; background: var(--bg); color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; font-size: clamp(15px, 1.05vw, 18px); }
-body { overflow-x: hidden; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
-
-.reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.d1 { transition-delay: 0.08s; } .d2 { transition-delay: 0.16s; } .d3 { transition-delay: 0.24s; }
-.d4 { transition-delay: 0.32s; } .d5 { transition-delay: 0.4s; } .d6 { transition-delay: 0.48s; } .d7 { transition-delay: 0.56s; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
-
-/* ═══ NAV ═══ */
-.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom: 1px solid transparent; display: flex; align-items: center; justify-content: center; transition: background 0.4s ease, border-color 0.3s ease, backdrop-filter 0.4s ease; }
-.nav.scrolled { background: rgba(255,255,255,0.92); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-bottom-color: rgba(0,0,0,0.06); }
-.nav-inner { width: var(--max-w); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(24px, 4vw, 48px); }
-.nav-logo { text-decoration: none; } .nav-logo-img { height: 22px; }
-.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
-.nav-links a { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.4s ease; }
-.nav-links a:hover { color: #fff; }
-.nav-links a[href="index.html"] { color: #fff; font-weight: 500; }
-.nav.scrolled .nav-links a { color: var(--text-3); }
-.nav.scrolled .nav-links a:hover { color: var(--accent); }
-.nav.scrolled .nav-links a[href="index.html"] { color: var(--text); }
-.nav-logo-img { transition: filter 0.4s ease; }
-.nav:not(.scrolled) .nav-logo-img { filter: brightness(0) invert(1); }
-@media (max-width: 768px) { .nav-links a:not(.nav-cta) { display: none; } }
-
-/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
-.lang-switch {
-  position: fixed;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-left: none;
-  border-radius: 0 10px 10px 0;
-  padding: 6px 8px;
-  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
-}
-.lang-switch a {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-decoration: none;
-  color: var(--text-3);
-  padding: 8px 6px;
-  transition: color 0.3s var(--ease);
-  line-height: 1;
-}
-.lang-switch a:hover { color: var(--accent); }
-.lang-switch a.active {
-  color: var(--text);
-  font-weight: 700;
-}
-.lang-switch-divider {
-  width: 16px;
-  height: 1px;
-  background: var(--border);
-}
-@media (max-width: 768px) {
-  .lang-switch {
-    top: auto;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    flex-direction: row;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px 10px;
-    gap: 0;
-  }
-  .lang-switch-divider {
-    width: 1px;
-    height: 14px;
-  }
-}
 
 /* ═══ COMMON ═══ */
-.sec { padding: clamp(72px, 10vw, 120px) clamp(24px, 4vw, 48px); }
-.sec-inner { max-width: var(--max-w); margin: 0 auto; }
-.sec-label { font-family: var(--mono); font-size: clamp(12px, 1vw, 14px); letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
-.sec-title { font-weight: 200; font-size: clamp(28px, 3.2vw, 48px); line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 14px; }
-.sec-title em { font-style: normal; color: var(--accent); }
-.sec-desc { font-size: clamp(15px, 1.15vw, 18px); font-weight: 350; color: var(--text); line-height: 1.75; max-width: 620px; }
-
-/* ═══ HERO ═══ */
-#hero { background: var(--bg-dark); color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: clamp(80px, 10vw, 120px) clamp(24px, 4vw, 48px); position: relative; overflow: hidden; }
-#hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(37,99,235,0.06), transparent); pointer-events: none; }
-.hero-label { font-family: var(--mono); font-size: clamp(11px, 0.9vw, 14px); letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
-.hero-title { font-weight: 200; font-size: clamp(36px, 5.5vw, 76px); line-height: 1.05; letter-spacing: -3px; margin-bottom: 28px; opacity: 0; animation: fadeUp 0.8s 0.5s forwards; max-width: 900px; }
-.hero-title em { font-style: normal; color: var(--accent); }
-.hero-illust { width: 100%; max-width: 640px; margin: 0 auto 32px; border-radius: 14px; overflow: hidden; opacity: 0; animation: fadeUp 0.8s 0.7s forwards; }
-.hero-illust img { width: 100%; height: auto; display: block; }
-.hero-sub { font-size: clamp(15px, 1.2vw, 19px); font-weight: 300; color: rgba(255,255,255,0.45); max-width: 540px; line-height: 1.75; margin: 0 auto 48px; opacity: 0; animation: fadeUp 0.8s 0.9s forwards; }
-.scroll-cue { display: inline-flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,0.2); font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0; animation: fadeUp 0.8s 1.2s forwards; }
-.scroll-cue-line { width: 1px; height: 40px; background: linear-gradient(to bottom, rgba(255,255,255,0.25), transparent); animation: bob 2.8s 2s ease-in-out infinite; }
-
-/* ═══ SEC 1: EVERY DAY — universal empathy ═══ */
-#everyday { background: var(--bg); }
-.everyday-lead { font-size: clamp(16px, 1.3vw, 20px); font-weight: 350; color: var(--text); line-height: 1.75; max-width: 680px; margin-bottom: 48px; }
-
-/* App grid + scenario layout */
-.scenario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 48px); margin-top: 40px; align-items: start; }
-@media (max-width: 900px) { .scenario-grid { grid-template-columns: 1fr; gap: 32px; } }
-
-/* App grid — left column */
-.app-grid-wrapper { display: flex; flex-direction: column; gap: 16px; }
-.app-grid-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.app-grid-tab { font-family: var(--mono); font-size: clamp(11px, 0.85vw, 13px); padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border); background: var(--bg-cool); color: var(--text-2); cursor: pointer; transition: all 0.3s var(--ease); font-weight: 500; }
-.app-grid-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.app-grid-tab:hover { border-color: var(--accent); color: var(--accent); }
-
-.app-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: clamp(8px, 1.2vw, 16px); }
-@media (max-width: 800px) { .app-grid { grid-template-columns: repeat(4, 1fr); } }
-
-.app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 12px; transition: all 0.3s var(--ease); cursor: pointer; }
-.app-icon img { width: 48px; height: 48px; border-radius: 10px; transition: all 0.3s var(--ease); }
-.app-icon.inactive img { filter: grayscale(1); opacity: 0.3; }
-.app-icon.inactive .app-icon-label { opacity: 0.4; }
-.app-icon.active img { transform: scale(1.08); }
-.app-icon-label { font-size: clamp(7px, 0.65vw, 9px); color: var(--text-2); text-align: center; line-height: 1.2; font-weight: 400; max-width: 56px; }
-
-/* Scenario content — right column */
-.scenario-content { display: flex; flex-direction: column; gap: 24px; position: relative; }
-.scenario-card { background: var(--bg-cool); border: 1px solid var(--border); border-radius: 16px; padding: clamp(24px, 2.5vw, 32px); display: none; flex-direction: column; gap: 16px; opacity: 0; transform: translateY(12px); transition: opacity 0.4s var(--ease), transform 0.4s var(--ease); }
-.scenario-card.active { display: flex; opacity: 1; transform: translateY(0); }
-.sc-card-persona { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); }
-.sc-card-title { font-size: clamp(18px, 1.5vw, 24px); font-weight: 300; letter-spacing: -0.5px; line-height: 1.25; }
-.sc-card-steps { display: flex; flex-direction: column; gap: 0; }
-.sc-card-step { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: clamp(13px, 0.95vw, 15px); font-weight: 350; color: var(--text); line-height: 1.5; }
-.sc-card-step:last-child { border-bottom: none; }
-.sc-card-step .sc-step-icon { font-size: 14px; flex-shrink: 0; width: 20px; text-align: center; margin-top: 1px; }
-.sc-card-bottom { display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-.sc-card-count { font-family: var(--mono); font-size: clamp(24px, 2.5vw, 36px); font-weight: 200; color: var(--accent); letter-spacing: -1px; line-height: 1; }
-.sc-card-count-label { font-size: clamp(12px, 0.9vw, 14px); font-weight: 300; color: var(--text-3); }
-
-/* ═══ SEC 2: ALWAYS MOVING — context changes ═══ */
-#moving { background: var(--bg-cool); }
-.timeline-wrap { margin-top: 48px; overflow: hidden; }
-.timeline { display: flex; gap: 0; position: relative; padding-bottom: 20px; }
-.timeline::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--border); }
-.tl-node { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; position: relative; min-width: 0; }
-.tl-node::after { content: ''; position: absolute; bottom: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg-cool); border: 2px solid var(--accent); z-index: 1; }
-.tl-icon { font-size: clamp(20px, 2.2vw, 28px); }
-.tl-time { font-family: var(--mono); font-size: clamp(9px, 0.7vw, 11px); color: var(--text-3); letter-spacing: 0.5px; }
-.tl-label { font-size: clamp(12px, 0.9vw, 14px); font-weight: 400; color: var(--text); line-height: 1.3; }
-.tl-context { font-family: var(--mono); font-size: clamp(10px, 0.8vw, 12px); color: var(--accent); padding: 2px 8px; background: var(--accent-light); border-radius: 6px; white-space: nowrap; font-weight: 500; }
-@media (max-width: 800px) {
-  .timeline { flex-direction: column; gap: 24px; padding-bottom: 0; padding-left: 20px; }
-  .timeline::before { width: 2px; height: 100%; top: 0; bottom: auto; left: 0; right: auto; }
-  .tl-node { flex-direction: row; text-align: left; gap: 14px; }
-  .tl-node::after { left: -25px; bottom: auto; top: 50%; transform: translateY(-50%); }
+.sec {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
 }
-.moving-kicker { font-size: clamp(18px, 1.8vw, 28px); font-weight: 200; color: var(--text); letter-spacing: -0.5px; line-height: 1.4; max-width: 640px; margin-top: 48px; }
-.moving-kicker em { font-style: normal; color: var(--accent); font-weight: 300; }
+.sec-inner {
+  max-width: var(--max-w); margin: 0 auto;
+}
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
 
-/* ═══ SEC 3: ZOOM IN — one moment ═══ */
-#zoomin { background: var(--bg); }
-.zoom-scene { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-top: 40px; text-align: left; }
-@media (max-width: 800px) { .zoom-scene { grid-template-columns: 1fr; } }
-.zoom-scene-img { border-radius: 16px; overflow: hidden; aspect-ratio: 16/9; background: var(--bg-cool); }
-.zoom-scene-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.zoom-scene-body { display: flex; flex-direction: column; gap: 16px; }
-.zoom-situation { font-size: clamp(15px, 1.15vw, 18px); font-weight: 350; color: var(--text); line-height: 1.65; }
-.zoom-quote { font-size: clamp(22px, 2.5vw, 36px); font-weight: 200; letter-spacing: -1px; line-height: 1.2; color: var(--text); }
-.zoom-pain-list { display: flex; flex-direction: column; gap: 0; margin-top: 32px; }
-.zoom-pain { display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--border); }
-.zoom-pain:last-child { border-bottom: none; }
-.zoom-pain-icon { font-size: 18px; flex-shrink: 0; width: 28px; margin-top: 2px; }
-.zoom-pain-text { font-size: clamp(14px, 1.1vw, 17px); font-weight: 350; color: var(--text); line-height: 1.6; }
-.zoom-pain-text strong { font-weight: 500; color: var(--text); }
+/* ═══════════════════════════════════════
+   HERO
+   ═══════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  background: #08070b;
+  color: #f0ece4;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(100px, 14vh, 160px) clamp(24px, 4vw, 48px) clamp(60px, 8vh, 100px);
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 38%, rgba(74,106,144,0.07), transparent 70%),
+              radial-gradient(ellipse 50% 40% at 30% 60%, rgba(106,74,144,0.04), transparent 60%);
+  pointer-events: none;
+}
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.9vw, 14px);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(240,236,228,0.3);
+  margin-bottom: 36px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+  position: relative;
+}
+.hero-title {
+  font-weight: 500;
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1.15;
+  letter-spacing: -2px;
+  margin-bottom: 32px;
+  max-width: 820px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+  position: relative;
+}
+.hero-sub {
+  font-size: clamp(15px, 1.15vw, 19px);
+  font-weight: 300;
+  color: rgba(240,236,228,0.5);
+  max-width: 600px;
+  line-height: 1.9;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+  position: relative;
+}
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  animation: fadeUp 0.8s 1s forwards;
+}
+.hero-scroll-hint span {
+  display: block;
+  width: 1px;
+  height: 40px;
+  background: rgba(240,236,228,0.15);
+  margin: 0 auto;
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { transform: scaleY(1); opacity: 0.3; }
+  50% { transform: scaleY(1.4); opacity: 0.6; }
+}
 
-/* ═══ STICKY ERA HEADER ═══ */
-.era-sticky { position: sticky; top: 0; z-index: 90; pointer-events: none; opacity: 0; transition: opacity 0.4s ease; }
-.era-sticky.visible { opacity: 1; }
-.era-sticky-inner { max-width: var(--max-w); margin: 0 auto; padding: 20px clamp(24px, 6vw, 80px); }
-.era-sticky-label { font-family: var(--mono); font-size: clamp(11px, 0.85vw, 13px); letter-spacing: 3px; text-transform: uppercase; font-weight: 600; color: var(--text-3); transition: all 0.5s ease; display: inline-block; padding: 6px 16px; border-radius: 100px; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-.era-sticky-label.future { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.2); color: var(--accent); }
+/* ═══════════════════════════════════════
+   PROBLEM SECTION
+   ═══════════════════════════════════════ */
+.problem { background: var(--bg); }
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  margin-top: 48px;
+}
+.problem-step {
+  position: relative;
+}
+.problem-step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--color-grammar);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.problem-step h3 {
+  font-weight: 500;
+  font-size: clamp(18px, 1.5vw, 22px);
+  letter-spacing: -0.5px;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+.problem-step p {
+  font-size: clamp(15px, 1.05vw, 17px);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.85;
+}
+.problem-pullquote {
+  margin-top: 56px;
+  padding: 32px 0 32px 28px;
+  border-left: 2px solid var(--color-grammar);
+  border-radius: 0;
+  font-weight: 500;
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1.45;
+  letter-spacing: -0.8px;
+  max-width: 700px;
+}
+@media (max-width: 768px) {
+  .problem-grid { grid-template-columns: 1fr; gap: 36px; }
+}
 
-/* ═══ ERA SHIFT — DRAMATIC TRANSITION ═══ */
-.era-shift { background: var(--bg-dark, #08080a); padding: clamp(80px, 10vw, 160px) clamp(24px, 6vw, 80px); text-align: center; position: relative; overflow: hidden; }
-.era-shift::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to bottom, var(--bg), var(--bg-dark, #08080a)); pointer-events: none; }
-.era-shift::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to top, var(--bg-cool), var(--bg-dark, #08080a)); pointer-events: none; }
-.era-shift-inner { max-width: 680px; margin: 0 auto; position: relative; z-index: 1; }
-.era-shift-fade { margin-bottom: clamp(40px, 5vw, 72px); }
-.era-shift-badge { font-family: var(--mono); font-size: clamp(11px, 0.9vw, 13px); letter-spacing: 4px; text-transform: uppercase; font-weight: 600; color: #636366; margin-bottom: 20px; }
-.era-shift-badge.accent { color: var(--accent); }
-.era-shift-headline { font-size: clamp(32px, 4.5vw, 64px); font-weight: 200; letter-spacing: -2px; line-height: 1.1; color: rgba(255,255,255,0.35); margin-bottom: 16px; }
-.era-shift-headline.bright { color: #fff; }
-.era-shift-sub { font-size: clamp(15px, 1.15vw, 18px); font-weight: 300; line-height: 1.65; color: rgba(255,255,255,0.2); max-width: 480px; margin: 0 auto; }
-.era-shift-sub.bright { color: rgba(255,255,255,0.6); }
-.era-shift-divider { display: flex; align-items: center; justify-content: center; gap: 24px; margin: clamp(32px, 4vw, 56px) auto; max-width: 320px; }
-.era-shift-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); }
-.era-shift-arrow { color: var(--accent); flex-shrink: 0; animation: eraArrowBounce 2.5s ease-in-out infinite; }
-@keyframes eraArrowBounce { 0%,100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(8px); opacity: 1; } }
-.era-shift-glow { margin-top: clamp(40px, 5vw, 72px); }
+/* ═══════════════════════════════════════
+   ARCHITECTURE SECTION
+   ═══════════════════════════════════════ */
+.architecture { background: var(--bg-2); }
 
-/* ═══ SEC 4: NEAR FUTURE ═══ */
-#future { background: var(--bg-cool); overflow: hidden; }
-.pain-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.pain-stat { text-align: center; background: var(--bg); border-radius: 12px; padding: 20px 12px; border: 1px solid var(--border); }
-.ps-num { font-weight: 200; font-size: clamp(32px, 3.5vw, 48px); letter-spacing: -1.5px; line-height: 1; }
-.ps-label { font-size: clamp(12px, 0.9vw, 14px); color: var(--text-2); margin-top: 8px; line-height: 1.3; font-weight: 300; }
+.pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 48px 0 56px;
+  flex-wrap: wrap;
+}
+.pipeline-node {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  padding: 20px 16px;
+  min-width: 120px;
+  flex: 1;
+  max-width: 200px;
+}
+.pipeline-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+.pipeline-icon--intent { color: var(--color-intent); }
+.pipeline-icon--tokens { color: var(--color-grammar); }
+.pipeline-icon--brain { color: var(--color-brain); }
+.pipeline-icon--rules { color: var(--color-label); }
+.pipeline-icon--response { color: var(--color-success); }
+.pipeline-name {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.pipeline-arrow {
+  font-size: 18px; color: var(--text-3); flex-shrink: 0;
+  margin: 0 -4px;
+  align-self: center;
+}
+@media (max-width: 768px) {
+  .pipeline { flex-direction: column; gap: 4px; }
+  .pipeline-arrow { transform: rotate(90deg); margin: -4px 0; }
+  .pipeline-node { max-width: none; flex: none; width: 100%; }
+}
 
-/* ═══ SEC 5: NEAR FUTURE — animated sequence ═══ */
-.sc-sequence { max-width: var(--max-w); margin: 48px auto 0; display: flex; flex-direction: column; align-items: center; gap: 0; }
+.arch-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 2vw, 24px);
+}
+.arch-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(24px, 2.5vw, 36px);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+.arch-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+}
+.arch-card-label {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.arch-card-label--intent { color: var(--color-intent); }
+.arch-card-label--tokens { color: var(--color-grammar); }
+.arch-card-label--brain { color: var(--color-brain); }
+.arch-card-label--rules { color: var(--color-label); }
+.arch-card-label--response { color: var(--color-success); }
+.arch-card h3 {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  letter-spacing: -0.3px;
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+.arch-card p {
+  font-size: clamp(15px, 1.05vw, 17px);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.arch-card-link {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 1px;
+  color: var(--color-grammar);
+  text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.arch-card-link:hover { color: var(--text); }
+.arch-card--wide {
+  grid-column: 1 / -1;
+}
+@media (max-width: 768px) {
+  .arch-cards { grid-template-columns: 1fr; }
+}
 
-/* Phase 1: Utterance + car image */
-.sc-phase { opacity: 0; transform: translateY(40px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); width: 100%; }
-.sc-phase.visible { opacity: 1; transform: translateY(0); }
+/* ═══════════════════════════════════════
+   PROJECTS SECTION
+   ═══════════════════════════════════════ */
+.projects { background: var(--bg); }
+.projects-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: 48px;
+}
+.project-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+  text-decoration: none;
+  color: inherit;
+  display: flex; flex-direction: column;
+}
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.05);
+}
+.project-card-img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: var(--bg-3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+.project-card-img::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(74,106,144,0.04), rgba(106,74,144,0.04));
+  pointer-events: none;
+}
+.project-card-body {
+  padding: clamp(20px, 2vw, 28px);
+  flex: 1;
+  display: flex; flex-direction: column;
+}
+.project-card-num {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--color-grammar);
+  margin-bottom: 8px;
+}
+.project-card-title {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.project-card-hook {
+  font-size: clamp(15px, 1.05vw, 16px);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.75;
+  flex: 1;
+}
+.project-card-cta {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 1px;
+  color: var(--color-grammar);
+  margin-top: 16px;
+}
+@media (max-width: 900px) {
+  .projects-grid { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; }
+}
 
-.sc-hero-row { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; width: 100%; }
-@media (max-width: 800px) { .sc-hero-row { grid-template-columns: 1fr; } }
-.sc-utterance-big { font-size: clamp(26px, 3vw, 44px); font-weight: 200; letter-spacing: -1px; line-height: 1.2; color: var(--text); }
-.sc-utterance-big .sc-quote { color: var(--accent); }
-.sc-car-img { border-radius: 16px; overflow: hidden; aspect-ratio: 16/9; background: var(--bg-cool); }
-.sc-car-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* ═══════════════════════════════════════
+   CTA SECTION
+   ═══════════════════════════════════════ */
+.cta {
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+  position: relative;
+  overflow: hidden;
+}
+.cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(74,106,144,0.05), transparent 70%);
+  pointer-events: none;
+}
+.cta-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  position: relative;
+}
+.cta-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+.cta-sub {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 300;
+  color: rgba(240,236,228,0.5);
+  max-width: 480px;
+  margin: 0 auto 40px;
+  line-height: 1.8;
+}
+.cta-buttons {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+}
+.cta-btn {
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 16px 32px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.3s var(--ease);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.cta-btn--primary {
+  background: #f0ece4; color: #08070b;
+}
+.cta-btn--primary:hover {
+  background: #fff; transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(240,236,228,0.1);
+}
+.cta-btn--secondary {
+  background: transparent; color: rgba(240,236,228,0.6);
+  border: 1px solid rgba(240,236,228,0.12);
+}
+.cta-btn--secondary:hover {
+  color: #f0ece4; border-color: rgba(240,236,228,0.3);
+  transform: translateY(-2px);
+}
 
-/* Connector line */
-.sc-connector { width: 2px; height: 48px; background: linear-gradient(to bottom, var(--accent), transparent); margin: 0 auto; opacity: 0; transition: opacity 0.6s 0.3s; }
-.sc-phase.visible + .sc-connector, .sc-connector.visible { opacity: 1; }
+/* ═══ FOOTER ═══ */
+.footer {
+  background: #08070b;
+  color: rgba(240,236,228,0.35);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(240,236,228,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(240,236,228,0.35); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
 
-/* Phase 2: Intent */
-.sc-intent-block { text-align: center; max-width: 700px; margin: 0 auto; }
-.sc-intent-label { font-family: var(--mono); font-size: clamp(10px, 0.8vw, 12px); letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-.sc-intent-text { font-size: clamp(22px, 2.5vw, 36px); font-weight: 200; letter-spacing: -0.5px; line-height: 1.3; }
-.sc-intent-text em { font-style: normal; color: var(--accent); font-weight: 300; }
-.sc-situation { font-size: clamp(14px, 1.1vw, 17px); font-weight: 350; color: var(--text); margin-top: 16px; }
+/* ═══ SELECTION ═══ */
+::selection { background: rgba(74,106,144,0.15); }
 
-/* Phase 3: Context questions — staggered lines */
-.sc-qs-wrap { width: 100%; max-width: 640px; margin: 0 auto; }
-.sc-qs-title { font-family: var(--mono); font-size: clamp(10px, 0.8vw, 12px); letter-spacing: 2px; text-transform: uppercase; color: var(--accent); text-align: center; margin-bottom: 20px; }
-.sc-q-line { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 8px; opacity: 0; transform: translateX(-20px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); }
-.sc-q-line.visible { opacity: 1; transform: translateX(0); }
-.sc-q-line .sc-q-num { font-family: var(--mono); font-size: 13px; color: var(--text-3); flex-shrink: 0; width: 24px; }
-.sc-q-line .sc-q-text { flex: 1; font-size: clamp(14px, 1.05vw, 17px); font-weight: 300; color: var(--text); }
-.sc-q-line .sc-q-dash { width: 20px; height: 2px; background: var(--accent); flex-shrink: 0; opacity: 0; transition: opacity 0.4s 0.15s, width 0.4s 0.15s; }
-.sc-q-line.visible .sc-q-dash { opacity: 1; }
-.sc-q-line .sc-q-val { font-family: var(--mono); font-size: clamp(12px, 0.9vw, 14px); color: var(--accent); font-weight: 500; flex-shrink: 0; opacity: 0; transform: translateX(-8px); transition: opacity 0.4s 0.3s, transform 0.4s 0.3s; }
-.sc-q-line.visible .sc-q-val { opacity: 1; transform: translateX(0); }
-
-/* Phase 4: System response */
-.sc-result, .sc-result-clean { max-width: 640px; margin: 0 auto; width: 100%; padding: 24px 28px; background: var(--bg); border-radius: 16px; border: 1px solid var(--border); }
-.sc-result-lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
-.sc-result-text { font-size: clamp(15px, 1.15vw, 18px); font-weight: 350; color: var(--text); line-height: 1.7; }
-
-/* ═══ BRIDGE ═══ */
-.bridge { text-align: center; padding: clamp(56px, 8vw, 100px) clamp(24px, 4vw, 48px); }
-.bridge-text { font-weight: 200; font-size: clamp(24px, 3vw, 42px); letter-spacing: -1px; line-height: 1.25; max-width: 640px; margin: 0 auto; }
-.bridge-text em { font-style: normal; color: var(--accent); }
-.bridge-sub { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-3); margin-top: 20px; }
-.bridge-explain { max-width: 660px; margin: 32px auto 0; text-align: center; }
-.bridge-lead { font-size: clamp(16px, 1.3vw, 20px); font-weight: 300; color: var(--text); line-height: 1.7; margin-bottom: 28px; }
-.bridge-hl { background: var(--accent-light); color: var(--accent); padding: 2px 8px; border-radius: 6px; font-weight: 400; }
-.bridge-formula { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
-.bridge-pill { font-family: var(--mono); font-size: clamp(12px, 1vw, 15px); font-weight: 500; padding: 10px 20px; border-radius: 100px; letter-spacing: 0.5px; }
-.bridge-pill.intent { background: var(--accent); color: #fff; }
-.bridge-pill.tokens { background: var(--bg-cool); color: var(--text); border: 1px solid var(--border); }
-.bridge-pill.result { background: var(--bg-dark); color: #fff; }
-.bridge-plus, .bridge-eq { font-size: 20px; font-weight: 200; color: var(--text-3); }
-.bridge-body { font-size: clamp(14px, 1.1vw, 17px); font-weight: 350; color: var(--text); line-height: 1.75; }
-.bridge-body strong { font-weight: 500; color: var(--text); }
-.bridge-body em { font-style: normal; color: var(--accent); font-weight: 400; }
-
-/* ═══ SEC 4: TOKEN DEEP DIVES — no click, pure scroll ═══ */
-#tokens { background: var(--bg-cool); }
-.struct { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; }
-.struct-intent { display: flex; align-items: center; gap: 16px; background: var(--bg); border: 2px solid var(--accent); border-radius: 14px; padding: 14px 28px; box-shadow: 0 6px 24px rgba(37,99,235,0.1); }
-.struct-intent img { width: 52px; height: 52px; border-radius: 10px; border: 1px solid var(--border); flex-shrink: 0; }
-.si-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); }
-.si-title { font-weight: 300; font-size: clamp(16px, 1.3vw, 20px); letter-spacing: -0.3px; }
-.struct-conn { display: flex; flex-direction: column; align-items: center; height: 32px; position: relative; }
-.struct-conn-line { width: 2px; height: 100%; background: linear-gradient(to bottom, var(--accent), var(--border)); }
-.struct-conn-label { position: absolute; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 10px; color: var(--text-3); background: var(--bg-cool); padding: 0 12px; white-space: nowrap; }
-.cat-legend { display: flex; justify-content: center; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }
-.cat-legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
-.cat-dot { width: 8px; height: 8px; border-radius: 50%; }
-.cat-dot.human { background: var(--accent); } .cat-dot.control { background: var(--amber); } .cat-dot.env { background: var(--green); }
-
-/* each token: full-width row, alternating layout */
-.token-row { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 0; overflow: hidden; margin-bottom: 20px; }
-.token-row.reverse .tr-illu { order: 2; }
-.token-row.reverse .tr-content { order: 1; }
-@media (max-width: 800px) { .token-row { grid-template-columns: 1fr; } .token-row.reverse .tr-illu { order: 0; } .token-row.reverse .tr-content { order: 0; } }
-.tr-illu { overflow: hidden; height: 100%; min-height: 280px; }
-.tr-illu img { width: 100%; height: 100%; object-fit: cover; }
-.tr-content { padding: clamp(24px, 3vw, 36px); }
-.tr-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
-.tr-num { font-weight: 200; font-size: clamp(28px, 2.5vw, 38px); color: var(--accent); letter-spacing: -1px; line-height: 1; }
-.tr-name { font-weight: 400; font-size: clamp(18px, 1.6vw, 24px); letter-spacing: -0.3px; }
-.tr-badge { font-family: var(--mono); font-size: 9px; padding: 3px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; }
-.tr-badge.human { background: var(--accent-light); color: var(--accent); }
-.tr-badge.control { background: var(--amber-light); color: var(--amber); }
-.tr-badge.env { background: var(--green-light); color: var(--green); }
-.tr-question { font-size: clamp(15px, 1.15vw, 18px); font-weight: 350; color: var(--text); font-style: italic; margin-bottom: 18px; line-height: 1.5; }
-.tr-section { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-3); margin-bottom: 6px; margin-top: 14px; }
-.tr-section:first-of-type { margin-top: 0; }
-.val-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.val-chip { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 100px; background: var(--bg-cool); color: var(--text-2); border: 1px solid var(--border); }
-.det-list { list-style: none; }
-.det-list li { font-size: 12px; padding: 3px 0; color: var(--text-2); display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
-.det-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-.det-explicit::before { background: var(--accent); } .det-contextual::before { background: var(--amber); } .det-external::before { background: var(--green); }
-.tr-scenario { background: var(--bg-cool); border-radius: 10px; padding: 12px 14px; margin-top: 14px; }
-.tr-scenario-label { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); margin-bottom: 4px; }
-.tr-scenario p { font-size: 12px; color: var(--text-2); line-height: 1.5; }
-
-.learning-row { margin-top: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; display: flex; align-items: center; gap: 20px; }
-@media (max-width: 768px) { .learning-row { flex-direction: column; gap: 12px; } }
-
-/* ═══ SEC 5: SIMULATOR ═══ */
-.demo-scenarios { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
-.demo-scenarios::-webkit-scrollbar { height: 3px; } .demo-scenarios::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.demo-btn { font-family: var(--font); padding: 12px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-cool); color: var(--text-2); cursor: pointer; transition: all 0.3s; text-align: left; min-width: 180px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
-.demo-btn-label { font-size: clamp(13px, 1vw, 15px); font-weight: 500; color: var(--text); }
-.demo-btn-desc { font-size: clamp(11px, 0.8vw, 12px); font-weight: 300; color: var(--text-3); line-height: 1.4; }
-.demo-btn:hover { border-color: var(--accent); }
-.demo-btn:hover .demo-btn-label { color: var(--accent); }
-.demo-btn.active { background: var(--accent); border-color: var(--accent); }
-.demo-btn.active .demo-btn-label { color: #fff; }
-.demo-btn.active .demo-btn-desc { color: rgba(255,255,255,0.7); }
-.sim-body { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 16px; align-items: start; background: var(--bg-cool); border-radius: 16px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--border); }
-@media (max-width: 900px) { .sim-body { grid-template-columns: 1fr; gap: 16px; } .sim-arrow { display: none; } }
-.sim-arrow { align-self: center; font-size: 18px; color: var(--text-3); padding-top: 24px; }
-.sim-panel-group { background: var(--bg); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
-.sim-intent-group { position: relative; }
-.sim-intent-text { font-size: clamp(14px, 1.05vw, 17px); font-weight: 400; color: var(--text); line-height: 1.6; }
-.sim-rules-group { display: flex; flex-direction: column; }
-.sim-ui-group { display: flex; flex-direction: column; align-items: center; }
-.sim-panel-title { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); margin-bottom: 12px; font-weight: 500; }
-.sim-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-.sim-row:last-child { border-bottom: none; }
-.sim-row.hl { background: rgba(37,99,235,0.04); border-radius: 6px; padding: 6px 8px; margin: 0 -8px; }
-.sim-tname { font-weight: 500; display: flex; align-items: center; gap: 5px; }
-.sim-dot { width: 5px; height: 5px; border-radius: 50%; }
-.sim-tval { font-family: var(--mono); font-size: 11px; color: var(--text-2); padding: 2px 8px; background: var(--bg-cool); border-radius: 4px; }
-.sim-tval.active { background: var(--accent-light); color: var(--accent); }
-.sim-rule { font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; opacity: 0; transform: translateY(6px); transition: all 0.4s var(--ease); }
-.sim-rule.visible { opacity: 1; transform: translateY(0); }
-.sim-rule:last-child { border-bottom: none; }
-.sim-rule-prop { font-family: var(--mono); color: var(--text-3); font-size: 10px; min-width: 72px; }
-.sim-rule-val { font-weight: 500; color: var(--text); }
-
-/* device mockup wrapper — can hold 1 or 2 devices */
-.device-wrap { display: flex; align-items: flex-end; justify-content: center; gap: 18px; min-height: 400px; padding: 16px 0; }
-.device-col { display: flex; flex-direction: column; align-items: center; }
-.device-col .device-label { font-family: var(--mono); font-size: 9px; color: var(--text-3); text-align: center; margin-top: 8px; letter-spacing: 0.5px; }
-
-/* iPhone 15 Pro mockup — Natural Titanium (light mode default) */
-.iphone { width: 185px; background: linear-gradient(160deg, #e8e8ed 0%, #d4d4d9 100%); border-radius: 32px; padding: 8px; position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 0 2.5px #bbbbc0, 0 12px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06); aspect-ratio: 393/852; }
-.iphone.small { width: 135px; border-radius: 26px; padding: 6px; }
-.iphone::before { content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 68px; height: 22px; background: #1a1a1a; border-radius: 16px; z-index: 2; }
-.iphone.small::before { width: 48px; height: 16px; top: 8px; }
-.iphone-screen { width: 100%; height: 100%; background: #fff; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
-.iphone.small .iphone-screen { border-radius: 20px; }
-.iphone-status { height: 36px; padding: 8px 14px 0; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #1a1a1a; font-weight: 600; flex-shrink: 0; }
-.iphone.small .iphone-status { height: 28px; font-size: 8px; padding: 5px 10px 0; }
-.iphone-content { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 5px; overflow: hidden; }
-.iphone.small .iphone-content { padding: 6px; gap: 4px; }
-.iphone-home { height: 18px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-.iphone-home-bar { width: 84px; height: 4px; background: rgba(0,0,0,0.18); border-radius: 3px; }
-.iphone.small .iphone-home-bar { width: 56px; }
-
-/* Dark mode phone (theater scenario) */
-.iphone.dark-variant { background: linear-gradient(160deg, #2c2c2e, #1c1c1e); box-shadow: inset 0 0 0 2.5px #3a3a3c, 0 12px 40px rgba(0,0,0,0.35); }
-.iphone.dark-variant .iphone-screen { background: #050507; }
-.iphone.dark-variant .iphone-status { color: rgba(255,255,255,0.25); }
-.iphone.dark-variant .iphone-home-bar { background: rgba(255,255,255,0.1); }
-
-/* TV mockup — modern thin-bezel */
-.tv-mock { width: 260px; background: #1a1a1a; border-radius: 6px; padding: 4px; box-shadow: 0 14px 44px rgba(0,0,0,0.16); }
-.tv-screen { background: #fff; border-radius: 3px; aspect-ratio: 16/9; overflow: hidden; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
-.tv-stand { width: 72px; height: 3px; background: #3a3a3c; margin: 5px auto 0; border-radius: 2px; }
-
-/* simulator UI components — light mode */
-.sui-card { background: #f8f8fa; border: 1px solid #e8e8ec; border-radius: 10px; padding: 7px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.sui-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.sui-card-img { height: 34px; background: linear-gradient(135deg, #f0f0f4, #e8e8ec); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-.sui-card-line { height: 5px; background: #eaeaee; border-radius: 2px; width: 70%; }
-.sui-card-line.short { width: 45%; }
-.sui-btn { height: 30px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 600; flex-shrink: 0; letter-spacing: 0.3px; }
-.sui-btn.green { background: #34c759; }
-.sui-btn.red { background: #ff3b30; }
-.sui-btn.outline { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
-.sui-voice { width: 44px; height: 44px; background: var(--accent); border-radius: 50%; margin: auto auto 4px; display: flex; align-items: center; justify-content: center; }
-.sui-voice::after { content: ''; width: 14px; height: 14px; border: 2.5px solid #fff; border-radius: 50%; }
-.sui-topbar { height: 6px; background: #f2f2f4; border-radius: 3px; flex-shrink: 0; }
-.sui-split { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; flex: 1; }
-.sui-label { text-align: center; font-size: 8px; color: #8e8e93; font-family: var(--mono); letter-spacing: 0.5px; padding: 2px 0; }
-.sui-thumb-zone { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; padding-top: 24px; }
-.sui-thumb-hint { position: absolute; top: 0; right: 6px; width: 56px; height: 56px; border: 1.5px dashed rgba(0,0,0,0.06); border-radius: 50%; }
-.sui-price { font-size: 10px; color: #1a1a1a; font-weight: 600; }
-.sui-name { font-size: 9px; color: #1a1a1a; font-weight: 500; line-height: 1.3; }
-.sui-meta { font-size: 7px; color: #8e8e93; }
-.sui-section-title { font-size: 7px; color: #8e8e93; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; padding: 1px 0; }
-.sui-chip { display: inline-flex; font-size: 7px; padding: 2px 6px; border-radius: 6px; background: #f0f0f4; color: #636366; align-items: center; gap: 2px; }
-.sui-chip.green { background: #dcfce7; color: #15803d; }
-.sui-chip.blue { background: #dbeafe; color: #1d4ed8; }
-.sui-rating { font-size: 8px; color: #ff9500; letter-spacing: -0.5px; }
-.sui-divider { height: 1px; background: #e8e8ec; flex-shrink: 0; }
-.sim-ui-label { font-family: var(--mono); font-size: 10px; color: var(--text-3); text-align: center; margin-top: 8px; }
-
-/* subtle slide-in animation for screen content */
-@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-.sui-anim > * { animation: slideUp 0.4s ease both; }
-.sui-anim > *:nth-child(1) { animation-delay: 0.6s; }
-.sui-anim > *:nth-child(2) { animation-delay: 0.75s; }
-.sui-anim > *:nth-child(3) { animation-delay: 0.9s; }
-.sui-anim > *:nth-child(4) { animation-delay: 1.05s; }
-.sui-anim > *:nth-child(5) { animation-delay: 1.2s; }
-.sui-anim > *:nth-child(6) { animation-delay: 1.35s; }
-@keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
-.sui-pulse { animation: pulse 2s ease-in-out infinite; }
-@keyframes waveBar { 0%,100% { height: 4px; } 50% { height: 16px; } }
-.sui-wave-bar { width: 3px; background: #fff; border-radius: 2px; animation: waveBar 0.8s ease-in-out infinite; }
-.sui-wave-bar:nth-child(2) { animation-delay: 0.15s; }
-.sui-wave-bar:nth-child(3) { animation-delay: 0.3s; }
-.sui-wave-bar:nth-child(4) { animation-delay: 0.45s; }
-.sui-wave-bar:nth-child(5) { animation-delay: 0.1s; }
-
-/* ═══ SEC 6: PROJECTS ═══ */
-#projects { background: var(--bg-cool); }
-#projects .sec-inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-#projects .projects-header { grid-column: 1 / -1; }
-@media (max-width: 800px) { #projects .sec-inner { grid-template-columns: 1fr; } }
-.pc { display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 22px 20px; transition: all 0.3s; text-decoration: none; color: inherit; }
-.pc:hover { border-color: var(--accent); box-shadow: 0 8px 28px rgba(24,24,27,0.06); }
-.pc-num { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 1px; margin-bottom: 6px; }
-.pc-title { font-weight: 300; font-size: clamp(17px, 1.4vw, 22px); letter-spacing: -0.3px; margin-bottom: 8px; line-height: 1.2; }
-.pc-desc { font-size: clamp(13px, 0.9vw, 14px); font-weight: 350; color: var(--text); line-height: 1.6; flex: 1; }
-.pc-tags { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; gap: 5px; flex-wrap: wrap; }
-.pc-tag { font-family: var(--mono); font-size: 9px; padding: 3px 8px; border-radius: 5px; background: rgba(37,99,235,0.06); color: var(--accent); border: 1px solid rgba(37,99,235,0.1); }
-
-.footer { background: var(--bg-dark); color: rgba(255,255,255,0.3); padding: 48px clamp(24px, 4vw, 48px); text-align: center; font-size: 13px; font-weight: 300; }
-.footer a { color: rgba(255,255,255,0.5); text-decoration: none; } .footer a:hover { color: var(--accent); }
 </style>
 </head>
-<body>
+<body data-dark-nav>
 
-<nav class="nav" id="nav"><div class="nav-inner">
-  <a href="../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentfirst" class="nav-logo-img"></a>
-  <div class="nav-links">
-    <a href="index.html">Context Grammar</a>
-    <a href="../applied/index.html">プロジェクト</a>
-    <a href="../journal/index.html">エッセイ</a>
-    <a href="../about/index.html">About</a>
-    <a href="../contact/index.html">Contact</a>
-  </div>
-</div></nav>
-
-<div class="lang-switch">
-  <a href="index.html" class="active">JA</a>
-  <div class="lang-switch-divider"></div>
-  <a href="../../context-grammar/index.html">EN</a>
-</div>
-
-<!-- A: HERO -->
-<section id="hero">
-  <div class="hero-label">Context Grammar（コンテキストグラマー）</div>
-  <h1 class="hero-title"><em>意図</em>が、<br>インターフェースを動かす。</h1>
-  <div class="hero-illust"><img src="../../assets/img/Small/ImageA_Token Intro_.jpg" alt="Context Grammar"></div>
-  <p class="hero-sub">何を望んでいるかだけでなく、今この瞬間のあなたをAIに理解させるデザインフレームワーク。</p>
-  <div class="scroll-cue"><div class="scroll-cue-line"></div>Scroll</div>
+<!-- ═══════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <p class="hero-label">Context Grammar</p>
+  <h1 class="hero-title">エージェンティックAI時代のデザイン言語</h1>
+  <p class="hero-sub">スマホはメールを書き、フライトを予約し、会議を要約する。だが、あなたが疲れ切っていることは知らない。Context Grammar は、AIに人間の状態を読み取る言語を与える。情報ではなく、知性で応える仕組みである。</p>
+  <div class="hero-scroll-hint"><span></span></div>
 </section>
 
-<!-- B: EVERY DAY — we use devices to get things done -->
-<section id="everyday" class="sec"><div class="sec-inner">
-  <div class="sec-label reveal">日常の行動</div>
-  <h2 class="sec-title reveal d1">スマホを手に取るたびに、<br>あなたは何かを<em>成し遂げたい</em>。</h2>
-  <p class="everyday-lead reveal d2">誕生日プレゼントを探す。週末旅行を計画する。今夜の夕食を決める。大きなことも小さなことも、スマホは目的を達成するための道具です。</p>
+<!-- ═══════════════════════════════════════
+     誰も名前をつけなかった問題
+     ═══════════════════════════════════════ -->
+<section class="sec problem" id="problem">
+  <div class="sec-inner">
+    <p class="sec-label label-grammar reveal">The Problem</p>
+    <h2 class="reveal d1" style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.15; letter-spacing:-1.5px; margin-bottom:12px;">誰も名前をつけなかった問題</h2>
+    <p class="reveal d2" style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.85; max-width:600px; margin-bottom:0;">AIアシスタントはリクエストの処理に長けている。だが、リクエストしている「人間」には盲目である。</p>
 
-  <div class="scenario-grid reveal d2">
-    <!-- Left: App grid + tabs -->
-    <div class="app-grid-wrapper">
-      <div class="app-grid-tabs" id="appScenarioTabs"></div>
-      <div class="app-grid" id="appGrid"></div>
-    </div>
-
-    <!-- Right: Scenario content -->
-    <div class="scenario-content" id="scenarioContent"></div>
-  </div>
-</div></section>
-
-<!-- C: ALWAYS MOVING — your context changes -->
-<section id="moving" class="sec"><div class="sec-inner">
-  <div class="sec-label reveal">しかし、ここが問題</div>
-  <h2 class="sec-title reveal d1">あなたは決して<em>立ち止まっていない</em>。</h2>
-  <p class="sec-desc reveal d2" style="font-size:clamp(16px,1.25vw,20px);max-width:700px;">一日中デスクに座っているわけではありません。あなたの状況は絶えず変化する——しかしアプリは、あなたと一緒に変わりません。</p>
-
-  <div class="timeline-wrap reveal d3">
-    <div class="timeline">
-      <div class="tl-node"><div class="tl-icon">🛏️</div><div class="tl-time">7:00 AM</div><div class="tl-label">ベッド — 半分寝ている</div><div class="tl-context">片手</div></div>
-      <div class="tl-node"><div class="tl-icon">🚃</div><div class="tl-time">8:15 AM</div><div class="tl-label">電車 — 立っている</div><div class="tl-context">片手 · 公共</div></div>
-      <div class="tl-node"><div class="tl-icon">💻</div><div class="tl-time">9:00 AM</div><div class="tl-label">オフィス — 集中</div><div class="tl-context">両手 · デスクトップ</div></div>
-      <div class="tl-node"><div class="tl-icon">☕</div><div class="tl-time">12:30 PM</div><div class="tl-label">カフェ — 昼食</div><div class="tl-context">公共 · リラックス</div></div>
-      <div class="tl-node"><div class="tl-icon">🚃</div><div class="tl-time">6:00 PM</div><div class="tl-label">電車 — 疲れている</div><div class="tl-context">疲弊 · 片手</div></div>
-      <div class="tl-node"><div class="tl-icon">🏠</div><div class="tl-time">6:45 PM</div><div class="tl-label">自宅 — 遠足の準備</div><div class="tl-context">家族 · 複数アプリ</div></div>
-      <div class="tl-node"><div class="tl-icon">🚗</div><div class="tl-time">7:20 PM</div><div class="tl-label">車 — 買い物</div><div class="tl-context">手が使えない · 音声のみ</div></div>
-      <div class="tl-node"><div class="tl-icon">📺</div><div class="tl-time">9:00 PM</div><div class="tl-label">ソファ — リラックス</div><div class="tl-context">共有画面 · 家族</div></div>
-    </div>
-  </div>
-
-  <div class="moving-kicker reveal d4">1日に<em>8回</em>、状況が変わる。手、注意力、環境、体力——すべてが変わる。しかしアプリは毎回、同じ画面を表示します。</div>
-</div></section>
-
-<!-- Sticky era indicator -->
-<div class="era-sticky" id="eraSticky">
-  <div class="era-sticky-inner">
-    <div class="era-sticky-label" id="eraStickyLabel">今日</div>
-  </div>
-</div>
-
-<!-- D: ZOOM IN — one moment -->
-<section id="zoomin" class="sec"><div class="sec-inner">
-  <div class="sec-label reveal">ズームイン</div>
-  <h2 class="sec-title reveal d1">一つの瞬間。<em>すべてが同時に。</em></h2>
-  <div class="zoom-scene reveal d2">
-    <div class="zoom-scene-img"><img src="../../assets/img/P1-image08_car-dashboard-phone.jpg" alt="帰宅中 — ダッシュボードにスマホ"></div>
-    <div class="zoom-scene-body">
-      <div class="zoom-situation">午後7時20分。明日は遠足——お子さんに新しい水筒と日焼け止めが必要。リストを確認し、子どもにテキストし、足りないものをメモした。今、店に向かって車を走らせています。</div>
-      <div class="zoom-quote">「2つだけ買って帰るだけだ。」</div>
-    </div>
-  </div>
-
-  <div class="zoom-pain-list">
-    <div class="zoom-pain reveal d3"><div class="zoom-pain-icon">🚗</div><div class="zoom-pain-text"><strong>運転中。</strong>お子さんが「青じゃなくて赤のやつ」とテキストしてきた——しかし読めません。</div></div>
-    <div class="zoom-pain reveal d4"><div class="zoom-pain-icon">🧠</div><div class="zoom-pain-text"><strong>頭がもう限界。</strong>長い一日の終わり。リストの内容すら曖昧で、日焼け止めの売り場など思い出せません。</div></div>
-    <div class="zoom-pain reveal d5"><div class="zoom-pain-icon">📱</div><div class="zoom-pain-text"><strong>情報が散在。</strong>持ち物リストはメールに。メモは別のアプリに。子どもの好みはチャットに。営業時間はGoogleに。何も連携していません。</div></div>
-    <div class="zoom-pain reveal d6"><div class="zoom-pain-icon">🤷</div><div class="zoom-pain-text"><strong>どのアプリもあなたの状況を知らない。</strong>運転中であること、疲れていること、子どもが気を変えたこと、店が40分後に閉まること。</div></div>
-  </div>
-</div></section>
-
-<!-- ERA SHIFT — dramatic full-width transition -->
-<div class="era-shift" id="eraShift">
-  <div class="era-shift-inner">
-    <div class="era-shift-fade">
-      <div class="era-shift-badge">今日</div>
-      <div class="era-shift-headline">すべてを、自分で管理している。</div>
-      <div class="era-shift-sub">アプリを切り替え、状況を記憶し、すべての判断を手動で処理。</div>
-    </div>
-    <div class="era-shift-divider">
-      <div class="era-shift-line"></div>
-      <div class="era-shift-arrow">
-        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="23" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M24 14v20m0 0l-7-7m7 7l7-7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="problem-grid">
+      <div class="problem-step reveal d2">
+        <p class="problem-step-num">01 &mdash; 観察</p>
+        <h3>AIは驚異的なことができる</h3>
+        <p>コードを書く。画像を生成する。旅行を計画し、カレンダーを管理する。毎月、できることリストは伸び続ける。技術は機能している。</p>
       </div>
-      <div class="era-shift-line"></div>
+      <div class="problem-step reveal d3">
+        <p class="problem-step-num">02 &mdash; 謎</p>
+        <h3>だが、毎回同じように応える</h3>
+        <p>リラックスしていても、急いでいても。一人でも、上司が隣にいても。気軽に閲覧していても、重要な判断を下そうとしていても。同じ入力、同じ出力。なぜか。</p>
+      </div>
+      <div class="problem-step reveal d4">
+        <p class="problem-step-num">03 &mdash; 発見</p>
+        <h3>人間の文脈を伝える共通言語がない</h3>
+        <p>デザイナーは「ユーザーはストレスを感じている」と言う。エンジニアは「ストレスのデータポイントは何だ？」と問う。誰も答えられない。概念レイヤーが欠落している。</p>
+      </div>
     </div>
-    <div class="era-shift-glow">
-      <div class="era-shift-badge accent">近い未来</div>
-      <div class="era-shift-headline bright">AIが、あなたの状況を理解する。</div>
-      <div class="era-shift-sub bright">同じ意図。しかし状況——今どこにいて、何ができて、誰がそばにいるか——が応答を形づくります。</div>
+
+    <div class="problem-pullquote reveal d4">
+      Context Grammar は、その欠落したレイヤーである。人間の状態を、AIが読み取り、推論し、行動に変換できる構造化シグナルへ翻訳する8つのトークン。
     </div>
   </div>
-</div>
+</section>
 
-<!-- E: NEAR FUTURE — with agentic AI -->
-<section id="future" class="sec"><div class="sec-inner">
-  <div class="sec-label reveal">近い未来</div>
-  <h2 class="sec-title reveal d1">同じ瞬間。<em>異なるインテリジェンス。</em></h2>
-  <p class="sec-desc reveal d2" style="font-size:clamp(16px,1.25vw,20px);max-width:700px;">エージェンティックAIはアプリをまたぐ複雑なタスクを処理できるほど進化しています。しかし真に助けるには、言葉以上のものを理解しなければならない——あなたの状況を読み取る必要があります。</p>
+<!-- ═══════════════════════════════════════
+     アーキテクチャの全体像
+     ═══════════════════════════════════════ -->
+<section class="sec architecture" id="architecture">
+  <div class="sec-inner">
+    <p class="sec-label label-grammar reveal">Architecture</p>
+    <h2 class="reveal d1" style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.15; letter-spacing:-1.5px; margin-bottom:12px;">アーキテクチャの全体像</h2>
+    <p class="reveal d2" style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.85; max-width:600px;">5つのステージ。ひとつのパイプライン。文脈は生のシグナルとして入り、適応的な振る舞いとして出ていく。</p>
 
-  <div class="sc-sequence">
-    <!-- Phase 1: You speak -->
-    <div class="sc-phase" id="scPhase1">
-      <div class="sc-hero-row">
-        <div>
-          <div class="sc-utterance-big"><span class="sc-quote">「</span>明日の遠足にまだ何が必要？<span class="sc-quote">」</span></div>
-          <div style="font-size:clamp(14px,1.1vw,17px);font-weight:350;color:var(--text);margin-top:16px;">誰でも言いそうな、同じ言葉。しかし今回、システムは<em style="color:var(--accent);font-style:normal;">深く読み取ります</em>。</div>
+    <!-- Pipeline visualization -->
+    <div class="pipeline reveal d3">
+      <div class="pipeline-node">
+        <div class="pipeline-icon pipeline-icon--intent">&#9670;</div>
+        <span class="pipeline-name" style="color:var(--color-intent);">Intent</span>
+      </div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-node">
+        <div class="pipeline-icon pipeline-icon--tokens">&#9632;</div>
+        <span class="pipeline-name" style="color:var(--color-grammar);">8 Tokens</span>
+      </div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-node">
+        <div class="pipeline-icon pipeline-icon--brain">&#9673;</div>
+        <span class="pipeline-name" style="color:var(--color-brain);">Brain</span>
+      </div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-node">
+        <div class="pipeline-icon pipeline-icon--rules">&#9881;</div>
+        <span class="pipeline-name" style="color:var(--color-label);">Rules</span>
+      </div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-node">
+        <div class="pipeline-icon pipeline-icon--response">&#10003;</div>
+        <span class="pipeline-name" style="color:var(--color-success);">Response</span>
+      </div>
+    </div>
+
+    <!-- Architecture cards -->
+    <div class="arch-cards">
+
+      <div class="arch-card reveal d2">
+        <p class="arch-card-label arch-card-label--intent">Intent</p>
+        <h3>ユーザーが何を求めているか</h3>
+        <p>明示的な場合もあれば、暗黙的な場合もある。ユーザーが直接宣言することもあれば、トークンと記憶の交差点からシステムが推論することもある。Intentは起点となるシグナルである。</p>
+        <a href="grammar/index.html" class="arch-card-link">詳しく読む &rarr;</a>
+      </div>
+
+      <div class="arch-card reveal d3">
+        <p class="arch-card-label arch-card-label--tokens">8 Context Tokens</p>
+        <h3>6つの状況トークンと2つの関係ダイヤル</h3>
+        <p>Physical State、Cognitive Load、Social Exposure、Priority Weight、Form Factor、Feasibility。さらに関係性を統御する2つのダイヤル：Autonomy DialとDisclosure Dial。これらが「いまのあなた」を記述する。</p>
+        <a href="grammar/index.html" class="arch-card-link">詳しく読む &rarr;</a>
+      </div>
+
+      <div class="arch-card reveal d3">
+        <p class="arch-card-label arch-card-label--brain">Context Brain</p>
+        <h3>3つのレイヤーで構成される記憶</h3>
+        <p>Identityは「あなたが誰か」。Accumulated Learningは「システムが時間をかけて観察してきたこと」。Right Nowは「この瞬間の真実」。記憶そのものはContext Grammarの専売特許ではない。その上に構築された構造化デザイン言語こそが独自性である。</p>
+        <a href="brain/index.html" class="arch-card-link">詳しく読む &rarr;</a>
+      </div>
+
+      <div class="arch-card reveal d4">
+        <p class="arch-card-label arch-card-label--rules">Rule Engine</p>
+        <h3>文脈がデザインルールに変わる</h3>
+        <p>トークンと記憶がルールエンジンに入力され、具体的なデザイン判断が生まれる。何を見せるか、何を隠すか。どこまで自律に任せるか。どのモダリティを使うか。</p>
+        <a href="specs/index.html" class="arch-card-link">詳しく読む &rarr;</a>
+      </div>
+
+      <div class="arch-card arch-card--wide reveal d5">
+        <p class="arch-card-label arch-card-label--response">Response</p>
+        <h3>適応的な振る舞いの3つの方向</h3>
+        <p>すべてのレスポンスは3つのカテゴリのいずれかに分類される。<strong>Delegation</strong> &mdash; システムが処理する。<strong>Escalation</strong> &mdash; システムが人間に判断を仰ぐ。<strong>Adaptation</strong> &mdash; システムが提示方法を調整する。抽象論ではない。実装可能なAXパターンに直結する。</p>
+        <a href="specs/index.html" class="arch-card-link">詳しく読む &rarr;</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     実際に動くプロジェクト
+     ═══════════════════════════════════════ -->
+<section class="sec projects" id="projects">
+  <div class="sec-inner">
+    <p class="sec-label label-grammar reveal">Applied</p>
+    <h2 class="reveal d1" style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.15; letter-spacing:-1.5px; margin-bottom:12px;">実際に動くプロジェクト</h2>
+    <p class="reveal d2" style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.85; max-width:600px;">3つのプロジェクト。3つの文脈。それぞれが、Context Grammarがいかに日常のシナリオを適応的な体験に変えるかを示す。</p>
+
+    <div class="projects-grid">
+
+      <a href="../../projects/project-01/index.html" class="project-card reveal d2">
+        <div class="project-card-img">P1</div>
+        <div class="project-card-body">
+          <p class="project-card-num">Project 01</p>
+          <h3 class="project-card-title">The Living Home</h3>
+          <p class="project-card-hook">家族のキッチン。AIは誰が料理しているか、冷蔵庫に何があるか、そしてその部屋にどれだけの余裕が残っているかを知っている。</p>
+          <span class="project-card-cta">プロジェクトを見る &rarr;</span>
         </div>
-        <div class="sc-car-img"><img src="../../assets/img/P1-image08_car-dashboard-phone.jpg" alt="店に向かって運転中"></div>
-      </div>
-    </div>
+      </a>
 
-    <div class="sc-connector" id="scConn1"></div>
+      <a href="../../projects/project-02/index.html" class="project-card reveal d3">
+        <div class="project-card-img">P2</div>
+        <div class="project-card-body">
+          <p class="project-card-num">Project 02</p>
+          <h3 class="project-card-title">The Family Trip</h3>
+          <p class="project-card-hook">旅行のための一時的なBrainを生成する旅行プランナー。学習し、適応し、帰宅後に消滅する。</p>
+          <span class="project-card-cta">プロジェクトを見る &rarr;</span>
+        </div>
+      </a>
 
-    <!-- Phase 2: AI reads 7 dimensions -->
-    <div class="sc-phase" id="scPhase3">
-      <div class="sc-qs-wrap">
-        <div class="sc-qs-title">AIがあなたの状況を7つの次元で読み取ります</div>
-        <div class="sc-q-line" data-delay="0"><div class="sc-q-num">①</div><div class="sc-q-text">手は使えますか？</div><div class="sc-q-dash"></div><div class="sc-q-val">使えない — 運転中</div></div>
-        <div class="sc-q-line" data-delay="120"><div class="sc-q-num">②</div><div class="sc-q-text">頭にどれくらい余裕がありますか？</div><div class="sc-q-dash"></div><div class="sc-q-val">疲弊</div></div>
-        <div class="sc-q-line" data-delay="240"><div class="sc-q-num">③</div><div class="sc-q-text">誰がそばにいますか？</div><div class="sc-q-dash"></div><div class="sc-q-val">車内に一人</div></div>
-        <div class="sc-q-line" data-delay="360"><div class="sc-q-num">④</div><div class="sc-q-text">今最も重要なことは？</div><div class="sc-q-dash"></div><div class="sc-q-val">速さ — 8時に店が閉まる</div></div>
-        <div class="sc-q-line" data-delay="480"><div class="sc-q-num">⑤</div><div class="sc-q-text">AIにどれだけ任せますか？</div><div class="sc-q-dash"></div><div class="sc-q-val">任せて — 確認だけ</div></div>
-        <div class="sc-q-line" data-delay="600"><div class="sc-q-num">⑥</div><div class="sc-q-text">どんな画面がありますか？</div><div class="sc-q-dash"></div><div class="sc-q-val">ダッシュボードにスマホ</div></div>
-        <div class="sc-q-line" data-delay="720"><div class="sc-q-num">⑦</div><div class="sc-q-text">今実際に手に入るものは？</div><div class="sc-q-dash"></div><div class="sc-q-val">Targetまで12分、8時閉店</div></div>
-      </div>
-    </div>
+      <a href="../../projects/project-03/index.html" class="project-card reveal d4">
+        <div class="project-card-img">P3</div>
+        <div class="project-card-body">
+          <p class="project-card-num">Project 03</p>
+          <h3 class="project-card-title">Fluid Handoff</h3>
+          <p class="project-card-hook">靴を探す体験はスマホで始まり、テレビが引き継ぐ。文脈は途切れない。体験は壊れない。</p>
+          <span class="project-card-cta">プロジェクトを見る &rarr;</span>
+        </div>
+      </a>
 
-    <div class="sc-connector" id="scConn2"></div>
-
-    <!-- Phase 3: Adaptive response -->
-    <div class="sc-phase" id="scPhase4">
-      <div class="sc-result-clean">
-        <div class="sc-result-lbl">状況に応じた応答</div>
-        <div class="sc-result-text">音声のみ——ハンドルを握ったまま。スマホが伝えます：<br><em>「赤い水筒とSPF50の日焼け止めがまだ必要です。ケンジが赤に変更しました——メッセージを確認済みです。Elm StreetのTargetに両方在庫があります。ナビゲーションを開始します——12分です。ケンジに👍を送りますか？」</em><br><strong>あなたは「はい」と答える。</strong><br>ナビゲーション開始。返信送信完了。駐車時に備え、ロック画面に買い物リストが表示されています。</div>
-      </div>
     </div>
   </div>
+</section>
 
-</div></section>
-
-<!-- E→F BRIDGE — introducing Context Grammar -->
-<div class="bridge reveal">
-  <div class="bridge-text">これを実現するために、AIには人の状況を読み取る<em>共通言語</em>が必要です。</div>
-  <div class="bridge-sub">紹介します</div>
-  <div class="bridge-explain">
-    <p class="bridge-lead">これを<span class="bridge-hl">Context Grammar</span>と呼びます——<span class="bridge-hl">今のあなた</span>を7つの読み取り可能な次元に構造化するフレームワーク。あらゆるAI対応の画面が、あなたの状況に適応できるようになります。</p>
-    <div class="bridge-formula">
-      <span class="bridge-pill intent">Intent</span>
-      <span class="bridge-plus">+</span>
-      <span class="bridge-pill tokens">7つのトークン（文脈信号）</span>
-      <span class="bridge-eq">=</span>
-      <span class="bridge-pill result">状況に適応する体験</span>
-    </div>
-    <p class="bridge-body"><strong>Intent</strong>はあなたが<em>何</em>を望んでいるか。トークンはAIに<em>今のあなた</em>を伝えます——体の状態、認知的余裕、環境、優先事項——適切な入力方法、選択肢の数、画面、自動処理の範囲を決定するために。</p>
-  </div>
-</div>
-
-<!-- E: THE 7 TOKENS — pure scroll, no interaction needed -->
-<section id="tokens" class="sec"><div class="sec-inner">
-  <div class="struct reveal d1">
-    <div class="struct-intent"><img src="../../assets/img/Small/TokenIcon_01_Intent.jpg" alt="Intent"><div><div class="si-label">あなたの意図</div><div class="si-title">Intent — あなたが達成したいこと</div></div></div>
-    <div class="struct-conn"><div class="struct-conn-line"></div><div class="struct-conn-label">7つのトークンによって形作られる</div></div>
-  </div>
-  <div class="cat-legend reveal d2">
-    <div class="cat-legend-item"><span class="cat-dot human"></span> 人</div>
-    <div class="cat-legend-item"><span class="cat-dot control"></span> コントロール</div>
-    <div class="cat-legend-item"><span class="cat-dot env"></span> 環境</div>
-  </div>
-  <div id="tokenRows"></div>
-  <div class="learning-row reveal">
-    <div style="font-size:24px;flex-shrink:0;">&#x1F4C8;</div>
-    <div><div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--accent);margin-bottom:4px;">Learning / History — 学習の層</div><div style="font-size:clamp(13px,0.95vw,15px);font-weight:350;color:var(--text);line-height:1.6;">トークンではないが、すべてのトークンを賢くする層。1日目：毎朝「片手モード」と言う。半年後：もう言わなくても分かっている。1年後：冷蔵庫は常にストックされている。</div></div>
-  </div>
-</div></section>
-
-<!-- F: SIMULATOR -->
-<section id="demo" class="sec"><div class="sec-inner">
-  <div class="sec-label reveal">実際に見る</div>
-  <h2 class="sec-title reveal d1">Intent + Context = <em>Experience</em></h2>
-  <p class="sec-desc reveal d2" style="margin-bottom:32px;">同じ意図、異なる状況 — 画面がどう変化するか見てください。</p>
-  <div class="demo-scenarios reveal d2" id="scenarioPicker"></div>
-  <div class="sim-body reveal d3" id="simBody">
-    <div class="sim-panel-group sim-intent-group">
-      <div class="sim-panel-title">あなたの意図</div>
-      <div class="sim-intent-text" id="simIntentText"></div>
-      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
-        <div class="sim-panel-title" style="margin-bottom:12px;">トークン</div>
-        <div id="simTokensList"></div>
-      </div>
-    </div>
-    <div class="sim-arrow">→</div>
-    <div class="sim-panel-group sim-rules-group">
-      <div class="sim-panel-title">適応ルール</div>
-      <div id="simRulesList"></div>
-    </div>
-    <div class="sim-arrow">→</div>
-    <div class="sim-panel-group sim-ui-group">
-      <div class="sim-panel-title">適応する画面</div>
-      <div class="device-wrap" id="deviceWrap"></div>
-      <div class="sim-ui-label" id="simLabel"></div>
+<!-- ═══════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════ -->
+<section class="cta" id="cta">
+  <div class="cta-inner">
+    <h2 class="cta-title reveal">仕様の全体像を見る準備はできたか</h2>
+    <p class="cta-sub reveal d1">フレームワーク、トークン、適用プロジェクト。すべてをドキュメント化し、公開している。</p>
+    <div class="cta-buttons reveal d2">
+      <a href="grammar/index.html" class="cta-btn cta-btn--primary">Grammarを読む &rarr;</a>
+      <a href="../../projects/index.html" class="cta-btn cta-btn--secondary">プロジェクトを見る &rarr;</a>
     </div>
   </div>
-</div></section>
+</section>
 
-<!-- G: PROJECTS -->
-<section id="projects" class="sec"><div class="sec-inner">
-  <div class="projects-header">
-    <div class="sec-label reveal">実践を見る</div>
-    <h2 class="sec-title reveal d1">3つのプロジェクト。ひとつの文法。</h2>
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
   </div>
-  <a href="../applied/index.html#p1" class="pc reveal d2"><div class="pc-num">Project 01</div><div class="pc-title">The Living Home</div><div class="pc-desc">1ヶ月目、AIは何も知らない。1年目、冷蔵庫は常にストックされている。Samsungエコシステムを横断する信頼の物語。</div><div class="pc-tags"><span class="pc-tag">Priority</span><span class="pc-tag">Synchro</span><span class="pc-tag">Feasibility</span></div></a>
-  <a href="../applied/index.html#p2" class="pc reveal d3"><div class="pc-num">Project 02</div><div class="pc-title">The Family Trip</div><div class="pc-desc">2週間の日本旅行。雨が旅程を組み替える。発熱が最寄りのクリニックを見つける。祖父母がニューヨークから見守る。</div><div class="pc-tags"><span class="pc-tag">Feasibility</span><span class="pc-tag">Form Factor</span><span class="pc-tag">Cognitive</span></div></a>
-  <a href="../applied/index.html#p3" class="pc reveal d4"><div class="pc-num">Project 03</div><div class="pc-title">Fluid Handoff</div><div class="pc-desc">靴：電車で20候補、降りるまでに5つ、自宅のTVで息子と最終選択。</div><div class="pc-tags"><span class="pc-tag">Physical</span><span class="pc-tag">Social</span><span class="pc-tag">Form Factor</span></div></a>
-</div></section>
+</footer>
 
-<footer class="footer">Context Grammarは言語です。あらゆるAI対応の画面が、この言語を話せるようになります。<br><br><a href="../about/index.html">Takao Umehara</a> &middot; 2025</footer>
-
+<!-- ═══ SCRIPTS ═══ -->
 <script>
-(function(){
-'use strict';
-
-var TOKENS=[
-  {id:'physical',num:'①',name:'Physical State',cat:'human',
-    question:'手は使えますか？',
-    desc:'今の体の状態と制約。電車でつり革を握っている — 片手。病気で寝ている — 音声のみ。暗い映画館の中 — 音声もダメ、明るい画面もダメ、でも暗い画面と穏やかな振動なら使えるかもしれない。画面は体が実際にできることに適応しなければならない。',
-    icon:'../../assets/img/Small/Tokenicon_02_PhysicalState.jpg',illu:'../../assets/img/Small/Token_02_PhysicalState.jpg',
-    values:['both-hands-free','one-hand','no-hands','lying-down (voice only)','dark + silent (dim screen)','walking','driving','gloved'],
-    detection:[{type:'explicit',text:'音声: 「片手モード」または3本指スワイプ'},{type:'contextual',text:'行動認識: 車内 / 歩行中 / 静止'},{type:'contextual',text:'GPS + 交通情報: 走行中の電車内を検出'},{type:'contextual',text:'時間 + 動き: 23時 + 静止 → おそらくベッドの中'}],
-    scenario:{project:'P3: Fluid Handoff',text:'電車、つり革を握っている → カード型の簡潔な配置、56pxの親指操作エリア。映画館 → 画面を最低輝度に、振動のみの応答、音声なし。'}},
-  {id:'cognitive',num:'②',name:'Cognitive Load',cat:'human',
-    question:'頭にどれくらい余裕がありますか？',
-    desc:'今の頭の余裕。会議が6つ続いた後に、夕食の選択肢を20個も比べられるわけがない。パニック状態 — 夜11時にフライトがキャンセルされ朝に会議がある — もうシステムに任せたい。集中してリフレッシュしているときは、すべて自分でコントロールしたい。',
-    icon:'../../assets/img/Small/Tokenicon_03_CognitiveLoad.jpg',illu:'../../assets/img/Small/Token_03_ CognitiveLoad.jpg',
-    values:['focused','baseline','divided','depleted','anxious','panic'],
-    detection:[{type:'explicit',text:'「疲れた」→ システムが簡易モードを提案'},{type:'contextual',text:'フライトキャンセル + 23時 + 朝の会議 → パニック'},{type:'contextual',text:'今日6つの会議 + 19時通勤 → 疲弊'}],
-    scenario:{project:'P1: Living Home',text:'仕事帰り: 疲弊。夕食の選択肢が12から2に減少。短いラベル、説明なし。ワンタップの決断のみ。'}},
-  {id:'social',num:'③',name:'Social Exposure',cat:'human',
-    question:'誰がそばにいますか？',
-    desc:'画面に何を映すべきかは、誰が見ているかで変わる。子どもがTVを見ているとき価格が消える。会議中は通知が消音になる。同僚が近づくとマッチングアプリが隠れる。表示内容はその場の状況に適応する。',
-    icon:'../../assets/img/Small/TokenIcon_04_SocialExposure.jpg',illu:'../../assets/img/Small/Token_04_SocialExposure.jpg',
-    values:['private','public','colleague','family','shared-screen','intimate'],
-    detection:[{type:'explicit',text:'TVにキャスト = 共有視聴の合図'},{type:'contextual',text:'自宅WiFi + 家族の端末が接続中 → 家族'},{type:'external',text:'Android 16 Ranging: UWB/BLEで近くの人を検出'}],
-    scenario:{project:'P3: Fluid Handoff',text:'靴をTVにキャスト、息子が見ている。TV: 「防水！」「速く走れる！」— 子ども向けの表示、価格なし。スマホ: 親が$89、$72、$95を見る。'}},
-  {id:'priority',num:'④',name:'Priority Weight',cat:'control',
-    question:'今最も重要なことは？',
-    desc:'価値観が競合するとき、何かが勝たなければならない。速さか品質か？予算か体験か？子どもの好みか信頼できるブランドか？このトークンが優先順位の衝突を解決し、時間とともにパターンを学習する。',
-    icon:'../../assets/img/Small/TokenIcon_05_PriorityWeight.jpg',illu:'../../assets/img/Small/Token_05_PriorityWeights.jpg',
-    values:['reliability > cost','feasibility > variety','privacy > speed','child-pref > brand','experience > budget'],
-    detection:[{type:'explicit',text:'「信頼できるやつにして」→ 優先度設定'},{type:'contextual',text:'14回の旅行で常に信頼性を選択 → 自動で既定に'},{type:'contextual',text:'予定 + 状況から緊急度を推測'}],
-    scenario:{project:'P2: Family Trip',text:'京都で2日間の雨。優先 = 体験 > 予算。AIが伏見稲荷を6日目（晴れ）に移動、今日を屋内の名所で埋める。'}},
-  {id:'synchro',num:'⑤',name:'Synchro Rate',cat:'control',
-    question:'AIにどれだけ任せますか？',
-    desc:'AIとの信頼の目盛り。提案：「このヨーグルト？」— 自分で選ぶ。確認：「甘い玉ねぎを普通の玉ねぎに替えました — OK？」— ワンタップ。通知：「普通の玉ねぎにしました」— 参考まで。自律：頼んでもいないのに冷蔵庫に届いている。信頼は結果の積み重ねで育つ。',
-    icon:'../../assets/img/Small/Tokenicon_06_SynchroRate.jpg',illu:'../../assets/img/Small/Token_06_SynchroRate.jpg',
-    values:['0.0 Manual','0.3 Suggest','0.6 Confirm','0.8 Notify','1.0 Autonomous'],
-    detection:[{type:'explicit',text:'「提案だけして、自分で決める」→ レベル設定'},{type:'contextual',text:'修正なしの承認が続く → 目盛りが上がる'},{type:'contextual',text:'一度の却下 → 目盛りが確認に戻る'}],
-    scenario:{project:'P1: Living Home',text:'1ヶ月目: 「このヨーグルト？」(提案 0.3)。半年後: 「玉ねぎ買いました — 普通のにしました」(通知 0.8)。1年後: 食料品が届く (自律 1.0)。'}},
-  {id:'form',num:'⑥',name:'Form Factor',cat:'human',
-    question:'周りにどんな画面がありますか？',
-    desc:'どの端末かだけでなく、端末同士がどう連携するか。TVが加わるとスマホはリモコンになる。タブレットが地図を表示し、車がルートを読み上げる。家族の2台のスマホは役割分担：親は価格、子どもは選択肢。画面の複製ではなく、役割の分担。',
-    icon:'../../assets/img/Small/Tokenicon_07_FormFactor.jpg',illu:'../../assets/img/Small/Token_07_FormFactor.jpg',
-    values:['phone-only','phone + watch','phone + tablet','phone + car','phone + tv','phone + phone','phone + kitchen display','ambient'],
-    detection:[{type:'explicit',text:'TVにキャスト = 画面追加'},{type:'external',text:'Android Auto / CarPlay接続 = 車モード'},{type:'external',text:'SmartThings / Google Homeが近くの画面を検出'}],
-    scenario:{project:'P3: Fluid Handoff',text:'スマホ → スマホ + TV。スマホは価格付きのリモコンに。TVは子ども向け表示の大画面に。2つの端末、2つの役割、1つの体験。'}},
-  {id:'feasibility',num:'⑦',name:'Feasibility',cat:'env',
-    question:'今実際に手に入るものは？',
-    desc:'現実の厳しい制約。冷蔵庫の中身、天気の許す範囲、まだ開いている店、予算内に収まるもの、残り時間。どんなに良いプランもこの条件を通過し、実際にできることだけが残る。',
-    icon:'../../assets/img/Small/Tokenicon_08_Feasibility.jpg',illu:'../../assets/img/Small/Token_08_Feasibility.jpg',
-    values:['time remaining','inventory','delivery ETA','budget','weather','store hours','availability'],
-    detection:[{type:'external',text:'スマート冷蔵庫 → 卵、ブロッコリーあり、鶏肉なし'},{type:'external',text:'天気情報 → 今後48時間の雨予報'},{type:'explicit',text:'「予算は最大500ドル」→ 制約設定'}],
-    scenario:{project:'P2: Family Trip',text:'京都で2日間の雨。伏見稲荷は閉鎖。でも錦市場は開いていて徒歩12分。10秒で一日を再計画。'}}
-];
-
-/* ═══ BUILD TOKEN ROWS — no click needed ═══ */
-var rowsEl = document.getElementById('tokenRows');
-TOKENS.forEach(function(t, i) {
-  var row = document.createElement('div');
-  row.className = 'token-row reveal' + (i % 2 === 1 ? ' reverse' : '');
-  row.innerHTML = '<div class="tr-illu"><img src="' + t.illu + '" alt="' + t.name + '" loading="lazy"></div>'
-    + '<div class="tr-content">'
-    + '<div class="tr-header"><span class="tr-num">' + t.num + '</span><span class="tr-name">' + t.name + '</span><span class="tr-badge ' + t.cat + '">' + t.cat + '</span></div>'
-    + '<div class="tr-question">' + t.question + '</div>'
-    + '<p style="font-size:clamp(13px,0.95vw,15px);font-weight:350;color:var(--text);line-height:1.65;margin-bottom:16px;">' + t.desc + '</p>'
-    + '<div class="tr-section">取りうる値</div>'
-    + '<div class="val-chips">' + t.values.map(function(v) { return '<span class="val-chip">' + v + '</span>'; }).join('') + '</div>'
-    + '<div class="tr-section">検出方法</div>'
-    + '<ul class="det-list">' + t.detection.map(function(d) { return '<li class="det-' + d.type + '">' + d.text + '</li>'; }).join('') + '</ul>'
-    + '<div class="tr-scenario"><div class="tr-scenario-label">' + t.scenario.project + '</div><p>' + t.scenario.text + '</p></div>'
-    + '</div>';
-  rowsEl.appendChild(row);
-});
-
-/* ═══ SIMULATOR ═══ */
-var SCENARIOS=[
-  /* ── 1. Driving home ─ single phone on dashboard, voice only ── */
-  {id:'driving',label:'車で帰宅中',
-    desc:'仕事帰りの運転中。後部座席に2人の子ども。ダッシュボードにスマホ。',
-    intent:'7時までに子どもの夕食を用意する',
-    tokens:{physical:{v:'no-hands',a:true},cognitive:{v:'depleted',a:true},social:{v:'me + kids',a:true},priority:{v:'speed > variety',a:true},synchro:{v:'0.8 Notify',a:false},form:{v:'phone (dashboard)',a:true},feasibility:{v:'fridge + delivery',a:true}},
-    rules:[{p:'inputMode',v:'voice only'},{p:'maxOptions',v:'2'},{p:'touch',v:'disabled'},{p:'action',v:'auto-order'}],
-    ui:function(wrap){
-      wrap.innerHTML=
-        '<div class="device-col"><div class="iphone"><div class="iphone-screen"><div class="iphone-status"><span>18:42</span><span style="letter-spacing:-0.5px;">5G <span style="color:#34c759;">●</span></span></div>'
-        +'<div class="iphone-content sui-anim">'
-        +'<div class="sui-section-title" style="color:#8e8e93;">DRIVING MODE</div>'
-        +'<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;">'
-        +'<div class="sui-voice sui-pulse" style="width:52px;height:52px;"><div style="display:flex;gap:3px;align-items:center;height:24px;"><div class="sui-wave-bar"></div><div class="sui-wave-bar"></div><div class="sui-wave-bar"></div><div class="sui-wave-bar"></div><div class="sui-wave-bar"></div></div></div>'
-        +'<div style="font-size:9px;color:#8e8e93;text-align:center;">Listening...</div>'
-        +'</div>'
-        +'<div style="background:#fff8f0;border:1px solid #fed7aa;border-radius:8px;padding:5px 7px;display:flex;align-items:center;gap:5px;">'
-        +'<div style="font-size:10px;">🚫</div><div style="font-size:8px;color:#9a3412;">Touch disabled while driving</div></div>'
-        +'<div class="sui-divider"></div>'
-        +'<div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:7px;">'
-        +'<div style="font-size:7px;color:#6b7280;margin-bottom:3px;">OPTION 1</div>'
-        +'<div style="font-size:10px;color:#1a1a1a;font-weight:500;">Broccoli-salmon stir-fry</div>'
-        +'<div style="font-size:8px;color:#6b7280;margin-top:2px;">22 min · ingredients in fridge</div></div>'
-        +'<div style="background:#fef9ee;border:1px solid #fde68a;border-radius:10px;padding:7px;">'
-        +'<div style="font-size:7px;color:#6b7280;margin-bottom:3px;">OPTION 2</div>'
-        +'<div style="font-size:10px;color:#1a1a1a;font-weight:500;">Fries via TaskRabbit</div>'
-        +'<div style="font-size:8px;color:#6b7280;margin-top:2px;">Delivery by 6:42 · $12</div></div>'
-        +'<div class="sui-btn" style="opacity:0.5;pointer-events:none;background:#e5e5ea;color:#8e8e93;">Say "one" or "two"</div>'
-        +'</div><div class="iphone-home"><div class="iphone-home-bar"></div></div></div></div>'
-        +'<div class="device-label">Dashboard · voice only</div></div>';
-    },uiLabel:'Voice only — touch disabled while driving'},
-
-  /* ── 2. Shoes on train ─ single phone, YES/NO in thumb zone ── */
-  {id:'train',label:'靴 — 電車で',
-    desc:'朝の通勤、満員電車で立っている。片手でつり革を握っている。',
-    intent:'息子に防水シューズを探す',
-    tokens:{physical:{v:'one-hand',a:true},cognitive:{v:'baseline',a:false},social:{v:'public',a:true},priority:{v:'child > brand',a:false},synchro:{v:'0.3 Suggest',a:false},form:{v:'phone-only',a:true},feasibility:{v:'20 matched',a:true}},
-    rules:[{p:'layout',v:'card-compact'},{p:'touch',v:'56px thumb-zone'},{p:'interaction',v:'YES/NO swipe'},{p:'filter',v:'criteria match'}],
-    ui:function(wrap){
-      wrap.innerHTML=
-        '<div class="device-col"><div class="iphone"><div class="iphone-screen"><div class="iphone-status"><span>8:14</span><span style="letter-spacing:-0.5px;">LTE <span style="color:#34c759;">●</span></span></div>'
-        +'<div class="iphone-content sui-anim">'
-        +'<div class="sui-section-title">KIDS SHOES · QUICK FILTER</div>'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:0 0 2px;">'
-        +'<div class="sui-meta">5 of 20 remaining</div>'
-        +'<div style="display:flex;gap:2px;"><div class="sui-chip">Waterproof</div><div class="sui-chip green">Under $80</div></div></div>'
-        +'<div class="sui-thumb-zone">'
-        +'<div class="sui-thumb-hint"></div>'
-        +'<div style="flex:3;background:#f8f8fa;border:1px solid #e8e8ec;border-radius:12px;overflow:hidden;">'
-        +'<div style="height:70px;background:linear-gradient(135deg,#f0f4ff 0%,#e8f0fe 100%);display:flex;align-items:center;justify-content:center;"><div style="font-size:36px;">👟</div></div>'
-        +'<div style="padding:7px;"><div class="sui-name">Nike Revolution 7</div>'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">'
-        +'<div class="sui-price">$68</div><div class="sui-rating">★★★★☆</div></div>'
-        +'<div class="sui-meta" style="margin-top:2px;">Waterproof · Size 3Y</div></div></div>'
-        +'<div style="display:flex;gap:8px;padding:0 8px;">'
-        +'<div class="sui-btn red" style="flex:1;border-radius:14px;height:48px;font-size:18px;font-weight:400;">✕</div>'
-        +'<div class="sui-btn green" style="flex:1;border-radius:14px;height:48px;font-size:18px;font-weight:400;">✓</div>'
-        +'</div></div>'
-        +'</div><div class="iphone-home"><div class="iphone-home-bar"></div></div></div></div>'
-        +'<div class="device-label">One-hand · thumb-zone YES/NO</div></div>';
-    },uiLabel:'One-hand mode — swipe to filter, large thumb targets'},
-
-  /* ── 3. Shoes on TV + son ─ transition: phone → TV + controller ── */
-  {id:'family',label:'靴 — TV＋息子',
-    desc:'リビングで息子と一緒。手にスマホ、壁にTV。',
-    intent:'息子と一緒に靴を選ぶ',
-    tokens:{physical:{v:'both-hands',a:false},cognitive:{v:'relaxed',a:false},social:{v:'family',a:true},priority:{v:'child > brand',a:true},synchro:{v:'0.3 Suggest',a:false},form:{v:'phone + tv',a:true},feasibility:{v:'5 curated',a:true}},
-    rules:[{p:'tv.layout',v:'grid + labels'},{p:'phone.role',v:'remote'},{p:'tv.price',v:'hidden'},{p:'phone.price',v:'visible'}],
-    ui:function(wrap){
-      /* Phase 1: Phone-only with full shopping UI */
-      wrap.innerHTML=
-        '<div class="device-col" id="familyTvCol" style="opacity:0;max-width:0;overflow:hidden;transition:opacity 0.8s ease, max-width 0.7s ease;">'
-        +'<div class="tv-mock"><div class="tv-screen sui-anim">'
-        +'<div style="font-size:7px;color:#8e8e93;font-weight:600;letter-spacing:0.5px;">PICK YOUR FAVORITES!</div>'
-        +'<div class="sui-split" style="flex:1;">'
-        +'<div style="background:#f0f4ff;border-radius:6px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid var(--accent);">'
-        +'<div style="font-size:22px;">👟</div><div style="font-size:7px;color:#1a1a1a;font-weight:500;">Nike Rev 7</div>'
-        +'<div class="sui-chip blue" style="font-size:6px;">Waterproof!</div></div>'
-        +'<div style="background:#fef9ee;border-radius:6px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;">'
-        +'<div style="font-size:22px;">👟</div><div style="font-size:7px;color:#1a1a1a;font-weight:500;">Adidas Duramo</div>'
-        +'<div class="sui-chip" style="font-size:6px;">Runs fast!</div></div>'
-        +'<div style="background:#f0fdf4;border-radius:6px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;">'
-        +'<div style="font-size:22px;">👟</div><div style="font-size:7px;color:#1a1a1a;font-weight:500;">New Balance 520</div>'
-        +'<div class="sui-chip green" style="font-size:6px;">Comfy!</div></div>'
-        +'<div style="background:#fdf2f8;border-radius:6px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;">'
-        +'<div style="font-size:22px;">👟</div><div style="font-size:7px;color:#1a1a1a;font-weight:500;">Puma Flex</div>'
-        +'<div class="sui-chip" style="font-size:6px;">Cool color!</div></div>'
-        +'</div>'
-        +'<div style="font-size:6px;color:#b0b0b8;text-align:center;">No prices shown — kid chooses freely</div>'
-        +'</div><div class="tv-stand"></div></div>'
-        +'<div class="device-label" style="opacity:0;transition:opacity 0.5s ease 0.6s;" id="familyTvLabel">TV — kid-friendly showcase</div></div>'
-        /* Phone: starts as full shopping app, morphs into controller */
-        +'<div class="device-col" id="familyPhoneCol">'
-        +'<div class="iphone" id="familyPhone" style="transition:width 0.6s ease, border-radius 0.3s ease;">'
-        +'<div class="iphone-screen"><div class="iphone-status"><span>19:30</span><span>WiFi</span></div>'
-        +'<div class="iphone-content sui-anim" id="familyPhoneContent">'
-        /* Phase 1 content: full shopping UI */
-        +'<div class="sui-section-title">KIDS\' SHOES</div>'
-        +'<div style="display:flex;gap:6px;margin-bottom:4px;">'
-        +'<div style="flex:1;background:#f0f4ff;border:1.5px solid var(--accent);border-radius:8px;padding:5px;text-align:center;">'
-        +'<div style="font-size:16px;">👟</div><div style="font-size:7px;font-weight:500;color:#1a1a1a;">Nike Rev 7</div>'
-        +'<div style="font-size:8px;color:var(--accent);font-weight:600;">$68</div>'
-        +'<div class="sui-rating" style="font-size:6px;">★★★★☆</div></div>'
-        +'<div style="flex:1;background:#fef9ee;border:1px solid #e8e8ec;border-radius:8px;padding:5px;text-align:center;">'
-        +'<div style="font-size:16px;">👟</div><div style="font-size:7px;font-weight:500;color:#1a1a1a;">Adidas Duramo</div>'
-        +'<div style="font-size:8px;color:#1a1a1a;font-weight:600;">$72</div>'
-        +'<div class="sui-rating" style="font-size:6px;">★★★★☆</div></div></div>'
-        +'<div style="display:flex;gap:6px;margin-bottom:4px;">'
-        +'<div style="flex:1;background:#f0fdf4;border:1px solid #e8e8ec;border-radius:8px;padding:5px;text-align:center;">'
-        +'<div style="font-size:16px;">👟</div><div style="font-size:7px;font-weight:500;color:#1a1a1a;">NB 520</div>'
-        +'<div style="font-size:8px;color:#1a1a1a;font-weight:600;">$89</div>'
-        +'<div class="sui-rating" style="font-size:6px;">★★★★★</div></div>'
-        +'<div style="flex:1;background:#fdf2f8;border:1px solid #e8e8ec;border-radius:8px;padding:5px;text-align:center;">'
-        +'<div style="font-size:16px;">👟</div><div style="font-size:7px;font-weight:500;color:#1a1a1a;">Puma Flex</div>'
-        +'<div style="font-size:8px;color:#1a1a1a;font-weight:600;">$59</div>'
-        +'<div class="sui-rating" style="font-size:6px;">★★★☆☆</div></div></div>'
-        +'<div style="background:linear-gradient(135deg,#eff6ff,#f0f4ff);border:1.5px solid var(--accent);border-radius:10px;padding:6px;text-align:center;margin-top:2px;">'
-        +'<div style="font-size:7px;color:var(--accent);font-weight:600;">📺 Cast to TV?</div>'
-        +'<div style="font-size:6px;color:#6b7280;margin-top:1px;">Your son is nearby — shop together!</div></div>'
-        +'</div><div class="iphone-home"><div class="iphone-home-bar"></div></div></div></div>'
-        +'<div class="device-label" id="familyPhoneLabel">Phone — shopping for shoes</div></div>';
-
-      /* Phase 2: After 1.5s — TV appears, phone becomes controller */
-      setTimeout(function(){
-        var tvCol=document.getElementById('familyTvCol');
-        var phone=document.getElementById('familyPhone');
-        var phoneContent=document.getElementById('familyPhoneContent');
-        var phoneLabel=document.getElementById('familyPhoneLabel');
-        var tvLabel=document.getElementById('familyTvLabel');
-        if(!tvCol||!phone||!phoneContent) return;
-
-        /* Reveal TV */
-        tvCol.style.maxWidth='300px';
-        tvCol.style.opacity='1';
-        if(tvLabel) tvLabel.style.opacity='1';
-
-        /* Shrink phone to small size */
-        phone.style.width='135px';
-        phone.style.borderRadius='26px';
-        phone.classList.add('small');
-
-        /* Morph phone content to controller */
-        setTimeout(function(){
-          phoneContent.style.opacity='0';
-          phoneContent.style.transition='opacity 0.3s ease';
-          setTimeout(function(){
-            phoneContent.innerHTML=
-              '<div class="sui-section-title">PARENT REMOTE</div>'
-              +'<div style="background:#f0f4ff;border:1.5px solid var(--accent);border-radius:8px;padding:5px;">'
-              +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-              +'<div class="sui-name" style="font-size:8px;">Nike Rev 7</div><div class="sui-price" style="font-size:8px;">$68</div></div>'
-              +'<div class="sui-rating" style="font-size:7px;">★★★★☆ 523</div></div>'
-              +'<div style="background:#f8f8fa;border:1px solid #e8e8ec;border-radius:8px;padding:5px;">'
-              +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-              +'<div class="sui-name" style="font-size:8px;">Adidas Duramo</div><div class="sui-price" style="font-size:8px;">$72</div></div>'
-              +'<div class="sui-rating" style="font-size:7px;">★★★★☆ 318</div></div>'
-              +'<div style="background:#f8f8fa;border:1px solid #e8e8ec;border-radius:8px;padding:5px;">'
-              +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-              +'<div class="sui-name" style="font-size:8px;">NB 520</div><div class="sui-price" style="font-size:8px;">$89</div></div>'
-              +'<div class="sui-rating" style="font-size:7px;">★★★★★ 712</div></div>'
-              +'<div style="background:#f8f8fa;border:1px solid #e8e8ec;border-radius:8px;padding:5px;">'
-              +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-              +'<div class="sui-name" style="font-size:8px;">Puma Flex</div><div class="sui-price" style="font-size:8px;">$59</div></div>'
-              +'<div class="sui-rating" style="font-size:7px;">★★★☆☆ 147</div></div>'
-              +'<div class="sui-btn" style="margin-top:2px;font-size:8px;">Highlight on TV</div>';
-            phoneContent.style.opacity='1';
-            if(phoneLabel) phoneLabel.textContent='Phone → parent remote';
-          },300);
-        },400);
-      },1500);
-    },uiLabel:'TV = kid picks freely · Phone = parent sees prices + reviews'},
-
-  /* ── 4. Dark theater ─ single phone, ultra-dark, no sound ── */
-  {id:'theater',label:'暗い映画館',
-    desc:'映画が始まった。暗い部屋、周りに人、ポケットにスマホ。',
-    intent:'インターミッションがあるか確認',
-    tokens:{physical:{v:'dark + silent',a:true},cognitive:{v:'relaxed',a:false},social:{v:'public',a:true},priority:{v:'minimal disruption',a:true},synchro:{v:'0.8 Notify',a:false},form:{v:'phone-only',a:true},feasibility:{v:'limited',a:false}},
-    rules:[{p:'brightness',v:'minimum'},{p:'audio',v:'silent'},{p:'feedback',v:'haptic only'},{p:'color',v:'ultra-dark'}],
-    ui:function(wrap){
-      wrap.innerHTML=
-        '<div class="device-col"><div class="iphone dark-variant"><div class="iphone-screen" style="background:#050507;"><div class="iphone-status"><span style="color:rgba(255,255,255,0.2);">21:05</span><span style="color:rgba(255,255,255,0.15);">5G</span></div>'
-        +'<div class="iphone-content sui-anim">'
-        +'<div style="flex:1;"></div>'
-        +'<div style="text-align:center;padding:4px 0;">'
-        +'<div style="font-size:7px;color:rgba(255,255,255,0.12);letter-spacing:1px;text-transform:uppercase;">Silent · Haptic only</div></div>'
-        +'<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:8px;">'
-        +'<div style="font-size:6px;color:rgba(255,255,255,0.15);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Notification</div>'
-        +'<div style="font-size:9px;color:rgba(255,255,255,0.30);font-weight:500;">Intermission in 23 min</div>'
-        +'<div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:5px;"><div style="width:35%;height:100%;background:rgba(37,99,235,0.4);border-radius:2px;"></div></div></div>'
-        +'<div style="display:flex;gap:8px;margin-top:4px;">'
-        +'<div style="flex:1;height:38px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(255,255,255,0.22);">Dismiss</div>'
-        +'<div style="flex:1;height:38px;background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:8px;color:rgba(37,99,235,0.55);">Remind</div>'
-        +'</div>'
-        +'<div style="text-align:center;margin-top:6px;"><div style="font-size:6px;color:rgba(255,255,255,0.10);">Tap = haptic confirmation</div></div>'
-        +'<div style="flex:0.3;"></div>'
-        +'</div><div class="iphone-home"><div class="iphone-home-bar" style="background:rgba(255,255,255,0.12);"></div></div></div></div>'
-        +'<div class="device-label">Ultra-dark · haptic only</div></div>';
-    },uiLabel:'Theater mode — minimum brightness, haptic feedback, zero sound'},
-
-  /* ── 5. Family 2 phones ─ parent phone + child phone ── */
-  {id:'duo',label:'家族 — 2台のスマホ',
-    desc:'土曜の午後。お子さんは自分のスマホ、あなたは自分のスマホ。',
-    intent:'ケンジに自分の靴を選ばせる',
-    tokens:{physical:{v:'both-hands',a:false},cognitive:{v:'split attention',a:true},social:{v:'family',a:true},priority:{v:'child safety',a:true},synchro:{v:'0.6 Confirm',a:false},form:{v:'phone + phone',a:true},feasibility:{v:'local results',a:false}},
-    rules:[{p:'parent.view',v:'prices + reviews'},{p:'child.view',v:'colors + fun'},{p:'sync',v:'real-time'},{p:'purchase',v:'parent only'}],
-    ui:function(wrap){
-      wrap.innerHTML=
-        '<div class="device-col"><div class="iphone small"><div class="iphone-screen"><div class="iphone-status"><span>14:20</span><span>WiFi</span></div>'
-        +'<div class="iphone-content sui-anim">'
-        +'<div style="text-align:center;padding:3px 0;"><div style="font-size:10px;">👦</div><div class="sui-section-title" style="font-size:8px;">KENJI\'S SHOE PICKS</div></div>'
-        +'<div style="display:flex;gap:4px;flex:1;">'
-        +'<div style="flex:1;background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;">'
-        +'<div style="font-size:20px;">👟</div>'
-        +'<div style="font-size:7px;color:#1a1a1a;font-weight:500;text-align:center;">Nike Rev 7</div>'
-        +'<div style="font-size:14px;">😍</div>'
-        +'<div style="font-size:6px;color:#15803d;font-weight:600;">LOVE IT</div></div>'
-        +'<div style="flex:1;background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;">'
-        +'<div style="font-size:20px;">👟</div>'
-        +'<div style="font-size:7px;color:#1a1a1a;font-weight:500;text-align:center;">Adidas</div>'
-        +'<div style="font-size:14px;">🤔</div>'
-        +'<div style="font-size:6px;color:#a16207;font-weight:600;">MAYBE</div></div>'
-        +'<div style="flex:1;background:#f8f8fa;border:1px solid #e8e8ec;border-radius:10px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:2px;">'
-        +'<div style="font-size:20px;">👟</div>'
-        +'<div style="font-size:7px;color:#1a1a1a;font-weight:500;text-align:center;">NB 520</div>'
-        +'<div style="font-size:14px;">😐</div>'
-        +'<div style="font-size:6px;color:#8e8e93;font-weight:600;">MEH</div></div>'
-        +'</div>'
-        +'<div style="font-size:6px;color:#b0b0b8;text-align:center;padding-top:2px;">No prices · reaction mode</div>'
-        +'</div><div class="iphone-home"><div class="iphone-home-bar"></div></div></div></div>'
-        +'<div class="device-label">Child — vote mode</div></div>'
-        +'<div class="device-col"><div class="iphone small"><div class="iphone-screen"><div class="iphone-status"><span>14:20</span><span>WiFi</span></div>'
-        +'<div class="iphone-content sui-anim">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;"><div class="sui-section-title" style="font-size:8px;">PARENT DASHBOARD</div><div style="font-size:6px;color:#15803d;background:#dcfce7;padding:2px 5px;border-radius:4px;">● Live</div></div>'
-        +'<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:5px;">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-        +'<div><div style="font-size:8px;color:#1a1a1a;font-weight:500;">Nike Rev 7</div>'
-        +'<div style="font-size:7px;color:#ff9500;">★★★★☆ 523</div></div>'
-        +'<div style="text-align:right;"><div style="font-size:9px;font-weight:600;color:#1a1a1a;">$68</div><div style="font-size:8px;">😍</div></div></div></div>'
-        +'<div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:5px;">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-        +'<div><div style="font-size:8px;color:#1a1a1a;font-weight:500;">Adidas Duramo</div>'
-        +'<div style="font-size:7px;color:#ff9500;">★★★★☆ 318</div></div>'
-        +'<div style="text-align:right;"><div style="font-size:9px;font-weight:600;color:#1a1a1a;">$72</div><div style="font-size:8px;">🤔</div></div></div></div>'
-        +'<div style="background:#f8f8fa;border:1px solid #e8e8ec;border-radius:8px;padding:5px;opacity:0.5;">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-        +'<div><div style="font-size:8px;color:#8e8e93;">NB 520</div>'
-        +'<div style="font-size:7px;color:#ff9500;">★★★★★ 712</div></div>'
-        +'<div style="text-align:right;"><div style="font-size:9px;font-weight:600;color:#8e8e93;">$89</div><div style="font-size:8px;">😐</div></div></div></div>'
-        +'<div style="display:flex;gap:4px;margin-top:2px;">'
-        +'<div class="sui-btn" style="flex:1;font-size:8px;">Buy Nike Rev 7</div>'
-        +'</div>'
-        +'</div><div class="iphone-home"><div class="iphone-home-bar"></div></div></div></div>'
-        +'<div class="device-label">Parent — live dashboard</div></div>';
-    },uiLabel:'2 phones — child reacts, parent sees prices + child\'s picks live'}
-];
-
-/* ═══ APP GRID + EVERYDAY SCENARIOS ═══ */
-var APPS = [
-  {name:'Messages', icon:'../../assets/icons/messages.png'},
-  {name:'Maps', icon:'../../assets/icons/maps.png'},
-  {name:'Instagram', icon:'../../assets/icons/instagram.png'},
-  {name:'Gmail', icon:'../../assets/icons/gmail.png'},
-  {name:'Notes', icon:'../../assets/icons/notes.png'},
-  {name:'Chrome', icon:'../../assets/icons/chrome.png'},
-  {name:'Calculator', icon:'../../assets/icons/calculator.png'},
-  {name:'Google Calendar', icon:'https://www.google.com/s2/favicons?domain=calendar.google.com&sz=128'},
-  {name:'WhatsApp', icon:'../../assets/icons/whatsapp.png'},
-  {name:'YouTube', icon:'../../assets/icons/youtube.png'},
-  {name:'Uber Eats', icon:'../../assets/icons/ubereats.webp'},
-  {name:'Amazon', icon:'../../assets/icons/amazon.png'},
-  {name:'Docs', icon:'../../assets/icons/docs.png'},
-  {name:'Sheets', icon:'../../assets/icons/sheets.png'},
-  {name:'Weather', icon:'../../assets/icons/weather.png'},
-  {name:'Spotify', icon:'../../assets/icons/spotify.png'},
-  {name:'LINE', icon:'../../assets/icons/line.png'},
-  {name:'OpenTable', icon:'../../assets/icons/opentable.jpg'},
-  {name:'Expedia', icon:'../../assets/icons/expedia.png'},
-  {name:'Airbnb', icon:'../../assets/icons/airbnb.webp'}
-];
-
-var EVERYDAY = [
-  {
-    id:'birthday',
-    label:'お母さんの誕生日プレゼント',
-    persona:'金曜の夜',
-    title:'友人の誕生日ディナーを計画する',
-    apps:[0,1,2,8,7,6,17],
-    steps:[
-      {icon:'💬',app:'WhatsApp',text:'グループチャット: 「土曜日来れる？」'},
-      {icon:'📍',app:'Maps',text:'駅近くのレストランを検索'},
-      {icon:'📸',app:'Instagram',text:'各店の雰囲気をチェック'},
-      {icon:'🥗',app:'Chrome',text:'待って — ミカはビーガンだ。検索し直し。'},
-      {icon:'📅',app:'OpenTable',text:'土曜19時、8人で予約'},
-      {icon:'💸',app:'Calculator',text:'割り勘: 1人約5,000円'}
-    ],
-    count:'6',countLabel:'アプリを1回のディナー予約に使用'
-  },
-  {
-    id:'fieldtrip',
-    label:'明日の遠足',
-    persona:'木曜の夜',
-    title:'明日の遠足 — 何が必要？',
-    apps:[3,4,0,5,1,16],
-    steps:[
-      {icon:'📧',app:'Gmail',text:'メールから持ち物リストを探す'},
-      {icon:'✅',app:'Notes',text:'家にあるものをチェック'},
-      {icon:'💬',app:'Messages',text:'「青い水筒でいい？」'},
-      {icon:'🗒️',app:'Notes',text:'まだ足りないものをリストアップ'},
-      {icon:'🔍',app:'Chrome',text:'まだ開いている近くの店を検索'},
-      {icon:'🚗',app:'Maps',text:'店へ向かう。子どもからテキスト: 「やっぱり赤がいい」'}
-    ],
-    count:'5+',countLabel:'アプリ — まだ終わっていない'
-  },
-  {
-    id:'trip',
-    label:'京都への週末旅行',
-    persona:'2週間前',
-    title:'友人との週末旅行を計画する',
-    apps:[18,19,14,5,12,13,1,2],
-    steps:[
-      {icon:'✈️',app:'Expedia',text:'3つのフライトオプションを比較'},
-      {icon:'🏨',app:'Airbnb',text:'フィルター、ソート、47件のレビューを読む'},
-      {icon:'🌤️',app:'Weather',text:'土曜は雨？'},
-      {icon:'🍽️',app:'Chrome',text:'6軒のレストランを保存、グループに共有'},
-      {icon:'📋',app:'Docs',text:'全員用の旅程をまとめる'},
-      {icon:'💳',app:'Sheets',text:'予算スプレッドシート: 誰がいくら'}
-    ],
-    count:'8+',countLabel:'アプリ、タブ、ドキュメント — たった1回の旅行に'
-  }
-];
-
-function setupAppGrid(){
-  var tabsEl=document.getElementById('appScenarioTabs');
-  var gridEl=document.getElementById('appGrid');
-  var contentEl=document.getElementById('scenarioContent');
-
-  EVERYDAY.forEach(function(sc,i){
-    var btn=document.createElement('button');
-    btn.className='app-grid-tab'+(i===0?' active':'');
-    btn.textContent=sc.label;
-    btn.addEventListener('click',function(){switchAppScenario(i);});
-    tabsEl.appendChild(btn);
-  });
-
-  APPS.forEach(function(app,i){
-    var icon=document.createElement('div');
-    icon.className='app-icon';icon.id='app-'+i;
-    icon.innerHTML='<img src="'+app.icon+'" alt="'+app.name+'" loading="lazy"><div class="app-icon-label">'+app.name+'</div>';
-    gridEl.appendChild(icon);
-  });
-
-  EVERYDAY.forEach(function(sc,i){
-    var card=document.createElement('div');
-    card.className='scenario-card'+(i===0?' active':'');
-    card.id='scenario-card-'+i;
-    card.innerHTML=
-      '<div class="sc-card-persona">'+sc.persona+'</div>'
-      +'<div class="sc-card-title">'+sc.title+'</div>'
-      +'<div class="sc-card-steps">'
-      +sc.steps.map(function(s){return '<div class="sc-card-step"><span class="sc-step-icon">'+s.icon+'</span><strong>'+s.app+'</strong>: '+s.text+'</div>';}).join('')
-      +'</div>'
-      +'<div class="sc-card-bottom"><div class="sc-card-count">'+sc.count+'</div><div class="sc-card-count-label">'+sc.countLabel+'</div></div>';
-    contentEl.appendChild(card);
-  });
-
-  switchAppScenario(0);
-}
-
-function switchAppScenario(idx){
-  document.querySelectorAll('.app-grid-tab').forEach(function(btn,i){btn.classList.toggle('active',i===idx);});
-  document.querySelectorAll('.scenario-card').forEach(function(card,i){card.classList.toggle('active',i===idx);});
-  var activeApps=EVERYDAY[idx].apps;
-  document.querySelectorAll('.app-icon').forEach(function(icon,i){
-    icon.classList.toggle('active',activeApps.indexOf(i)!==-1);
-    icon.classList.toggle('inactive',activeApps.indexOf(i)===-1);
-  });
-}
-
-setupAppGrid();
-
-var pk=document.getElementById('scenarioPicker');
-SCENARIOS.forEach(function(sc,i){
-  var b=document.createElement('button');b.className='demo-btn'+(i===0?' active':'');
-  b.innerHTML='<span class="demo-btn-label">'+sc.label+'</span><span class="demo-btn-desc">'+sc.desc+'</span>';
-  b.addEventListener('click',function(){loadScenario(i);});pk.appendChild(b);
-});
-
-function loadScenario(idx){
-  document.querySelectorAll('.demo-btn').forEach(function(b,i){b.classList.toggle('active',i===idx);});
-  var sc=SCENARIOS[idx];
-  document.getElementById('simIntentText').textContent=sc.intent;
-  var tl=document.getElementById('simTokensList');tl.innerHTML='';
-  Object.keys(sc.tokens).forEach(function(k){
-    var t=sc.tokens[k];var tok=TOKENS.find(function(x){return x.id===k;});
-    var r=document.createElement('div');r.className='sim-row'+(t.a?' hl':'');
-    r.innerHTML='<div class="sim-tname"><span class="sim-dot" style="background:var(--'+(tok.cat==='human'?'accent':tok.cat==='control'?'amber':'green')+')"></span>'+tok.name+'</div><div class="sim-tval'+(t.a?' active':'')+'">'+t.v+'</div>';
-    tl.appendChild(r);
-  });
-  var rl=document.getElementById('simRulesList');rl.innerHTML='';
-  sc.rules.forEach(function(r,i){
-    var el=document.createElement('div');el.className='sim-rule';
-    el.innerHTML='<span class="sim-rule-prop">'+r.p+'</span><span class="sim-rule-val">'+r.v+'</span>';
-    rl.appendChild(el);setTimeout(function(){el.classList.add('visible');},400+i*150);
-  });
-  var dw=document.getElementById('deviceWrap');
-  dw.innerHTML='';
-  sc.ui(dw);
-  document.getElementById('simLabel').textContent=sc.uiLabel;
-}
-loadScenario(0);
-
-/* scroll reveal */
-var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.1});
-document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
-
-/* scenario scroll animation — phases + staggered question lines */
-var scObs=new IntersectionObserver(function(entries){entries.forEach(function(e){
-  if(!e.isIntersecting) return;
-  e.target.classList.add('visible');
-  /* if this is the questions phase, stagger the lines */
-  if(e.target.id==='scPhase3'){
-    e.target.querySelectorAll('.sc-q-line').forEach(function(line){
-      var d=parseInt(line.getAttribute('data-delay'))||0;
-      setTimeout(function(){line.classList.add('visible');},d);
-    });
-  }
-});},{threshold:0.15});
-document.querySelectorAll('.sc-phase, .sc-connector').forEach(function(el){scObs.observe(el);});
-
-/* ═══ STICKY ERA HEADER ═══ */
-var eraSticky = document.getElementById('eraSticky');
-var eraStickyLabel = document.getElementById('eraStickyLabel');
-var eraShift = document.getElementById('eraShift');
-var futureSection = document.getElementById('future');
-
-if(eraSticky && eraStickyLabel) {
-  /* Show sticky when zoomin or future is in view */
-  var zoominSection = document.getElementById('zoomin');
-
-  var stickyObs = new IntersectionObserver(function(entries) {
+// ─── Scroll reveal ───
+(function() {
+  var io = new IntersectionObserver(function(entries) {
     entries.forEach(function(e) {
-      if(e.target.id === 'zoomin') {
-        if(e.isIntersecting) { eraSticky.classList.add('visible'); eraStickyLabel.textContent = '今日'; eraStickyLabel.classList.remove('future'); }
-      }
-      if(e.target.id === 'eraShift') {
-        if(e.isIntersecting) { eraSticky.classList.add('visible'); }
-      }
-      if(e.target.id === 'future') {
-        if(e.isIntersecting) { eraStickyLabel.textContent = '近い未来'; eraStickyLabel.classList.add('future'); }
-        else if(e.boundingClientRect.top > 0) { eraStickyLabel.textContent = '今日'; eraStickyLabel.classList.remove('future'); }
-      }
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
     });
-  }, {threshold: 0.05});
-
-  if(zoominSection) stickyObs.observe(zoominSection);
-  if(eraShift) stickyObs.observe(eraShift);
-  if(futureSection) stickyObs.observe(futureSection);
-
-  /* Hide sticky when scrolled past future section */
-  var hideObs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if(!e.isIntersecting && e.target.id === 'zoomin' && e.boundingClientRect.top > 0) {
-        eraSticky.classList.remove('visible');
-      }
-    });
-  }, {threshold: 0});
-  if(zoominSection) hideObs.observe(zoominSection);
-}
-
-window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);});
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
 })();
 </script>
+<script src="../../assets/js/nav.js" defer></script>
+<script>initNav({ basePath: '../../', activePage: 'introduction', lang: 'ja' });</script>
+
 </body>
 </html>
