@@ -16,7 +16,27 @@ CSS defined in `assets/css/context-grammar.css`. Dark background navigation: add
 
 ### Typography hierarchy:
 - **overview page**: `hero-label` = brand name (largest, 40–64px), `hero-title` = tagline (medium, 20–30px)
-- **sub-pages**: `hero-title` = page name (largest, via `--hero-title-size`), `hero-label` = tagline/badge
+- **sub-pages**: `hero-title` (h1) = page name (LARGEST, via `--hero-title-size` = 32–58px), `hero-label` (p) = readable tagline (18–26px sans, weight 400, `rgba(240,236,228,0.62)`)
+
+**Sub-page hero-label override** (add to each sub-page `<style>`):
+```css
+.hero-label {
+  font-family: var(--font-sans);
+  font-size: clamp(18px, 1.8vw, 26px);
+  font-weight: 400;
+  letter-spacing: -0.2px;
+  text-transform: none;
+  color: rgba(240, 236, 228, 0.62);
+  margin-bottom: 28px;
+}
+```
+
+**Sub-page HTML order** (h1 comes FIRST):
+```html
+<h1 class="hero-title">Context Brain</h1>
+<p class="hero-label">Not a database. A butler.</p>
+<p class="hero-sub">Description text.</p>
+```
 
 ## Section Structure
 
