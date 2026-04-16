@@ -1,1179 +1,1105 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Context Grammar — A Design Language for Agentic AI</title>
-<meta name="description" content="Context Grammar gives AI a structured language to understand human state — not just human words. Eight tokens. One grammar. A new design layer for the agentic era.">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
-<link rel="stylesheet" href="../assets/css/tokens.css">
-<link rel="stylesheet" href="../assets/css/nav.css">
-<style>
-
-/* ═══ COMMON ═══ */
-.sec {
-  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
-}
-.sec-inner {
-  max-width: var(--max-w); margin: 0 auto;
-}
-.sec-label {
-  font-family: var(--font-mono);
-  font-size: clamp(12px, 0.8vw, 13px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-}
-
-/* ═══════════════════════════════════════
-   HERO
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Grammar — A Design Language for Agentic AI</title>
+  <meta name="description"
+    content="Context Grammar gives AI a structured language to understand human state — not just human words. Eight tokens. One grammar. A new design layer for the agentic era.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../assets/css/nav.css">
+  <style>
+    /* ═══════════════════════════════════════
+   HERO OVERRIDES (page-specific)
+   This page uses hero-label as the large brand name (~64px sans-serif)
+   and hero-title as a medium secondary tagline (~30px, 70% opacity),
+   both overriding the defaults in context-grammar.css.
    ═══════════════════════════════════════ */
-.hero {
-  min-height: 100vh;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center;
-  background: #08070b;
-  color: #f0ece4;
-  position: relative;
-  overflow: hidden;
-  padding: clamp(100px, 14vh, 160px) clamp(24px, 4vw, 48px) clamp(60px, 8vh, 100px);
-}
-.hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 50% 38%, rgba(74,106,144,0.10), transparent 70%),
-              radial-gradient(ellipse 50% 40% at 30% 60%, rgba(106,74,144,0.06), transparent 60%);
-  pointer-events: none;
-}
-/* Faint architecture diagram in background — communicates "this is a system" */
-.hero::after {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: url('images/ISO-GREEN/IF-01-overview.png');
-  background-position: 80% center;
-  background-size: 45%;
-  background-repeat: no-repeat;
-  opacity: 0.05;
-  pointer-events: none;
-}
-.hero-label {
-  font-family: var(--font-sans);
-  font-size: clamp(40px, 5vw, 64px);
-  font-weight: 500;
-  letter-spacing: -1.5px;
-  text-transform: none;
-  color: rgba(240,236,228,0.96);
-  margin-bottom: 20px;
-  opacity: 0;
-  animation: fadeUp 0.8s 0.2s forwards;
-  position: relative;
-}
-.hero-title {
-  font-weight: 300;
-  font-size: clamp(16px, 1.5vw, 22px);
-  line-height: 1.5;
-  letter-spacing: 0;
-  color: rgba(240,236,228,0.55);
-  margin-bottom: 36px;
-  max-width: 560px;
-  opacity: 0;
-  animation: fadeUp 0.8s 0.4s forwards;
-  position: relative;
-}
-.hero-sub {
-  font-size: clamp(16px, 1.1vw, 19px);
-  font-weight: 300;
-  color: rgba(240,236,228,0.78);
-  max-width: 580px;
-  line-height: 1.85;
-  margin: 0 auto;
-  opacity: 0;
-  animation: fadeUp 0.8s 0.6s forwards;
-  position: relative;
-}
-.hero-scroll-hint {
-  position: absolute;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  opacity: 0;
-  animation: fadeUp 0.8s 1s forwards;
-}
-.hero-scroll-hint span {
-  display: block;
-  width: 1px;
-  height: 40px;
-  background: rgba(240,236,228,0.15);
-  margin: 0 auto;
-  animation: scrollPulse 2s ease-in-out infinite;
-}
-@keyframes scrollPulse {
-  0%, 100% { transform: scaleY(1); opacity: 0.3; }
-  50% { transform: scaleY(1.4); opacity: 0.6; }
-}
+    .hero-label {
+      font-family: var(--font-sans);
+      font-size: clamp(40px, 5vw, 64px);
+      font-weight: 500;
+      letter-spacing: -1.5px;
+      text-transform: none;
+      color: rgba(240, 236, 228, 0.96);
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+      position: relative;
+    }
 
-/* ═══════════════════════════════════════
+    .hero-title {
+      font-weight: 500;
+      font-size: clamp(20px, 2.2vw, 30px);
+      line-height: 1.35;
+      letter-spacing: -0.3px;
+      color: rgba(240, 236, 228, 0.70);
+      margin-bottom: 28px;
+      max-width: 680px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+      position: relative;
+    }
+
+    /* ═══════════════════════════════════════
    PROBLEM SECTION
    ═══════════════════════════════════════ */
-.problem { background: var(--bg); }
-.problem-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: clamp(20px, 3vw, 40px);
-  margin-top: 48px;
-}
-.problem-step {
-  position: relative;
-}
-.problem-step-num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: var(--color-grammar);
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-.problem-step h3 {
-  font-weight: 500;
-  font-size: clamp(18px, 1.5vw, 22px);
-  letter-spacing: -0.5px;
-  line-height: 1.25;
-  margin-bottom: 12px;
-}
-.problem-step p {
-  font-size: clamp(15px, 1.05vw, 17px);
-  color: var(--text-2);
-  font-weight: 300;
-  line-height: 1.75;
-}
-.problem-pullquote {
-  margin-top: 56px;
-  padding: 32px 0 32px 28px;
-  border-left: 2px solid var(--color-grammar);
-  border-radius: 0;
-  font-weight: 500;
-  font-size: clamp(20px, 2vw, 28px);
-  line-height: 1.35;
-  letter-spacing: -0.8px;
-  max-width: 680px;
-}
-@media (max-width: 768px) {
-  .problem-grid { grid-template-columns: 1fr; gap: 36px; }
-}
+    .problem {
+      background: var(--bg);
+    }
 
-/* ═══════════════════════════════════════
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: clamp(20px, 3vw, 40px);
+      margin-top: 48px;
+    }
+
+    .problem-step {
+      position: relative;
+    }
+
+    .problem-step-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--color-grammar);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .problem-step h3 {
+      font-weight: 500;
+      font-size: clamp(18px, 1.5vw, 22px);
+      letter-spacing: -0.5px;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .problem-step p {
+      font-size: clamp(15px, 1.05vw, 17px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.75;
+    }
+
+    .problem-pullquote {
+      margin-top: 56px;
+      padding: 32px 0 32px 28px;
+      border-left: 2px solid var(--color-grammar);
+      border-radius: 0;
+      font-weight: 500;
+      font-size: clamp(20px, 2vw, 28px);
+      line-height: 1.35;
+      letter-spacing: -0.8px;
+      max-width: 680px;
+    }
+
+    @media (max-width: 768px) {
+      .problem-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+      }
+    }
+
+    /* ═══════════════════════════════════════
    ARCHITECTURE SECTION
    ═══════════════════════════════════════ */
-.architecture { background: var(--bg-2); }
+    .architecture {
+      background: var(--bg-2);
+    }
 
-.pipeline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  margin: 48px 0 56px;
-  flex-wrap: wrap;
-}
-.pipeline-node {
-  display: flex; flex-direction: column; align-items: center;
-  text-align: center;
-  padding: 20px 16px;
-  min-width: 120px;
-  flex: 1;
-  max-width: 200px;
-}
-.pipeline-icon {
-  width: 48px; height: 48px;
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-  margin-bottom: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-}
-.pipeline-icon--intent { color: var(--color-intent); }
-.pipeline-icon--tokens { color: var(--color-grammar); }
-.pipeline-icon--brain { color: var(--color-brain); }
-.pipeline-icon--rules { color: var(--color-label); }
-.pipeline-icon--response { color: var(--color-success); }
-.pipeline-name {
-  font-family: var(--font-mono);
-  font-size: 12px; font-weight: 500;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.pipeline-arrow {
-  font-size: 18px; color: var(--text-3); flex-shrink: 0;
-  margin: 0 -4px;
-  align-self: center;
-}
-@media (max-width: 768px) {
-  .pipeline { flex-direction: column; gap: 4px; }
-  .pipeline-arrow { transform: rotate(90deg); margin: -4px 0; }
-  .pipeline-node { max-width: none; flex: none; width: 100%; }
-}
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin: 48px 0 56px;
+      flex-wrap: wrap;
+    }
 
-.arch-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(16px, 2vw, 24px);
-}
-.arch-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: clamp(24px, 2.5vw, 36px);
-  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
-}
-.arch-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.04);
-}
-.arch-card-label {
-  font-family: var(--font-mono);
-  font-size: 12px; font-weight: 500;
-  letter-spacing: 2px; text-transform: uppercase;
-  margin-bottom: 10px;
-}
-.arch-card-label--intent { color: var(--color-intent); }
-.arch-card-label--tokens { color: var(--color-grammar); }
-.arch-card-label--brain { color: var(--color-brain); }
-.arch-card-label--rules { color: var(--color-label); }
-.arch-card-label--response { color: var(--color-success); }
-.arch-card h3 {
-  font-weight: 500;
-  font-size: clamp(18px, 1.4vw, 22px);
-  letter-spacing: -0.3px;
-  margin-bottom: 10px;
-  line-height: 1.25;
-}
-.arch-card p {
-  font-size: clamp(15px, 1.05vw, 17px);
-  color: var(--text-2);
-  font-weight: 300;
-  line-height: 1.7;
-  margin-bottom: 16px;
-}
-.arch-card-link {
-  font-family: var(--font-mono);
-  font-size: 12px; font-weight: 500;
-  letter-spacing: 1px;
-  color: var(--color-grammar);
-  text-decoration: none;
-  transition: color 0.3s var(--ease);
-}
-.arch-card-link:hover { color: var(--text); }
-.arch-card--wide {
-  grid-column: 1 / -1;
-}
-@media (max-width: 768px) {
-  .arch-cards { grid-template-columns: 1fr; }
-}
+    .pipeline-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 16px;
+      min-width: 120px;
+      flex: 1;
+      max-width: 200px;
+    }
 
-/* ═══════════════════════════════════════
+    .pipeline-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .pipeline-icon--intent {
+      color: var(--color-intent);
+    }
+
+    .pipeline-icon--tokens {
+      color: var(--color-grammar);
+    }
+
+    .pipeline-icon--brain {
+      color: var(--color-brain);
+    }
+
+    .pipeline-icon--rules {
+      color: var(--color-label);
+    }
+
+    .pipeline-icon--response {
+      color: var(--color-success);
+    }
+
+    .pipeline-name {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .pipeline-arrow {
+      font-size: 18px;
+      color: var(--text-3);
+      flex-shrink: 0;
+      margin: 0 -4px;
+      align-self: center;
+    }
+
+    @media (max-width: 768px) {
+      .pipeline {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .pipeline-arrow {
+        transform: rotate(90deg);
+        margin: -4px 0;
+      }
+
+      .pipeline-node {
+        max-width: none;
+        flex: none;
+        width: 100%;
+      }
+    }
+
+    /* arch-cards, arch-card, arch-card:hover, arch-card-label + variants,
+       arch-card h3, arch-card p — all covered by context-grammar.css */
+
+    .arch-card-link {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: var(--color-grammar);
+      text-decoration: none;
+      transition: color 0.3s var(--ease);
+    }
+
+    .arch-card-link:hover {
+      color: var(--text);
+    }
+
+    .arch-card--wide {
+      grid-column: 1 / -1;
+      /* no-op in 1-col, kept for future */
+    }
+
+    /* ═══════════════════════════════════════
    PROJECTS SECTION
    ═══════════════════════════════════════ */
-.projects { background: var(--bg); }
-.projects-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: clamp(16px, 2vw, 24px);
-  margin-top: 48px;
-}
-.project-card {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
-  text-decoration: none;
-  color: inherit;
-  display: flex; flex-direction: column;
-}
-.project-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.05);
-}
-.project-card-img {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  background: var(--bg-3);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-3);
-  letter-spacing: 1px;
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
-  position: relative;
-}
-.project-card-img::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(74,106,144,0.04), rgba(106,74,144,0.04));
-  pointer-events: none;
-}
-.project-card-body {
-  padding: clamp(20px, 2vw, 28px);
-  flex: 1;
-  display: flex; flex-direction: column;
-}
-.project-card-num {
-  font-family: var(--font-mono);
-  font-size: 11px; font-weight: 500;
-  letter-spacing: 2px; text-transform: uppercase;
-  color: var(--color-grammar);
-  margin-bottom: 8px;
-}
-.project-card-title {
-  font-weight: 500;
-  font-size: clamp(18px, 1.4vw, 22px);
-  letter-spacing: -0.3px;
-  margin-bottom: 8px;
-  line-height: 1.25;
-}
-.project-card-hook {
-  font-size: clamp(15px, 1.05vw, 16px);
-  color: var(--text-2);
-  font-weight: 300;
-  line-height: 1.65;
-  flex: 1;
-}
-.project-card-cta {
-  font-family: var(--font-mono);
-  font-size: 12px; font-weight: 500;
-  letter-spacing: 1px;
-  color: var(--color-grammar);
-  margin-top: 16px;
-}
-@media (max-width: 900px) {
-  .projects-grid { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; }
-}
+    .projects {
+      background: var(--bg);
+    }
 
-/* ═══════════════════════════════════════
-   CTA SECTION
-   ═══════════════════════════════════════ */
-.cta {
-  background: #08070b;
-  color: #f0ece4;
-  text-align: center;
-  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
-  position: relative;
-  overflow: hidden;
-}
-.cta::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(74,106,144,0.05), transparent 70%);
-  pointer-events: none;
-}
-.cta-inner {
-  max-width: var(--max-w); margin: 0 auto;
-  position: relative;
-}
-.cta-title {
-  font-weight: 500;
-  font-size: clamp(28px, 3.5vw, 48px);
-  line-height: 1.1;
-  letter-spacing: -1.5px;
-  margin-bottom: 16px;
-}
-.cta-sub {
-  font-size: clamp(15px, 1.1vw, 18px);
-  font-weight: 300;
-  color: rgba(240,236,228,0.5);
-  max-width: 480px;
-  margin: 0 auto 40px;
-  line-height: 1.7;
-}
-.cta-buttons {
-  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-}
-.cta-btn {
-  font-family: var(--font-mono);
-  font-size: 13px; font-weight: 500;
-  letter-spacing: 0.5px;
-  padding: 16px 32px;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: all 0.3s var(--ease);
-  display: inline-flex; align-items: center; gap: 8px;
-}
-.cta-btn--primary {
-  background: #f0ece4; color: #08070b;
-}
-.cta-btn--primary:hover {
-  background: #fff; transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(240,236,228,0.1);
-}
-.cta-btn--secondary {
-  background: transparent; color: rgba(240,236,228,0.6);
-  border: 1px solid rgba(240,236,228,0.12);
-}
-.cta-btn--secondary:hover {
-  color: #f0ece4; border-color: rgba(240,236,228,0.3);
-  transform: translateY(-2px);
-}
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: clamp(16px, 2vw, 24px);
+      margin-top: 48px;
+    }
 
-/* ═══ FOOTER ═══ */
-.footer {
-  background: #08070b;
-  color: rgba(240,236,228,0.35);
-  padding: 20px clamp(24px, 4vw, 48px);
-  border-top: 1px solid rgba(240,236,228,0.04);
-}
-.footer-inner {
-  max-width: var(--max-w); margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
-  font-family: var(--font-mono); font-size: 11px;
-}
-.footer a {
-  color: rgba(240,236,228,0.35); text-decoration: none;
-  transition: color 0.3s var(--ease);
-}
-.footer a:hover { color: var(--color-grammar); }
-.footer-logo { height: 16px; width: auto; opacity: 0.3; }
-.footer-links { display: flex; gap: 16px; }
+    .project-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* ═══ SELECTION ═══ */
-/* ═══════════════════════════════════════
-   SECTION ILLUSTRATIONS
-   ═══════════════════════════════════════ */
-.sec-illust {
-  display: block;
-  max-width: 560px;
-  width: 100%;
-  margin: 32px 0;
-  border-radius: 16px;
-  background: #fdfcfa;
-  border: 1px solid var(--border);
-  padding: 20px;
-}
-.sec-illust--center {
-  margin-left: auto;
-  margin-right: auto;
-}
-.sec-illust--wide {
-  max-width: 720px;
-}
-.sec-illust--full {
-  max-width: 100%;
-}
-.arch-card .sec-illust {
-  max-width: 100%;
-  margin: 16px 0 0;
-  padding: 12px;
-  border-radius: 12px;
-}
-@media (max-width: 640px) {
-  .sec-illust {
-    padding: 12px;
-  }
-}
+    .project-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.05);
+    }
 
-::selection { background: rgba(74,106,144,0.15); }
+    .project-card-img {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: var(--bg-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-3);
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
 
-/* ═══ Intent 4-Layer ═══ */
-.intent-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(12px, 1.5vw, 20px);
-  margin-top: 48px;
-}
-.intent-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-top: 3px solid var(--color-intent);
-  border-radius: 0 0 12px 12px;
-  padding: clamp(20px, 2vw, 28px);
-}
-.intent-card-num {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 2px;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-.intent-card-name {
-  font-size: clamp(18px, 1.4vw, 22px);
-  font-weight: 500;
-  letter-spacing: -0.3px;
-  margin-bottom: 10px;
-}
-.intent-card-desc {
-  font-size: clamp(15px, 1vw, 16px);
-  color: var(--text-2);
-  font-weight: 300;
-  line-height: 1.7;
-  margin-bottom: 14px;
-}
-.intent-card-ex {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-intent);
-  background: rgba(122,85,32,0.06);
-  border-radius: 6px;
-  padding: 8px 12px;
-  line-height: 1.5;
-  font-style: italic;
-}
-@media (max-width: 900px) { .intent-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 540px) { .intent-grid { grid-template-columns: 1fr; } }
+    .project-card-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(74, 106, 144, 0.04), rgba(106, 74, 144, 0.04));
+      pointer-events: none;
+    }
 
-/* ═══ Part Banners ═══ */
-.part-banner {
-  padding: 20px clamp(24px, 4vw, 48px);
-}
-.part-banner--grammar { background: var(--color-grammar); }
-.part-banner--output { background: var(--color-intent); }
-.part-banner-inner {
-  max-width: var(--max-w);
-  margin: 0 auto;
-  display: flex; align-items: center; gap: 20px;
-  flex-wrap: wrap;
-}
-.part-banner-tag {
-  font-family: var(--font-mono);
-  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
-  color: rgba(255,255,255,0.6);
-  white-space: nowrap;
-}
-.part-banner-title {
-  font-size: clamp(16px, 1.3vw, 20px);
-  font-weight: 500; color: #fff;
-  letter-spacing: -0.3px;
-}
-.part-banner-sub {
-  font-family: var(--font-mono);
-  font-size: 12px; color: rgba(255,255,255,0.6);
-  margin-left: auto;
-}
-@media (max-width: 600px) { .part-banner-sub { display: none; } }
+    .project-card-body {
+      padding: clamp(20px, 2vw, 28px);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
 
-/* ═══ Token Cards ═══ */
-.token-section-head { margin-bottom: 24px; }
-.token-section-label {
-  font-family: var(--font-mono);
-  font-size: 12px; font-weight: 500;
-  letter-spacing: 2px; text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.token-section-desc {
-  font-size: clamp(15px, 1vw, 17px);
-  color: var(--text-2); font-weight: 300;
-}
-.token-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(12px, 1.5vw, 20px);
-}
-.token-cards-grid--2col { grid-template-columns: 1fr 1fr; }
-.token-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: clamp(18px, 2vw, 24px);
-}
-.token-card--dial { border-color: rgba(122,85,32,0.2); }
-.token-num {
-  font-family: var(--font-mono);
-  font-size: 18px; font-weight: 500;
-  color: var(--color-grammar);
-  margin-bottom: 8px;
-}
-.token-name {
-  font-size: clamp(17px, 1.2vw, 19px);
-  font-weight: 500;
-  letter-spacing: -0.2px;
-  margin-bottom: 8px;
-}
-.token-desc {
-  font-size: clamp(15px, 1vw, 16px);
-  color: var(--text-2); font-weight: 300;
-  line-height: 1.7; margin-bottom: 12px;
-}
-.token-bridge {
-  font-size: 13px;
-  color: var(--color-grammar);
-  font-style: italic;
-  border-left: 2px solid var(--color-grammar);
-  border-radius: 0;
-  padding-left: 10px;
-  line-height: 1.5;
-}
-.token-card--dial .token-bridge {
-  color: var(--color-intent);
-  border-left-color: var(--color-intent);
-}
-.prerequisite-note {
-  margin-top: 32px;
-  padding: 20px 24px;
-  background: rgba(122,85,32,0.05);
-  border: 1px solid rgba(122,85,32,0.2);
-  border-radius: 12px;
-  font-size: clamp(15px, 1vw, 17px);
-  line-height: 1.7;
-  color: var(--text-2);
-}
-.prerequisite-tag {
-  font-family: var(--font-mono);
-  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--color-intent);
-  background: rgba(122,85,32,0.08);
-  padding: 3px 8px; border-radius: 4px;
-  margin-bottom: 8px; display: block;
-}
-.btn-link {
-  font-family: var(--font-mono);
-  font-size: 13px; font-weight: 500;
-  letter-spacing: 1px;
-  color: var(--color-grammar);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-.btn-link:hover { color: var(--text); }
-@media (max-width: 900px) { .token-cards-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 540px) {
-  .token-cards-grid { grid-template-columns: 1fr; }
-  .token-cards-grid--2col { grid-template-columns: 1fr; }
-}
+    .project-card-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      margin-bottom: 8px;
+    }
 
-/* ═══ 3 Directions ═══ */
-.directions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(16px, 2vw, 28px);
-  margin-top: 48px;
-}
-.direction-card {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: clamp(20px, 2vw, 28px);
-  text-align: center;
-}
-.direction-arrow {
-  font-size: 28px; color: var(--text-3);
-  margin-bottom: 12px;
-}
-.direction-flow {
-  font-family: var(--font-mono);
-  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.direction-name {
-  font-size: clamp(20px, 1.6vw, 24px);
-  font-weight: 500; letter-spacing: -0.5px;
-  margin-bottom: 12px;
-}
-.direction-desc {
-  font-size: clamp(15px, 1vw, 16px);
-  color: var(--text-2); font-weight: 300;
-  line-height: 1.7; margin-bottom: 14px;
-}
-.direction-ex {
-  font-size: 13px; font-style: italic;
-  color: var(--text-3); line-height: 1.5;
-}
-@media (max-width: 768px) { .directions-grid { grid-template-columns: 1fr; } }
+    .project-card-title {
+      font-weight: 500;
+      font-size: clamp(18px, 1.4vw, 22px);
+      letter-spacing: -0.3px;
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
 
-/* ═══ Temporal Arc Teaser ═══ */
-.temporal-phases {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  position: relative;
-}
-.temporal-phase {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px 20px;
-  min-width: 120px;
-  text-align: center;
-}
-.temporal-phase--highlight {
-  border-color: var(--color-intent);
-  background: rgba(122,85,32,0.05);
-}
-.temporal-phase-time {
-  font-family: var(--font-mono);
-  font-size: 12px; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--text-3);
-  margin-bottom: 4px;
-}
-.temporal-phase-name {
-  font-size: 16px; font-weight: 500;
-  margin-bottom: 4px;
-}
-.temporal-phase-mode {
-  font-family: var(--font-mono);
-  font-size: 12px; color: var(--color-intent);
-}
-.temporal-arrow {
-  font-size: 18px; color: var(--text-3);
-  flex-shrink: 0;
-}
-.temporal-crisis {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: #dc2626;
-  text-align: center;
-  padding: 8px 12px;
-  border: 1px dashed rgba(220,38,38,0.3);
-  border-radius: 8px;
-}
-.temporal-crisis-label { font-size: 14px; margin-bottom: 2px; }
-.temporal-crisis-desc { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.7; }
-@media (max-width: 768px) {
-  .temporal-phases { flex-direction: column; gap: 8px; }
-  .temporal-arrow { transform: rotate(90deg); }
-}
+    .project-card-hook {
+      font-size: clamp(15px, 1.05vw, 16px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.65;
+      flex: 1;
+    }
 
-</style>
+    .project-card-cta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: var(--color-grammar);
+      margin-top: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .projects-grid {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
+    /* cta, cta-inner, cta-title, cta-buttons, cta-btn + variants — covered by components.css */
+    /* footer, footer a, footer a:hover — covered by components.css */
+    /* sec-illust, sec-illust--center/wide/full, arch-card .sec-illust, media query — covered by components.css */
+    /* part-banner + variants, part-banner-inner/tag/title/sub, media query — covered by components.css */
+
+    ::selection {
+      background: rgba(74, 106, 144, 0.15);
+    }
+
+    /* ═══ Token Cards ═══ */
+    .token-section-head {
+      margin-bottom: 24px;
+    }
+
+    .token-section-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .token-section-desc {
+      font-size: clamp(15px, 1vw, 17px);
+      color: var(--text-2);
+      font-weight: 300;
+    }
+
+    .token-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(12px, 1.5vw, 20px);
+    }
+
+    .token-cards-grid--2col {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .token-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: clamp(18px, 2vw, 24px);
+    }
+
+    .token-card--dial {
+      border-color: rgba(122, 85, 32, 0.2);
+    }
+
+    .token-num {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--color-grammar);
+      margin-bottom: 8px;
+    }
+
+    .token-name {
+      font-size: clamp(17px, 1.2vw, 19px);
+      font-weight: 500;
+      letter-spacing: -0.2px;
+      margin-bottom: 8px;
+    }
+
+    .token-desc {
+      font-size: clamp(15px, 1vw, 16px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    .token-bridge {
+      font-size: 13px;
+      color: var(--color-grammar);
+      font-style: italic;
+      border-left: 2px solid var(--color-grammar);
+      border-radius: 0;
+      padding-left: 10px;
+      line-height: 1.5;
+    }
+
+    .token-card--dial .token-bridge {
+      color: var(--color-intent);
+      border-left-color: var(--color-intent);
+    }
+
+    .prerequisite-note {
+      margin-top: 32px;
+      padding: 20px 24px;
+      background: rgba(122, 85, 32, 0.05);
+      border: 1px solid rgba(122, 85, 32, 0.2);
+      border-radius: 12px;
+      font-size: clamp(15px, 1vw, 17px);
+      line-height: 1.7;
+      color: var(--text-2);
+    }
+
+    .prerequisite-tag {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--color-intent);
+      background: rgba(122, 85, 32, 0.08);
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .btn-link {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: var(--color-grammar);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .btn-link:hover {
+      color: var(--text);
+    }
+
+    @media (max-width: 900px) {
+      .token-cards-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .token-cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .token-cards-grid--2col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ═══ 3 Directions ═══ */
+    .directions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(16px, 2vw, 28px);
+      margin-top: 48px;
+    }
+
+    .direction-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: clamp(20px, 2vw, 28px);
+      text-align: center;
+    }
+
+    .direction-arrow {
+      font-size: 28px;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+
+    .direction-flow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .direction-name {
+      font-size: clamp(20px, 1.6vw, 24px);
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .direction-desc {
+      font-size: clamp(15px, 1vw, 16px);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .direction-ex {
+      font-size: 13px;
+      font-style: italic;
+      color: var(--text-3);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+      .directions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ═══ Temporal Arc Teaser ═══ */
+    .temporal-phases {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .temporal-phase {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .temporal-phase--highlight {
+      border-color: var(--color-intent);
+      background: rgba(122, 85, 32, 0.05);
+    }
+
+    .temporal-phase-time {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 4px;
+    }
+
+    .temporal-phase-name {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .temporal-phase-mode {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-intent);
+    }
+
+    .temporal-arrow {
+      font-size: 18px;
+      color: var(--text-3);
+      flex-shrink: 0;
+    }
+
+    .temporal-crisis {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #dc2626;
+      text-align: center;
+      padding: 8px 12px;
+      border: 1px dashed rgba(220, 38, 38, 0.3);
+      border-radius: 8px;
+    }
+
+    .temporal-crisis-label {
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .temporal-crisis-desc {
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 768px) {
+      .temporal-phases {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .temporal-arrow {
+        transform: rotate(90deg);
+      }
+    }
+  </style>
 </head>
+
 <body data-dark-nav>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      HERO
      ═══════════════════════════════════════ -->
-<section class="hero" id="hero">
-  <p class="hero-label">Context Grammar</p>
-  <h1 class="hero-title">A Design Language for the Age of Agentic AI</h1>
-  <p class="hero-sub">Your phone can write emails, book flights, summarize meetings. But it has no idea you are exhausted. Context Grammar gives AI the language to understand human state &mdash; and respond with intelligence, not just information.</p>
-  <div class="hero-scroll-hint"><span></span></div>
-</section>
+  <section class="hero" id="hero">
+    <p class="hero-label">Context Grammar</p>
+    <h1 class="hero-title">A Design Language<br>for the Age of Agentic AI</h1>
+    <p class="hero-sub">Your phone can write emails, book flights, summarize meetings.<br>But it has no idea you are
+      exhausted.<br>Context Grammar gives AI the language to understand human state — and respond with intelligence, not
+      just information.</p>
+    <div class="hero-scroll-hint"><span></span></div>
+  </section>
 
-<!-- ═══ INTENT: 4 LAYERS ═══ -->
-<section class="sec sec-dim intent-layers">
-  <div class="sec-inner">
-    <div class="sec-label" style="color:var(--color-intent);">Where It Starts</div>
-    <h2 class="sec-title reveal">Intent has four depths.<br>AI only hears the loudest one.</h2>
-    <p class="sec-desc reveal d1">When you set a 7am alarm, you said it out loud — Explicit. When you search for restaurants, you're Active without explaining why. Your daily commute pattern is Passive intent. A dark, still bedroom at midnight is Ambient. Context Grammar reads all four.</p>
 
-    <div class="intent-grid reveal d2">
-      <div class="intent-card">
-        <div class="intent-card-num" style="color:var(--color-intent);">01</div>
-        <div class="intent-card-name">Explicit</div>
-        <div class="intent-card-desc">Declared in words. "Wake me at 7am." "Order the usual." The most visible layer — and the least common in practice.</div>
-        <div class="intent-card-ex">"Set an alarm for 7am"</div>
-      </div>
-      <div class="intent-card">
-        <div class="intent-card-num" style="color:var(--color-intent);">02</div>
-        <div class="intent-card-name">Active</div>
-        <div class="intent-card-desc">Revealed through action. Opening an app, searching, tapping. Intent without words — but clearly deliberate.</div>
-        <div class="intent-card-ex">Opening the maps app near dinnertime</div>
-      </div>
-      <div class="intent-card">
-        <div class="intent-card-num" style="color:var(--color-intent);">03</div>
-        <div class="intent-card-name">Passive</div>
-        <div class="intent-card-desc">Embedded in habit. The 7am alarm you've set every weekday for three years. Pattern as preference.</div>
-        <div class="intent-card-ex">Alarm set at 7am every weekday for 3 years</div>
-      </div>
-      <div class="intent-card">
-        <div class="intent-card-num" style="color:var(--color-intent);">04</div>
-        <div class="intent-card-name">Ambient</div>
-        <div class="intent-card-desc">Spoken by the environment. A dark bedroom. A stopped phone. A quiet house. Context that whispers what no one said.</div>
-        <div class="intent-card-ex">Phone still, room dark, 11:47pm</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      THE PROBLEM NO ONE NAMED
      ═══════════════════════════════════════ -->
-<section class="sec problem" id="problem">
-  <div class="sec-inner">
-    <p class="sec-label label-grammar reveal">The Problem</p>
-    <h2 class="reveal d1" style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.1; letter-spacing:-1.5px; margin-bottom:12px;">The Problem No One Named</h2>
-    <p class="reveal d2" style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.75; max-width:600px; margin-bottom:0;">AI assistants are brilliant at processing requests. They are blind to the person making them.</p>
+  <section class="sec problem" id="problem">
+    <div class="sec-inner">
+      <p class="sec-label label-grammar reveal">The Problem</p>
+      <h2 class="reveal d1"
+        style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.1; letter-spacing:-1.5px; margin-bottom:12px;">
+        The Problem No One Named</h2>
+      <p class="reveal d2"
+        style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.75; max-width:600px; margin-bottom:0;">
+        AI assistants are brilliant at processing requests. They are blind to the person making them.</p>
 
-    <div class="problem-grid">
-      <div class="problem-step reveal d2">
-        <p class="problem-step-num">01 &mdash; Observation</p>
-        <h3>AI can do incredible things</h3>
-        <p>It writes code, generates images, plans trips, manages calendars. Every month the capabilities list gets longer. The technology works.</p>
+      <div class="problem-grid">
+        <div class="problem-step reveal d2">
+          <p class="problem-step-num">01 &mdash; Observation</p>
+          <h3>AI can do incredible things</h3>
+          <p>It writes code, generates images, plans trips, manages calendars. Every month the capabilities list gets
+            longer. The technology works.</p>
+        </div>
+        <div class="problem-step reveal d3">
+          <p class="problem-step-num">02 &mdash; Mystery</p>
+          <h3>But it responds the same way every time</h3>
+          <p>Whether you are relaxed or rushing. Alone or with your boss in the room. Browsing casually or making a
+            decision that matters. Same input, same output. Why?</p>
+        </div>
+        <div class="problem-step reveal d4">
+          <p class="problem-step-num">03 &mdash; Discovery</p>
+          <h3>There is no shared language for human context</h3>
+          <p>Designers say &ldquo;the user is stressed.&rdquo; Engineers ask &ldquo;what is the data point for
+            stressed?&rdquo; Nobody has an answer. The conceptual layer is missing.</p>
+        </div>
       </div>
-      <div class="problem-step reveal d3">
-        <p class="problem-step-num">02 &mdash; Mystery</p>
-        <h3>But it responds the same way every time</h3>
-        <p>Whether you are relaxed or rushing. Alone or with your boss in the room. Browsing casually or making a decision that matters. Same input, same output. Why?</p>
-      </div>
-      <div class="problem-step reveal d4">
-        <p class="problem-step-num">03 &mdash; Discovery</p>
-        <h3>There is no shared language for human context</h3>
-        <p>Designers say &ldquo;the user is stressed.&rdquo; Engineers ask &ldquo;what is the data point for stressed?&rdquo; Nobody has an answer. The conceptual layer is missing.</p>
+
+      <img src="images/ISO-GREEN/IF-01.png"
+        alt="A person holding a smartphone surrounded by disconnected app bubbles — calendar, weather, message, map, shopping cart — none connected to each other"
+        class="sec-illust sec-illust--center reveal d4" loading="lazy">
+
+      <div class="problem-pullquote reveal d4">
+        Context Grammar is that missing layer. Eight tokens that translate human state into structured signals AI can
+        read, reason about, and act on.
       </div>
     </div>
+  </section>
 
-    <img src="images/ISO-GREEN/IF-01.png" alt="A person holding a smartphone surrounded by disconnected app bubbles — calendar, weather, message, map, shopping cart — none connected to each other" class="sec-illust sec-illust--center reveal d4" loading="lazy">
-
-    <div class="problem-pullquote reveal d4">
-      Context Grammar is that missing layer. Eight tokens that translate human state into structured signals AI can read, reason about, and act on.
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      HOW IT WORKS
      ═══════════════════════════════════════ -->
-<section class="sec architecture" id="architecture">
-  <div class="sec-inner">
-    <p class="sec-label label-grammar reveal">Architecture</p>
-    <h2 class="reveal d1" style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.1; letter-spacing:-1.5px; margin-bottom:12px;">How It Works</h2>
-    <p class="reveal d2" style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.75; max-width:600px;">Five stages. One pipeline. Context enters as raw signal and exits as adapted behavior.</p>
+  <section class="sec architecture" id="architecture">
+    <div class="sec-inner">
+      <p class="sec-label label-grammar reveal">Architecture</p>
+      <h2 class="reveal d1"
+        style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.1; letter-spacing:-1.5px; margin-bottom:12px;">
+        How It Works</h2>
+      <p class="reveal d2"
+        style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.75; max-width:600px;">
+        Five stages. One pipeline. Context enters as raw signal and exits as adapted behavior.</p>
 
-    <!-- Pipeline visualization -->
-    <div class="pipeline reveal d3">
-      <div class="pipeline-node">
-        <div class="pipeline-icon pipeline-icon--intent">&#9670;</div>
-        <span class="pipeline-name" style="color:var(--color-intent);">Intent</span>
-      </div>
-      <span class="pipeline-arrow">&rarr;</span>
-      <div class="pipeline-node">
-        <div class="pipeline-icon pipeline-icon--tokens">&#9632;</div>
-        <span class="pipeline-name" style="color:var(--color-grammar);">8 Tokens</span>
-      </div>
-      <span class="pipeline-arrow">&rarr;</span>
-      <div class="pipeline-node">
-        <div class="pipeline-icon pipeline-icon--brain">&#9673;</div>
-        <span class="pipeline-name" style="color:var(--color-brain);">Brain</span>
-      </div>
-      <span class="pipeline-arrow">&rarr;</span>
-      <div class="pipeline-node">
-        <div class="pipeline-icon pipeline-icon--rules">&#9881;</div>
-        <span class="pipeline-name" style="color:var(--color-label);">Rules</span>
-      </div>
-      <span class="pipeline-arrow">&rarr;</span>
-      <div class="pipeline-node">
-        <div class="pipeline-icon pipeline-icon--response">&#10003;</div>
-        <span class="pipeline-name" style="color:var(--color-success);">Response</span>
-      </div>
-    </div>
-
-    <img src="images/ISO-GREEN/IF-01-overview.png" alt="Four connected isometric platforms: Input with sensory icons, Rule Engine with gears, Output with UI icons, and Projects with buildings" class="sec-illust sec-illust--wide sec-illust--center reveal d3" loading="lazy">
-
-    <!-- Architecture cards -->
-    <div class="arch-cards">
-
-      <div class="arch-card reveal d2">
-        <p class="arch-card-label arch-card-label--intent">Intent</p>
-        <h3>What the user wants</h3>
-        <p>Explicit or implicit. Sometimes the user states it directly. Sometimes the system infers it from the intersection of tokens and memory. Intent is the starting signal.</p>
-        <img src="images/ISO-GREEN/IF-03-Intent-4layers.png" alt="Four concentric rings: Explicit at center, Active, Passive, and Ambient radiating outward" class="sec-illust" loading="lazy">
-        <a href="grammar/index.html" class="arch-card-link">Deep dive &rarr;</a>
-      </div>
-
-      <div class="arch-card reveal d3">
-        <p class="arch-card-label arch-card-label--tokens">8 Context Tokens</p>
-        <h3>Six situation tokens. Two relationship dials.</h3>
-        <p>Physical State. Cognitive Load. Social Exposure. Priority Weight. Form Factor. Feasibility. Plus two dials that govern the relationship: Autonomy Dial and Disclosure Dial. Together they describe who you are right now.</p>
-        <img src="images/ISO-GREEN/IF-04.8tokens.png" alt="Isometric grid of 8 numbered cubes — 6 Situation tokens and 2 Dials with green accents" class="sec-illust" loading="lazy">
-        <img src="images/ISO-GREEN/IF-06-2dials.png" alt="Two physical dials on a control panel — Disclosure (Full to Hidden) and Autonomy (Suggest to Auto) with prerequisite arrow" class="sec-illust" loading="lazy">
-        <a href="grammar/index.html" class="arch-card-link">Deep dive &rarr;</a>
-      </div>
-
-      <div class="arch-card reveal d3">
-        <p class="arch-card-label arch-card-label--brain">Context Brain</p>
-        <h3>Three layers of memory</h3>
-        <p>Identity holds who you are. Accumulated Learning holds what the system has observed over time. Right Now holds what is true this moment. Memory is not unique to Context Grammar &mdash; the structured design language on top of it is.</p>
-        <img src="images/ISO-GREEN/IF-05-brain3layers.png" alt="Three stacked isometric platforms — L1 Foundation (year), L2 Learning (week), L3 Right Now (second) with green top layer" class="sec-illust" loading="lazy">
-        <a href="brain/index.html" class="arch-card-link">Deep dive &rarr;</a>
-      </div>
-
-      <div class="arch-card reveal d4">
-        <p class="arch-card-label arch-card-label--rules">Rule Engine</p>
-        <h3>Context becomes design rules</h3>
-        <p>Tokens and memory feed into a rule engine that produces concrete design decisions. What to show, what to hide, how much autonomy to grant, which modality to use.</p>
-        <img src="images/ISO-GREEN/IF-06-RuleEngine.png" alt="User Status funnel feeding Context Tokens and Brain into a Rule Engine machine, outputting categorized UI rules on a conveyor belt" class="sec-illust" loading="lazy">
-        <a href="grammar/index.html" class="arch-card-link">Deep dive &rarr;</a>
-      </div>
-
-      <div class="arch-card arch-card--wide reveal d5">
-        <p class="arch-card-label arch-card-label--response">Response</p>
-        <h3>Three directions of adaptive behavior</h3>
-        <p>Every response falls into one of three categories. <strong>Delegation</strong> &mdash; the system handles it. <strong>Escalation</strong> &mdash; the system asks for human input. <strong>Adaptation</strong> &mdash; the system adjusts its presentation. These are not abstractions. They map directly to AX patterns you can implement.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
-          <img src="images/ISO-GREEN/IF-08-3directions.png" alt="Three directional paths — Delegation, Escalation, Adaptation" class="sec-illust" style="width:100%;height:auto;object-fit:contain;margin:0;" loading="lazy">
-          <img src="images/ISO-GREEN/IF-09-temporal-arc.png" alt="Trust arc — gradual climb from Suggest to Auto, instant Crisis drop" class="sec-illust" style="width:100%;height:auto;object-fit:contain;margin:0;" loading="lazy">
+      <!-- Pipeline visualization -->
+      <div class="pipeline reveal d3">
+        <div class="pipeline-node">
+          <div class="pipeline-icon pipeline-icon--intent">&#9670;</div>
+          <span class="pipeline-name" style="color:var(--color-intent);">Intent</span>
         </div>
-        <a href="../ax-patterns/index.html" class="arch-card-link">Explore AX Patterns &rarr;</a>
+        <span class="pipeline-arrow">&rarr;</span>
+        <div class="pipeline-node">
+          <div class="pipeline-icon pipeline-icon--tokens">&#9632;</div>
+          <span class="pipeline-name" style="color:var(--color-grammar);">8 Tokens</span>
+        </div>
+        <span class="pipeline-arrow">&rarr;</span>
+        <div class="pipeline-node">
+          <div class="pipeline-icon pipeline-icon--brain">&#9673;</div>
+          <span class="pipeline-name" style="color:var(--color-brain);">Brain</span>
+        </div>
+        <span class="pipeline-arrow">&rarr;</span>
+        <div class="pipeline-node">
+          <div class="pipeline-icon pipeline-icon--rules">&#9881;</div>
+          <span class="pipeline-name" style="color:var(--color-label);">Rules</span>
+        </div>
+        <span class="pipeline-arrow">&rarr;</span>
+        <div class="pipeline-node">
+          <div class="pipeline-icon pipeline-icon--response">&#10003;</div>
+          <span class="pipeline-name" style="color:var(--color-success);">Response</span>
+        </div>
       </div>
 
+      <img src="images/ISO-GREEN/IF-01-overview.png"
+        alt="Four connected isometric platforms: Input with sensory icons, Rule Engine with gears, Output with UI icons, and Projects with buildings"
+        class="sec-illust sec-illust--wide sec-illust--center reveal d3" loading="lazy">
+
+      <!-- Architecture cards -->
+      <div class="arch-cards">
+
+        <div class="arch-card reveal d2">
+          <p class="arch-card-label arch-card-label--intent">Intent</p>
+          <h3>What the user wants</h3>
+          <p>Explicit or implicit. Sometimes the user states it directly. Sometimes the system infers it from the
+            intersection of tokens and memory.</p>
+          <p style="font-size:clamp(13px,0.9vw,15px); color:var(--text-3); margin-top:-8px;">
+            <strong style="color:var(--color-intent); font-weight:500;">Explicit</strong> — stated directly
+            &nbsp;&middot;&nbsp;
+            <strong style="color:var(--color-intent); font-weight:500;">Active</strong> — inferred from action
+            &nbsp;&middot;&nbsp;
+            <strong style="color:var(--color-intent); font-weight:500;">Passive</strong> — inferred from patterns
+            &nbsp;&middot;&nbsp;
+            <strong style="color:var(--color-intent); font-weight:500;">Ambient</strong> — continuous background signal
+          </p>
+          <img src="images/ISO-GREEN/IF-03-Intent-4layers.png"
+            alt="Four concentric rings of Intent — Explicit, Active, Passive, Ambient — from direct statement to continuous background signal"
+            class="sec-illust" loading="lazy">
+        </div>
+
+        <div class="arch-card reveal d3">
+          <p class="arch-card-label arch-card-label--tokens">8 Context Tokens</p>
+          <h3>Six situation tokens. Two relationship dials.</h3>
+          <p>Physical State. Cognitive Load. Social Exposure. Priority Weight. Form Factor. Feasibility. Plus two dials
+            that govern the relationship: Autonomy Dial and Disclosure Dial. Together they describe who you are right
+            now.</p>
+          <img src="images/ISO-GREEN/IF-04.8tokens.png"
+            alt="Isometric grid of 8 numbered cubes — 6 Situation tokens and 2 Dials with green accents"
+            class="sec-illust" loading="lazy">
+          <img src="images/ISO-GREEN/IF-06-2dials.png"
+            alt="Two physical dials on a control panel — Disclosure (Full to Hidden) and Autonomy (Suggest to Auto) with prerequisite arrow"
+            class="sec-illust" loading="lazy">
+          <a href="grammar/index.html" class="arch-card-link">Deep dive &rarr;</a>
+        </div>
+
+        <div class="arch-card reveal d3">
+          <p class="arch-card-label arch-card-label--brain">Context Brain</p>
+          <h3>Three layers of memory</h3>
+          <p>Identity holds who you are. Accumulated Learning holds what the system has observed over time. Right Now
+            holds what is true this moment. Memory is not unique to Context Grammar &mdash; the structured design
+            language on top of it is.</p>
+          <img src="images/ISO-GREEN/IF-05-brain3layers.png"
+            alt="Three stacked isometric platforms — L1 Foundation (year), L2 Learning (week), L3 Right Now (second) with green top layer"
+            class="sec-illust" loading="lazy">
+          <a href="brain/index.html" class="arch-card-link">Deep dive &rarr;</a>
+        </div>
+
+        <div class="arch-card reveal d4">
+          <p class="arch-card-label arch-card-label--rules">Rule Engine</p>
+          <h3>Context becomes design rules</h3>
+          <p>Tokens and memory feed into a rule engine that produces concrete design decisions. What to show, what to
+            hide, how much autonomy to grant, which modality to use.</p>
+          <img src="images/ISO-GREEN/IF-06-RuleEngine.png"
+            alt="User Status funnel feeding Context Tokens and Brain into a Rule Engine machine, outputting categorized UI rules on a conveyor belt"
+            class="sec-illust" loading="lazy">
+          <a href="grammar/index.html" class="arch-card-link">Deep dive &rarr;</a>
+        </div>
+
+        <div class="arch-card arch-card--wide reveal d5">
+          <p class="arch-card-label arch-card-label--response">Response</p>
+          <h3>Three directions of adaptive behavior</h3>
+          <p>Every response falls into one of three categories. <strong>Delegation</strong> &mdash; the system handles
+            it. <strong>Escalation</strong> &mdash; the system asks for human input. <strong>Adaptation</strong> &mdash;
+            the system adjusts its presentation. These are not abstractions. They map directly to AX patterns you can
+            implement.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+            <img src="images/ISO-GREEN/IF-08-3directions.png"
+              alt="Three directional paths — Delegation, Escalation, Adaptation" class="sec-illust"
+              style="width:100%;height:auto;object-fit:contain;margin:0;" loading="lazy">
+            <img src="images/ISO-GREEN/IF-09-temporal-arc.png"
+              alt="Trust arc — gradual climb from Suggest to Auto, instant Crisis drop" class="sec-illust"
+              style="width:100%;height:auto;object-fit:contain;margin:0;" loading="lazy">
+          </div>
+          <a href="../ax-patterns/index.html" class="arch-card-link">Explore AX Patterns &rarr;</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PART 1 BANNER ═══ -->
+  <div class="part-banner part-banner--grammar">
+    <div class="part-banner-inner">
+      <div class="part-banner-tag">Part 1</div>
+      <div class="part-banner-title">Input Grammar — Reading the Situation</div>
+      <div class="part-banner-sub">8 Context Tokens + Context Brain + 2 Dials</div>
     </div>
   </div>
-</section>
 
-<!-- ═══ PART 1 BANNER ═══ -->
-<div class="part-banner part-banner--grammar">
-  <div class="part-banner-inner">
-    <div class="part-banner-tag">Part 1</div>
-    <div class="part-banner-title">Input Grammar — Reading the Situation</div>
-    <div class="part-banner-sub">8 Context Tokens + Context Brain + 2 Dials</div>
-  </div>
-</div>
+  <!-- ═══ 8 TOKENS SECTION ═══ -->
+  <section class="sec sec-dim tokens-overview">
+    <div class="sec-inner">
+      <div class="sec-label" style="color:var(--color-grammar);">Part 1 / Input Grammar</div>
+      <h2 class="sec-title reveal">8 variables that tell AI<br>what kind of moment this is.</h2>
+      <p class="sec-desc reveal d1">Six situation sensors read the environment. Two relationship dials control how far
+        AI can reach. Together, they give AI the instinct to read the room.</p>
 
-<!-- ═══ 8 TOKENS SECTION ═══ -->
-<section class="sec sec-dim tokens-overview">
-  <div class="sec-inner">
-    <div class="sec-label" style="color:var(--color-grammar);">Part 1 / Input Grammar</div>
-    <h2 class="sec-title reveal">8 variables that tell AI<br>what kind of moment this is.</h2>
-    <p class="sec-desc reveal d1">Six situation sensors read the environment. Two relationship dials control how far AI can reach. Together, they give AI the instinct to read the room.</p>
+      <div class="token-section-head reveal d2" style="margin-top:48px;">
+        <div class="token-section-label" style="color:var(--color-grammar);">Situation Tokens — 6</div>
+        <div class="token-section-desc">Environmental sensors. Read from device data, calendar, location, and behavior
+          patterns.</div>
+      </div>
+      <div class="token-cards-grid reveal d3">
+        <div class="token-card">
+          <div class="token-num">①</div>
+          <div class="token-name">Physical State</div>
+          <div class="token-desc">Walking, driving, still? Body position and motion signal what kind of response is even
+            possible.</div>
+          <div class="token-bridge">Waiter notices you're eating standing at the bar — keeps suggestions brief</div>
+        </div>
+        <div class="token-card">
+          <div class="token-num">②</div>
+          <div class="token-name">Cognitive Load</div>
+          <div class="token-desc">Deep in a negotiation or relaxing on the couch? Estimated from time, calendar density,
+            and recent behavior.</div>
+          <div class="token-bridge">Waiter reads the table — intense business meeting gets minimal interruption</div>
+        </div>
+        <div class="token-card">
+          <div class="token-num">③</div>
+          <div class="token-name">Social Exposure</div>
+          <div class="token-desc">Alone, with family, with a client? Who's in the room determines what can be shown.
+          </div>
+          <div class="token-bridge">Waiter doesn't read out wine prices when guests are visiting</div>
+        </div>
+        <div class="token-card">
+          <div class="token-num">④</div>
+          <div class="token-name">Priority Weight</div>
+          <div class="token-desc">When two needs collide, which wins? Not just urgency — learned tradeoff patterns from
+            the Brain.</div>
+          <div class="token-bridge">Waiter knows this table always orders dessert before the check — sequences
+            accordingly</div>
+        </div>
+        <div class="token-card">
+          <div class="token-num">⑤</div>
+          <div class="token-name">Form Factor</div>
+          <div class="token-desc">Phone, TV, car dashboard, smart speaker? Each surface has different interaction
+            constraints.</div>
+          <div class="token-bridge">Waiter adjusts formality — different tone at the bar vs. the dining room</div>
+        </div>
+        <div class="token-card">
+          <div class="token-num">⑥</div>
+          <div class="token-name">Feasibility</div>
+          <div class="token-desc">Can this actually be done right now? Technical and physical constraints in the moment.
+          </div>
+          <div class="token-bridge">Waiter doesn't suggest the sea bass when it ran out at lunch</div>
+        </div>
+      </div>
 
-    <div class="token-section-head reveal d2" style="margin-top:48px;">
-      <div class="token-section-label" style="color:var(--color-grammar);">Situation Tokens — 6</div>
-      <div class="token-section-desc">Environmental sensors. Read from device data, calendar, location, and behavior patterns.</div>
-    </div>
-    <div class="token-cards-grid reveal d3">
-      <div class="token-card">
-        <div class="token-num">①</div>
-        <div class="token-name">Physical State</div>
-        <div class="token-desc">Walking, driving, still? Body position and motion signal what kind of response is even possible.</div>
-        <div class="token-bridge">Waiter notices you're eating standing at the bar — keeps suggestions brief</div>
+      <div class="token-section-head reveal" style="margin-top:48px;">
+        <div class="token-section-label" style="color:var(--color-intent);">Relationship Dials — 2</div>
+        <div class="token-section-desc">Not sensors — controls. How much to delegate. How much to disclose. Set by you,
+          adjusted by AI over time.</div>
       </div>
-      <div class="token-card">
-        <div class="token-num">②</div>
-        <div class="token-name">Cognitive Load</div>
-        <div class="token-desc">Deep in a negotiation or relaxing on the couch? Estimated from time, calendar density, and recent behavior.</div>
-        <div class="token-bridge">Waiter reads the table — intense business meeting gets minimal interruption</div>
+      <div class="token-cards-grid token-cards-grid--2col reveal d1">
+        <div class="token-card token-card--dial">
+          <div class="token-num" style="color:var(--color-intent);">⑦</div>
+          <div class="token-name">Autonomy Dial</div>
+          <div class="token-desc">How far can AI act without asking? Four stages: <strong>Suggest → Confirm → Notify →
+              Auto</strong>. Driven by three forces: service default, AI track record, and your active choice.</div>
+          <div class="token-bridge">How much the restaurant can do without asking — from "show me a menu" to "just bring
+            what you usually bring"</div>
+        </div>
+        <div class="token-card token-card--dial">
+          <div class="token-num" style="color:var(--color-intent);">⑧</div>
+          <div class="token-name">Disclosure Dial</div>
+          <div class="token-desc">How much does AI know about you? <strong>Full → Summary → Existence → Hidden</strong>.
+            Works in two directions: protective (what AI can see) and connective (what AI bridges between people).</div>
+          <div class="token-bridge">What you tell your regular waiter about your life — and what they tactfully pass to
+            others at the table</div>
+        </div>
       </div>
-      <div class="token-card">
-        <div class="token-num">③</div>
-        <div class="token-name">Social Exposure</div>
-        <div class="token-desc">Alone, with family, with a client? Who's in the room determines what can be shown.</div>
-        <div class="token-bridge">Waiter doesn't read out wine prices when guests are visiting</div>
-      </div>
-      <div class="token-card">
-        <div class="token-num">④</div>
-        <div class="token-name">Priority Weight</div>
-        <div class="token-desc">When two needs collide, which wins? Not just urgency — learned tradeoff patterns from the Brain.</div>
-        <div class="token-bridge">Waiter knows this table always orders dessert before the check — sequences accordingly</div>
-      </div>
-      <div class="token-card">
-        <div class="token-num">⑤</div>
-        <div class="token-name">Form Factor</div>
-        <div class="token-desc">Phone, TV, car dashboard, smart speaker? Each surface has different interaction constraints.</div>
-        <div class="token-bridge">Waiter adjusts formality — different tone at the bar vs. the dining room</div>
-      </div>
-      <div class="token-card">
-        <div class="token-num">⑥</div>
-        <div class="token-name">Feasibility</div>
-        <div class="token-desc">Can this actually be done right now? Technical and physical constraints in the moment.</div>
-        <div class="token-bridge">Waiter doesn't suggest the sea bass when it ran out at lunch</div>
-      </div>
-    </div>
 
-    <div class="token-section-head reveal" style="margin-top:48px;">
-      <div class="token-section-label" style="color:var(--color-intent);">Relationship Dials — 2</div>
-      <div class="token-section-desc">Not sensors — controls. How much to delegate. How much to disclose. Set by you, adjusted by AI over time.</div>
-    </div>
-    <div class="token-cards-grid token-cards-grid--2col reveal d1">
-      <div class="token-card token-card--dial">
-        <div class="token-num" style="color:var(--color-intent);">⑦</div>
-        <div class="token-name">Autonomy Dial</div>
-        <div class="token-desc">How far can AI act without asking? Four stages: <strong>Suggest → Confirm → Notify → Auto</strong>. Driven by three forces: service default, AI track record, and your active choice.</div>
-        <div class="token-bridge">How much the restaurant can do without asking — from "show me a menu" to "just bring what you usually bring"</div>
+      <div class="prerequisite-note reveal d2">
+        <span class="prerequisite-tag">Prerequisite Constraint</span>
+        <strong>Disclosure ≥ Autonomy.</strong> You cannot delegate what you haven't disclosed. "Handle everything" with
+        "tell AI nothing" is logically impossible — like asking a waiter to order for you when they don't know your
+        allergies.
       </div>
-      <div class="token-card token-card--dial">
-        <div class="token-num" style="color:var(--color-intent);">⑧</div>
-        <div class="token-name">Disclosure Dial</div>
-        <div class="token-desc">How much does AI know about you? <strong>Full → Summary → Existence → Hidden</strong>. Works in two directions: protective (what AI can see) and connective (what AI bridges between people).</div>
-        <div class="token-bridge">What you tell your regular waiter about your life — and what they tactfully pass to others at the table</div>
-      </div>
-    </div>
 
-    <div class="prerequisite-note reveal d2">
-      <span class="prerequisite-tag">Prerequisite Constraint</span>
-      <strong>Disclosure ≥ Autonomy.</strong> You cannot delegate what you haven't disclosed. "Handle everything" with "tell AI nothing" is logically impossible — like asking a waiter to order for you when they don't know your allergies.
-    </div>
-
-    <div style="text-align:center;margin-top:48px;" class="reveal d3">
-      <a href="grammar/index.html" class="btn-link">See all 8 tokens in detail →</a>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ PART 2 BANNER ═══ -->
-<div class="part-banner part-banner--output">
-  <div class="part-banner-inner">
-    <div class="part-banner-tag">Part 2</div>
-    <div class="part-banner-title">Output Grammar — How to Respond</div>
-    <div class="part-banner-sub">3 Directions × 22 AX Patterns × Temporal Arc</div>
-  </div>
-</div>
-
-<!-- ═══ 3 DIRECTIONS ═══ -->
-<section class="sec directions-overview">
-  <div class="sec-inner">
-    <div class="sec-label" style="color:var(--color-intent);">Part 2 / Output Grammar</div>
-    <h2 class="sec-title reveal">Every AI response<br>flows in one of three directions.</h2>
-    <p class="sec-desc reveal d1">Once AI understands the situation through 8 tokens and the Brain, the Rule Engine transforms that understanding into a response direction. Three directions. Infinite variations.</p>
-
-    <div class="directions-grid reveal d2">
-      <div class="direction-card">
-        <div class="direction-arrow">→</div>
-        <div class="direction-flow" style="color:var(--color-grammar);">Human → AI</div>
-        <div class="direction-name">Delegation</div>
-        <div class="direction-desc">The user hands off a task. AI acts on their behalf — slowly building trust, always reversible.</div>
-        <div class="direction-ex">"Order the usual" — the regular who trusts their waiter's judgment</div>
-      </div>
-      <div class="direction-card">
-        <div class="direction-arrow">←</div>
-        <div class="direction-flow" style="color:var(--color-intent);">AI → Human</div>
-        <div class="direction-name">Escalation</div>
-        <div class="direction-desc">AI hits a boundary and returns control to the human. Fast, respectful of limits — not a failure.</div>
-        <div class="direction-ex">"This dish is quite spicy — shall I confirm?" — the waiter who checks before assuming</div>
-      </div>
-      <div class="direction-card">
-        <div class="direction-arrow">↺</div>
-        <div class="direction-flow" style="color:var(--color-brain);">Context → UI</div>
-        <div class="direction-name">Adaptation</div>
-        <div class="direction-desc">The environment changes, so the interface changes — automatically, instantly, fully reversible.</div>
-        <div class="direction-ex">Kids arrive at the table → kids menu appears. No one asks.</div>
+      <div style="text-align:center;margin-top:48px;" class="reveal d3">
+        <a href="grammar/index.html" class="btn-link">See all 8 tokens in detail →</a>
       </div>
     </div>
+  </section>
 
-    <div style="text-align:center;margin-top:40px;" class="reveal d3">
-      <a href="../ax-patterns/index.html" class="btn-link">Explore all 22 AX Patterns →</a>
+  <!-- ═══ PART 2 BANNER ═══ -->
+  <div class="part-banner part-banner--output">
+    <div class="part-banner-inner">
+      <div class="part-banner-tag">Part 2</div>
+      <div class="part-banner-title">Output Grammar — How to Respond</div>
+      <div class="part-banner-sub">3 Directions × 22 AX Patterns × Temporal Arc</div>
     </div>
   </div>
-</section>
 
-<!-- ═══ TEMPORAL ARC TEASER ═══ -->
-<section class="sec sec-dim temporal-teaser">
-  <div class="sec-inner" style="max-width:900px;text-align:center;">
-    <div class="sec-label" style="color:var(--color-intent);">Temporal Arc</div>
-    <h2 class="sec-title reveal">Trust builds over months.<br>Breaks in seconds.</h2>
-    <p class="sec-desc reveal d1" style="margin:0 auto 40px;">The Autonomy Dial doesn't jump from Suggest to Auto overnight. It climbs a staircase — Encounter → Learning → Maturation → Ambient. But one serious mistake sends it down an elevator. The asymmetry is intentional: trust earned slowly, trust lost instantly.</p>
+  <!-- ═══ 3 DIRECTIONS ═══ -->
+  <section class="sec directions-overview">
+    <div class="sec-inner">
+      <div class="sec-label" style="color:var(--color-intent);">Part 2 / Output Grammar</div>
+      <h2 class="sec-title reveal">Every AI response<br>flows in one of three directions.</h2>
+      <p class="sec-desc reveal d1">Once AI understands the situation through 8 tokens and the Brain, the Rule Engine
+        transforms that understanding into a response direction. Three directions. Infinite variations.</p>
 
-    <div class="temporal-phases reveal d2">
-      <div class="temporal-phase">
-        <div class="temporal-phase-time">Week 1–2</div>
-        <div class="temporal-phase-name">Encounter</div>
-        <div class="temporal-phase-mode">Suggest only</div>
+      <div class="directions-grid reveal d2">
+        <div class="direction-card">
+          <div class="direction-arrow">→</div>
+          <div class="direction-flow" style="color:var(--color-grammar);">Human → AI</div>
+          <div class="direction-name">Delegation</div>
+          <div class="direction-desc">The user hands off a task. AI acts on their behalf — slowly building trust, always
+            reversible.</div>
+          <div class="direction-ex">"Order the usual" — the regular who trusts their waiter's judgment</div>
+        </div>
+        <div class="direction-card">
+          <div class="direction-arrow">←</div>
+          <div class="direction-flow" style="color:var(--color-intent);">AI → Human</div>
+          <div class="direction-name">Escalation</div>
+          <div class="direction-desc">AI hits a boundary and returns control to the human. Fast, respectful of limits —
+            not a failure.</div>
+          <div class="direction-ex">"This dish is quite spicy — shall I confirm?" — the waiter who checks before
+            assuming</div>
+        </div>
+        <div class="direction-card">
+          <div class="direction-arrow">↺</div>
+          <div class="direction-flow" style="color:var(--color-brain);">Context → UI</div>
+          <div class="direction-name">Adaptation</div>
+          <div class="direction-desc">The environment changes, so the interface changes — automatically, instantly,
+            fully reversible.</div>
+          <div class="direction-ex">Kids arrive at the table → kids menu appears. No one asks.</div>
+        </div>
       </div>
-      <div class="temporal-arrow">→</div>
-      <div class="temporal-phase">
-        <div class="temporal-phase-time">Month 1–2</div>
-        <div class="temporal-phase-name">Learning</div>
-        <div class="temporal-phase-mode">→ Confirm</div>
-      </div>
-      <div class="temporal-arrow">→</div>
-      <div class="temporal-phase temporal-phase--highlight">
-        <div class="temporal-phase-time">Month 3–6</div>
-        <div class="temporal-phase-name">Maturation</div>
-        <div class="temporal-phase-mode">→ Notify / Auto</div>
-      </div>
-      <div class="temporal-arrow">→</div>
-      <div class="temporal-phase">
-        <div class="temporal-phase-time">Month 6+</div>
-        <div class="temporal-phase-name">Ambient</div>
-        <div class="temporal-phase-mode">AI = invisible</div>
-      </div>
-      <div class="temporal-crisis">
-        <div class="temporal-crisis-label">↓ Crisis</div>
-        <div class="temporal-crisis-desc">Instant fall</div>
+
+      <div style="text-align:center;margin-top:40px;" class="reveal d3">
+        <a href="../ax-patterns/index.html" class="btn-link">Explore all 22 AX Patterns →</a>
       </div>
     </div>
+  </section>
 
-    <div style="margin-top:32px;" class="reveal d3">
-      <a href="trust-design/index.html" class="btn-link">Full trust design framework →</a>
+  <!-- ═══ TEMPORAL ARC TEASER ═══ -->
+  <section class="sec sec-dim temporal-teaser">
+    <div class="sec-inner" style="max-width:900px;text-align:center;">
+      <div class="sec-label" style="color:var(--color-intent);">Temporal Arc</div>
+      <h2 class="sec-title reveal">Trust builds over months.<br>Breaks in seconds.</h2>
+      <p class="sec-desc reveal d1" style="margin:0 auto 40px;">The Autonomy Dial doesn't jump from Suggest to Auto
+        overnight. It climbs a staircase — Encounter → Learning → Maturation → Ambient. But one serious mistake sends it
+        down an elevator. The asymmetry is intentional: trust earned slowly, trust lost instantly.</p>
+
+      <div class="temporal-phases reveal d2">
+        <div class="temporal-phase">
+          <div class="temporal-phase-time">Week 1–2</div>
+          <div class="temporal-phase-name">Encounter</div>
+          <div class="temporal-phase-mode">Suggest only</div>
+        </div>
+        <div class="temporal-arrow">→</div>
+        <div class="temporal-phase">
+          <div class="temporal-phase-time">Month 1–2</div>
+          <div class="temporal-phase-name">Learning</div>
+          <div class="temporal-phase-mode">→ Confirm</div>
+        </div>
+        <div class="temporal-arrow">→</div>
+        <div class="temporal-phase temporal-phase--highlight">
+          <div class="temporal-phase-time">Month 3–6</div>
+          <div class="temporal-phase-name">Maturation</div>
+          <div class="temporal-phase-mode">→ Notify / Auto</div>
+        </div>
+        <div class="temporal-arrow">→</div>
+        <div class="temporal-phase">
+          <div class="temporal-phase-time">Month 6+</div>
+          <div class="temporal-phase-name">Ambient</div>
+          <div class="temporal-phase-mode">AI = invisible</div>
+        </div>
+        <div class="temporal-crisis">
+          <div class="temporal-crisis-label">↓ Crisis</div>
+          <div class="temporal-crisis-desc">Instant fall</div>
+        </div>
+      </div>
+
+      <div style="margin-top:32px;" class="reveal d3">
+        <a href="trust-design/index.html" class="btn-link">Full trust design framework →</a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      SEE IT IN ACTION
      ═══════════════════════════════════════ -->
-<section class="sec projects" id="projects">
-  <div class="sec-inner">
-    <p class="sec-label label-grammar reveal">Applied</p>
-    <h2 class="reveal d1" style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.1; letter-spacing:-1.5px; margin-bottom:12px;">See It In Action</h2>
-    <p class="reveal d2" style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.75; max-width:600px;">Three projects. Three contexts. Each one demonstrates how Context Grammar transforms a familiar scenario into an adaptive experience.</p>
+  <section class="sec projects" id="projects">
+    <div class="sec-inner">
+      <p class="sec-label label-grammar reveal">Applied</p>
+      <h2 class="reveal d1"
+        style="font-weight:500; font-size:clamp(28px,3.2vw,44px); line-height:1.1; letter-spacing:-1.5px; margin-bottom:12px;">
+        See It In Action</h2>
+      <p class="reveal d2"
+        style="font-size:clamp(15px,1.1vw,18px); color:var(--text-2); font-weight:300; line-height:1.75; max-width:600px;">
+        Three projects. Three contexts. Each one demonstrates how Context Grammar transforms a familiar scenario into an
+        adaptive experience.</p>
 
-    <div class="projects-grid">
+      <div class="projects-grid">
 
-      <a href="../projects/project-01/index.html" class="project-card reveal d2">
-        <div class="project-card-img">P1</div>
-        <div class="project-card-body">
-          <p class="project-card-num">Project 01</p>
-          <h3 class="project-card-title">The Living Home</h3>
-          <p class="project-card-hook">A family kitchen where AI knows who is cooking, what is in the fridge, and how much patience is left in the room.</p>
-          <span class="project-card-cta">View project &rarr;</span>
-        </div>
-      </a>
+        <a href="../projects/project-01/index.html" class="project-card reveal d2">
+          <div class="project-card-img">P1</div>
+          <div class="project-card-body">
+            <p class="project-card-num">Project 01</p>
+            <h3 class="project-card-title">The Living Home</h3>
+            <p class="project-card-hook">A family kitchen where AI knows who is cooking, what is in the fridge, and how
+              much patience is left in the room.</p>
+            <span class="project-card-cta">View project &rarr;</span>
+          </div>
+        </a>
 
-      <a href="../projects/project-02/index.html" class="project-card reveal d3">
-        <div class="project-card-img">P2</div>
-        <div class="project-card-body">
-          <p class="project-card-num">Project 02</p>
-          <h3 class="project-card-title">The Family Trip</h3>
-          <p class="project-card-hook">A travel planner that builds a temporary brain for your trip &mdash; learns, adapts, then dissolves when you return home.</p>
-          <span class="project-card-cta">View project &rarr;</span>
-        </div>
-      </a>
+        <a href="../projects/project-02/index.html" class="project-card reveal d3">
+          <div class="project-card-img">P2</div>
+          <div class="project-card-body">
+            <p class="project-card-num">Project 02</p>
+            <h3 class="project-card-title">The Family Trip</h3>
+            <p class="project-card-hook">A travel planner that builds a temporary brain for your trip &mdash; learns,
+              adapts, then dissolves when you return home.</p>
+            <span class="project-card-cta">View project &rarr;</span>
+          </div>
+        </a>
 
-      <a href="../projects/project-03/index.html" class="project-card reveal d4">
-        <div class="project-card-img">P3</div>
-        <div class="project-card-body">
-          <p class="project-card-num">Project 03</p>
-          <h3 class="project-card-title">Fluid Handoff</h3>
-          <p class="project-card-hook">Shopping for shoes starts on your phone. The TV picks it up. Context carries over. The experience never breaks.</p>
-          <span class="project-card-cta">View project &rarr;</span>
-        </div>
-      </a>
+        <a href="../projects/project-03/index.html" class="project-card reveal d4">
+          <div class="project-card-img">P3</div>
+          <div class="project-card-body">
+            <p class="project-card-num">Project 03</p>
+            <h3 class="project-card-title">Fluid Handoff</h3>
+            <p class="project-card-hook">Shopping for shoes starts on your phone. The TV picks it up. Context carries
+              over. The experience never breaks.</p>
+            <span class="project-card-cta">View project &rarr;</span>
+          </div>
+        </a>
 
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══════════════════════════════════════
+  <!-- ═══════════════════════════════════════
      CTA
      ═══════════════════════════════════════ -->
-<section class="cta" id="cta">
-  <div class="cta-inner">
-    <h2 class="cta-title reveal">Ready to explore the full spec?</h2>
-    <p class="cta-sub reveal d1">The framework, the tokens, the applied projects. Everything is documented and open.</p>
-    <div class="cta-buttons reveal d2">
-      <a href="../framework/index.html" class="cta-btn cta-btn--primary">Read the Grammar &rarr;</a>
-      <a href="../projects/index.html" class="cta-btn cta-btn--secondary">View Projects &rarr;</a>
+  <section class="cta" id="cta">
+    <div class="cta-inner">
+      <h2 class="cta-title reveal">Ready to explore the full spec?</h2>
+      <p class="cta-sub reveal d1">The framework, the tokens, the applied projects. Everything is documented and open.
+      </p>
+      <div class="cta-buttons reveal d2">
+        <a href="../framework/index.html" class="cta-btn cta-btn--primary">Read the Grammar &rarr;</a>
+        <a href="../projects/index.html" class="cta-btn cta-btn--secondary">View Projects &rarr;</a>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ FOOTER ═══ -->
-<footer class="footer">
-  <div class="footer-inner">
-    <img src="../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
-    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
-    <div class="footer-links">
-      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
-      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
-      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <img src="../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+      <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+        <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+        <a href="mailto:takaoumehara@gmail.com">Contact</a>
+      </div>
     </div>
-  </div>
-</footer>
+  </footer>
 
-<!-- ═══ SCRIPTS ═══ -->
-<script>
-// ─── Scroll reveal ───
-(function() {
-  var io = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
-    });
-  }, { threshold: 0.08 });
-  document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
-})();
-</script>
-<script src="../assets/js/nav.js"></script>
-<script>initNav({ basePath: '../', activePage: 'overview', lang: 'en' });</script>
+  <!-- ═══ SCRIPTS ═══ -->
+  <script>
+    // ─── Scroll reveal ───
+    (function () {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+    })();
+  </script>
+  <script src="../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../', activePage: 'overview', lang: 'en' });</script>
 
 </body>
+
 </html>
