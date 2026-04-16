@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Specs — Context Grammar Open Specification</title>
+  <meta name="description"
+    content="The machine-readable specification for Context Grammar. YAML schemas, JSON structures, and 33 design rules — ready for agent frameworks, AI systems, and Claude Code.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../../assets/css/nav.css">
+  <style>
+    /* ═══ LAYOUT ═══ */
+    .section {
+      padding: clamp(56px, 8vw, 100px) clamp(24px, 4vw, 48px);
+    }
+
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ═══ HERO (Darker upper section for visual anchoring, like other pages) ═══ */
+    .hero {
+      background: var(--bg-inverse);
+      color: var(--bg);
+      padding: clamp(80px, 12vw, 160px) clamp(24px, 4vw, 48px) clamp(56px, 8vw, 100px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(122, 155, 196, 0.06), transparent);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: clamp(10px, 0.8vw, 12px);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-weight: 500;
+      font-size: clamp(36px, 5vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+    }
+
+    .hero-sub {
+      font-size: var(--hero-sub-size, clamp(17px, 1.4vw, 22px));
+      font-weight: var(--hero-sub-weight, 400);
+      color: var(--hero-sub-color-dark, rgba(240, 236, 228, 0.82));
+      line-height: 1.75;
+      max-width: 640px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      border: 1px solid rgba(240, 236, 228, 0.2);
+      padding: 8px 18px;
+      border-radius: 0;
+    }
+
+    /* ═══ SECTION HEADERS ═══ */
+    .sec-label {
+      font-family: var(--font-mono);
+      font-size: clamp(10px, 0.8vw, 12px);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      margin-bottom: 14px;
+    }
+
+    .sec-title {
+      font-weight: 500;
+      font-size: clamp(28px, 3.2vw, 44px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .sec-desc {
+      font-size: clamp(15px, 1.1vw, 17px);
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.75;
+      max-width: 600px;
+      margin-bottom: 40px;
+    }
+
+    /* ═══ INTRO CONCEPT (WHY YOU NEED THIS) ═══ */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(32px, 5vw, 64px);
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .concept-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .concept-text p {
+      font-size: clamp(16px, 1.1vw, 18px);
+      color: var(--text-2);
+      line-height: 1.7;
+      font-weight: 300;
+      margin-bottom: 16px;
+    }
+
+    .concept-text p strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .concept-image-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      /* TO DO: Replace with illustration "Handing Spec to AI" */
+    }
+
+    /* ═══ TUTORIALS CARDS ═══ */
+    .tutorial-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(24px, 3vw, 40px);
+    }
+
+    .tutorial-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .tutorial-header {
+      padding: clamp(20px, 2vw, 28px) clamp(24px, 2.5vw, 32px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--bg-2);
+    }
+
+    .tutorial-num {
+      font-family: var(--font-mono);
+      font-size: clamp(28px, 2.5vw, 36px);
+      font-weight: 500;
+      color: var(--color-grammar);
+      line-height: 1;
+      flex-shrink: 0;
+      letter-spacing: -1px;
+    }
+
+    .tutorial-meta {
+      flex: 1;
+    }
+
+    .tutorial-title {
+      font-size: clamp(17px, 1.3vw, 21px);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .tutorial-audience {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: 0.5px;
+    }
+
+    .tutorial-body {
+      padding: clamp(20px, 2vw, 28px) clamp(24px, 2.5vw, 32px);
+    }
+
+    .tutorial-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      counter-reset: step;
+    }
+
+    .tutorial-steps li {
+      counter-increment: step;
+      padding: 10px 0 10px 40px;
+      position: relative;
+      font-size: clamp(14px, 0.95vw, 16px);
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.7;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .tutorial-steps li:last-child {
+      border-bottom: none;
+    }
+
+    .tutorial-steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--chip-green-bg);
+      color: var(--color-success);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tutorial-prompt {
+      background: var(--bg-inverse);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tutorial-prompt pre {
+      font-family: var(--font-mono);
+      font-size: clamp(12px, 0.8vw, 13px);
+      color: rgba(240, 236, 228, 0.8);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0;
+    }
+
+    .tutorial-prompt .hl {
+      color: var(--color-grammar);
+    }
+
+    .tutorial-response {
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      border-left: 3px solid var(--color-grammar);
+    }
+
+    .tutorial-response p {
+      font-size: clamp(13px, 0.85vw, 15px);
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .tutorial-response strong {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .tutorial-benefit {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      background: var(--chip-green-bg);
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: clamp(13px, 0.85vw, 15px);
+      font-weight: 400;
+      color: var(--color-success);
+      line-height: 1.6;
+      border: 1px solid rgba(48, 201, 105, 0.2);
+    }
+
+
+    /* ═══ SPEC CARDS (THE CODE FILES) ═══ */
+    .spec-cards {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(24px, 3vw, 40px);
+    }
+
+    .spec-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .spec-card-header {
+      padding: clamp(20px, 2.5vw, 32px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--bg-2);
+    }
+
+    .spec-card-title-group {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .spec-card-filename {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-grammar);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spec-card-title {
+      font-weight: 500;
+      font-size: clamp(20px, 1.6vw, 26px);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .spec-card-desc {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+
+    .spec-card-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.2s var(--ease);
+    }
+
+    .download-btn:hover {
+      background: var(--bg-2);
+      border-color: var(--text-3);
+      transform: translateY(-1px);
+    }
+
+    .spec-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+
+    /* ═══ CODE BLOCKS ═══ */
+    .code-block-wrapper {
+      position: relative;
+      background: #08070b;
+      overflow: hidden;
+    }
+
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .code-block-lang {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(240, 236, 228, 0.5);
+    }
+
+    .copy-btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: rgba(240, 236, 228, 0.6);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: all 0.3s var(--ease);
+      border-radius: 4px;
+    }
+
+    .copy-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .copy-btn.copied {
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.3);
+    }
+
+    pre {
+      margin: 0;
+      padding: clamp(16px, 2vw, 24px) 20px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: clamp(12px, 0.85vw, 14px);
+      line-height: 1.7;
+      color: #f0ece4;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    pre code {
+      font-family: inherit;
+    }
+
+    /* Syntax colors */
+    .sy-key {
+      color: #34d399;
+    }
+
+    .sy-str {
+      color: #fbbf24;
+    }
+
+    .sy-comment {
+      color: rgba(240, 236, 228, 0.4);
+    }
+
+    .sy-val {
+      color: #7a9bc4;
+    }
+
+    .sy-num {
+      color: #f0ece4;
+    }
+
+    .sy-bracket {
+      color: rgba(240, 236, 228, 0.5);
+    }
+
+    .sy-bool {
+      color: #f0ece4;
+    }
+
+
+    /* ═══ RULES TABLE ═══ */
+    .rules-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+    }
+
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      min-width: 640px;
+    }
+
+    .rules-table thead th {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      font-weight: 500;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-2);
+    }
+
+    .rules-table tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-2);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    .rules-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .rules-table tbody td:first-child {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .rules-table tbody td:nth-child(2) {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    .rules-table .dir-delegation {
+      color: var(--color-grammar);
+    }
+
+    .rules-table .dir-adaptation {
+      color: var(--color-intent);
+    }
+
+    .rules-table .dir-escalation {
+      color: var(--color-brain);
+    }
+
+    .rules-table .dir-all {
+      color: var(--text-2);
+    }
+
+
+    /* ═══ CTA ═══ */
+    .cta {
+      background: var(--bg-inverse);
+      color: var(--bg);
+      text-align: center;
+      padding: clamp(64px, 10vw, 120px) clamp(24px, 4vw, 48px);
+      position: relative;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(122, 155, 196, 0.04), transparent);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .cta-title {
+      font-weight: 500;
+      font-size: clamp(24px, 3vw, 40px);
+      letter-spacing: -1px;
+      margin-bottom: 32px;
+      line-height: 1.15;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      transition: all 0.3s var(--ease);
+    }
+
+    .cta-btn--primary {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .cta-btn--primary:hover {
+      opacity: 0.85;
+      transform: translateY(-2px);
+    }
+
+    .cta-btn--secondary {
+      background: transparent;
+      color: var(--bg);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .cta-btn--secondary:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-2px);
+    }
+
+    /* ═══ REVEAL ANIMATION ═══ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .d1 {
+      transition-delay: 0.06s;
+    }
+
+    .d2 {
+      transition-delay: 0.12s;
+    }
+
+    .d3 {
+      transition-delay: 0.18s;
+    }
+
+    .d4 {
+      transition-delay: 0.24s;
+    }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 768px) {
+      .hero {
+        padding-top: clamp(80px, 15vw, 120px);
+      }
+
+      .spec-card-header {
+        flex-direction: column;
+      }
+
+      pre {
+        font-size: 11px;
+        padding: 14px 16px;
+      }
+    }
+
+    /* ═══ FOOTER ═══ */
+    .footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      color: var(--text-2);
+      padding: 40px clamp(24px, 4vw, 48px);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer a:hover {
+      color: var(--color-grammar);
+    }
+  </style>
+</head>
+
+<body data-dark-nav>
+  <div class="page"> <!-- Light mode base container -->
+
+    <!-- ═══════════════════════════════════════
+     HERO (Dark background to ground the page, matching site design)
+     ═══════════════════════════════════════ -->
+    <section class="hero">
+      <div class="hero-inner">
+        <h1 class="hero-title">Context Grammar / Specs</h1>
+        <p class="hero-label">The Open Specification</p>
+        <p class="hero-sub">Context Grammar isn't just theory. It's a machine-readable specification. YAML schemas, JSON
+          structures, and design rules — ready for your agent framework, your AI system, your Claude Code workflow.</p>
+        <span class="hero-badge">CC BY 4.0 — Open Specification</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+     CONCEPT: WHY YOU NEED THIS
+     ═══════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-inner">
+        <div class="concept-grid">
+          <div class="concept-text reveal">
+            <p class="sec-label">The Concept</p>
+            <h2 class="sec-title">Programming AI with Human Context</h2>
+            <p>AI is smart, but it has no common sense. If you are rushing to the airport, your phone doesn't know. If
+              you are standing in a crowded train, your watch doesn't care.</p>
+            <p><strong>This specification changes that.</strong></p>
+            <p>Think of it as an instruction manual you can hand to AI models like ChatGPT, Claude, or any Agent
+              architecture. It teaches them how to read the room, understand cognitive load, and adjust their output
+              dynamically. You don't have to be a developer to use it.</p>
+          </div>
+          <div class="concept-image reveal d1">
+            <img src="../images/ISO-GREEN/IF_Specs_01_HandlingSpecs.png"
+              alt="A human handing a spec document to a friendly robot — representing Context Grammar as an instruction manual for AI"
+              style="width:100%; display:block; border-radius:8px;">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+     TUTORIALS SECTION (Recycled from old index.html)
+     ═══════════════════════════════════════ -->
+    <section class="section sec-dim">
+      <div class="section-inner">
+        <p class="sec-label reveal">Getting Started</p>
+        <h2 class="sec-title reveal d1">Try it in 2 minutes</h2>
+        <p class="sec-desc reveal d2">You do not need to write code to use the Spec. Download the YAML files below and
+          paste them into your favorite AI chat (Claude / ChatGPT) to instantly upgrade its capabilities.</p>
+
+        <div class="tutorial-grid">
+
+          <!-- Tutorial 1: Design Review -->
+          <div class="tutorial-card reveal d2">
+            <div class="tutorial-header">
+              <div class="tutorial-num">01</div>
+              <div class="tutorial-meta">
+                <h3 class="tutorial-title">Review your UI with Context Grammar</h3>
+                <span class="tutorial-audience">For Designers & PMs</span>
+              </div>
+            </div>
+            <div class="tutorial-illustration">
+              <img src="../images/ISO-GREEN/IF_Specs_03_DesignReviewTutorial.png"
+                alt="A designer and robot reviewing a UI wireframe together — the robot pointing out a blind spot on screen"
+                style="width:100%; max-width:360px; display:block; margin:20px auto; border-radius:8px;">
+            </div>
+            <div class="tutorial-body">
+              <ol class="tutorial-steps">
+                <li>Open <strong>Claude.ai</strong> or <strong>ChatGPT</strong>.</li>
+                <li>Attach the <strong>context-tokens-spec.yaml</strong> file to the conversation.</li>
+                <li>Upload a screenshot of your app screen or describe the user flow.</li>
+                <li>Send this prompt:
+                  <div class="tutorial-prompt">
+                    <pre>Review this screen using the <span class="hl">Context Grammar spec</span>.
+Which tokens am I not considering?
+What breaks when the user is cognitively depleted,
+in public, or on a small screen?</pre>
+                  </div>
+                </li>
+                <li>Read the response. The AI will flag blind spots you didn't design for.</li>
+              </ol>
+              <div class="tutorial-response">
+                <p><strong>Example AI response:</strong> "This checkout flow ignores Cognitive Load. When the user is
+                  depleted, 12 payment options create decision paralysis. Reduce to the 3 most-used methods. It also
+                  ignores Social Exposure — the order total is displayed in large text, visible to anyone nearby..."</p>
+              </div>
+              <div class="tutorial-benefit">Without this, you spend hours guessing at edge cases. With this, the AI
+                flags them in 30 seconds.</div>
+            </div>
+          </div>
+
+          <!-- Tutorial 2: Generate Variations -->
+          <div class="tutorial-card reveal d3">
+            <div class="tutorial-header">
+              <div class="tutorial-num">02</div>
+              <div class="tutorial-meta">
+                <h3 class="tutorial-title">Generate Context-Adaptive UI Variations</h3>
+                <span class="tutorial-audience">For Developers & Designers</span>
+              </div>
+            </div>
+            <div class="tutorial-illustration">
+              <img src="../images/ISO-GREEN/IF_Specs_05_Adaptive_UI.png"
+                alt="Three phone screens side-by-side showing UI adapting across different contexts — complex, simplified, and single large button"
+                style="width:100%; max-width:360px; display:block; margin:20px auto; border-radius:8px;">
+            </div>
+            <div class="tutorial-body">
+              <ol class="tutorial-steps">
+                <li>Attach <strong>design-rules.yaml</strong> to your AI chat.</li>
+                <li>Describe a feature you are building (e.g. "A music player with queue management").</li>
+                <li>Send this prompt:
+                  <div class="tutorial-prompt">
+                    <pre>Using the <span class="hl">design rules spec</span>, generate 3 UI variations:
+1. cognitive_load: high, physical_state: driving
+2. social_exposure: public, form_factor: smartwatch
+3. cognitive_load: low, autonomy_dial: Suggest
+
+For each variation, explain which rules apply and
+show concrete UI code/changes.</pre>
+                  </div>
+                </li>
+              </ol>
+              <div class="tutorial-response">
+                <p><strong>Example AI response:</strong> "Variation 1 (driving + high load): Rule R003 applies —
+                  collapse queue to a single 'Up Next' track. Remove the share button entirely. Provide voice-only
+                  interaction fallbacks..."</p>
+              </div>
+              <div class="tutorial-benefit">Instead of designing one static UI, you get robust, context-specific
+                variations backed by consistent design rules.</div>
+            </div>
+          </div>
+
+          <!-- Tutorial 3: Build User Context Model -->
+          <div class="tutorial-card reveal d4">
+            <div class="tutorial-header">
+              <div class="tutorial-num">03</div>
+              <div class="tutorial-meta">
+                <h3 class="tutorial-title">Build your user context model</h3>
+                <span class="tutorial-audience">For Engineers</span>
+              </div>
+            </div>
+            <div class="tutorial-illustration">
+              <img src="../images/ISO-GREEN/IF_Specs_04_ArchitectureTutorial.png"
+                alt="An engineer plugging a Context Brain module into a server rack — representing integration of brain schema into an app architecture"
+                style="width:100%; max-width:360px; display:block; margin:20px auto; border-radius:8px;">
+            </div>
+            <div class="tutorial-body">
+              <ol class="tutorial-steps">
+                <li>Attach <strong>brain-schema.yaml</strong> to your AI chat.</li>
+                <li>Describe your app and your users (e.g. "A recipe app for busy families with dietary restrictions").
+                </li>
+                <li>Send this prompt:
+                  <div class="tutorial-prompt">
+                    <pre>Adapt this <span class="hl">brain schema</span> for my recipe app.
+
+What should my three memory layers contain?
+- Identity: what stable facts about each user?
+- Accumulated: what patterns should it learn over time?
+- Right Now: what ephemeral state matters for recipes?
+
+Also: what would a Disposable Brain look like
+for a "dinner party" scenario?</pre>
+                  </div>
+                </li>
+                <li>Get back a customized data model with concrete fields, types, and lifecycle rules for your domain.
+                </li>
+              </ol>
+              <div class="tutorial-response">
+                <p><strong>Example AI response:</strong> "Identity: allergies per family member, kitchen equipment,
+                  cuisine preferences. Accumulated: cooking frequency by day-of-week, substitution history, recipe
+                  abandonment patterns. Right Now: pantry state, tonight's time budget, number of diners. Disposable
+                  Brain for dinner party: born when user says 'planning a dinner party,' tracks guest constraints and
+                  prep timeline, merges patterns back to Accumulated, then dies."</p>
+              </div>
+              <div class="tutorial-benefit">You skip weeks of data modeling debate. The schema gives you a tested
+                structure to fork, not a blank page.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+     THREE SPEC FILES (The downloads and short code)
+     ═══════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-inner">
+        <p class="sec-label reveal">The Downloads</p>
+        <h2 class="sec-title reveal d1">Three Spec Files</h2>
+        <p class="sec-desc reveal d2">Everything an agent needs to understand human context. Eight tokens, a three-layer
+          brain, and design rules — defined as structured data. Download the full files or preview the structure below.
+        </p>
+
+        <div class="reveal d3" style="text-align:center; margin-bottom:40px;">
+          <img src="../images/ISO-GREEN/IF_Specs_02_Tokens_Brains_Rules.png"
+            alt="Three interlocking building blocks labeled Tokens, Brain, and Rules — the three spec files that form Context Grammar"
+            style="width:100%; max-width:50%; display:block; margin:0 auto; border-radius:8px;">
+        </div>
+
+        <div class="spec-cards">
+
+          <!-- TOKEN SCHEMA -->
+          <div class="spec-card reveal">
+            <div class="spec-card-header">
+              <div class="spec-card-title-group">
+                <p class="spec-card-filename">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  context-tokens-spec.yaml
+                </p>
+                <h3 class="spec-card-title">Token Schema</h3>
+                <p class="spec-card-desc">The 8 tokens with type definitions, value ranges, expected data sources, and
+                  system readiness levels.</p>
+                <div class="spec-card-actions">
+                  <a href="context-tokens-spec.yaml" class="download-btn" download>Download Full YAML</a>
+                </div>
+              </div>
+              <span class="spec-badge">v1.0 · 8 tokens · 904 lines</span>
+            </div>
+            <div class="code-block-wrapper">
+              <div class="code-block-header">
+                <span class="code-block-lang">YAML (Preview)</span>
+                <button class="copy-btn" data-target="code-tokens" onclick="copyCode(this)">Copy preview</button>
+              </div>
+              <pre><code id="code-tokens"><span class="sy-key">tokens</span><span class="sy-bracket">:</span>
+  <span class="sy-key">physical_state</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">stationary</span>, <span class="sy-str">walking</span>, <span class="sy-str">running</span>, <span class="sy-str">driving</span>, <span class="sy-str">resting</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">accelerometer</span>, <span class="sy-str">activity_recognition_api</span><span class="sy-bracket">]</span>
+    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">realtime</span>
+
+  <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>
+    <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0.0</span>, <span class="sy-num">1.0</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">time_of_day</span>, <span class="sy-str">calendar_density</span>, <span class="sy-str">recent_activity</span><span class="sy-bracket">]</span>
+    <span class="sy-comment"># See full download for complete attribute definitions and sub-properties...</span></code></pre>
+            </div>
+          </div>
+
+          <!-- BRAIN SCHEMA -->
+          <div class="spec-card reveal d1">
+            <div class="spec-card-header">
+              <div class="spec-card-title-group">
+                <p class="spec-card-filename">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  brain-schema.yaml
+                </p>
+                <h3 class="spec-card-title">Brain Schema</h3>
+                <p class="spec-card-desc">The 3-layer memory structure (Identity, Accumulated Learning, Right Now),
+                  including the Disposable Brain lifecycle logic.</p>
+                <div class="spec-card-actions">
+                  <a href="brain-schema.yaml" class="download-btn" download>Download Full YAML</a>
+                </div>
+              </div>
+              <span class="spec-badge">v1.0 · 3 layers · 1,147 lines</span>
+            </div>
+            <div class="code-block-wrapper">
+              <div class="code-block-header">
+                <span class="code-block-lang">YAML (Preview)</span>
+                <button class="copy-btn" data-target="code-brain" onclick="copyCode(this)">Copy preview</button>
+              </div>
+              <pre><code id="code-brain"><span class="sy-key">brain</span><span class="sy-bracket">:</span>
+  <span class="sy-key">layers</span><span class="sy-bracket">:</span>
+    <span class="sy-key">identity</span><span class="sy-bracket">:</span>
+      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">months_to_years</span>
+      <span class="sy-key">disclosure_controlled</span><span class="sy-bracket">:</span> <span class="sy-bool">true</span>
+      <span class="sy-key">fields</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">demographics</span>, <span class="sy-str">family</span>, <span class="sy-str">dietary</span>, <span class="sy-str">accessibility</span><span class="sy-bracket">]</span>
+    
+    <span class="sy-key">accumulated_learning</span><span class="sy-bracket">:</span>
+      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">days_to_weeks</span>
+    <span class="sy-comment"># See full download for L3 Right Now and multi-person orchestration logic...</span></code></pre>
+            </div>
+          </div>
+
+          <!-- DESIGN RULES -->
+          <div class="spec-card reveal d2">
+            <div class="spec-card-header">
+              <div class="spec-card-title-group">
+                <p class="spec-card-filename">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  design-rules.yaml
+                </p>
+                <h3 class="spec-card-title">Design Rules</h3>
+                <p class="spec-card-desc">33 conditional if/then rules that transform Token states into actual UI design
+                  decisions.</p>
+                <div class="spec-card-actions">
+                  <a href="design-rules.yaml" class="download-btn" download>Download Full YAML</a>
+                </div>
+              </div>
+              <span class="spec-badge">v1.0 · 33 rules</span>
+            </div>
+            <div class="code-block-wrapper">
+              <div class="code-block-header">
+                <span class="code-block-lang">YAML (Preview)</span>
+                <button class="copy-btn" data-target="code-rules" onclick="copyCode(this)">Copy preview</button>
+              </div>
+              <pre><code id="code-rules"><span class="sy-key">rules</span><span class="sy-bracket">:</span>
+  - <span class="sy-key">id</span><span class="sy-bracket">:</span> <span class="sy-val">R001</span>
+    <span class="sy-key">name</span><span class="sy-bracket">:</span> <span class="sy-val">cognitive_load_reduction</span>
+    <span class="sy-key">when</span><span class="sy-bracket">:</span>
+      <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span> <span class="sy-str">"&gt; 0.7"</span>
+      <span class="sy-key">form_factor</span><span class="sy-bracket">:</span> <span class="sy-val">phone</span>
+    <span class="sy-key">then</span><span class="sy-bracket">:</span>
+      <span class="sy-key">pattern</span><span class="sy-bracket">:</span> <span class="sy-val">progressive_disclosure</span>
+      <span class="sy-key">action</span><span class="sy-bracket">:</span> <span class="sy-str">"reduce options to top 3, defer detail"</span>
+    <span class="sy-comment"># See full download for remaining conditional rules...</span></code></pre>
+            </div>
+          </div>
+
+        </div><!-- /spec-cards -->
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+     DESIGN RULES REFERENCE (Light mode adaptation)
+     ═══════════════════════════════════════ -->
+    <section class="section sec-dim">
+      <div class="section-inner">
+        <p class="sec-label reveal">Rule Engine API</p>
+        <h2 class="sec-title reveal">33 Behavior Rules</h2>
+        <p class="sec-desc reveal">A quick glance at the structural logic contained within the
+          <code>design-rules.yaml</code> spec, grouped by categories.
+        </p>
+
+        <div class="rules-table-wrap reveal">
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Rules</th>
+                <th>Direction</th>
+                <th>Example Pattern</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Cognitive Load Mitigation</td>
+                <td>R001 – R005</td>
+                <td class="dir-delegation">Delegation</td>
+                <td>Progressive disclosure, Auto-summarize</td>
+              </tr>
+              <tr>
+                <td>Social Privacy Guard</td>
+                <td>R006 – R010</td>
+                <td class="dir-adaptation">Adaptation</td>
+                <td>Audience-aware content filtering</td>
+              </tr>
+              <tr>
+                <td>Trust Calibration</td>
+                <td>R011 – R015</td>
+                <td class="dir-escalation">Escalation</td>
+                <td>Approval gate, Dial validation check</td>
+              </tr>
+              <tr>
+                <td>Device Reflow</td>
+                <td>R016 – R020</td>
+                <td class="dir-adaptation">Adaptation</td>
+                <td>Form factor optimization matrices</td>
+              </tr>
+              <tr>
+                <td>Priority Resolution</td>
+                <td>R021 – R025</td>
+                <td class="dir-delegation">Delegation</td>
+                <td>Conflict & collision resolution logic</td>
+              </tr>
+              <tr>
+                <td>Temporal Evolution</td>
+                <td>R026 – R030</td>
+                <td class="dir-all">All</td>
+                <td>Phase-appropriate onboarding behavior</td>
+              </tr>
+              <tr>
+                <td>Multi-person Orchestration</td>
+                <td>R031 – R033</td>
+                <td class="dir-all">All</td>
+                <td>Per-user autonomy conflict handling</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+     CTA (Dark to blend with footer concept)
+     ═══════════════════════════════════════ -->
+    <section class="cta">
+      <div class="cta-inner">
+        <h2 class="cta-title reveal">Context Grammar is open.<br>Build with it.</h2>
+        <div class="cta-buttons reveal d1">
+          <a href="../index.html" class="cta-btn cta-btn--primary">Back to Overview</a>
+          <a href="../../projects/index.html" class="cta-btn cta-btn--secondary">View Projects</a>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /page -->
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <a href="../../about/index.html">Takao Umehara</a> &middot; 2026 &middot; CC BY 4.0 Open Specification
+  </footer>
+
+  <script src="../../assets/js/nav.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      initNav({ basePath: '../../', activePage: 'specs', lang: 'en' });
+    });
+
+    // ── Copy button ──
+    function copyCode(btn) {
+      var targetId = btn.getAttribute('data-target');
+      var codeEl = document.getElementById(targetId);
+      var text = codeEl.textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          btn.textContent = 'Copy preview';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ── Scroll reveal ──
+    var reveals = document.querySelectorAll('.reveal');
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    reveals.forEach(function (el) {
+      observer.observe(el);
+    });
+  </script>
+</body>
+
+</html>
