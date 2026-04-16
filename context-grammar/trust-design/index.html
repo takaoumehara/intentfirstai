@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trust Design — Context Grammar</title>
+<meta name="description" content="The Autonomy Dial, Disclosure Dial, Dynamic Friction, Temporal Arc, and the mechanics of building trust between humans and AI. Context Grammar's approach to calibrated autonomy.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<link rel="stylesheet" href="../../assets/css/context-grammar.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<style>
+
+/* ═══ LAYOUT ═══ */
+main { padding-top: 0; }
+
+section {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+}
+
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.container--wide {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* ═══ HERO OVERRIDE (trust-design specific) ═══ */
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: var(--hero-eyebrow-size);
+  font-weight: var(--hero-eyebrow-weight);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(240, 236, 228, 0.3);
+  margin-bottom: 36px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+  position: relative;
+}
+
+.hero-title {
+  font-weight: var(--hero-title-weight);
+  font-size: var(--hero-title-size);
+  line-height: 1.1;
+  letter-spacing: var(--hero-title-tracking);
+  margin-bottom: 32px;
+  max-width: 820px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+  position: relative;
+}
+
+.hero-title em {
+  font-style: normal;
+  color: var(--color-intent);
+}
+
+.hero-sub {
+  font-size: var(--hero-sub-size);
+  font-weight: var(--hero-sub-weight);
+  color: var(--hero-sub-color-dark);
+  line-height: 1.9;
+  max-width: 620px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+  position: relative;
+}
+
+/* ═══ SECTION MODES ═══ */
+.sec-dark {
+  background: #08070b;
+  color: #f0ece4;
+}
+
+/* ═══ SECTION LABELS ═══ */
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+  margin-bottom: 16px;
+}
+
+.sec-title {
+  font-weight: var(--sec-title-weight);
+  font-size: var(--sec-title-size);
+  line-height: 1.1;
+  letter-spacing: var(--sec-title-tracking);
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.sec-title em {
+  font-style: normal;
+  color: var(--color-intent);
+}
+
+.sec-lead {
+  font-size: clamp(15px, 1.1vw, 18px);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.8;
+  max-width: 640px;
+}
+
+/* ═══ BODY TEXT ═══ */
+.body-text {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.85;
+  max-width: 640px;
+  margin-bottom: 20px;
+}
+
+.body-text strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.body-text:last-child {
+  margin-bottom: 0;
+}
+
+.lead-text {
+  font-size: clamp(17px, 1.3vw, 21px);
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 32px;
+  letter-spacing: -0.3px;
+  max-width: 640px;
+}
+
+.dark-text {
+  color: rgba(240,236,228,0.7);
+}
+
+/* ═══ CONCEPT NAME HIERARCHY ═══ */
+.concept-name {
+  font-weight: 500;
+  font-size: clamp(24px, 2.5vw, 36px);
+  letter-spacing: -1px;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.concept-sub {
+  font-size: clamp(14px, 1vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  margin-bottom: 32px;
+}
+
+.concept-header {
+  margin-bottom: 40px;
+}
+
+/* ═══ PULLQUOTE ═══ */
+.pullquote {
+  padding: 28px 0 28px 28px;
+  border-left: 2px solid var(--color-intent);
+  border-radius: 0;
+  font-weight: 500;
+  font-size: clamp(18px, 1.6vw, 24px);
+  line-height: 1.45;
+  letter-spacing: -0.5px;
+  max-width: 640px;
+  margin: 40px 0;
+}
+
+.pullquote--grammar { border-left-color: var(--color-grammar); }
+.pullquote--brain { border-left-color: var(--color-brain); }
+.pullquote--intent { border-left-color: var(--color-intent); }
+.pullquote--success { border-left-color: var(--color-success); }
+
+/* ═══ STAGE CARDS (4-col grid) ═══ */
+.stage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(12px, 1.5vw, 20px);
+  margin: 36px 0;
+}
+
+.stage-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(20px, 2vw, 28px);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+
+.stage-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+}
+
+.stage-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.stage-num--intent { color: var(--color-intent); }
+.stage-num--success { color: var(--color-success); }
+
+.stage-title {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 20px);
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.stage-desc {
+  font-size: clamp(14px, 0.95vw, 15px);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.stage-example {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .stage-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .stage-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ DARK STAGE CARDS ═══ */
+.sec-dark .stage-card {
+  background: rgba(240,236,228,0.03);
+  border-color: rgba(240,236,228,0.06);
+}
+.sec-dark .stage-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.sec-dark .stage-desc {
+  color: rgba(240,236,228,0.5);
+}
+.sec-dark .stage-example {
+  color: rgba(240,236,228,0.3);
+}
+.sec-dark .concept-sub {
+  color: rgba(240,236,228,0.5);
+}
+.sec-dark .pullquote {
+  color: #f0ece4;
+}
+.sec-dark .body-text {
+  color: rgba(240,236,228,0.7);
+}
+.sec-dark .body-text strong {
+  color: #f0ece4;
+}
+
+/* ═══ DIRECTION HEADERS (Protective / Connective) ═══ */
+.direction-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 48px 0 16px;
+}
+.direction-header:first-of-type {
+  margin-top: 36px;
+}
+.direction-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 0;
+}
+.direction-tag--protect {
+  background: rgba(74,106,144,0.1);
+  color: var(--color-grammar);
+}
+.direction-tag--connect {
+  background: rgba(122,85,32,0.1);
+  color: var(--color-intent);
+}
+.direction-title {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  letter-spacing: -0.3px;
+}
+
+/* ═══ 3-FLOW CARDS ═══ */
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.5vw, 20px);
+  margin: 36px 0;
+}
+
+.flow-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(20px, 2vw, 28px);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+
+.flow-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+}
+
+.flow-arrow {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.flow-arrow--grammar { color: var(--color-grammar); }
+.flow-arrow--intent { color: var(--color-intent); }
+.flow-arrow--brain { color: var(--color-brain); }
+
+.flow-title {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 20px);
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.flow-desc {
+  font-size: clamp(14px, 0.95vw, 15px);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.flow-example {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .flow-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ 3-FORCE LAYOUT ═══ */
+.force-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.5vw, 20px);
+  margin: 32px 0;
+  max-width: 780px;
+}
+
+.force-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(18px, 1.8vw, 24px);
+}
+
+.force-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--color-intent);
+  margin-bottom: 8px;
+}
+
+.force-title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 17px);
+  margin-bottom: 6px;
+}
+
+.force-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+@media (max-width: 640px) {
+  .force-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ CALLOUT BOX ═══ */
+.callout {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(24px, 2.5vw, 36px);
+  margin: 36px 0;
+  max-width: 640px;
+}
+
+.callout-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+  margin-bottom: 10px;
+}
+
+.callout p {
+  font-size: clamp(15px, 1.05vw, 17px);
+  line-height: 1.75;
+  color: var(--text-2);
+  font-weight: 300;
+}
+
+.callout strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ═══ SCENARIO BOX ═══ */
+.scenario {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(28px, 3vw, 40px);
+  margin: 40px 0;
+  max-width: 720px;
+}
+
+.scenario-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-brain);
+  margin-bottom: 14px;
+}
+
+.scenario-title {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  letter-spacing: -0.3px;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.scenario-step {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-2);
+  font-weight: 300;
+}
+
+.scenario-step:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.scenario-step strong {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.scenario-step em {
+  color: var(--color-brain);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.scenario-note {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text-3);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ═══ FRICTION TABLE ═══ */
+.friction-table {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+  margin: 32px 0;
+}
+
+.friction-table th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.friction-table td {
+  font-size: 15px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.friction-table td:first-child {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.friction-table .mode-auto { color: var(--color-success); font-weight: 500; }
+.friction-table .mode-confirm { color: var(--color-intent); font-weight: 500; }
+.friction-table .mode-suggest { color: var(--color-brain); font-weight: 500; }
+
+/* ═══ RISK MATRIX ═══ */
+.matrix-wrap {
+  max-width: 500px;
+  margin: 36px 0;
+}
+
+.matrix-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+.matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  border-radius: 0;
+}
+
+.matrix-cell {
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.matrix-cell--safe {
+  background: rgba(58,106,58,0.08);
+  color: var(--color-success);
+}
+
+.matrix-cell--caution {
+  background: rgba(122,85,32,0.08);
+  color: var(--color-intent);
+}
+
+.matrix-cell--danger {
+  background: rgba(220,38,38,0.06);
+  color: #b91c1c;
+}
+
+.matrix-cell strong {
+  display: block;
+  font-weight: 500;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+/* ═══ 2x2 MATRIX (Disclosure x Autonomy) ═══ */
+.matrix--wide {
+  max-width: 780px;
+  margin: 40px 0;
+  background: var(--border);
+}
+
+.matrix--wide .matrix-cell {
+  padding: clamp(24px, 3vw, 40px);
+  background: var(--bg);
+  text-align: left;
+}
+
+.matrix--wide .matrix-cell--dream {
+  background: rgba(5, 150, 105, 0.03);
+}
+
+.matrix--wide .matrix-cell--danger {
+  background: rgba(220, 38, 38, 0.03);
+}
+
+.matrix--wide .matrix-cell-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  color: var(--text-3);
+}
+
+.matrix--wide .matrix-cell--danger .matrix-cell-label {
+  color: #dc2626;
+}
+
+.matrix--wide .matrix-cell--dream .matrix-cell-label {
+  color: var(--color-success);
+}
+
+.matrix--wide .matrix-cell-title {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 22px);
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.matrix--wide .matrix-cell-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.matrix-axis-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: center;
+  padding: 12px 0;
+}
+
+@media (max-width: 600px) {
+  .matrix { grid-template-columns: 1fr; }
+  .matrix--wide { grid-template-columns: 1fr; }
+}
+
+/* ═══ TEMPORAL ARC TIMELINE ═══ */
+.timeline {
+  position: relative;
+  margin: 48px 0;
+  padding-left: 28px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(240,236,228,0.08);
+}
+
+.timeline-phase {
+  position: relative;
+  padding-bottom: 40px;
+}
+
+.timeline-phase:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -33px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-intent);
+}
+
+.timeline-dot--brain { background: var(--color-brain); }
+.timeline-dot--success { background: var(--color-success); }
+.timeline-dot--danger { background: #dc2626; }
+
+.timeline-period {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(240,236,228,0.35);
+  margin-bottom: 8px;
+}
+
+.timeline-title {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  color: #f0ece4;
+}
+
+.timeline-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(240,236,228,0.5);
+  font-weight: 300;
+  line-height: 1.75;
+  max-width: 560px;
+}
+
+.timeline-metaphor {
+  font-size: 14px;
+  color: rgba(240,236,228,0.35);
+  margin-top: 8px;
+  font-style: italic;
+  line-height: 1.65;
+}
+
+/* ═══ FAMILY / MULTI-PERSON GRID ═══ */
+.family-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(12px, 1.5vw, 20px);
+  margin: 36px 0;
+}
+
+.family-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: clamp(20px, 2vw, 28px);
+}
+
+.family-name {
+  font-weight: 500;
+  font-size: clamp(17px, 1.2vw, 19px);
+  margin-bottom: 6px;
+}
+
+.family-role {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  margin-bottom: 14px;
+}
+
+.family-detail {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.family-detail strong {
+  font-weight: 500;
+  color: var(--text);
+  display: block;
+  margin-top: 8px;
+}
+
+.family-dial {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.family-dial-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.7vw, 11px);
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.family-dial-value {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--color-intent);
+  padding: 3px 8px;
+  background: var(--chip-amber-bg);
+  border-radius: 0;
+}
+
+@media (max-width: 900px) {
+  .family-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .family-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ BREACH RECOVERY ═══ */
+.breach-flow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 32px 0;
+  flex-wrap: wrap;
+  max-width: 640px;
+}
+
+.breach-step {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 15px;
+  font-weight: 400;
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+}
+
+.breach-arrow {
+  font-size: 18px;
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .breach-flow { flex-direction: column; }
+  .breach-arrow { transform: rotate(90deg); }
+}
+
+/* ═══ PRINCIPLES LIST ═══ */
+.principles {
+  counter-reset: principle;
+  max-width: 640px;
+  margin: 40px 0;
+}
+
+.principle {
+  counter-increment: principle;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.principle:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.principle-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-intent);
+  flex-shrink: 0;
+  width: 32px;
+  padding-top: 2px;
+}
+
+.principle-body h3 {
+  font-weight: 500;
+  font-size: clamp(17px, 1.2vw, 19px);
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+}
+
+.principle-body p {
+  font-size: 15px;
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+/* ═══ HIGHLIGHT BOX ═══ */
+.highlight-box {
+  border-left: 3px solid var(--color-intent);
+  border-radius: 0;
+  padding: 20px 24px;
+  background: var(--bg-2);
+  margin: 32px 0;
+  max-width: 640px;
+}
+
+.highlight-box p {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.highlight-box p + p {
+  margin-top: 12px;
+}
+
+/* ═══ SECTION ILLUSTRATIONS ═══ */
+.section-illu {
+  width: 100%;
+  max-width: 680px;
+  margin: 32px auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+}
+
+.section-illu img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.section-illu--wide {
+  max-width: 780px;
+}
+
+.section-illu--compact {
+  max-width: 480px;
+}
+
+/* ═══ CTA SECTION ═══ */
+.cta-section {
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(122,85,32,0.05), transparent 70%);
+  pointer-events: none;
+}
+
+.cta-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+
+.cta-desc {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 300;
+  color: rgba(240, 236, 228, 0.5);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto 36px;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-btn {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 16px 32px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.3s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cta-btn--primary {
+  background: #f0ece4;
+  color: #08070b;
+}
+
+.cta-btn--primary:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(240,236,228,0.1);
+}
+
+.cta-btn--secondary {
+  background: transparent;
+  color: rgba(240,236,228,0.6);
+  border: 1px solid rgba(240,236,228,0.12);
+}
+
+.cta-btn--secondary:hover {
+  color: #f0ece4;
+  border-color: rgba(240,236,228,0.3);
+  transform: translateY(-2px);
+}
+
+/* ═══ DIVIDER ═══ */
+.divider-line {
+  max-width: 780px;
+  margin: 0 auto;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: #08070b;
+  color: rgba(240,236,228,0.35);
+  border-top: 1px solid rgba(240,236,228,0.04);
+}
+
+.footer-grid {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(24px, 3vw, 48px);
+}
+
+.footer-col-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(240,236,228,0.25);
+  margin-bottom: 16px;
+}
+
+.footer-col a {
+  display: block;
+  font-size: 14px;
+  color: rgba(240,236,228,0.45);
+  text-decoration: none;
+  padding: 5px 0;
+  transition: color 0.3s var(--ease);
+  font-weight: 300;
+}
+
+.footer-col a:hover { color: var(--color-grammar); }
+
+.footer-bottom {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(240,236,228,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.footer-bottom a {
+  color: rgba(240,236,228,0.35);
+  text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+
+.footer-bottom a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+@media (max-width: 768px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.d1 { transition-delay: 0.06s; }
+.d2 { transition-delay: 0.12s; }
+.d3 { transition-delay: 0.18s; }
+.d4 { transition-delay: 0.24s; }
+.d5 { transition-delay: 0.30s; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  section {
+    padding: clamp(56px, 8vw, 100px) clamp(20px, 4vw, 40px);
+  }
+}
+
+/* ═══ SELECTION ═══ */
+::selection { background: rgba(122,85,32,0.15); }
+
+</style>
+</head>
+
+<body data-dark-nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <p class="hero-label">Context Grammar / Trust Design</p>
+  <h1 class="hero-title">Trust isn't built<br>in a <em>day</em>.</h1>
+  <p class="hero-sub">It takes six months to become a regular at a restaurant. Trust with AI grows the same way -- through track record and time. Context Grammar designs how that trust is built.</p>
+  <div class="hero-scroll-hint"><span></span></div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     THE PARADOX
+     ═══════════════════════════════════════════ -->
+<section id="paradox">
+  <div class="container">
+    <p class="sec-label reveal">The Paradox</p>
+    <h2 class="sec-title reveal d1">AI is capable. But you can't delegate yet.</h2>
+
+    <div class="section-illu section-illu--compact reveal">
+      <img src="../images/ISO-GREEN/Trust-01.png" alt="Day 1 -- a customer sits at a table while an AI waiter approaches, both uncertain" loading="lazy">
+    </div>
+
+    <p class="lead-text reveal d2">ChatGPT can write. Gemini can plan your trip. But you don't want either of them spending your credit card without asking. Why? Because <strong>trust isn't there yet.</strong></p>
+
+    <p class="body-text reveal">Think about the first time you walked into a restaurant. No matter how skilled the waiter looks, you don't say "chef's choice" on day one. You read the menu. You order one dish. If it's good, maybe next time you ask for a recommendation.</p>
+
+    <p class="body-text reveal">AI is the same. Capability alone is not enough. Trust is earned through accumulated results.</p>
+
+    <div class="pullquote pullquote--intent reveal">
+      The question isn't "what can AI do?" It's "what are you willing to let AI do?"
+    </div>
+
+    <p class="body-text reveal">Every AI agent framework ships with autonomy controls -- levels, modes, permission tiers. The architecture is there. But none of them ask the question that comes before all of it: <strong>does the AI even know enough about you to act wisely?</strong></p>
+
+    <div class="highlight-box reveal">
+      <p><strong>Context Grammar's answer: Disclosure comes first. Autonomy follows. Always.</strong></p>
+      <p>You can't delegate what you haven't disclosed. This is the rule. Everything else flows from it.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════════════
+     DISCLOSURE DIAL
+     ═══════════════════════════════════════════ -->
+<section class="sec-dim" id="disclosure">
+  <div class="container">
+    <p class="sec-label reveal">Dial 01</p>
+    <div class="concept-header reveal d1">
+      <h2 class="concept-name">Disclosure Dial</h2>
+      <p class="concept-sub">Information flows in two directions -- protecting and connecting</p>
+    </div>
+
+    <p class="body-text reveal d2">Before the AI can act, it needs to know. But "what to share" isn't just about protecting your data. In families, there's a second direction: connecting each other's worlds.</p>
+
+    <div class="section-illu reveal">
+      <img src="../images/ISO-GREEN/Trust-02.png" alt="Disclosure levels visualized as doors -- Full (wide open), Summary (partially open), Existence (cracked), Hidden (locked)" loading="lazy">
+    </div>
+
+    <!-- Direction 1: Protective -->
+    <div class="direction-header reveal d2">
+      <span class="direction-tag direction-tag--protect">Protective</span>
+      <h3 class="direction-title">Protect -- Controlling what you share</h3>
+    </div>
+
+    <p class="body-text reveal d3">Think of a restaurant. A customer who tells the waiter about their allergies gets safer, better food. One who says nothing gets the standard menu. The Protective direction designs how much you reveal, in four levels.</p>
+
+    <div class="stage-grid">
+      <div class="stage-card reveal d3">
+        <p class="stage-num stage-num--intent">01</p>
+        <h3 class="stage-title">Full</h3>
+        <p class="stage-desc">Share everything. Allergies, anniversary, budget, your daughter's hatred of cilantro. The AI can make deeply personalized decisions.</p>
+        <p class="stage-example">Medical AI: full health data shared</p>
+      </div>
+      <div class="stage-card reveal d3">
+        <p class="stage-num stage-num--intent">02</p>
+        <h3 class="stage-title">Summary</h3>
+        <p class="stage-desc">Share the outline only. "I have dietary restrictions" without specifying which. The AI knows enough to be cautious, not enough to optimize.</p>
+        <p class="stage-example">Fitness AI: "somewhat inactive" only</p>
+      </div>
+      <div class="stage-card reveal d3">
+        <p class="stage-num stage-num--intent">03</p>
+        <h3 class="stage-title">Existence</h3>
+        <p class="stage-desc">The AI knows there's something it doesn't know. It proceeds with extra caution at every step. Like a waiter who senses you're particular but hasn't been told why.</p>
+        <p class="stage-example">Travel AI: "has dietary needs" only</p>
+      </div>
+      <div class="stage-card reveal d4">
+        <p class="stage-num stage-num--intent">04</p>
+        <h3 class="stage-title">Hidden</h3>
+        <p class="stage-desc">The AI knows nothing. Generic responses only. The standard menu. No personalization. Safe. Impersonal. Sometimes exactly what you want.</p>
+        <p class="stage-example">Hobby AI: health data hidden</p>
+      </div>
+    </div>
+
+    <p class="body-text reveal d4"><strong>Per-domain control.</strong> You might set FULL disclosure for your health AI -- it needs your medications, family history, sleep patterns. But HIDDEN from social media AI. Same person, different boundaries. This isn't paranoia. It's architecture.</p>
+
+    <!-- Direction 2: Connective -->
+    <div class="direction-header reveal d4">
+      <span class="direction-tag direction-tag--connect">Connective</span>
+      <h3 class="direction-title">Connect -- Bridging each other's worlds</h3>
+    </div>
+
+    <p class="body-text reveal d5">Here's a direction that no existing product addresses.</p>
+
+    <p class="body-text reveal d5">Real families discover each other's worlds and grow richer for it. Dad reads a manga on Kindle; his daughter reads it and tells him "volume 3 gets incredible." His son plays a piano BGM in Minecraft; Dad hears it and starts looking for it on Spotify. Today, all these discoveries depend on coincidence. <strong>Connective Disclosure turns coincidence into intentional bridging at the right granularity.</strong></p>
+
+    <div class="stage-grid">
+      <div class="stage-card reveal d5">
+        <p class="stage-num stage-num--intent">01</p>
+        <h3 class="stage-title">Push</h3>
+        <p class="stage-desc">Notify immediately when something new appears. The person actively wants to share.</p>
+        <p class="stage-example">Daughter's art posts: notify family immediately</p>
+      </div>
+      <div class="stage-card reveal d5">
+        <p class="stage-num stage-num--intent">02</p>
+        <h3 class="stage-title">Digest</h3>
+        <p class="stage-desc">A weekly summary. Distill too much into just the essence.</p>
+        <p class="stage-example">Wife's dance videos: 30-second highlights weekly</p>
+      </div>
+      <div class="stage-card reveal d5">
+        <p class="stage-num stage-num--intent">03</p>
+        <h3 class="stage-title">Available</h3>
+        <p class="stage-desc">Only when asked. The library is open but no notifications go out.</p>
+        <p class="stage-example">Dad's Kindle: daughter can browse when she wants</p>
+      </div>
+      <div class="stage-card reveal d5">
+        <p class="stage-num stage-num--intent">04</p>
+        <h3 class="stage-title">Off</h3>
+        <p class="stage-desc">This domain is not shared, even with family. Fully private.</p>
+        <p class="stage-example">Daughter's private playlists: not shared</p>
+      </div>
+    </div>
+
+    <div class="pullquote pullquote--intent reveal d5">
+      In restaurant terms: Protective is "who do you tell about your allergies?" Connective is "recommend this new dish to the customer who loved the last one." Same act of sharing. Completely different purpose.
+    </div>
+
+    <p class="body-text reveal">Spotify's Family Mix is random blending. Connective Disclosure is "the song your son plays every day in Minecraft, placed in Dad's playlist" -- <strong>bridging with context</strong>. Existing products only have the Protective side. The Connective side exists in zero products today.</p>
+  </div>
+</section>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════════════
+     THREE INFORMATION FLOWS
+     ═══════════════════════════════════════════ -->
+<section id="three-flows">
+  <div class="container--wide">
+    <p class="sec-label reveal">Disclosure Architecture</p>
+    <h2 class="sec-title reveal d1">Information flows in three directions.</h2>
+
+    <p class="body-text reveal d2" style="max-width:780px;">The Disclosure Dial doesn't just control "whether you tell the AI." Information flows in three distinct directions, each requiring different granularity and permissions.</p>
+
+    <div class="flow-grid reveal d3">
+      <div class="flow-card">
+        <span class="flow-arrow flow-arrow--grammar">User &rarr; AI</span>
+        <h3 class="flow-title">Disclose</h3>
+        <p class="flow-desc">The Protective direction. What data do you share with the AI? Per domain, per AI service.</p>
+        <p class="flow-example">Health data: Full to medical AI, Hidden from hobby AI</p>
+      </div>
+      <div class="flow-card">
+        <span class="flow-arrow flow-arrow--intent">AI &rarr; Human</span>
+        <h3 class="flow-title">Share / Filter</h3>
+        <p class="flow-desc">The Connective direction. The AI bridges interests between family members at appropriate granularity.</p>
+        <p class="flow-example">Son's Minecraft BGM: suggest to Dad's Spotify</p>
+      </div>
+      <div class="flow-card">
+        <span class="flow-arrow flow-arrow--brain">AI &harr; AI / External</span>
+        <h3 class="flow-title">Sync / Selective Disclosure</h3>
+        <p class="flow-desc">Controlled sharing with third parties. Based on the person's intent, the AI decides what to share, with whom, and when.</p>
+        <p class="flow-example">Medical info: Full to Mom, Summary to Dad, Hidden from school</p>
+      </div>
+    </div>
+
+    <!-- Pronoun Scenario -->
+    <div class="scenario reveal d4">
+      <p class="scenario-label">Real Scenario</p>
+      <h3 class="scenario-title">A daughter changes her pronoun in Gemini's profile settings.</h3>
+      <div class="scenario-step">
+        She changes her pronoun from <strong>she/her</strong> to <strong>he/him</strong>.
+      </div>
+      <div class="scenario-step">
+        Gemini responds: "Profile updated. <em>Choose your family sharing settings.</em>"
+      </div>
+      <div class="scenario-step">
+        She selects: <strong>Share with Mom only</strong>. Other family members don't see the change yet.
+      </div>
+      <div class="scenario-step">
+        Two weeks later, she updates: <strong>Share with all family</strong>. Gemini updates pronouns across all devices.
+      </div>
+      <p class="scenario-note">AI doesn't "accelerate a decision." It offers choices about who, when, and at what granularity to share -- and waits until the person is ready. This is the third flow: selective disclosure through AI to others.</p>
+    </div>
+
+    <div class="pullquote pullquote--brain reveal d5">
+      "Share with my close friends but not with this organization." Real human relationships have this granularity. AI information sharing needs it too.
+    </div>
+
+    <div class="callout reveal d5">
+      <p class="callout-label">Design Note</p>
+      <p>Google Family Link, Samsung Kids Mode -- all use a binary "child / adult" model. The granularity of "full details to Mom, summary to Dad, hidden from school" exists in no platform today. <strong>The Disclosure Dial designs all three information flows in a unified model.</strong></p>
+    </div>
+  </div>
+</section>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════════════
+     AUTONOMY DIAL
+     ═══════════════════════════════════════════ -->
+<section id="autonomy">
+  <div class="container">
+    <p class="sec-label reveal">Dial 02</p>
+    <div class="concept-header reveal d1">
+      <h2 class="concept-name">Autonomy Dial</h2>
+      <p class="concept-sub">How far the AI can go on its own -- four stages</p>
+    </div>
+
+    <p class="body-text reveal d2">The Disclosure Dial decided "what to share." Now comes "how much to delegate." Think about becoming a regular at a restaurant.</p>
+
+    <div class="section-illu section-illu--wide reveal">
+      <img src="../images/ISO-GREEN/Trust-05.png" alt="Four autonomy stages -- Suggest, Confirm, Notify, Auto -- with trust growing from left to right" loading="lazy">
+    </div>
+
+    <div class="stage-grid">
+      <div class="stage-card reveal d2">
+        <p class="stage-num stage-num--success">01</p>
+        <h3 class="stage-title">Suggest</h3>
+        <p class="stage-desc">AI presents options. Human decides everything. No assumptions, no shortcuts.</p>
+        <p class="stage-example">Restaurant: "Here's the menu. What would you like?"<br>Digital: "These shoes might work for you."</p>
+      </div>
+      <div class="stage-card reveal d3">
+        <p class="stage-num stage-num--success">02</p>
+        <h3 class="stage-title">Confirm</h3>
+        <p class="stage-desc">AI proposes based on learned patterns. Human approves or corrects before execution.</p>
+        <p class="stage-example">Restaurant: "Your usual beer, shall I?"<br>Digital: "Adding milk to your order. OK?"</p>
+      </div>
+      <div class="stage-card reveal d3">
+        <p class="stage-num stage-num--success">03</p>
+        <h3 class="stage-title">Notify</h3>
+        <p class="stage-desc">AI acts and informs. Human can override but doesn't need to initiate.</p>
+        <p class="stage-example">Restaurant: "Started your appetizer. The usual."<br>Digital: "Ordered your yogurt."</p>
+      </div>
+      <div class="stage-card reveal d4">
+        <p class="stage-num stage-num--success">04</p>
+        <h3 class="stage-title">Auto</h3>
+        <p class="stage-desc">AI acts silently. Human intervenes only if something's wrong. The invisible stage.</p>
+        <p class="stage-example">Restaurant: Sit down, beer appears.<br>Digital: Netflix auto-play.</p>
+      </div>
+    </div>
+
+    <h3 class="sec-title reveal" style="font-size:clamp(20px,2vw,28px); margin-top:48px;">Three Forces, Not One Switch</h3>
+    <p class="body-text reveal">The Autonomy Dial is <strong>not purely user-controlled.</strong> Three forces push and pull its position:</p>
+
+    <div class="force-grid reveal">
+      <div class="force-card">
+        <p class="force-num">FORCE 01</p>
+        <h3 class="force-title">Service Default</h3>
+        <p class="force-desc">Netflix auto-play starts at Auto. Amazon purchases start at Confirm. Every service sets its own starting position based on stakes.</p>
+      </div>
+      <div class="force-card">
+        <p class="force-num">FORCE 02</p>
+        <h3 class="force-title">AI Adjustment</h3>
+        <p class="force-desc">Performance feedback moves the dial. Repeated corrections push autonomy down. Consistent accuracy pushes it up. The system earns its position.</p>
+      </div>
+      <div class="force-card">
+        <p class="force-num">FORCE 03</p>
+        <h3 class="force-title">User Override</h3>
+        <p class="force-desc">Explicit preference. "Approve all purchases over $50." "Stop asking about music." The human overrides everything.</p>
+      </div>
+    </div>
+
+    <div class="section-illu reveal">
+      <img src="../images/ISO-GREEN/Trust-06.png" alt="Domain-specific autonomy -- different risk levels mapped to autonomy stages" loading="lazy">
+    </div>
+
+    <div class="callout reveal">
+      <p class="callout-label">Design Note</p>
+      <p>The Autonomy Dial isn't owned by the user alone. Service designers set the default, AI proposes adjustments based on track record, and users give final approval. <strong>All three forces overlap to determine the dial's position.</strong></p>
+    </div>
+  </div>
+</section>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════════════
+     DISCLOSURE >= AUTONOMY
+     ═══════════════════════════════════════════ -->
+<section class="sec-dim" id="coupling">
+  <div class="container--wide">
+    <p class="sec-label reveal">Core Rule</p>
+    <div class="concept-header reveal d1">
+      <h2 class="concept-name">Disclosure &ge; Autonomy</h2>
+      <p class="concept-sub">Share first, delegate later. You can't automate what AI doesn't know.</p>
+    </div>
+
+    <div class="section-illu reveal">
+      <img src="../images/ISO-GREEN/Trust-08.png" alt="Disclosure and Autonomy as two connected dials -- Disclosure is the prerequisite for Autonomy" loading="lazy">
+    </div>
+
+    <p class="body-text reveal d2" style="max-width:780px;">Two dials. Four quadrants. One rule that governs everything.</p>
+
+    <div class="pullquote pullquote--intent reveal d2">
+      Can't disclose + want to delegate = dangerous.<br>A nut-allergy sufferer who tells the AI nothing but says "chef's choice." That's a system heading for a wall.
+    </div>
+
+    <div class="matrix-axis-label reveal">Autonomy &rarr;</div>
+
+    <div class="matrix matrix--wide reveal">
+      <div class="matrix-cell matrix-cell--dream">
+        <p class="matrix-cell-label">High Disclosure + High Autonomy</p>
+        <h3 class="matrix-cell-title">Seamless</h3>
+        <p class="matrix-cell-desc">The dream state. AI knows you deeply and acts accordingly. Groceries arrive before you notice you're low. The playlist matches your mood. The thermostat adjusts before you feel cold. Invisible, personal, right.</p>
+      </div>
+
+      <div class="matrix-cell">
+        <p class="matrix-cell-label">Low Disclosure + Low Autonomy</p>
+        <h3 class="matrix-cell-title">Safe but Impersonal</h3>
+        <p class="matrix-cell-desc">Privacy mode. AI can't do much because it doesn't know much. Every interaction starts from zero. Secure. Anonymous. Like talking to a vending machine.</p>
+      </div>
+
+      <div class="matrix-cell">
+        <p class="matrix-cell-label">High Disclosure + Low Autonomy</p>
+        <h3 class="matrix-cell-title">Informed but Manual</h3>
+        <p class="matrix-cell-desc">Training phase. AI knows your preferences but still asks before acting. Every recommendation is a proposal. You approve, correct, teach. Patient. Necessary. Temporary.</p>
+      </div>
+
+      <div class="matrix-cell matrix-cell--danger">
+        <p class="matrix-cell-label">Low Disclosure + High Autonomy</p>
+        <h3 class="matrix-cell-title">Dangerous</h3>
+        <p class="matrix-cell-desc">The trap most AI falls into. Acting boldly with no context. An autopilot with no map. Confident, fast, and heading for a wall. Context Grammar makes this quadrant structurally impossible.</p>
+      </div>
+    </div>
+
+    <div class="matrix-axis-label reveal">&uarr; Disclosure</div>
+
+    <p class="body-text reveal d3" style="max-width:780px;">The relationship is bidirectional. Disclosure enables Autonomy. But successful Autonomy encourages more Disclosure. The AI orders your groceries perfectly three times in a row -- suddenly you're willing to share your yogurt preferences too. A single failure reverses both dials simultaneously.</p>
+
+    <div class="force-grid reveal d3" style="max-width:780px;">
+      <div class="force-card">
+        <p class="force-num" style="color:var(--color-success);">LOOP 01</p>
+        <h3 class="force-title">Disclosure Grows Autonomy</h3>
+        <p class="force-desc">Share your food preferences. AI's suggestions improve. Trust builds. Delegation increases. Each disclosure unlocks more capable action.</p>
+      </div>
+      <div class="force-card">
+        <p class="force-num" style="color:var(--color-success);">LOOP 02</p>
+        <h3 class="force-title">Success Grows Disclosure</h3>
+        <p class="force-desc">The crutch disposal took 30 seconds. "Maybe I'll try listing the chair too." Accurate auto-orders. "Maybe I'll share my yogurt brand preference." Success begets more sharing.</p>
+      </div>
+      <div class="force-card">
+        <p class="force-num" style="color:#dc2626;">LOOP 03</p>
+        <h3 class="force-title">Failure Contracts Both</h3>
+        <p class="force-desc">Wrong groceries arrive. Autonomy drops AND "I'm not sharing my preferences anymore." A privacy breach contracts both dials instantly. Failure breaks trust on both axes.</p>
+      </div>
+    </div>
+
+    <div class="highlight-box reveal d4" style="max-width:780px; margin-left:auto; margin-right:auto;">
+      <p><strong>The critical insight:</strong> "You can't delegate what you haven't disclosed." Context Grammar enforces this structurally -- the system won't advance Autonomy beyond what Disclosure supports. The dangerous quadrant isn't just a warning. It's a wall.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     DYNAMIC FRICTION
+     ═══════════════════════════════════════════ -->
+<section id="friction">
+  <div class="container">
+    <p class="sec-label reveal">Response Dynamics</p>
+    <div class="concept-header reveal d1">
+      <h2 class="concept-name">Dynamic Friction</h2>
+      <p class="concept-sub">Even high trust has limits. Risk caps the autonomy ceiling.</p>
+    </div>
+
+    <p class="body-text reveal d2">Think about your favorite restaurant. The waiter brings your regular beer without asking. But a $150 bottle of wine? They always confirm. Even after years.</p>
+
+    <p class="body-text reveal d2">That's Dynamic Friction. <strong>Even when trust is high, high-risk actions retain friction.</strong></p>
+
+    <table class="friction-table reveal d3">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Cost</th>
+          <th>Autonomy Ceiling</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Convenience store snack</td>
+          <td>$5</td>
+          <td class="mode-auto">Auto</td>
+        </tr>
+        <tr>
+          <td>Usual shoe replacement</td>
+          <td>$50</td>
+          <td class="mode-confirm">Confirm</td>
+        </tr>
+        <tr>
+          <td>Premium wine</td>
+          <td>$150</td>
+          <td class="mode-suggest">Suggest always</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="body-text reveal d3">Cost isn't the only factor. <strong>Irreversibility</strong> determines friction strength.</p>
+
+    <div class="matrix-wrap reveal d4">
+      <p class="matrix-label">Risk x Trust Matrix</p>
+      <div class="matrix">
+        <div class="matrix-cell matrix-cell--safe">
+          <strong>Low Risk x High Trust</strong>
+          Auto / Notify
+        </div>
+        <div class="matrix-cell matrix-cell--caution">
+          <strong>High Risk x High Trust</strong>
+          Confirm
+        </div>
+        <div class="matrix-cell matrix-cell--caution">
+          <strong>Low Risk x Low Trust</strong>
+          Confirm
+        </div>
+        <div class="matrix-cell matrix-cell--danger">
+          <strong>High Risk x Low Trust</strong>
+          Suggest only
+        </div>
+      </div>
+    </div>
+
+    <p class="body-text reveal d4">Deleting an email draft is reversible. Canceling a flight isn't. The magnitude of risk constrains the Autonomy Dial's ceiling. No matter how much trust has been earned, some actions always require confirmation.</p>
+
+    <div class="callout reveal d5">
+      <p class="callout-label">Social Exposure Reset</p>
+      <p>When guests arrive, both the Disclosure Dial and Autonomy Dial temporarily contract. The family calendar on the TV switches to a simplified view. When guests leave, everything returns to normal. <strong>A change in Social Exposure Token resets both Dials simultaneously.</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     TEMPORAL ARC
+     ═══════════════════════════════════════════ -->
+<section class="sec-dark" id="temporal">
+  <div class="container">
+    <p class="sec-label reveal" style="color:rgba(240,236,228,0.3);">Temporal Arc</p>
+    <div class="concept-header reveal d1">
+      <h2 class="concept-name" style="color:#f0ece4;">Temporal Arc</h2>
+      <p class="concept-sub">Trust over time -- five phases, asymmetric transitions</p>
+    </div>
+
+    <p class="body-text dark-text reveal d2">Trust isn't configured. It's grown. Every AI relationship passes through the same phases -- and trying to skip one breaks the contract.</p>
+
+    <div class="section-illu section-illu--wide reveal">
+      <img src="../images/ISO-GREEN/Trust-07.png" alt="Temporal arc -- five phases from Encounter through Learning, Maturation, Crisis, to Ambient" loading="lazy">
+    </div>
+
+    <div class="timeline reveal d3">
+      <div class="timeline-phase">
+        <div class="timeline-dot"></div>
+        <p class="timeline-period">Phase 1 -- Week 1-2</p>
+        <h3 class="timeline-title">Encounter</h3>
+        <p class="timeline-desc">Everything is Suggest mode. The AI presents options and the human decides everything. Both sides are sizing each other up.</p>
+        <p class="timeline-metaphor">Restaurant: Reading the menu cover to cover. You hear the waiter's suggestion but choose yourself.</p>
+      </div>
+
+      <div class="timeline-phase">
+        <div class="timeline-dot"></div>
+        <p class="timeline-period">Phase 2 -- Month 1-2</p>
+        <h3 class="timeline-title">Learning</h3>
+        <p class="timeline-desc">Small successes accumulate. Low-risk domains shift to Confirm mode. "It got my coffee order right three times in a row."</p>
+        <p class="timeline-metaphor">Restaurant: "The pasta last time was great." The waiter starts remembering your preferences.</p>
+      </div>
+
+      <div class="timeline-phase">
+        <div class="timeline-dot timeline-dot--success"></div>
+        <p class="timeline-period">Phase 3 -- Month 3-6</p>
+        <h3 class="timeline-title">Maturation</h3>
+        <p class="timeline-desc">Trust stabilizes. Routine decisions move to Notify and Auto. The human can predict what the AI will do. The AI handles the routine; humans focus on exceptions.</p>
+        <p class="timeline-metaphor">Restaurant: You sit down and your beer appears. "The usual" is understood.</p>
+      </div>
+
+      <div class="timeline-phase">
+        <div class="timeline-dot timeline-dot--danger"></div>
+        <p class="timeline-period">Phase X -- Can happen anytime</p>
+        <h3 class="timeline-title">Crisis</h3>
+        <p class="timeline-desc">A single significant failure drops the dial instantly. Building trust takes months. Losing it takes seconds. This is the asymmetric transition at the heart of trust design.</p>
+        <p class="timeline-metaphor">Restaurant: "That wasn't my usual beer." The regular suddenly re-reads the entire menu.</p>
+      </div>
+
+      <div class="timeline-phase">
+        <div class="timeline-dot timeline-dot--brain"></div>
+        <p class="timeline-period">Phase 5 -- Month 6+</p>
+        <h3 class="timeline-title">Ambient</h3>
+        <p class="timeline-desc">The AI becomes invisible. You stop noticing it's there. Trust is the default. Attention goes only to exceptions. The most mature state.</p>
+        <p class="timeline-metaphor">Restaurant: You don't think of yourself as a "regular" anymore. It just feels like your dining room.</p>
+      </div>
+    </div>
+
+    <div class="pullquote pullquote--intent reveal d4" style="color:#f0ece4; border-left-color: rgba(184,136,78,0.4);">
+      Trust climbs stairs one step at a time. But it falls by elevator. Designing for this asymmetry is the core of Trust Design.
+    </div>
+
+    <p class="body-text dark-text reveal d4">The timeline is different for every domain. Music might reach Auto in a week. Healthcare might never get past Confirm. And that's fine. Trust isn't uniform -- it's calibrated.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     MULTI-PERSON
+     ═══════════════════════════════════════════ -->
+<section id="multi-person">
+  <div class="container--wide">
+    <p class="sec-label reveal" style="color:var(--color-brain);">Multi-Person Orchestration</p>
+    <h2 class="sec-title reveal d1">Same AI. Same kitchen.<br>Four different trust relationships.</h2>
+
+    <div class="section-illu reveal">
+      <img src="../images/ISO-GREEN/Trust-03.png" alt="Per-person trust -- family members connected to the same AI with different disclosure and autonomy levels" loading="lazy">
+    </div>
+
+    <p class="body-text reveal d2" style="max-width:780px;">Consider the yogurt problem. A family of four shares the same fridge. The AI detects "yogurt is running low." But each person's expectations are completely different.</p>
+
+    <div class="family-grid">
+      <div class="family-card reveal d2">
+        <h3 class="family-name">Wife</h3>
+        <p class="family-role">Primary User</p>
+        <div class="family-detail">
+          Only accepts Meiji Bulgaria yogurt. Nothing else.
+          <strong>Exact + Auto</strong>
+          When stock drops, auto-order. No confirmation needed.
+        </div>
+        <div class="family-dial">
+          <span class="family-dial-label">Autonomy</span>
+          <span class="family-dial-value">Auto</span>
+        </div>
+        <div class="family-dial" style="margin-top:6px;">
+          <span class="family-dial-label">Disclosure</span>
+          <span class="family-dial-value">Full</span>
+        </div>
+      </div>
+
+      <div class="family-card reveal d3">
+        <h3 class="family-name">Takao</h3>
+        <p class="family-role">Flexible User</p>
+        <div class="family-detail">
+          Any Greek yogurt is fine. Not picky about the brand.
+          <strong>Flexible + Confirm</strong>
+          AI picks a candidate and asks before ordering.
+        </div>
+        <div class="family-dial">
+          <span class="family-dial-label">Autonomy</span>
+          <span class="family-dial-value">Confirm</span>
+        </div>
+        <div class="family-dial" style="margin-top:6px;">
+          <span class="family-dial-label">Disclosure</span>
+          <span class="family-dial-value">Full</span>
+        </div>
+      </div>
+
+      <div class="family-card reveal d3">
+        <h3 class="family-name">Daughter</h3>
+        <p class="family-role">Explorer</p>
+        <div class="family-detail">
+          Wants to try new flavors. Hates getting the same thing twice.
+          <strong>Exploring + Suggest</strong>
+          AI proposes new products. She decides.
+        </div>
+        <div class="family-dial">
+          <span class="family-dial-label">Autonomy</span>
+          <span class="family-dial-value">Suggest</span>
+        </div>
+        <div class="family-dial" style="margin-top:6px;">
+          <span class="family-dial-label">Disclosure</span>
+          <span class="family-dial-value">Summary</span>
+        </div>
+      </div>
+
+      <div class="family-card reveal d4">
+        <h3 class="family-name">Son</h3>
+        <p class="family-role">Minimal User</p>
+        <div class="family-detail">
+          Doesn't really care about yogurt. Eats it occasionally.
+          <strong>Surprise + Low frequency</strong>
+          The dial is barely engaged.
+        </div>
+        <div class="family-dial">
+          <span class="family-dial-label">Autonomy</span>
+          <span class="family-dial-value">Suggest</span>
+        </div>
+        <div class="family-dial" style="margin-top:6px;">
+          <span class="family-dial-label">Disclosure</span>
+          <span class="family-dial-value">Existence</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-text reveal d4" style="max-width:780px;">Same family, same fridge, same AI. But four people each running different Autonomy Dials, different Disclosure Dials, and different Substitution Modes simultaneously.</p>
+
+    <div class="pullquote pullquote--brain reveal d5">
+      A family of four walks into a restaurant. All different tastes, all different comfort levels. A great waiter remembers all four. AI should too.
+    </div>
+
+    <p class="body-text reveal d5" style="max-width:780px;">The Samsung Family Hub already stores family data -- allergies, dietary restrictions, per-member profiles for up to six people, Voice ID, Samsung Health integration. The infrastructure exists. What's missing is the <strong>trust layer</strong> -- the design language that turns stored data into calibrated autonomy, per person, per domain, over time.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     TRUST BREACH RECOVERY
+     ═══════════════════════════════════════════ -->
+<section class="sec-dim" id="breach">
+  <div class="container">
+    <p class="sec-label reveal">Trust Breach</p>
+    <div class="concept-header reveal d1">
+      <h2 class="concept-name">Trust Breach Recovery</h2>
+      <p class="concept-sub">What happens when AI makes a mistake</p>
+    </div>
+
+    <p class="body-text reveal d2">The moment AI gets it wrong will come. A dessert with nuts served to the regular with nut allergies. The problem isn't the failure itself. It's what happens next.</p>
+
+    <p class="body-text reveal d3">In the Temporal Arc's Crisis phase, the Autonomy Dial drops sharply. Auto becomes Confirm. Notify becomes Suggest. Multiple levels in an instant.</p>
+
+    <div class="breach-flow reveal d3">
+      <div class="breach-step" style="border-left: 3px solid #dc2626; border-radius: 0 12px 12px 0;">Failure occurs</div>
+      <span class="breach-arrow">&rarr;</span>
+      <div class="breach-step">Dial drops instantly</div>
+      <span class="breach-arrow">&rarr;</span>
+      <div class="breach-step">Extra confirmations added</div>
+      <span class="breach-arrow">&rarr;</span>
+      <div class="breach-step" style="border-left: 3px solid var(--color-success); border-radius: 0 12px 12px 0;">Gradual recovery</div>
+    </div>
+
+    <p class="body-text reveal d4">The Recovery Path follows three design principles:</p>
+
+    <div class="force-grid reveal d4">
+      <div class="force-card">
+        <p class="force-num">01</p>
+        <h3 class="force-title">Instant Retreat</h3>
+        <p class="force-desc">The moment failure occurs, drop the related Autonomy Dial two levels. Return decision-making authority to the human immediately.</p>
+      </div>
+      <div class="force-card">
+        <p class="force-num">02</p>
+        <h3 class="force-title">Accountability</h3>
+        <p class="force-desc">Explain "why it went wrong." No black boxes. The restaurant says "a new staff member didn't check the allergy notes." Honest and specific.</p>
+      </div>
+      <div class="force-card">
+        <p class="force-num">03</p>
+        <h3 class="force-title">Rebuilding Takes Time</h3>
+        <p class="force-desc">Recovery takes longer than the original trust-building. Not a restart from Phase 1, but a more cautious re-entry from Phase 2. There are no shortcuts.</p>
+      </div>
+    </div>
+
+    <p class="body-text reveal d5">In restaurant terms: the day after serving the wrong dish to a regular with allergies, every single menu item goes back to confirmation mode. One dish at a time, trust is rebuilt. No shortcuts.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     DESIGN PRINCIPLES
+     ═══════════════════════════════════════════ -->
+<section id="principles">
+  <div class="container">
+    <p class="sec-label reveal">Design Principles</p>
+    <h2 class="sec-title reveal d1">Six Principles of Trust Design</h2>
+    <p class="sec-lead reveal d2">The foundational rules that govern how Context Grammar designs trust.</p>
+
+    <div class="principles">
+      <div class="principle reveal d2">
+        <span class="principle-num">01</span>
+        <div class="principle-body">
+          <h3>Disclosure &ge; Autonomy (Bidirectional)</h3>
+          <p>Sharing comes first, delegation comes second. But successful delegation encourages more sharing. The Disclosure Dial sets the ceiling for Autonomy, while Autonomy's track record expands the scope of Disclosure.</p>
+        </div>
+      </div>
+      <div class="principle reveal d3">
+        <span class="principle-num">02</span>
+        <div class="principle-body">
+          <h3>Trust Is Earned Through Results</h3>
+          <p>Take time. Only the accumulation of small successful actions justifies raising the Autonomy Dial. There are no shortcuts.</p>
+        </div>
+      </div>
+      <div class="principle reveal d3">
+        <span class="principle-num">03</span>
+        <div class="principle-body">
+          <h3>Risk Never Exceeds Trust</h3>
+          <p>The Dynamic Friction principle. No matter how high trust climbs, high-risk actions retain confirmation. Even regulars confirm the $150 wine.</p>
+        </div>
+      </div>
+      <div class="principle reveal d4">
+        <span class="principle-num">04</span>
+        <div class="principle-body">
+          <h3>Failure Destroys Instantly</h3>
+          <p>Asymmetric transition. Going up is stairs; going down is an elevator. Design with this asymmetry as a given. Always have a Recovery Path prepared in advance.</p>
+        </div>
+      </div>
+      <div class="principle reveal d5">
+        <span class="principle-num">05</span>
+        <div class="principle-body">
+          <h3>Protect and Connect</h3>
+          <p>If you only design information sharing as "restriction," you get a purely defensive system. Disclosure has a second direction: bridging family members' worlds. Protect and connect at the same time.</p>
+        </div>
+      </div>
+      <div class="principle reveal d5">
+        <span class="principle-num">06</span>
+        <div class="principle-body">
+          <h3>Humans Remain the Final Authority</h3>
+          <p>Escalation paths exist. No matter how high the Autonomy Dial goes, the human can always intervene. Full delegation without an override isn't trust design -- it's abdication of design.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════════ -->
+<section class="cta-section" id="cta">
+  <div class="cta-inner">
+    <h2 class="cta-title reveal">Trust Is Designed,<br>Not Assumed.</h2>
+    <p class="cta-desc reveal d1">Trust Design is one layer of a larger system. See how it connects to the Brain's memory architecture and the full Context Grammar framework.</p>
+    <div class="cta-buttons reveal d2">
+      <a href="../brain/index.html" class="cta-btn cta-btn--primary">Context Brain &rarr;</a>
+      <a href="../index.html" class="cta-btn cta-btn--secondary">Context Grammar &rarr;</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <p class="footer-col-title">Framework</p>
+      <a href="../index.html">Context Grammar</a>
+      <a href="../brain/index.html">Context Brain</a>
+      <a href="index.html">Trust Design</a>
+      <a href="../specs/index.html">Spec</a>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">Patterns</p>
+      <a href="../../ax-patterns/index.html">AX Patterns</a>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">Projects</p>
+      <a href="../../applied/index.html#project-01">The Living Home</a>
+      <a href="../../applied/index.html#project-02">The Family Trip</a>
+      <a href="../../applied/index.html#project-03">Fluid Handoff</a>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">About</p>
+      <a href="../../about/index.html">About Takao</a>
+      <a href="../../contact/index.html">Contact</a>
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <img src="../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ NAV + SCROLL REVEAL ═══ -->
+<script src="../../assets/js/nav.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initNav({ basePath: '../../', activePage: 'trust', lang: 'en' });
+
+  // Scroll reveal
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    io.observe(el);
+  });
+});
+</script>
+
+</body>
+</html>
