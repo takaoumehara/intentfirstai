@@ -1,0 +1,2883 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 01 — The Living Home | Presentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=swap" rel="stylesheet">
+<style>
+/* =============================================
+   RESET & DESIGN TOKENS
+   ============================================= */
+:root {
+  --g-blue: #1a73e8;
+  --g-blue-light: #d2e3fc;
+  --g-blue-surface: #e8f0fe;
+  --g-red: #ea4335;
+  --g-yellow: #fbbc04;
+  --g-green: #34a853;
+  --g-surface: #ffffff;
+  --g-surface-dim: #f8f9fa;
+  --g-surface-container: #f1f3f4;
+  --g-surface-high: #e8eaed;
+  --g-on-surface: #1f1f1f;
+  --g-on-surface-var: #444746;
+  --g-outline: #747775;
+  --g-outline-var: #c4c7c5;
+  --g-shadow-1: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+  --g-shadow-2: 0 3px 6px rgba(0,0,0,.15), 0 2px 4px rgba(0,0,0,.12);
+  --g-shadow-3: 0 10px 20px rgba(0,0,0,.15), 0 3px 6px rgba(0,0,0,.1);
+  --g-shadow-device: 0 24px 80px rgba(0,0,0,.14), 0 8px 24px rgba(0,0,0,.08);
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --error-container: #fce8e6;
+  --error-on: #c5221f;
+  --success-container: #e6f4ea;
+  --success-on: #1e8e3e;
+  --warning-container: #fef7e0;
+  --warning-on: #e37400;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+body { font-family: 'Outfit', sans-serif; color: var(--g-on-surface); background: var(--g-surface); line-height: 1.7; }
+img { display: block; max-width: 100%; height: auto; }
+.material-symbols-rounded { font-family: 'Material Symbols Rounded'; font-weight: normal; font-style: normal; font-size: 24px; display: inline-block; line-height: 1; vertical-align: middle; }
+
+/* =============================================
+   SCROLL-SNAP DECK
+   ============================================= */
+.deck {
+  height: 100vh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+.slide {
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* =============================================
+   SLIDE TYPES
+   ============================================= */
+
+/* Type A: Full-bleed photo */
+.slide--photo {
+  background-size: cover;
+  background-position: center;
+}
+.slide--photo .slide__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.slide--photo .slide__content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #fff;
+  max-width: 1100px;
+  padding: 0 3rem;
+}
+
+/* Type B: Split (text + photo side by side) */
+.slide--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 0 4rem;
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Type C: Device pair (phone + TV or cards) */
+.slide--device {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  align-items: center;
+  padding: 0 4rem;
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Type D: Centered content */
+.slide--center {
+  flex-direction: column;
+  text-align: center;
+  padding: 0 4rem;
+}
+.slide--center .slide__inner {
+  max-width: 1320px;
+  width: 100%;
+}
+
+/* Type E: Cards grid */
+.slide--cards {
+  flex-direction: column;
+  padding: 0 4rem;
+}
+.slide--cards .slide__inner {
+  max-width: 1320px;
+  width: 100%;
+}
+
+/* Type F: Photo pair */
+.slide--pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 0 4rem;
+  align-items: center;
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* =============================================
+   TYPOGRAPHY
+   ============================================= */
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--g-blue);
+  margin-bottom: 0.75rem;
+}
+.section-title {
+  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--g-on-surface);
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.02em;
+}
+.section-subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+  color: var(--g-on-surface-var);
+  margin-bottom: 1.5rem;
+}
+.section-body {
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.7;
+  color: var(--g-on-surface-var);
+  max-width: 760px;
+}
+.section-body.centered { margin: 0 auto; }
+
+/* =============================================
+   SCROLL REVEAL
+   ============================================= */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.65s var(--ease-spring), transform 0.65s var(--ease-spring);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+
+/* =============================================
+   SLIDE COUNTER
+   ============================================= */
+.slide-counter {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 2rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: rgba(0,0,0,0.35);
+  z-index: 100;
+  pointer-events: none;
+  transition: color 0.3s;
+}
+.slide-counter.on-dark { color: rgba(255,255,255,0.45); }
+
+/* =============================================
+   HERO (Slide 01)
+   ============================================= */
+.hero__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 1.25rem;
+}
+.hero__title {
+  font-size: clamp(3.5rem, 9vw, 6rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+.hero__subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 2rem;
+}
+.hero__hook {
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.85);
+  max-width: 760px;
+  margin: 0 auto;
+  min-height: 3.4em;
+}
+.hero__hook .typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: rgba(255,255,255,0.7);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink-cursor 0.75s steps(1) infinite;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255,255,255,0.45);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: float-down 2s ease-in-out infinite;
+}
+.scroll-indicator .material-symbols-rounded {
+  font-size: 20px;
+  color: rgba(255,255,255,0.45);
+}
+
+@keyframes float-down {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+
+/* =============================================
+   SPLIT SLIDE IMAGE
+   ============================================= */
+.slide__image {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--g-shadow-3);
+}
+.slide__image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* =============================================
+   BROWSER MOCKUP
+   ============================================= */
+.browser-mockup {
+  background: var(--g-surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--g-shadow-3);
+  overflow: hidden;
+  max-width: 920px;
+  width: 100%;
+}
+.browser__topbar {
+  background: var(--g-surface-container);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--g-outline-var);
+}
+.browser__dots {
+  display: flex;
+  gap: 6px;
+}
+.browser__dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.browser__dots span:nth-child(1) { background: #ed6a5e; }
+.browser__dots span:nth-child(2) { background: #f5bf4f; }
+.browser__dots span:nth-child(3) { background: #62c555; }
+.browser__tabs {
+  display: flex;
+  gap: 2px;
+  margin-left: 8px;
+}
+.browser__tab {
+  background: var(--g-surface-dim);
+  padding: 4px 14px;
+  border-radius: 6px 6px 0 0;
+  font-size: 0.68rem;
+  color: var(--g-on-surface-var);
+  white-space: nowrap;
+}
+.browser__tab--active {
+  background: var(--g-surface);
+  color: var(--g-on-surface);
+  font-weight: 500;
+}
+.browser__addressbar {
+  flex: 1;
+  background: var(--g-surface);
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: 0.68rem;
+  color: var(--g-outline);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+.browser__addressbar .material-symbols-rounded { font-size: 14px; }
+.browser__body {
+  padding: 1.25rem 1.5rem;
+  max-height: 440px;
+  overflow: hidden;
+}
+.browser__doc-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--g-on-surface);
+}
+
+/* Google Docs table */
+.gdocs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+.gdocs-table th {
+  background: var(--g-surface-container);
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: var(--g-on-surface-var);
+  border: 1px solid var(--g-outline-var);
+  white-space: nowrap;
+}
+.gdocs-table td {
+  padding: 6px 10px;
+  border: 1px solid var(--g-outline-var);
+  color: var(--g-on-surface);
+  vertical-align: top;
+}
+.gdocs-table tr:hover { background: var(--g-surface-dim); }
+.gdocs-table .warn-cell { color: var(--warning-on); }
+.gdocs-table .ok-cell { color: var(--success-on); }
+
+/* =============================================
+   ARCHITECTURE DIAGRAM
+   ============================================= */
+.arch-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 1.5rem;
+}
+.arch-block {
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.5rem;
+  text-align: center;
+  width: 280px;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.5s var(--ease-spring), transform 0.5s var(--ease-spring);
+}
+.arch-block.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.arch-block--home {
+  background: var(--g-surface-container);
+  border: 2px solid var(--g-outline-var);
+}
+.arch-block__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-on-surface-var);
+}
+.arch-block__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--g-on-surface);
+  margin-top: 0.25rem;
+}
+.arch-block__sub {
+  font-size: 0.7rem;
+  color: var(--g-outline);
+  margin-top: 0.15rem;
+}
+.arch-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.4rem 0;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-spring) 0.2s;
+}
+.arch-arrow.visible { opacity: 1; }
+.arch-arrow__line {
+  width: 2px;
+  height: 20px;
+  background: var(--g-outline-var);
+}
+.arch-arrow__text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--g-outline);
+  margin: 0.2rem 0;
+  letter-spacing: 0.06em;
+}
+.arch-arrow .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--g-outline-var);
+}
+
+.arch-block--disposable {
+  background: var(--g-surface);
+  border: 2px dashed var(--g-blue);
+  padding: 1rem;
+}
+.arch-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 0.6rem;
+}
+.arch-layer {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-align: center;
+}
+.arch-layer--trip { border: 1.5px solid var(--g-blue); color: var(--g-blue); background: var(--g-blue-surface); }
+.arch-layer--learn { border: 1.5px solid var(--g-green); color: var(--g-green); background: var(--success-container); }
+.arch-layer--today { border: 1.5px solid #e37400; color: #e37400; background: var(--warning-container); }
+
+/* =============================================
+   LIFECYCLE
+   ============================================= */
+.lifecycle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+  padding: 2rem 0 1rem;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.lifecycle__line {
+  position: absolute;
+  top: 48px;
+  left: 80px;
+  right: 80px;
+  height: 3px;
+  background: var(--g-outline-var);
+  z-index: 0;
+}
+.lifecycle__step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 0.5rem;
+}
+.lifecycle__dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 4px var(--g-surface);
+}
+.lifecycle__dot--blue { background: var(--g-blue); }
+.lifecycle__dot--green { background: var(--g-green); }
+.lifecycle__dot--yellow { background: var(--g-yellow); }
+.lifecycle__dot--red { background: var(--g-red); }
+.lifecycle__dot .material-symbols-rounded { font-size: 14px; color: #fff; }
+.lifecycle__name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-on-surface);
+  margin-bottom: 0.25rem;
+}
+.lifecycle__desc {
+  font-size: 0.72rem;
+  color: var(--g-on-surface-var);
+  line-height: 1.4;
+  max-width: 140px;
+}
+
+.lifecycle-quote {
+  max-width: 620px;
+  margin: 1.5rem auto 0;
+  padding: 1rem 1.5rem;
+  background: var(--g-surface-dim);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--g-blue);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--g-on-surface-var);
+  line-height: 1.6;
+}
+
+/* =============================================
+   TIMELINE
+   ============================================= */
+.timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  padding: 1.5rem 0;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+.timeline__line {
+  position: absolute;
+  top: 38px;
+  left: 60px;
+  right: 60px;
+  height: 3px;
+  background: var(--g-outline-var);
+  z-index: 0;
+}
+.timeline__phase {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+.timeline__dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 0 0 4px var(--g-surface);
+}
+.timeline__dot--blue { background: var(--g-blue); }
+.timeline__dot--green { background: var(--g-green); }
+.timeline__dot--amber { background: var(--g-yellow); }
+.timeline__dot--red { background: var(--g-red); }
+.timeline__dot--dark { background: var(--g-on-surface); }
+.timeline__name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-on-surface);
+  margin-bottom: 0.2rem;
+}
+.timeline__when {
+  font-size: 0.68rem;
+  color: var(--g-outline);
+}
+
+/* =============================================
+   PHASE BADGE
+   ============================================= */
+.phase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  margin-bottom: 1rem;
+}
+.phase-badge--blue { background: var(--g-blue-surface); color: var(--g-blue); }
+.phase-badge--green { background: var(--success-container); color: var(--success-on); }
+.phase-badge--amber { background: var(--warning-container); color: var(--warning-on); }
+.phase-badge--red { background: var(--error-container); color: var(--error-on); }
+.phase-badge--dark { background: var(--g-surface-high); color: var(--g-on-surface); }
+
+/* =============================================
+   PLAN DIRECTION CARDS
+   ============================================= */
+.plans-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
+}
+.plan-card {
+  background: var(--g-surface);
+  border: 1.5px solid var(--g-outline-var);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  max-height: 160px;
+  overflow: hidden;
+}
+.plan-card--selected {
+  border-color: var(--g-blue);
+  background: var(--g-blue-surface);
+  box-shadow: 0 0 0 1px var(--g-blue);
+}
+.plan-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.plan-card__letter {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--g-on-surface-var);
+  letter-spacing: 0.04em;
+}
+.plan-card__name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--g-on-surface);
+  margin-bottom: 0.3rem;
+}
+
+/* =============================================
+   PHONE MOCKUP
+   ============================================= */
+.phone-mockup {
+  width: 340px;
+  position: relative;
+  flex-shrink: 0;
+  filter: drop-shadow(0 24px 60px rgba(0,0,0,0.15)) drop-shadow(0 8px 20px rgba(0,0,0,0.08));
+}
+/* SVG stays in flow → gives container its natural height */
+.phone__frame-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+/* Screen sits ON TOP of the frame, clipped by border-radius */
+.phone__screen {
+  position: absolute;
+  top: 1.5%;
+  left: 3.4%;
+  right: 3.4%;
+  bottom: 1.5%;
+  border-radius: 40px;
+  overflow: hidden;
+  background: var(--g-surface);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+}
+/* Dynamic Island is in the SVG, hide the CSS one */
+.phone__dynamic-island { display: none; }
+.phone__statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 52px 24px 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--g-on-surface);
+  flex-shrink: 0;
+}
+.phone__statusbar-icons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.phone__statusbar-icons .material-symbols-rounded { font-size: 15px; }
+.phone__body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 0 8px;
+}
+.phone__body::-webkit-scrollbar { display: none; }
+.phone__home-indicator {
+  width: 120px;
+  height: 4px;
+  background: var(--g-on-surface);
+  border-radius: 2px;
+  margin: 6px auto 12px;
+  opacity: 0.2;
+  flex-shrink: 0;
+}
+
+/* =============================================
+   TV MOCKUP
+   ============================================= */
+.tv-mockup {
+  max-width: 100%;
+  flex: 1;
+}
+.tv__frame {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: var(--g-shadow-device);
+}
+.tv__screen {
+  background: var(--g-surface);
+  border-radius: 4px;
+  padding: 1.5rem 2rem;
+  max-height: 350px;
+  overflow: hidden;
+}
+.tv__stand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -2px;
+}
+.tv__stand-neck {
+  width: 40px;
+  height: 16px;
+  background: #2a2a2a;
+  border-radius: 0 0 4px 4px;
+}
+.tv__stand-base {
+  width: 100px;
+  height: 6px;
+  background: #2a2a2a;
+  border-radius: 0 0 6px 6px;
+  margin-top: -1px;
+}
+.tv__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--g-on-surface);
+  margin-bottom: 0.75rem;
+}
+.tv__subtitle {
+  font-size: 0.68rem;
+  color: var(--g-on-surface-var);
+  margin-bottom: 0.75rem;
+}
+
+/* =============================================
+   M3 TOP BAR
+   ============================================= */
+.m3-topbar {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--g-surface);
+  border-bottom: 1px solid var(--g-outline-var);
+  gap: 8px;
+}
+.m3-topbar__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  flex: 1;
+}
+.m3-topbar .material-symbols-rounded { font-size: 20px; color: var(--g-on-surface-var); }
+
+/* =============================================
+   M3 CHIPS
+   ============================================= */
+.m3-chips {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  flex-wrap: wrap;
+}
+.m3-chip {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: 1px solid var(--g-outline-var);
+  background: var(--g-surface);
+  color: var(--g-on-surface);
+  white-space: nowrap;
+}
+.m3-chip--active {
+  background: var(--g-blue-surface);
+  color: var(--g-blue);
+  border-color: var(--g-blue);
+}
+
+/* =============================================
+   M3 CARD
+   ============================================= */
+.m3-card {
+  background: var(--g-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--g-outline-var);
+  overflow: hidden;
+}
+.m3-card--elevated {
+  border: none;
+  box-shadow: var(--g-shadow-1);
+}
+.m3-card__body {
+  padding: 10px 12px;
+}
+.m3-card__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--g-on-surface);
+  margin-bottom: 2px;
+}
+.m3-card__meta {
+  font-size: 0.68rem;
+  color: var(--g-on-surface-var);
+}
+
+/* =============================================
+   M3 BADGE
+   ============================================= */
+.m3-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.m3-badge--ok { background: var(--success-container); color: var(--success-on); }
+.m3-badge--wish { background: var(--g-blue-surface); color: var(--g-blue); }
+.m3-badge--warn { background: var(--warning-container); color: var(--warning-on); }
+.m3-badge--error { background: var(--error-container); color: var(--error-on); }
+
+/* =============================================
+   M3 BUTTON
+   ============================================= */
+.m3-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: 'Outfit', sans-serif;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.m3-btn--filled { background: var(--g-blue); color: #fff; }
+.m3-btn--filled:hover { box-shadow: var(--g-shadow-1); }
+.m3-btn--tonal { background: var(--g-blue-surface); color: var(--g-blue); }
+.m3-btn--outlined { background: transparent; color: var(--g-blue); border: 1px solid var(--g-outline-var); }
+.m3-btn--text { background: transparent; color: var(--g-blue); padding: 8px 12px; }
+.m3-btn .material-symbols-rounded { font-size: 18px; }
+
+/* =============================================
+   M3 ALERT
+   ============================================= */
+.m3-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.m3-alert--error { background: var(--error-container); color: var(--error-on); }
+.m3-alert--success { background: var(--success-container); color: var(--success-on); }
+.m3-alert--warning { background: var(--warning-container); color: var(--warning-on); }
+.m3-alert .material-symbols-rounded { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+
+/* =============================================
+   M3 PROGRESS & DIVIDER
+   ============================================= */
+.m3-progress {
+  height: 4px;
+  background: var(--g-surface-container);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.m3-progress__bar {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--g-blue);
+  transition: width 0.4s var(--ease-smooth);
+}
+.m3-divider {
+  height: 1px;
+  background: var(--g-outline-var);
+  border: none;
+}
+
+/* =============================================
+   INSIGHT BOX
+   ============================================= */
+.insight-box {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  background: var(--g-surface-dim);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--g-blue);
+  text-align: left;
+}
+.insight-box__text {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--g-on-surface);
+  font-style: italic;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+.stat-item {
+  text-align: center;
+}
+.stat-item__number {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--g-blue);
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.stat-item__label {
+  font-size: 0.92rem;
+  color: var(--g-on-surface-var);
+  font-weight: 500;
+}
+
+/* =============================================
+   DECISION TABLE
+   ============================================= */
+.decision-table {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  text-align: left;
+}
+.decision-table th {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-on-surface-var);
+  padding: 0.6rem 1rem;
+  border-bottom: 2px solid var(--g-outline-var);
+}
+.decision-table td {
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid var(--g-outline-var);
+  color: var(--g-on-surface);
+  line-height: 1.5;
+  vertical-align: top;
+}
+.decision-table td:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.decision-table td:nth-child(2) {
+  color: var(--g-blue);
+  font-weight: 500;
+}
+.decision-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =============================================
+   STACKED BAR
+   ============================================= */
+.stacked-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.stacked-bar__seg {
+  height: 100%;
+}
+
+/* =============================================
+   P1: SAMSUNG FAMILY HUB
+   ============================================= */
+.hub-mockup {
+  width: 340px;
+  flex-shrink: 0;
+}
+.hub__frame {
+  background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: var(--g-shadow-device);
+}
+.hub__screen {
+  background: var(--g-surface);
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 9 / 14;
+  display: flex;
+  flex-direction: column;
+}
+.hub__statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px 6px;
+  font-size: 0.65rem;
+  color: var(--g-outline);
+  background: var(--g-surface);
+  flex-shrink: 0;
+}
+.hub__statusbar-logo {
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  font-size: 0.6rem;
+  color: var(--g-on-surface);
+}
+.hub__body {
+  padding: 0 14px 14px;
+  color: var(--g-on-surface);
+  flex: 1;
+  overflow: hidden;
+}
+.hub__nav {
+  display: flex;
+  gap: 6px;
+  padding: 6px 14px 10px;
+  flex-shrink: 0;
+}
+.hub__nav-item {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.62rem;
+  font-weight: 500;
+  background: var(--g-surface-container);
+  color: var(--g-on-surface-var);
+}
+.hub__nav-item--active {
+  background: var(--g-blue);
+  color: #fff;
+}
+.hub__recipe-card {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--g-surface);
+  box-shadow: var(--g-shadow-1);
+  margin-bottom: 10px;
+}
+.hub__recipe-img {
+  height: 72px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.hub__recipe-img-rank {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--g-surface);
+  color: var(--g-on-surface);
+  font-size: 0.62rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--g-shadow-1);
+}
+.hub__recipe-body {
+  padding: 8px 10px;
+}
+.hub__recipe-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--g-on-surface);
+  margin-bottom: 2px;
+}
+.hub__recipe-meta {
+  font-size: 0.6rem;
+  color: var(--g-on-surface-var);
+}
+
+/* =============================================
+   P1: CARPLAY
+   ============================================= */
+.carplay-mockup {
+  max-width: 580px;
+  width: 100%;
+}
+.carplay__frame {
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: var(--g-shadow-device);
+}
+.carplay__screen {
+  background: #000;
+  border-radius: 10px;
+  padding: 16px;
+  color: #fff;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* =============================================
+   P1: DARK LIST ITEMS
+   ============================================= */
+.dark-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.9);
+}
+.dark-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+/* =============================================
+   P1: DEVICE CONTEXT LABEL
+   ============================================= */
+.device-context {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--g-outline);
+  margin-top: 0.75rem;
+  font-weight: 500;
+}
+
+/* =============================================
+   P1: VERTICAL TIMELINE (Slide 03)
+   ============================================= */
+.v-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  max-width: 880px;
+  margin: 0 auto;
+  padding-left: 80px;
+}
+.v-timeline__line {
+  position: absolute;
+  left: 56px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  background: var(--g-outline-var);
+}
+.v-timeline__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  position: relative;
+  padding: 1rem 0;
+}
+.v-timeline__time {
+  position: absolute;
+  left: -76px;
+  top: 1.1rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--g-on-surface-var);
+  width: 50px;
+  text-align: right;
+}
+.v-timeline__dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--g-red);
+  flex-shrink: 0;
+  margin-top: 5px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 4px var(--g-surface-dim);
+}
+.v-timeline__content {
+  flex: 1;
+  font-size: 1.05rem;
+  color: var(--g-on-surface);
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* =============================================
+   P1: SUBSTITUTION MODE CARDS (Slide 14)
+   ============================================= */
+.sub-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 960px;
+  margin: 1.5rem auto 0;
+}
+.sub-card {
+  background: var(--g-surface);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  text-align: left;
+  border: 2px solid var(--g-outline-var);
+}
+.sub-card--exact { border-color: var(--g-red); }
+.sub-card--flexible { border-color: var(--g-yellow); }
+.sub-card--exploring { border-color: var(--g-blue); border-style: dashed; }
+.sub-card--staple { border-color: var(--g-on-surface); }
+.sub-card__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+.sub-card__label--exact { color: var(--g-red); }
+.sub-card__label--flexible { color: var(--warning-on); }
+.sub-card__label--exploring { color: var(--g-blue); }
+.sub-card__label--staple { color: var(--g-on-surface); }
+.sub-card__desc {
+  font-size: 0.75rem;
+  color: var(--g-on-surface-var);
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+.sub-card__images {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.sub-card__images img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.sub-card__who {
+  font-size: 0.68rem;
+  color: var(--g-outline);
+  font-weight: 500;
+}
+
+/* =============================================
+   P1: APP PILLS (Slide 13)
+   ============================================= */
+.app-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.app-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  background: var(--g-blue-surface);
+  color: var(--g-blue);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.eco-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.eco-card {
+  background: var(--g-surface);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid var(--g-outline-var);
+}
+.eco-card__icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.4rem;
+}
+.eco-card__name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--g-on-surface);
+  margin-bottom: 0.15rem;
+}
+.eco-card__desc {
+  font-size: 0.65rem;
+  color: var(--g-on-surface-var);
+}
+
+/* =============================================
+   P1: PHOTO PAIR CAPTIONS
+   ============================================= */
+.pair-figure {
+  text-align: center;
+}
+.pair-figure img {
+  width: 100%;
+  border-radius: var(--radius-md);
+  box-shadow: var(--g-shadow-3);
+}
+.pair-figure__caption {
+  font-size: 0.75rem;
+  color: var(--g-on-surface-var);
+  margin-top: 0.75rem;
+  font-weight: 500;
+}
+
+/* =============================================
+   P1: CLOSING CHIPS
+   ============================================= */
+.article-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.article-chip {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.68rem;
+  font-weight: 500;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.75);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* =============================================
+   P1: EXPLICIT DIAL NOTE
+   ============================================= */
+.explicit-note {
+  max-width: 700px;
+  margin: 1.5rem auto 0;
+  padding: 1rem 1.5rem;
+  background: var(--g-surface);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--g-outline);
+  font-size: 0.82rem;
+  color: var(--g-on-surface-var);
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* =============================================
+   DIRECTION CHIPS (Part 2 Concept Labels)
+   ============================================= */
+.direction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+.direction-chip--delegation { background: rgba(66,133,244,0.1); color: var(--g-blue); }
+.direction-chip--escalation { background: rgba(234,67,53,0.1); color: var(--error-on); }
+.direction-chip--adaptation { background: rgba(251,188,4,0.1); color: var(--warning-on); }
+
+.restaurant-note {
+  margin-top: 1.25rem;
+  padding: 16px 20px;
+  background: var(--g-surface-high);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--g-outline-var);
+  font-size: 0.88rem;
+  color: var(--g-on-surface-var);
+  line-height: 1.7;
+  font-style: italic;
+}
+.restaurant-note::before {
+  content: '🍽 ';
+  font-style: normal;
+}
+
+.direction-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  max-width: 960px;
+  margin: 1.5rem auto 0;
+}
+.direction-summary-card {
+  padding: 20px;
+  background: var(--g-surface-dim);
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+.direction-summary-card h4 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.direction-summary-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.direction-summary-card li {
+  font-size: 0.78rem;
+  color: var(--g-on-surface-var);
+  line-height: 1.6;
+  padding: 2px 0;
+}
+.direction-summary-card li::before {
+  content: '→ ';
+  opacity: 0.5;
+}
+@media (max-width: 768px) {
+  .direction-summary { grid-template-columns: 1fr; }
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1024px) {
+  .slide--split {
+    grid-template-columns: 1fr;
+    padding: 2rem 2rem;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  .slide--split .section-body { margin: 0 auto; }
+  .slide--device {
+    grid-template-columns: 1fr;
+    padding: 2rem;
+    gap: 1.5rem;
+    justify-items: center;
+  }
+  .slide--pair {
+    grid-template-columns: 1fr;
+    padding: 2rem;
+    gap: 1.5rem;
+  }
+  .plans-grid { grid-template-columns: 1fr; }
+  .sub-cards-grid { grid-template-columns: 1fr; }
+  .eco-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .slide--photo .slide__content { padding: 0 1.5rem; }
+  .hero__title { font-size: clamp(2rem, 8vw, 3rem); }
+  .slide--split, .slide--device { padding: 1.5rem; }
+  .phone-mockup { width: 280px; }
+  .sub-cards-grid { gap: 0.75rem; }
+  .stat-row { gap: 1.5rem; flex-wrap: wrap; }
+  .lifecycle { flex-wrap: wrap; gap: 1rem; }
+  .lifecycle__line { display: none; }
+  .timeline { flex-wrap: wrap; gap: 1rem; }
+  .timeline__line { display: none; }
+  .eco-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ GLOBAL NAV ═══ -->
+<nav class="global-nav" id="globalNav">
+  <div class="gnav-inner">
+    <a id="gnav-home" class="gnav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentFirst" style="height:20px;"></a>
+    <div class="gnav-links" id="gnavLinks"></div>
+    <div class="gnav-right">
+      <div class="gnav-projects">
+        <a href="../project-01/p1_presentation.html" class="gnp-active">P1</a>
+        <a href="../project-02/p2_presentation_v3.html">P2</a>
+        <a href="../project-03/p3_presentation_deck.html">P3</a>
+      </div>
+      <div class="gnav-lang">
+        <a data-lang="en">EN</a>
+        <a data-lang="ja">JA</a>
+      </div>
+    </div>
+  </div>
+</nav>
+<style>
+.global-nav{position:fixed;top:0;left:0;right:0;z-index:9999;height:48px;background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1),opacity 0.35s ease;opacity:0;}
+.global-nav.visible{transform:translateY(0);opacity:1;}
+.gnav-inner{width:min(1200px,92%);display:flex;align-items:center;justify-content:space-between;}
+.gnav-logo{text-decoration:none;display:flex;align-items:center;cursor:pointer;}
+.gnav-links{display:flex;gap:18px;}
+.gnav-links a{font-family:-apple-system,'Outfit',sans-serif;font-size:12px;font-weight:400;color:#71717a;text-decoration:none;transition:color 0.2s;cursor:pointer;}
+.gnav-links a:hover{color:#2563eb;}
+.gnav-right{display:flex;align-items:center;gap:12px;}
+.gnav-projects{display:flex;gap:5px;}
+.gnav-projects a{font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:6px;text-decoration:none;color:#71717a;background:#f4f4f5;border:1px solid #e4e4e7;transition:all 0.2s;}
+.gnav-projects a:hover{border-color:#2563eb;color:#2563eb;}
+.gnav-projects a.gnp-active{background:#2563eb;color:#fff;border-color:#2563eb;}
+.gnav-lang{display:flex;border:1px solid #e4e4e7;border-radius:6px;overflow:hidden;}
+.gnav-lang a{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:4px 8px;color:#71717a;cursor:pointer;transition:all 0.15s;}
+.gnav-lang a:hover{color:#2563eb;}
+.gnav-lang a.gl-active{background:#18181b;color:#fff;}
+@media(max-width:768px){.gnav-links{display:none;}}
+</style>
+<script>
+(function(){
+  var base = '../../';
+  var LANGS = {
+    ja: { home:base+'ja/index.html', cg:base+'ja/context-grammar/index.html', proj:base+'ja/applied/index.html', journal:base+'ja/journal/index.html', about:base+'ja/about/index.html', labels:['Context Grammar','プロジェクト','エッセイ','About'] },
+    en: { home:base+'index.html', cg:base+'context-grammar/index.html', proj:base+'applied/index.html', journal:base+'journal/index.html', about:base+'about/index.html', labels:['Context Grammar','Projects','Essays','About'] }
+  };
+  var lang = localStorage.getItem('if-lang') || 'ja';
+
+  function applyLang(l) {
+    lang = l;
+    localStorage.setItem('if-lang', l);
+    var d = LANGS[l];
+    document.getElementById('gnav-home').href = d.home;
+    var links = document.getElementById('gnavLinks');
+    links.innerHTML = '<a href="'+d.cg+'">'+d.labels[0]+'</a><a href="'+d.proj+'">'+d.labels[1]+'</a><a href="'+d.journal+'">'+d.labels[2]+'</a><a href="'+d.about+'">'+d.labels[3]+'</a>';
+    document.querySelectorAll('.gnav-lang a').forEach(function(a){
+      a.classList.toggle('gl-active', a.getAttribute('data-lang') === l);
+    });
+  }
+
+  // Language toggle click
+  document.querySelectorAll('.gnav-lang a').forEach(function(a){
+    a.addEventListener('click', function(){ applyLang(this.getAttribute('data-lang')); });
+  });
+
+  applyLang(lang);
+
+  // Auto-hide
+  var nav = document.getElementById('globalNav'), timer = null;
+  function showNav(){ nav.classList.add('visible'); clearTimeout(timer); timer = setTimeout(function(){ nav.classList.remove('visible'); }, 3000); }
+  document.addEventListener('mousemove', showNav);
+  document.addEventListener('touchstart', showNav);
+  var deck = document.getElementById('deck');
+  if(deck) deck.addEventListener('scroll', function(){ if(deck.scrollTop < 60){ nav.classList.add('visible'); clearTimeout(timer); } });
+})();
+</script>
+
+<!-- ==========================================
+     SLIDE COUNTER
+     ========================================== -->
+<div class="slide-counter" id="slideCounter">1 / 28</div>
+
+<!-- ==========================================
+     DECK
+     ========================================== -->
+<div class="deck" id="deck">
+
+<!-- ==========================================
+     SLIDE 01: HERO
+     ========================================== -->
+<section class="slide slide--photo" id="s01"
+  style="background-image: url('image-set02/IP-01_hero-fridge.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.75) 100%);"></div>
+  <div class="slide__content">
+    <p class="hero__label reveal">PROJECT 01 &mdash; CONTEXT GRAMMAR</p>
+    <h1 class="hero__title reveal reveal-delay-1">The Living Home</h1>
+    <p class="hero__subtitle reveal reveal-delay-2">Intent Decomposition &times; Context Grammar &times; Family Orchestration</p>
+    <p class="hero__hook reveal reveal-delay-3" id="heroHook"></p>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <span class="material-symbols-rounded">expand_more</span>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 02: BEFORE — The Friction (narrative + photo)
+     ========================================== -->
+<section class="slide slide--split" id="s02" style="background: var(--g-surface);">
+  <div class="slide__text">
+    <p class="section-label reveal">Before &mdash; The Friction</p>
+    <h2 class="section-title reveal reveal-delay-1">土曜の朝、<br>45分が消える</h2>
+    <p class="section-body reveal reveal-delay-2">Yukiが冷蔵庫を開ける。ヨーグルトは3つあるのに、欲しいものがない。「今夜何にする？」Hanaのアレルギーが思い出せない。Google検索。買い物リストはメモアプリ、配達状況はUPS、夕飯のアイデアはカレンダーとにらめっこ。</p>
+  </div>
+  <div class="slide__image reveal reveal-delay-3">
+    <img src="image-set02/IP-02_before-kitchen.jpg" alt="Mori family kitchen" loading="lazy">
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 03: BEFORE — Visual chaos (stacked apps)
+     ========================================== -->
+<section class="slide slide--center" id="s03" style="background: var(--g-surface-dim);">
+  <div class="slide__inner" style="position: relative;">
+    <div class="reveal" style="position: relative; max-width: 960px; margin: 0 auto; height: 78vh;">
+
+      <!-- Floating text overlay -->
+      <div class="reveal reveal-delay-2" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; text-align: center; padding: 2.5rem 3.5rem; background: rgba(255,255,255,0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+        <p class="section-label" style="margin-bottom: 0.5rem;">ひとつの「夕飯どうする？」に</p>
+        <h2 class="section-title" style="font-size: clamp(1.8rem, 4vw, 2.8rem); margin-bottom: 0.5rem;">5つのアプリを<br>行き来する毎日</h2>
+        <p class="section-body centered" style="font-size: 0.95rem; margin: 0 auto;">カレンダー、Amazon、配達追跡、メモ、リマインダー。<br>情報はあるのに、つながらない。</p>
+      </div>
+
+      <!-- Scattered app windows -->
+      <div style="position: absolute; top: 3%; left: 2%; width: 52%; border-radius: var(--radius-sm); box-shadow: var(--g-shadow-2); overflow: hidden; background: var(--g-surface); z-index: 1;">
+        <div style="background: var(--g-surface-container); padding: 8px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--g-outline-var);">
+          <img src="../Global_Assets/App_Icons/google-calendar.webp" style="width: 20px; height: 20px; border-radius: 4px;">
+          <span style="font-size: 0.72rem; font-weight: 600;">Google Calendar</span>
+        </div>
+        <div style="padding: 12px 14px; font-size: 0.78rem; color: var(--g-on-surface-var);">
+          <div style="font-weight: 600; color: var(--g-on-surface); margin-bottom: 4px;">土曜日</div>
+          <div>15:00 Ren サッカー練習</div>
+          <div>17:00 Hana ピアノ</div>
+          <div style="color: var(--warning-on); margin-top: 6px;">&#9888; 夕食の予定が未設定</div>
+        </div>
+      </div>
+
+      <div style="position: absolute; top: 8%; right: 3%; width: 44%; border-radius: var(--radius-sm); box-shadow: var(--g-shadow-2); overflow: hidden; background: var(--g-surface); z-index: 2;">
+        <div style="background: var(--g-surface-container); padding: 8px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--g-outline-var);">
+          <img src="../Global_Assets/App_Icons/notes.webp" style="width: 20px; height: 20px; border-radius: 4px;">
+          <span style="font-size: 0.72rem; font-weight: 600;">メモ</span>
+        </div>
+        <div style="padding: 12px 14px; font-size: 0.78rem; color: var(--g-on-surface-var);">
+          <div style="font-weight: 600; color: var(--g-on-surface); margin-bottom: 4px;">買い物リスト</div>
+          <div>&#9744; 牛乳</div><div>&#9744; 卵</div><div>&#9744; ブロッコリー</div><div>&#9744; ヨーグルト（何の？）</div>
+        </div>
+      </div>
+
+      <div style="position: absolute; bottom: 18%; left: 5%; width: 40%; border-radius: var(--radius-sm); box-shadow: var(--g-shadow-2); overflow: hidden; background: var(--g-surface); z-index: 3;">
+        <div style="background: var(--g-surface-container); padding: 8px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--g-outline-var);">
+          <img src="../Global_Assets/App_Icons/amazonappicon" style="width: 20px; height: 20px; border-radius: 4px;">
+          <span style="font-size: 0.72rem; font-weight: 600;">Amazon</span>
+        </div>
+        <div style="padding: 12px 14px; font-size: 0.78rem; color: var(--g-on-surface-var);">ご注文の商品が発送されました<br><span style="font-size: 0.68rem; color: var(--g-outline);">配達予定: 明日</span></div>
+      </div>
+
+      <div style="position: absolute; bottom: 12%; right: 8%; width: 38%; border-radius: var(--radius-sm); box-shadow: var(--g-shadow-2); overflow: hidden; background: var(--g-surface); z-index: 4;">
+        <div style="background: var(--g-surface-container); padding: 8px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--g-outline-var);">
+          <img src="../Global_Assets/App_Icons/reminders.webp" style="width: 20px; height: 20px; border-radius: 4px;">
+          <span style="font-size: 0.72rem; font-weight: 600;">リマインダー</span>
+        </div>
+        <div style="padding: 12px 14px; font-size: 0.78rem; color: var(--g-on-surface-var);">&#9744; 返品の段ボールを出す<br>&#9744; 階段の電球を交換</div>
+      </div>
+
+      <div style="position: absolute; bottom: 3%; left: 25%; width: 36%; border-radius: var(--radius-sm); box-shadow: var(--g-shadow-2); overflow: hidden; background: var(--g-surface); z-index: 2;">
+        <div style="background: var(--g-surface-container); padding: 8px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--g-outline-var);">
+          <img src="../Global_Assets/App_Icons/ups.webp" style="width: 20px; height: 20px; border-radius: 4px;">
+          <span style="font-size: 0.72rem; font-weight: 600;">UPS</span>
+        </div>
+        <div style="padding: 12px 14px; font-size: 0.78rem; color: var(--g-on-surface-var);">追跡番号: 1Z999...<br><span style="font-size: 0.68rem; color: var(--g-outline);">配達予定: 3/29</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 04: BEFORE → AFTER bridge
+     ========================================== -->
+<section class="slide slide--split" id="s04" style="background: var(--g-surface);">
+  <div class="slide__text">
+    <p class="section-label reveal">Home Brain &mdash; 家族の文脈を学ぶAI</p>
+    <h2 class="section-title reveal reveal-delay-1">もし家が、<br>家族を理解したら</h2>
+    <p class="section-body reveal reveal-delay-2">Samsung Family Hubは冷蔵庫の中身からレシピを提案できる。でも、母親のYukiのヨーグルトの好みも、娘のHanaのアレルギーも知らない。</p>
+    <p class="section-body reveal reveal-delay-3" style="margin-top: 1rem;">Home Brainは<strong>家族の文脈</strong>を学ぶ。初日のオンボーディングで80%。残りの20%は、暮らしの中でしか見えない。サーモンがあるならHana対応の魚料理を。Yukiが疲れているなら20分レシピを。&mdash; これは、<strong>意図を文脈で翻訳する</strong>AIの物語。</p>
+  </div>
+  <div class="slide__image reveal reveal-delay-3">
+    <img src="image-set02/IL-01_home-brain-3layer.png" alt="Home Brain 3 Layer Architecture" loading="lazy">
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 05: SCENE 1 title
+     ========================================== -->
+<section class="slide slide--photo" id="s05"
+  style="background-image: url('image-set02/IP-03_week1-evening-kitchen.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%);"></div>
+  <div class="slide__content">
+    <p class="section-label reveal" style="color: rgba(255,255,255,0.6);">SCENE 1 &mdash; DAY 1</p>
+    <h2 class="section-title reveal reveal-delay-1" style="color: #fff;">AIが家にやってきた日</h2>
+    <p class="section-body reveal reveal-delay-2" style="color: rgba(255,255,255,0.8); margin: 0 auto;">Home BrainがMori家につながった初日。家族構成、アレルギー、好み、予算——聞けることは全部聞く。冷蔵庫をスキャン。カレンダーを読む。1時間で80%理解。でも残りの20%は、暮らしてみないとわからない。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 06: SCENE 1 yogurt incident
+     ========================================== -->
+<section class="slide slide--center" id="s06" style="background: var(--g-surface-dim);">
+  <div class="slide__inner" style="display: flex; align-items: center; gap: 3rem; max-width: 1300px; margin: 0 auto; text-align: left;">
+    <!-- Left: Story + Yogurt comparison -->
+    <div style="flex: 1;">
+      <p class="section-label reveal">The Yogurt Incident</p>
+      <h2 class="section-title reveal reveal-delay-1">全部、無糖ヨーグルト。</h2>
+      <p class="section-body reveal reveal-delay-2" style="margin-bottom: 2rem; font-size: 1.1rem;">冷蔵庫を開けたYuki。ヨーグルトは3つもある。でも全部プレーンの無糖。「私が食べたいのはこれじゃない。」AIにとって「ヨーグルト」は「ヨーグルト」。Yukiにとっては、あのハニーヨーグルトだけが「自分のヨーグルト」だった。</p>
+
+      <!-- Fridge contents -->
+      <div class="reveal reveal-delay-3" style="margin-bottom: 1.5rem;">
+        <p style="font-size: 0.82rem; font-weight: 600; color: var(--error-on); margin-bottom: 0.75rem;">&#x2717; 冷蔵庫にあったもの</p>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <img src="tradejoes/dad-usual-greek-non-fat-yogurt.webp" style="width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 2px solid var(--g-outline-var);" alt="Thick & Creamy Plain">
+          <img src="tradejoes/dad-usual-greek-non-fat-yogurt.webp" style="width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 2px solid var(--g-outline-var);" alt="Thick & Creamy Plain">
+          <img src="tradejoes/dad-can-take-this-yogurt-large.webp" style="width: 72px; height: 72px; object-fit: cover; border-radius: 10px; border: 2px solid var(--g-outline-var);" alt="Nonfat Plain">
+          <div style="font-size: 0.78rem; color: var(--g-on-surface-var); margin-left: 4px;">全部プレーン。<br>全部無糖。</div>
+        </div>
+      </div>
+
+      <!-- What Yuki wanted -->
+      <div class="reveal reveal-delay-4">
+        <p style="font-size: 0.82rem; font-weight: 600; color: var(--success-on); margin-bottom: 0.75rem;">&#x2713; Yukiが欲しかったもの</p>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <img src="tradejoes/honeyyogurt.webp" style="width: 110px; height: 110px; object-fit: cover; border-radius: 14px; border: 3px solid var(--g-green); box-shadow: var(--g-shadow-2);" alt="TJ Honey Greek Yogurt">
+          <div>
+            <div style="font-size: 1.05rem; font-weight: 700;">TJ&rsquo;s Honey Greek Yogurt</div>
+            <div style="font-size: 0.85rem; color: var(--g-on-surface-var); margin-top: 4px;">これだけ。これ以外はヨーグルトじゃない。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Photo of Yuki at fridge -->
+    <div class="reveal reveal-delay-2" style="flex-shrink: 0; width: 380px;">
+      <img src="image-set02/IP-06_month6-yogurt-missing.jpg" alt="Yuki opening fridge" style="width: 100%; border-radius: var(--radius-md); box-shadow: var(--g-shadow-3);">
+      <p style="font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--g-outline); text-align: center; margin-top: 0.75rem;">「また、ない。」</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 06b: SCENE 1 — Yuki's reaction
+     ========================================== -->
+<section class="slide slide--center" id="s06b" style="background: var(--g-surface);">
+  <div class="slide__inner" style="max-width: 1000px; margin: 0 auto; text-align: left;">
+    <p class="section-label reveal">Yukiの行動</p>
+    <h2 class="section-title reveal reveal-delay-1">「このヨーグルトだけは<br>絶対に間違えないで。」</h2>
+    <p class="section-body reveal reveal-delay-2" style="margin-bottom: 2.5rem; font-size: 1.15rem;">Yukiはスマホを開いて、Home Brainに伝えた。<br>「Honey Greek Yogurt、Trader Joe&rsquo;s。これだけはExactで。代わりは要らない。」</p>
+    <div class="reveal reveal-delay-3" style="display: flex; align-items: center; gap: 24px; background: var(--g-surface-dim); padding: 28px 40px; border-radius: var(--radius-lg); box-shadow: var(--g-shadow-2);">
+      <img src="tradejoes/honeyyogurt.webp" style="width: 96px; height: 96px; object-fit: cover; border-radius: 14px; flex-shrink: 0;">
+      <div>
+        <div style="font-size: 0.92rem; font-weight: 700; color: var(--error-on); letter-spacing: 0.08em; margin-bottom: 4px;">EXACT MODE</div>
+        <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;">TJ&rsquo;s Honey Greek Yogurt</div>
+        <div style="font-size: 1rem; color: var(--g-on-surface-var);">代替不可 &middot; 売切時は買わない &middot; Yuki専用</div>
+      </div>
+    </div>
+    <p class="reveal reveal-delay-4" style="font-size: 1.15rem; color: var(--g-on-surface-var); margin-top: 2rem; font-style: italic;">この瞬間から、Home BrainはYukiの「ヨーグルト」を理解し始めた。</p>
+
+    <div class="reveal reveal-delay-4" style="margin-top: 2rem;">
+      <span class="direction-chip direction-chip--delegation">DELEGATION</span>
+      <p style="font-size: 0.95rem; color: var(--g-on-surface-var); line-height: 1.7;">任せていい範囲を、少しずつ広げていく。Exactは「これだけは私が決める」。Flexibleは「同じジャンルならお任せ」。Exploringは「シェフの気まぐれ」。SurpriseはOmakaseそのもの。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 07: SCENE 1 Family Hub
+     ========================================== -->
+<section class="slide slide--device" id="s07" style="background: var(--g-surface);">
+  <div class="reveal" style="grid-column: 1;">
+    <div class="hub-mockup">
+      <div class="hub__frame">
+        <div class="hub__screen">
+          <div class="hub__statusbar">
+            <img src="../Global_Assets/Brand_Logos/samsung.jpg" alt="SAMSUNG" style="height: 14px; width: auto;">
+            <span>9:41 AM &middot; 土曜日</span>
+          </div>
+          <div class="hub__nav">
+            <div class="hub__nav-item hub__nav-item--active">おすすめ</div>
+            <div class="hub__nav-item">冷蔵庫</div>
+            <div class="hub__nav-item">買い物</div>
+            <div class="hub__nav-item">家族</div>
+          </div>
+          <div class="hub__body">
+            <div style="font-size: 0.82rem; font-weight: 700; margin-bottom: 8px;">今夜のおすすめ</div>
+            <div style="font-size: 0.6rem; color: var(--g-outline); margin-bottom: 10px;">人気レシピからご提案</div>
+
+            <!-- Recipe 1 -->
+            <div class="hub__recipe-card">
+              <div class="hub__recipe-img" style="background-image: url('Samsung_meals/hub-recipe-chicken-curry.png');">
+                <div class="hub__recipe-img-rank">1</div>
+              </div>
+              <div class="hub__recipe-body">
+                <div class="hub__recipe-title">チキンカレー</div>
+                <div class="hub__recipe-meta">45分 &middot; 4人前 &middot; &#9733; 4.8</div>
+              </div>
+            </div>
+
+            <!-- Recipe 2 -->
+            <div class="hub__recipe-card">
+              <div class="hub__recipe-img" style="background-image: url('Samsung_meals/hub-recipe-bolognese.png');">
+                <div class="hub__recipe-img-rank">2</div>
+              </div>
+              <div class="hub__recipe-body">
+                <div class="hub__recipe-title">ボロネーゼパスタ</div>
+                <div class="hub__recipe-meta">35分 &middot; 4人前 &middot; &#9733; 4.6</div>
+              </div>
+            </div>
+
+            <!-- Recipe 3 -->
+            <div class="hub__recipe-card">
+              <div class="hub__recipe-img" style="background-image: url('Samsung_meals/hub-recipe-tacos.png');">
+                <div class="hub__recipe-img-rank">3</div>
+              </div>
+              <div class="hub__recipe-body">
+                <div class="hub__recipe-title">タコス</div>
+                <div class="hub__recipe-meta">25分 &middot; 4人前 &middot; &#9733; 4.5</div>
+              </div>
+            </div>
+
+            <!-- Warning -->
+            <div style="margin-top: 8px; padding: 8px 12px; background: var(--warning-container); border-radius: 8px; display: flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-rounded" style="font-size: 16px; color: var(--warning-on);">warning</span>
+              <span style="font-size: 0.65rem; color: var(--warning-on); font-weight: 500;">家族の好み未設定 &middot; 冷蔵庫にサーモンあり（未使用）</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="device-context" style="text-align: center; margin-top: 8px; font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--g-outline);">Samsung Family Hub &mdash; 冷蔵庫ディスプレイ</div>
+    </div>
+  </div>
+  <div class="slide__text">
+    <p class="section-label reveal">Family Hub &mdash; Day 1</p>
+    <h2 class="section-title reveal reveal-delay-1">的外れな提案</h2>
+    <p class="section-body reveal reveal-delay-2">Samsung Family Hubには冷蔵庫の中身をスキャンしてレシピを提案する機能がある。でもDay 1のAIは家族のことを何も知らない。</p>
+    <p class="section-body reveal reveal-delay-3" style="margin-top: 1rem;">冷蔵庫にサーモンがあるのに、1位はチキンカレー。人気レシピTop 10をそのまま表示しているだけ。Mori家の好みも、子供たちの食事制限も、何も反映されていない。</p>
+    <p class="section-body reveal reveal-delay-4" style="margin-top: 1rem; color: var(--g-blue);">母親のYukiはため息をつきながら、Home Brainに教える。「サーモンがあるなら魚料理を優先して。」「子供たちはフライが好き。」 &mdash; 的外れな提案のたびに、AIは家族を少しずつ学んでいく。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 08: SCENE 1 — Hana's discovery
+     ========================================== -->
+<section class="slide slide--split" id="s08" style="background: var(--g-surface-dim);">
+  <div class="slide__text">
+    <p class="section-label reveal">3週間目 &mdash; 異変</p>
+    <h2 class="section-title reveal reveal-delay-1">Hana、<br>おなかが痛い</h2>
+    <p class="section-body reveal reveal-delay-2">3週間目、娘のHana（7歳）がヨーグルトを食べるたびにおなかを壊すようになった。どうやら乳製品が合わないらしい。</p>
+    <p class="section-body reveal reveal-delay-3" style="margin-top: 1rem;">朝ごはんのヨーグルトは、学校に行く前の時短メニューとしてとても重宝していた。食べられなくなるのは結構不便だった。</p>
+    <p class="section-body reveal reveal-delay-4" style="margin-top: 1rem;">母親のYukiがHome Brainに伝える。「Hana、乳製品がダメかもしれない。」</p>
+    <div class="reveal reveal-delay-4" style="margin-top: 1.5rem;">
+      <span class="direction-chip direction-chip--escalation">ESCALATION</span>
+      <p style="font-size: 0.88rem; color: var(--g-on-surface-var); line-height: 1.7;">AIは診断しない。パターンを見つけ、医師への橋渡しをする &mdash; 「ここまでは私の仕事、ここからは人間の仕事」と線を引く設計。</p>
+    </div>
+  </div>
+  <div class="reveal reveal-delay-3">
+    <div style="background: var(--warning-container); border-radius: var(--radius-md); padding: 1.5rem 2rem; margin-bottom: 1.25rem;">
+      <p style="font-size: 0.85rem; font-weight: 600; color: var(--warning-on); margin-bottom: 0.5rem;">&#9888; Home Brain &mdash; 家族プロファイル更新</p>
+      <p style="font-size: 0.82rem; color: var(--g-on-surface-var);">Hana（7歳）: 乳製品アレルギーの可能性 → 乳製品を除外</p>
+    </div>
+    <div style="background: var(--success-container); border-radius: var(--radius-md); padding: 1.5rem 2rem;">
+      <p style="font-size: 0.85rem; font-weight: 600; color: var(--success-on); margin-bottom: 0.75rem;">&#128161; AIからの提案: ヨーグルト・オルタナティブ</p>
+      <p style="font-size: 0.82rem; color: var(--g-on-surface-var); margin-bottom: 1rem;">「Hanaが食べられる植物性ヨーグルトがあります。試してみますか？」</p>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <img src="tradejoes/daughter-yogurt-alternative.webp" style="width: 88px; height: 88px; object-fit: cover; border-radius: 10px; border: 3px solid var(--g-green);" alt="Cashew yogurt">
+        <img src="tradejoes/daughter-yogurt-alternative-02.webp" style="width: 88px; height: 88px; object-fit: cover; border-radius: 10px; border: 3px solid var(--g-green);" alt="Coconut yogurt">
+        <div style="font-size: 0.85rem; color: var(--g-on-surface-var); line-height: 1.6;">Cashew or Coconut<br>Hana:「別にまずくない。普通にいける。」<br><strong style="color: var(--g-blue);">→ Flexible（ブランド不問）でストック開始</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 09: SCENE 2 title
+     ========================================== -->
+<section class="slide slide--photo" id="s09"
+  style="background-image: url('image-set02/IP-05_month3-salmon-kitchen.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%);"></div>
+  <div class="slide__content">
+    <p class="section-label reveal" style="color: rgba(255,255,255,0.6);">SCENE 2 &mdash; MONTH 1</p>
+    <h2 class="section-title reveal reveal-delay-1" style="color: #fff;">パターンが見え始める</h2>
+    <p class="section-body reveal reveal-delay-2" style="color: rgba(255,255,255,0.8); margin: 0 auto;">10件の的外れな候補が、1つのぴったりな提案に変わった。それは「賢くなった」のではなく、「この家族を知った」ということ。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 10: SCENE 2 CarPlay
+     ========================================== -->
+<section class="slide slide--device" id="s10" style="background: var(--g-surface);">
+  <div class="reveal" style="grid-column: 1;">
+    <div class="carplay-mockup">
+      <div class="carplay__frame">
+        <div class="carplay__screen">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #4285f4, #34a853); display: flex; align-items: center; justify-content: center;">
+              <span class="material-symbols-rounded" style="font-size: 18px; color: #fff;">home</span>
+            </div>
+            <div>
+              <div style="font-size: 0.68rem; color: rgba(255,255,255,0.5);">Home Brain</div>
+              <div style="font-size: 0.58rem; color: rgba(255,255,255,0.35);">Month 1 &middot; あなたの家族を知っています</div>
+            </div>
+          </div>
+          <div style="font-size: 0.62rem; color: rgba(255,255,255,0.35); margin-bottom: 0.75rem; line-height: 1.5;">&#128337; 18:45 &middot; 帰宅まで20分<br>&#128694; 運転中 &middot; Cognitive Load: 高<br>&#127968; 子供たちは明日学校 &rarr; 早めの夕食</div>
+          <div style="font-size: 1.6rem; margin-bottom: 0.2rem;">&#x1F41F; &#x1F35F;</div>
+          <div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.2rem;">Salmon + TJ&rsquo;s Fries</div>
+          <div style="font-size: 0.68rem; color: rgba(255,255,255,0.6); margin-bottom: 0.5rem;">サーモン在庫あり &middot; フライはTJ&rsquo;sで購入 &middot; 25分 &middot; Hana対応済</div>
+          <div style="font-size: 0.58rem; color: rgba(255,255,255,0.3); margin-bottom: 0.75rem;">&#10005; Ribeye Steak (冷凍 &rarr; 解凍+Sous Vide 2h = 今夜は間に合わない)</div>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1; background: #4285f4; border-radius: 10px; padding: 10px; text-align: center; font-size: 0.78rem; font-weight: 600;">OK &middot; TJ&rsquo;s寄る</div>
+            <div style="flex: 1; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; text-align: center; font-size: 0.72rem; font-weight: 500;">TaskRabbitで配達</div>
+          </div>
+        </div>
+      </div>
+      <div class="device-context">CarPlay &mdash; 帰宅中</div>
+    </div>
+  </div>
+  <div class="slide__text">
+    <p class="section-label reveal">Intent &times; Context &rarr; 1つの提案</p>
+    <h2 class="section-title reveal reveal-delay-1">文脈が提案を<br>変える</h2>
+    <p class="section-body reveal reveal-delay-2">同じ「今夜何作れる？」。でもAIはこう読む：お父さんは疲れて運転中。子供は明日学校がある。早くて手軽で美味しいものが必要。</p>
+    <p class="section-body reveal reveal-delay-3" style="margin-top: 1rem;">冷蔵庫のサーモン＋帰り道のTrader Joe&rsquo;sでフライを購入。Hanaの乳製品も除外済み。冷凍のRibeye Steakは解凍に2時間かかるから今夜は除外。&mdash; <strong>子供たちはフライが大好き。今夜は大盛り上がり。</strong></p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 11: SCENE 2 Shopping List
+     ========================================== -->
+<section class="slide slide--center" id="s11" style="background: var(--g-surface-dim);">
+  <div class="slide__inner" style="display: flex; align-items: stretch; gap: 2.5rem; max-width: 1300px; margin: 0 auto;">
+    <!-- Left: iPhone with shopping list -->
+    <div class="reveal" style="flex-shrink: 0;">
+      <div class="phone-mockup" style="width: 300px;">
+        <img class="phone__frame-svg" src="../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="">
+        <div class="phone__screen">
+          <div class="phone__dynamic-island"></div>
+          <div class="phone__statusbar"><span>9:41</span><div class="phone__statusbar-icons"><span class="material-symbols-rounded">signal_cellular_alt</span><span class="material-symbols-rounded">wifi</span><span class="material-symbols-rounded">battery_full</span></div></div>
+          <div class="phone__body" style="padding: 12px 10px 8px;">
+            <div class="m3-topbar" style="border: none; padding: 6px 4px;"><span class="material-symbols-rounded">arrow_back</span><span class="m3-topbar__title">買い物リスト</span><span class="material-symbols-rounded">more_vert</span></div>
+
+            <div style="padding: 4px 8px 2px;">
+              <span class="dark-badge" style="background: var(--error-container); color: var(--error-on); font-size: 0.62rem;">EXACT</span>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px; background: var(--g-surface); border-radius: 8px; margin: 4px 0 3px; border-left: 4px solid var(--g-red);">
+                <img src="tradejoes/honeyyogurt.webp" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                <div><div style="font-size: 0.72rem; font-weight: 600;">Honey Greek Yogurt</div><div style="font-size: 0.6rem; color: var(--g-outline);">Yuki &middot; 代替不可</div></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px; background: var(--g-surface); border-radius: 8px; margin-bottom: 3px; border-left: 4px solid var(--g-red);">
+                <img src="tradejoes/son-loves-blueberry-yogurt.webp" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                <div><div style="font-size: 0.72rem; font-weight: 600;">Blueberry Yogurt</div><div style="font-size: 0.6rem; color: var(--g-outline);">Ren &middot; 代替不可</div></div>
+              </div>
+            </div>
+
+            <div style="padding: 4px 8px 2px;">
+              <span class="dark-badge" style="background: var(--warning-container); color: var(--warning-on); font-size: 0.62rem;">FLEXIBLE</span>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px; background: var(--g-surface); border-radius: 8px; margin: 4px 0 3px; border-left: 4px solid var(--g-yellow);">
+                <img src="tradejoes/daughter-yogurt-alternative.webp" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                <div><div style="font-size: 0.72rem; font-weight: 600;">植物性ヨーグルト</div><div style="font-size: 0.6rem; color: var(--g-outline);">Hana &middot; Dairy-Free &middot; ブランド不問</div></div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px; background: var(--g-surface); border-radius: 8px; margin-bottom: 3px; border-left: 4px solid var(--g-yellow);">
+                <div><div style="font-size: 0.72rem; font-weight: 600;">ヨーグルト（普通）</div><div style="font-size: 0.6rem; color: var(--g-outline);">Kenji &middot; ブランド不問</div></div>
+              </div>
+            </div>
+
+            <div style="padding: 4px 8px 2px;">
+              <span class="dark-badge" style="background: var(--g-blue-surface); color: var(--g-blue); font-size: 0.62rem;">EXPLORING</span>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px; background: var(--g-surface); border-radius: 8px; margin: 4px 0 3px; border-left: 4px dashed var(--g-blue);">
+                <img src="tradejoes/strawberryogurt.webp" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                <div><div style="font-size: 0.72rem; font-weight: 600;">Strawberry Yogurt</div><div style="font-size: 0.6rem; color: var(--g-outline);">Kenji &middot; 最近お気に入り？</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="phone__home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Learning animation timeline -->
+    <div class="reveal reveal-delay-1" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+      <p class="section-label" style="margin-bottom: 0.5rem;">AIが家族を学ぶ過程</p>
+      <h2 class="section-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 1.5rem;">4つのモードは<br>こうして生まれた</h2>
+
+      <!-- Animated learning steps -->
+      <div id="learningTimeline" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="learn-step" data-step="1" style="opacity: 0; transform: translateX(20px); transition: all 0.5s var(--ease-spring);">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--g-blue-surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-rounded" style="font-size: 18px; color: var(--g-blue);">person</span></div>
+            <div>
+              <div style="font-size: 0.72rem; font-weight: 600; color: var(--g-blue);">Yuki &mdash; Day 1</div>
+              <div style="font-size: 0.88rem; color: var(--g-on-surface); line-height: 1.5;">「私のヨーグルトはTJ&rsquo;sのHoney Greek Yogurtだけ。他のは要らない。」</div>
+              <div style="font-size: 0.72rem; color: var(--g-outline); margin-top: 2px;">&#8594; <strong style="color: var(--error-on);">EXACT</strong> モードに登録</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="learn-step" data-step="2" style="opacity: 0; transform: translateX(20px); transition: all 0.5s var(--ease-spring) 0.3s;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--warning-container); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-rounded" style="font-size: 18px; color: var(--warning-on);">warning</span></div>
+            <div>
+              <div style="font-size: 0.72rem; font-weight: 600; color: var(--warning-on);">Yuki &mdash; 3週間目</div>
+              <div style="font-size: 0.88rem; color: var(--g-on-surface); line-height: 1.5;">「Hana、乳製品がダメかもしれない。ヨーグルトを食べるとおなかを壊す。」</div>
+              <div style="font-size: 0.72rem; color: var(--g-outline); margin-top: 2px;">&#8594; Hanaのリストから乳製品を<strong style="color: var(--error-on);">除外</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="learn-step" data-step="3" style="opacity: 0; transform: translateX(20px); transition: all 0.5s var(--ease-spring) 0.6s;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--success-container); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-rounded" style="font-size: 18px; color: var(--success-on);">lightbulb</span></div>
+            <div>
+              <div style="font-size: 0.72rem; font-weight: 600; color: var(--success-on);">AI提案</div>
+              <div style="font-size: 0.88rem; color: var(--g-on-surface); line-height: 1.5;">「植物性ヨーグルト（Cashew/Coconut）はいかがですか？」</div>
+              <div style="font-size: 0.72rem; color: var(--g-outline); margin-top: 2px;">Hana:「普通にいける。」&#8594; <strong style="color: var(--warning-on);">FLEXIBLE</strong> でストック開始</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="learn-step" data-step="4" style="opacity: 0; transform: translateX(20px); transition: all 0.5s var(--ease-spring) 0.9s;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--g-surface-container); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-symbols-rounded" style="font-size: 18px; color: var(--g-blue);">psychology</span></div>
+            <div>
+              <div style="font-size: 0.72rem; font-weight: 600; color: var(--g-blue);">AIが観察 &mdash; Month 1</div>
+              <div style="font-size: 0.88rem; color: var(--g-on-surface); line-height: 1.5;">Kenjiは最近Strawberry Yogurtを3回連続で購入。</div>
+              <div style="font-size: 0.72rem; color: var(--g-outline); margin-top: 2px;">&#8594; <strong style="color: var(--g-blue);">EXPLORING</strong> として追跡中（まだ定番か不明）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Replay button -->
+      <button id="replayLearning" onclick="replayLearningAnim()" style="margin-top: 1.25rem; display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 9999px; border: 1px solid var(--g-outline-var); background: var(--g-surface); color: var(--g-on-surface-var); font-family: 'DM Mono', monospace; font-size: 0.72rem; cursor: pointer; align-self: flex-start;">
+        <span class="material-symbols-rounded" style="font-size: 16px;">replay</span> Replay
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 13: INTERLUDE System
+     ========================================== -->
+<section class="slide slide--center" id="s13" style="background: var(--g-surface-dim);">
+  <div class="slide__inner">
+    <p class="section-label reveal">The System</p>
+    <h2 class="section-title reveal reveal-delay-1">Home Brain App</h2>
+    <p class="section-subtitle reveal reveal-delay-2">独立したアプリ。Google Homeエコシステムと連携するAIコンパニオン。</p>
+
+    <div class="app-pills reveal reveal-delay-2">
+      <div class="app-pill"><span class="material-symbols-rounded" style="font-size: 16px;">home</span> ホーム</div>
+      <div class="app-pill"><span class="material-symbols-rounded" style="font-size: 16px;">family_restroom</span> 家族プロファイル</div>
+      <div class="app-pill"><span class="material-symbols-rounded" style="font-size: 16px;">shopping_cart</span> 買い物リスト</div>
+      <div class="app-pill"><span class="material-symbols-rounded" style="font-size: 16px;">assignment</span> プロジェクト</div>
+      <div class="app-pill"><span class="material-symbols-rounded" style="font-size: 16px;">school</span> 学習ログ</div>
+    </div>
+
+    <div class="eco-grid reveal reveal-delay-3">
+      <div class="eco-card">
+        <div class="eco-card__icon">&#x1F9CA;</div>
+        <div class="eco-card__name">Family Hub</div>
+        <div class="eco-card__desc">在庫スキャン</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-card__icon">&#x1F3E0;</div>
+        <div class="eco-card__name">Google Home</div>
+        <div class="eco-card__desc">帰宅検知</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-card__icon">&#x1F50A;</div>
+        <div class="eco-card__name">Nest Speaker</div>
+        <div class="eco-card__desc">音声</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-card__icon">&#x1F697;</div>
+        <div class="eco-card__name">CarPlay</div>
+        <div class="eco-card__desc">提案</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-card__icon">&#x1F4FA;</div>
+        <div class="eco-card__name">Chromecast</div>
+        <div class="eco-card__desc">全体マップ</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-card__icon">&#x1F476;</div>
+        <div class="eco-card__name">Family Link</div>
+        <div class="eco-card__desc">子供ミッション</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 14: INTERLUDE Substitution Modes
+     ========================================== -->
+<section class="slide slide--cards" id="s14" style="background: var(--g-surface);">
+  <div class="slide__inner">
+    <p class="section-label reveal">Substitution Modes</p>
+    <h2 class="section-title reveal reveal-delay-1" style="font-size: clamp(2rem, 4.5vw, 3.2rem);">同じ「ヨーグルト」でも、人によって扱いが違う</h2>
+
+    <div class="sub-cards-grid reveal reveal-delay-2">
+      <!-- EXACT -->
+      <div class="sub-card sub-card--exact">
+        <div class="sub-card__label sub-card__label--exact">EXACT</div>
+        <div class="sub-card__desc">これだけ。味は変えない。</div>
+        <div class="sub-card__images">
+          <img src="tradejoes/honeyyogurt.webp" alt="Honey Yogurt">
+          <img src="tradejoes/son-loves-blueberry-yogurt.webp" alt="Blueberry Yogurt">
+          <img src="tradejoes/ribeye-stake.webp" alt="Rib Eye Steak">
+        </div>
+        <div class="sub-card__who">Yuki / Ren / 家族ステーキ</div>
+      </div>
+
+      <!-- FLEXIBLE -->
+      <div class="sub-card sub-card--flexible">
+        <div class="sub-card__label sub-card__label--flexible">FLEXIBLE</div>
+        <div class="sub-card__desc">同カテゴリ内で代替OK</div>
+        <div class="sub-card__images">
+          <img src="tradejoes/dad-usual-greek-non-fat-yogurt.webp" alt="Greek yogurt">
+          <img src="tradejoes/dad-can-take-this-yogurt-large.webp" alt="Yogurt">
+          <img src="tradejoes/dad-can-take-this-yogurt-small-2.webp" alt="Yogurt small">
+          <img src="tradejoes/daughter-yogurt-alternative.webp" alt="Dairy-free">
+          <img src="tradejoes/daughter-yogurt-alternative-02.webp" alt="Dairy-free 2">
+          <img src="tradejoes/frozen-broccoli-organic.png" alt="Broccoli organic">
+          <img src="tradejoes/frozen-broccoli-regular.png" alt="Broccoli regular">
+        </div>
+        <div class="sub-card__who">KenjiのGreek / HanaのDairy-Free / ブロッコリー</div>
+      </div>
+
+      <!-- EXPLORING -->
+      <div class="sub-card sub-card--exploring">
+        <div class="sub-card__label sub-card__label--exploring">EXPLORING</div>
+        <div class="sub-card__desc">最近の発見。まだ試し中。</div>
+        <div class="sub-card__images">
+          <img src="tradejoes/strawberryogurt.webp" alt="Strawberry Yogurt">
+        </div>
+        <div class="sub-card__who">Kenjiが最近発見。気に入ったらFlexibleに昇格。</div>
+      </div>
+
+      <!-- STAPLE -->
+      <div class="sub-card sub-card--staple">
+        <div class="sub-card__label sub-card__label--staple">常備品</div>
+        <div class="sub-card__desc">切らさない。常にストック。</div>
+        <div class="sub-card__images">
+          <img src="tradejoes/frozen-salmon.png" alt="Frozen Salmon">
+          <img src="tradejoes/frozen-frenchfries.png" alt="Frozen Fries">
+        </div>
+        <div class="sub-card__who">家族全員</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 15: SCENE 3 title
+     ========================================== -->
+<section class="slide slide--photo" id="s15"
+  style="background-image: url('image-set02/IP-06_month6-yogurt-missing.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%);"></div>
+  <div class="slide__content">
+    <p class="section-label reveal" style="color: rgba(255,255,255,0.6);">SCENE 3 &mdash; MONTH 3</p>
+    <h2 class="section-title reveal reveal-delay-1" style="color: #fff;">日常が滑らかになる</h2>
+    <p class="section-body reveal reveal-delay-2" style="color: rgba(255,255,255,0.8); margin: 0 auto;">Substitution Modesが静かに機能し始める。同じ「ヨーグルト」でも、人によって扱いが違う。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 16: SCENE 3 Exact Mode
+     ========================================== -->
+<section class="slide slide--device" id="s16" style="background: var(--g-surface-dim);">
+  <div class="reveal">
+    <div class="phone-mockup">
+      <img class="phone__frame-svg" src="../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="">
+      <div class="phone__screen">
+        <div class="phone__dynamic-island"></div>
+        <div class="phone__statusbar">
+          <span>9:41</span>
+          <div class="phone__statusbar-icons">
+            <span class="material-symbols-rounded">signal_cellular_alt</span>
+            <span class="material-symbols-rounded">wifi</span>
+            <span class="material-symbols-rounded">battery_full</span>
+          </div>
+        </div>
+        <div class="phone__body" style="padding: 28px 12px 8px;">
+          <!-- Notification header -->
+          <div style="text-align: center; margin-bottom: 12px;">
+            <span class="material-symbols-rounded" style="font-size: 28px; color: var(--warning-on);">notifications</span>
+          </div>
+
+          <div style="background: var(--g-surface-dim); border-radius: 12px; padding: 12px; margin: 0 4px;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--g-on-surface); margin-bottom: 4px;">TJ's Honey Yogurt &mdash; 在庫切れ</div>
+            <div style="font-size: 0.68rem; color: var(--error-on); margin-bottom: 10px; display: flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-rounded" style="font-size: 14px;">lock</span>
+              代替品は注文していません
+            </div>
+            <hr class="m3-divider" style="margin-bottom: 10px;">
+            <div style="font-size: 0.65rem; font-weight: 600; color: var(--g-on-surface-var); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em;">例外ルール</div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--g-surface); border-radius: 8px; border: 1px solid var(--g-outline-var); margin-bottom: 10px;">
+              <img src="tradejoes/small-honey.webp" style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover;">
+              <div style="flex: 1;">
+                <div style="font-size: 0.68rem; font-weight: 500; color: var(--g-on-surface);">大サイズ売切時のみ</div>
+                <div style="font-size: 0.6rem; color: var(--g-outline);">小サイズ(5.3oz)&times;6 = OK</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <div style="flex: 1; background: var(--g-blue); color: #fff; border-radius: var(--radius-full); padding: 8px; text-align: center; font-size: 0.72rem; font-weight: 600;">小サイズで注文</div>
+              <div style="flex: 1; background: var(--g-surface); border: 1px solid var(--g-outline-var); border-radius: var(--radius-full); padding: 8px; text-align: center; font-size: 0.72rem; font-weight: 500; color: var(--g-on-surface-var);">入荷通知ON</div>
+            </div>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide__text">
+    <p class="section-label reveal">Exact Mode &mdash; 売切時</p>
+    <h2 class="section-title reveal reveal-delay-1">味は変えない。サイズは柔軟。</h2>
+    <p class="section-body reveal reveal-delay-2">Yukiの Honey Yogurt が売切。代替品は注文しない。ただし同じ味の小サイズならOK &mdash; これもYukiが設定した例外ルール。Exactが守るのは「味覚体験」であって「パッケージ」ではない。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 17: SCENE 3 Dashboard
+     ========================================== -->
+<section class="slide slide--device" id="s17" style="background: var(--g-surface);">
+  <div class="reveal" style="grid-column: 1;">
+    <div class="hub-mockup">
+      <div class="hub__frame">
+        <div class="hub__screen">
+          <div class="hub__statusbar">
+            <img src="../Global_Assets/Brand_Logos/samsung.jpg" alt="SAMSUNG" style="height: 14px; width: auto;">
+            <span>6:30 PM</span>
+          </div>
+          <div class="hub__body">
+            <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem;">家族のSubstitution Modes</div>
+
+            <!-- Yuki -->
+            <div class="dark-item" style="border-left: 3px solid var(--g-red);">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.72rem;">Yuki</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">EXACT</div>
+              </div>
+              <img src="tradejoes/honeyyogurt.webp" style="width: 28px; height: 28px; border-radius: 4px; object-fit: cover;">
+              <span style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">Honey Yogurt</span>
+            </div>
+
+            <!-- Kenji -->
+            <div class="dark-item" style="border-left: 3px solid var(--g-yellow);">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.72rem;">Kenji</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">FLEX + EXPLORING</div>
+              </div>
+              <img src="tradejoes/dad-usual-greek-non-fat-yogurt.webp" style="width: 24px; height: 24px; border-radius: 3px; object-fit: cover;">
+              <img src="tradejoes/strawberryogurt.webp" style="width: 24px; height: 24px; border-radius: 3px; object-fit: cover; border: 1px dashed rgba(26,115,232,0.5);">
+            </div>
+
+            <!-- Ren -->
+            <div class="dark-item" style="border-left: 3px solid var(--g-red);">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.72rem;">Ren</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">EXACT</div>
+              </div>
+              <img src="tradejoes/son-loves-blueberry-yogurt.webp" style="width: 28px; height: 28px; border-radius: 4px; object-fit: cover;">
+              <span style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">Blueberry</span>
+            </div>
+
+            <!-- Hana -->
+            <div class="dark-item" style="border-left: 3px solid var(--warning-on);">
+              <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.72rem;">Hana <span style="color: #ffa500; font-size: 0.6rem;">&#x26A0; 乳製品過敏</span></div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">DAIRY-FREE限定</div>
+              </div>
+              <img src="tradejoes/daughter-yogurt-alternative.webp" style="width: 24px; height: 24px; border-radius: 3px; object-fit: cover;">
+              <img src="tradejoes/daughter-yogurt-alternative-02.webp" style="width: 24px; height: 24px; border-radius: 3px; object-fit: cover;">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="device-context">Samsung Family Hub &mdash; 冷蔵庫ディスプレイ</div>
+    </div>
+  </div>
+  <div class="slide__text">
+    <p class="section-label reveal">Substitution Dashboard</p>
+    <h2 class="section-title reveal reveal-delay-1">家族全員の好みを一覧</h2>
+    <p class="section-body reveal reveal-delay-2">4人全員のSubstitution Modeが一目で分かる。AIが勝手にモードを変えることはない。変更は常にユーザーの明示操作から。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 18: SCENE 4 title
+     ========================================== -->
+<section class="slide slide--photo" id="s18"
+  style="background-image: url('image-set02/IP-07_month9-family-gathering.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%);"></div>
+  <div class="slide__content">
+    <p class="section-label reveal" style="color: rgba(255,255,255,0.6);">SCENE 4 &mdash; MONTH 6</p>
+    <h2 class="section-title reveal reveal-delay-1" style="color: #fff;">Souta到着準備</h2>
+    <p class="section-body reveal reveal-delay-2" style="color: rgba(255,255,255,0.8); margin: 0 auto;">Kenjiの甥Souta（15歳）が3ヶ月のホームステイ。家族の信頼レベルはMonth 6。でも新メンバーSoutaはDay 1。同じシステムに2つの信頼レベルが共存する。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 19: SCENE 4 orchestration
+     ========================================== -->
+<section class="slide slide--center" id="s19" style="background: var(--g-surface-dim);">
+  <div class="slide__inner">
+    <p class="section-label reveal">Multi-Device Orchestration</p>
+    <h2 class="section-title reveal reveal-delay-1" style="font-size: clamp(2rem, 4.5vw, 3.2rem);">4人のデバイスが同時に変形する</h2>
+    <span class="direction-chip direction-chip--adaptation reveal reveal-delay-1" style="margin-bottom: 0.5rem;">ADAPTATION</span>
+    <p class="section-body centered reveal reveal-delay-2" style="margin-bottom: 0.75rem;">ドアベルがSoutaの到着を検知した瞬間、Social Exposureが変化し、TV・Phone・Nestが同時に変形する。料理は同じ。空間が変わっただけ。</p>
+    <p class="section-body centered reveal reveal-delay-2" style="margin-bottom: 1.5rem;">TV＝全体マップ。親のスマホ＝ダッシュボード。Ren(10)のタブレット＝ミッション画面。Hana(7)のタブレット＝おてつだいチェックリスト。</p>
+    <div class="reveal reveal-delay-3" style="max-width: 800px; margin: 0 auto;">
+      <img src="image-set02/IL-02_4device-house-crosssection.png" alt="4 Device House Cross Section" style="width: 100%; border-radius: var(--radius-md); box-shadow: var(--g-shadow-3);">
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 20: SCENE 4 Hana+Ren
+     ========================================== -->
+<section class="slide slide--pair" id="s20" style="background: var(--g-surface);">
+  <div class="pair-figure reveal">
+    <img src="image-set02/IP-08_month9-hana-welcome-card.jpg" alt="Hana welcome card" loading="lazy">
+    <p class="pair-figure__caption">Hanaのウェルカムカード</p>
+  </div>
+  <div class="pair-figure reveal reveal-delay-2">
+    <img src="image-set02/IP-09_month9-ren-vacuuming.jpg" alt="Ren vacuuming" loading="lazy">
+    <p class="pair-figure__caption">Renの掃除機ミッション</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 21: WHEN IT BREAKS
+     ========================================== -->
+<section class="slide slide--device" id="s21" style="background: var(--g-surface-dim);">
+  <div class="reveal">
+    <div class="phone-mockup">
+      <img class="phone__frame-svg" src="../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="">
+      <div class="phone__screen">
+        <div class="phone__dynamic-island"></div>
+        <div class="phone__statusbar">
+          <span>9:41</span>
+          <div class="phone__statusbar-icons">
+            <span class="material-symbols-rounded">signal_cellular_alt</span>
+            <span class="material-symbols-rounded">wifi</span>
+            <span class="material-symbols-rounded">battery_full</span>
+          </div>
+        </div>
+        <div class="phone__body" style="padding: 28px 12px 8px;">
+          <div style="text-align: center; margin-bottom: 10px;">
+            <span class="material-symbols-rounded" style="font-size: 32px; color: var(--warning-on);">warning</span>
+          </div>
+
+          <div style="background: var(--g-surface-dim); border-radius: 12px; padding: 12px; margin: 0 4px;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--g-on-surface); margin-bottom: 2px;">配達遅延</div>
+            <div style="font-size: 0.68rem; color: var(--warning-on); margin-bottom: 10px;">サーモンが遅れています +45分</div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <!-- Option 1 -->
+              <div style="background: var(--g-surface); border: 1.5px solid var(--g-blue); border-radius: 10px; padding: 10px;">
+                <div style="font-size: 0.72rem; font-weight: 600; color: var(--g-blue); margin-bottom: 2px;">&#x2460; ブロッコリー炒めに変更</div>
+                <div style="font-size: 0.6rem; color: var(--g-outline);">冷凍ブロッコリー使用 &middot; 追加なし</div>
+              </div>
+              <!-- Option 2 -->
+              <div style="background: var(--g-surface); border: 1.5px solid var(--g-outline-var); border-radius: 10px; padding: 10px;">
+                <div style="font-size: 0.72rem; font-weight: 600; color: var(--g-on-surface); margin-bottom: 2px;">&#x2461; 45分待つ</div>
+                <div style="font-size: 0.6rem; color: var(--g-outline);">メニューそのまま &middot; 夕食7PM</div>
+              </div>
+              <!-- Option 3 -->
+              <div style="background: var(--g-surface); border: 1.5px solid var(--g-outline-var); border-radius: 10px; padding: 10px;">
+                <div style="font-size: 0.72rem; font-weight: 600; color: var(--g-on-surface); margin-bottom: 2px;">&#x2462; Uber Eatsに切替</div>
+                <div style="font-size: 0.6rem; color: var(--g-outline);">推定$45</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide__text">
+    <p class="section-label reveal">When It Breaks</p>
+    <h2 class="section-title reveal reveal-delay-1">壊れ方にこそ信頼が現れる</h2>
+    <p class="section-body reveal reveal-delay-2">黙って待たせない。勝手に切り替えない。選択肢を構造化して、トレードオフを明示し、判断は人間に委ねる。これがEscalation。</p>
+    <div class="reveal reveal-delay-3" style="margin-top: 1.5rem;">
+      <span class="direction-chip direction-chip--escalation">ESCALATION RECOVERY</span>
+      <div style="display: flex; gap: 12px; margin-top: 0.75rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 180px; padding: 14px 16px; background: var(--error-container); border-radius: var(--radius-md); text-align: center;">
+          <div style="font-size: 1.4rem; margin-bottom: 4px;">⚡</div>
+          <div style="font-size: 0.78rem; font-weight: 600; color: var(--error-on);">失敗発生</div>
+          <div style="font-size: 0.7rem; color: var(--g-on-surface-var); margin-top: 4px;">Autonomy Dial 自動降格<br>Confirm → Suggest</div>
+        </div>
+        <div style="flex: 1; min-width: 180px; padding: 14px 16px; background: var(--warning-container); border-radius: var(--radius-md); text-align: center;">
+          <div style="font-size: 1.4rem; margin-bottom: 4px;">🔧</div>
+          <div style="font-size: 0.78rem; font-weight: 600; color: var(--warning-on);">ユーザーが修正</div>
+          <div style="font-size: 0.7rem; color: var(--g-on-surface-var); margin-top: 4px;">「全部無糖」ではなく<br>「Yukiだけ加糖」と教える</div>
+        </div>
+        <div style="flex: 1; min-width: 180px; padding: 14px 16px; background: var(--success-container); border-radius: var(--radius-md); text-align: center;">
+          <div style="font-size: 1.4rem; margin-bottom: 4px;">✓</div>
+          <div style="font-size: 0.78rem; font-weight: 600; color: var(--success-on);">信頼回復</div>
+          <div style="font-size: 0.7rem; color: var(--g-on-surface-var); margin-top: 4px;">次回成功で Dial 再上昇<br>Suggest → Confirm</div>
+        </div>
+      </div>
+      <div class="restaurant-note" style="margin-top: 1rem;">注文と違うものが出てきた。お店が「すみません、すぐ作り直します」と対応する。次回来た時「前回のご注文を確認してよろしいですか？」と慎重になる。これが信頼回復の設計。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 22: SCENE 5 title
+     ========================================== -->
+<section class="slide slide--photo" id="s22"
+  style="background-image: url('image-set02/IP-10_year1-hero-callback.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%);"></div>
+  <div class="slide__content">
+    <p class="section-label reveal" style="color: rgba(255,255,255,0.6);">SCENE 5 &mdash; 半年後</p>
+    <h2 class="section-title reveal reveal-delay-1" style="color: #fff;">何もしていないのに<br>全部揃っている</h2>
+    <p class="section-body reveal reveal-delay-2" style="color: rgba(255,255,255,0.8); margin: 0 auto;">冷蔵庫を開けたら、全部ある。Yukiのハニーヨーグルト。Hanaのカシューヨーグルト。Renのブルーベリー。誰も何も頼んでいない。「今夜何にする？」と悩む45分が消えた。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 23: SCENE 5 Final Hub
+     ========================================== -->
+<section class="slide slide--device" id="s23" style="background: var(--g-surface);">
+  <div class="reveal" style="grid-column: 1;">
+    <div class="hub-mockup">
+      <div class="hub__frame">
+        <div class="hub__screen">
+          <div class="hub__statusbar">
+            <img src="../Global_Assets/Brand_Logos/samsung.jpg" alt="SAMSUNG" style="height: 14px; width: auto;">
+            <span>7:00 AM</span>
+          </div>
+          <div class="hub__body">
+            <div style="font-size: 0.72rem; color: rgba(255,255,255,0.5); margin-bottom: 0.25rem;">おはようございます</div>
+            <div style="font-size: 0.92rem; font-weight: 700; margin-bottom: 0.15rem;">Mori Family &middot; 6 Months</div>
+            <div style="font-size: 0.62rem; color: rgba(52,168,83,0.8); margin-bottom: 0.75rem;">&#x2713; すべて順調</div>
+
+            <!-- Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+              <!-- Tonight's menu -->
+              <div style="background: rgba(255,255,255,0.06); border-radius: 8px; padding: 8px;">
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.4); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em;">今夜のメニュー</div>
+                <div style="font-size: 0.72rem; font-weight: 600;">Teriyaki Salmon Bowl</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">22分 &middot; Hana対応済&#x2713;</div>
+              </div>
+              <!-- Fridge -->
+              <div style="background: rgba(255,255,255,0.06); border-radius: 8px; padding: 8px;">
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.4); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em;">冷蔵庫</div>
+                <div style="font-size: 0.6rem; color: rgba(255,255,255,0.7); line-height: 1.5;">Honey Yogurt&times;4<br>Blueberry(Ren)<br>乳製品フリー(Hana)<br>Salmon &middot; Fries</div>
+              </div>
+              <!-- Schedule -->
+              <div style="background: rgba(255,255,255,0.06); border-radius: 8px; padding: 8px;">
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.4); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em;">今日の予定</div>
+                <div style="font-size: 0.6rem; color: rgba(255,255,255,0.7); line-height: 1.5;">Kenji: WFH<br>Yuki: 休日<br>Ren: Soccer 3PM<br>Hana: 友達と遊ぶ</div>
+              </div>
+              <!-- Auto order -->
+              <div style="background: rgba(52,168,83,0.12); border-radius: 8px; padding: 8px; border: 1px solid rgba(52,168,83,0.2);">
+                <div style="font-size: 0.58rem; color: rgba(52,168,83,0.7); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em;">自動注文完了</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: rgba(52,168,83,0.9);">$14</div>
+                <div style="font-size: 0.58rem; color: rgba(255,255,255,0.5);">定番食材のみ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="device-context">Samsung Family Hub &mdash; 半年後の完成形</div>
+    </div>
+  </div>
+  <div class="slide__text">
+    <p class="section-label reveal">半年後 &mdash; 完成形</p>
+    <h2 class="section-title reveal reveal-delay-1">すべて自動</h2>
+    <p class="section-body reveal reveal-delay-2">定番食材は通知すらしない。Yukiの Honey Yogurt は常にある。Hanaの乳製品フリーは完璧に守られている。冷蔵庫を開ける必要すらない朝。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 24: SCENE 5 dinner
+     ========================================== -->
+<section class="slide slide--photo" id="s24"
+  style="background-image: url('image-set02/IP-11_year1-family-dinner.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 100%);"></div>
+  <div class="slide__content">
+    <p class="reveal" style="font-size: clamp(1.35rem, 3vw, 1.85rem); font-weight: 300; line-height: 1.65; color: rgba(255,255,255,0.9); max-width: 800px; margin: 0 auto;">冷蔵庫を開けたら、全部揃っている。誰も何も頼んでいない。これが、家族の文脈を学んだAIの姿。</p>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 25: TRUST TIMELINE
+     ========================================== -->
+<section class="slide slide--center" id="s25" style="background: var(--g-surface-dim);">
+  <div class="slide__inner">
+    <p class="section-label reveal">Over Time</p>
+    <h2 class="section-title reveal reveal-delay-1">信頼は関係である</h2>
+
+    <div class="reveal reveal-delay-2" style="max-width: 800px; margin: 0 auto 1.5rem;">
+      <img src="image-set02/IL-04_trust-timeline.png" alt="Trust Timeline Illustration" style="width: 100%; border-radius: var(--radius-md); box-shadow: var(--g-shadow-2);">
+    </div>
+
+    <div class="timeline reveal reveal-delay-3">
+      <div class="timeline__line"></div>
+      <div class="timeline__phase">
+        <div class="timeline__dot timeline__dot--red"></div>
+        <div class="timeline__name">Suggest</div>
+        <div class="timeline__when">Day 1</div>
+        <div style="font-size: 0.65rem; color: var(--g-on-surface-var); margin-top: 0.15rem;">10件の候補</div>
+      </div>
+      <div class="timeline__phase">
+        <div class="timeline__dot timeline__dot--amber"></div>
+        <div class="timeline__name">Confirm</div>
+        <div class="timeline__when">Week 1</div>
+        <div style="font-size: 0.65rem; color: var(--g-on-surface-var); margin-top: 0.15rem;">1つの提案</div>
+      </div>
+      <div class="timeline__phase">
+        <div class="timeline__dot timeline__dot--blue"></div>
+        <div class="timeline__name">Notify</div>
+        <div class="timeline__when">Month 1</div>
+        <div style="font-size: 0.65rem; color: var(--g-on-surface-var); margin-top: 0.15rem;">自動実行+通知</div>
+      </div>
+      <div class="timeline__phase">
+        <div class="timeline__dot timeline__dot--green"></div>
+        <div class="timeline__name">Autonomous</div>
+        <div class="timeline__when">Month 3+</div>
+        <div style="font-size: 0.65rem; color: var(--g-on-surface-var); margin-top: 0.15rem;">完全自律</div>
+      </div>
+    </div>
+
+    <div class="explicit-note reveal reveal-delay-4">
+      <strong>Explicit Dial（常に一定）:</strong> アレルギー情報、安全ルール、Exact Modeの商品 &mdash; これらはAIの自律レベルに関係なく、ユーザーが明示的に管理する。
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 26: DESIGN DECISIONS
+     ========================================== -->
+<section class="slide slide--center" id="s26" style="background: var(--g-surface);">
+  <div class="slide__inner">
+    <p class="section-label reveal">Design Decisions</p>
+    <h2 class="section-title reveal reveal-delay-1">設計判断</h2>
+
+    <div class="reveal reveal-delay-2">
+      <table class="decision-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>選んだもの</th>
+            <th>理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>信頼モデル</td>
+            <td>時間経過型4段階</td>
+            <td>関係は育つもの</td>
+          </tr>
+          <tr>
+            <td>提案数</td>
+            <td>学習後は1案のみ</td>
+            <td>選択は負荷</td>
+          </tr>
+          <tr>
+            <td>Substitution</td>
+            <td>4モード</td>
+            <td>人により許容範囲が違う</td>
+          </tr>
+          <tr>
+            <td>Exact Mode</td>
+            <td>味を守る(サイズは柔軟)</td>
+            <td>体験の本質を守る</td>
+          </tr>
+          <tr>
+            <td>子どもUI</td>
+            <td>年齢別に分化</td>
+            <td>認知発達段階が違う</td>
+          </tr>
+          <tr>
+            <td>Escalation</td>
+            <td>3択+文脈説明</td>
+            <td>判断を奪わない</td>
+          </tr>
+          <tr>
+            <td>新メンバー</td>
+            <td>Week 1からスタート</td>
+            <td>信頼はユーザー単位</td>
+          </tr>
+          <tr>
+            <td>Home Brain</td>
+            <td>独立アプリ</td>
+            <td>デバイス制御&#x2260;生活理解</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="reveal reveal-delay-3" style="margin-top: 2rem;">
+      <p style="font-size: 0.82rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--g-on-surface-var); margin-bottom: 0.75rem;">3 Directions in P1</p>
+      <div class="direction-summary">
+        <div class="direction-summary-card">
+          <h4 style="color: var(--g-blue);">Delegation</h4>
+          <ul>
+            <li>Substitution Modes（Exact→Surprise）</li>
+            <li>松葉杖の処分（Proactive Nudge）</li>
+            <li>Week 1 Suggest → Month 6 Auto</li>
+          </ul>
+        </div>
+        <div class="direction-summary-card">
+          <h4 style="color: var(--error-on);">Escalation</h4>
+          <ul>
+            <li>医療ログ（AIが診断を拒否）</li>
+            <li>ヨーグルト失敗→信頼降格→回復</li>
+            <li>売切時の3択提示</li>
+          </ul>
+        </div>
+        <div class="direction-summary-card">
+          <h4 style="color: var(--warning-on);">Adaptation</h4>
+          <ul>
+            <li>ゲストモード（4デバイス同時変形）</li>
+            <li>Cognitive Load対応（疲れた夜→3択）</li>
+            <li>Deep Night Mode</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SLIDE 27: CLOSING
+     ========================================== -->
+<section class="slide slide--photo" id="s27"
+  style="background-image: url('image-set02/IP-01_hero-fridge.jpg');">
+  <div class="slide__overlay" style="background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.8) 100%);"></div>
+  <div class="slide__content">
+    <p class="reveal" style="font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 700; line-height: 1.3; color: #fff; margin-bottom: 0.5rem;">Autonomy is not a feature.<br>It&rsquo;s a relationship.</p>
+    <p class="reveal reveal-delay-1" style="font-size: clamp(1rem, 2vw, 1.3rem); font-weight: 300; color: rgba(255,255,255,0.7); margin-bottom: 2rem;">信頼は機能ではない。関係だ。</p>
+    <p class="reveal reveal-delay-2" style="font-family: 'DM Mono', monospace; font-size: 0.72rem; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; margin-bottom: 1rem;">Project 01 &mdash; The Living Home &middot; Context Grammar Portfolio</p>
+    <div class="article-chips reveal reveal-delay-3">
+      <span class="article-chip">#05 JTBD</span>
+      <span class="article-chip">#06 Adaptive UX</span>
+      <span class="article-chip">#07 Knowledge Architecture</span>
+      <span class="article-chip">#09 Autonomy Map</span>
+      <span class="article-chip">#10 Escalation</span>
+      <span class="article-chip">#11 Ren</span>
+      <span class="article-chip">#14 Trust Architecture</span>
+    </div>
+  </div>
+</section>
+
+</div><!-- .deck -->
+
+<!-- ==========================================
+     JAVASCRIPT
+     ========================================== -->
+<script>
+(function() {
+  'use strict';
+
+  var deck = document.getElementById('deck');
+  var slides = document.querySelectorAll('.slide');
+  var counter = document.getElementById('slideCounter');
+  var totalSlides = slides.length;
+
+  /* ========================================
+     SLIDE COUNTER
+     ======================================== */
+  function updateCounter() {
+    var idx = Math.round(deck.scrollTop / window.innerHeight);
+    var current = Math.min(Math.max(idx + 1, 1), totalSlides);
+    counter.textContent = current + ' / ' + totalSlides;
+
+    // Toggle dark/light counter based on slide type
+    var currentSlide = slides[Math.min(idx, totalSlides - 1)];
+    if (currentSlide && currentSlide.classList.contains('slide--photo')) {
+      counter.classList.add('on-dark');
+    } else {
+      counter.classList.remove('on-dark');
+    }
+  }
+  deck.addEventListener('scroll', updateCounter);
+  updateCounter();
+
+  /* ========================================
+     KEYBOARD NAVIGATION
+     ======================================== */
+  document.addEventListener('keydown', function(e) {
+    var idx = Math.round(deck.scrollTop / window.innerHeight);
+
+    if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      var next = Math.min(idx + 1, totalSlides - 1);
+      slides[next].scrollIntoView({ behavior: 'smooth' });
+    }
+    if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      var prev = Math.max(idx - 1, 0);
+      slides[prev].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  /* ========================================
+     SCROLL REVEAL (IntersectionObserver)
+     ======================================== */
+  var revealElements = document.querySelectorAll('.reveal');
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    root: deck,
+    threshold: 0.2
+  });
+
+  revealElements.forEach(function(el) {
+    revealObserver.observe(el);
+  });
+
+  /* ========================================
+     TYPEWRITER EFFECT (Hero hook)
+     ======================================== */
+  var heroHook = document.getElementById('heroHook');
+  var hookText = '\u51B7\u8535\u5EAB\u3092\u958B\u3051\u305F\u3089\u3001\u5168\u90E8\u63C3\u3063\u3066\u3044\u308B\u3002\u8AB0\u306E\u3001\u4F55\u304C\u3001\u306A\u305C\u5FC5\u8981\u304B\u307E\u3067\u3002\u2014\u2014\u3067\u3082\u521D\u65E5\u3001AI\u306F\u30E8\u30FC\u30B0\u30EB\u30C8\u306E\u9055\u3044\u3059\u3089\u77E5\u3089\u306A\u304B\u3063\u305F\u3002';
+  var hookIndex = 0;
+  var typewriterStarted = false;
+
+  function typewriterTick() {
+    if (hookIndex <= hookText.length) {
+      heroHook.innerHTML = hookText.substring(0, hookIndex) + '<span class="typewriter-cursor"></span>';
+      hookIndex++;
+      var delay = 32;
+      // Pause slightly on Japanese punctuation
+      var prevChar = hookText[hookIndex - 2];
+      if (prevChar === '\u3001' || prevChar === '\u3002' || prevChar === '\u300D' || prevChar === '\u2014' || prevChar === '\u300C') {
+        delay = 120;
+      }
+      setTimeout(typewriterTick, delay);
+    } else {
+      // Remove cursor after a delay
+      setTimeout(function() {
+        heroHook.innerHTML = hookText;
+      }, 2000);
+    }
+  }
+
+  // Start typewriter when hero slide is visible
+  var heroObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !typewriterStarted) {
+        typewriterStarted = true;
+        setTimeout(typewriterTick, 800);
+      }
+    });
+  }, {
+    root: deck,
+    threshold: 0.5
+  });
+  heroObserver.observe(document.getElementById('s01'));
+
+  /* ========================================
+     LEARNING ANIMATION (Slide 11)
+     ======================================== */
+  var learningAnimated = false;
+  var s11 = document.getElementById('s11');
+  if (s11) {
+    var learningObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting && !learningAnimated) {
+          learningAnimated = true;
+          runLearningAnim();
+        }
+      });
+    }, { root: deck, threshold: 0.3 });
+    learningObserver.observe(s11);
+  }
+
+})();
+
+/* Learning animation - runs steps sequentially */
+function runLearningAnim() {
+  var steps = document.querySelectorAll('.learn-step');
+  steps.forEach(function(step, i) {
+    step.style.opacity = '0';
+    step.style.transform = 'translateX(20px)';
+    setTimeout(function() {
+      step.style.opacity = '1';
+      step.style.transform = 'translateX(0)';
+    }, 400 + i * 800);
+  });
+}
+
+function replayLearningAnim() {
+  var steps = document.querySelectorAll('.learn-step');
+  steps.forEach(function(step) {
+    step.style.opacity = '0';
+    step.style.transform = 'translateX(20px)';
+  });
+  setTimeout(runLearningAnim, 200);
+}
+</script>
+
+</body>
+</html>
