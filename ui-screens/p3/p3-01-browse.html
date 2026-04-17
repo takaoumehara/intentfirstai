@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3-01 Full Browse — Comparison Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  html { overflow: hidden; height: 100%; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+  }
+  /* noframe mode: hide outer shell, fill viewport with screen content */
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .phone-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none;
+  }
+  body.noframe .phone-frame::before,
+  body.noframe .phone-frame::after { display: none; }
+  body.noframe .phone-screen { border-radius: 0; }
+  body.noframe .notch { display: none; }
+  body.noframe .status-bar { display: none; }
+  body.noframe .scene-badge { display: none !important; }
+
+  /* ── Phone Frame (iPhone 15 Pro) ── */
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px;
+    padding: 11px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 16px) / 844px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.14),
+      0 24px 48px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  /* Side button — power */
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 130px;
+    width: 3px;
+    height: 52px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 0 2px 2px 0;
+  }
+  /* Side buttons — volume + mute */
+  .phone-frame::after {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 110px;
+    width: 3px;
+    height: 30px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 42px 0 #2a2a2c, 0 72px 0 #2a2a2c;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Dynamic Island ── */
+  .notch {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
+  }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    height: 54px; padding: 14px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 15px; font-weight: 600; color: #202124;
+    position: relative; z-index: 50; background: #FFFFFF;
+  }
+  .status-bar-right { display: flex; gap: 5px; align-items: center; }
+  .status-bar-right .material-symbols-outlined { font-size: 17px; }
+
+  /* Header */
+  .header {
+    height: 56px; padding: 0 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #F1F3F4;
+  }
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .header-left .material-symbols-outlined { font-size: 24px; color: #5F6368; cursor: pointer; }
+  .gemini-badge {
+    font-size: 15px; font-weight: 500; color: #1A73E8;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .header-right { display: flex; gap: 4px; }
+  .header-right .material-symbols-outlined { font-size: 24px; color: #5F6368; cursor: pointer; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex; gap: 8px; padding: 10px 16px;
+    overflow-x: auto; background: #fff;
+    border-bottom: 1px solid #F1F3F4;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 13px; font-weight: 500; padding: 6px 14px;
+    border-radius: 9999px; border: 1px solid #DADCE0;
+    background: #fff; color: #5F6368; white-space: nowrap;
+    cursor: pointer; transition: background 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, transform 100ms ease-out;
+  }
+  .filter-chip:active { transform: scale(0.97); }
+  @media (hover: hover) and (pointer: fine) {
+    .filter-chip:hover { border-color: #1A73E8; color: #1A73E8; }
+  }
+  .filter-chip.active { background: #E8F0FE; border-color: #1A73E8; color: #1A73E8; }
+  .filter-chip .material-symbols-outlined { font-size: 16px; }
+
+  /* Tab bar */
+  .tab-bar {
+    display: flex; background: #fff; border-bottom: 1px solid #F1F3F4; height: 42px;
+  }
+  .tab {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; color: #5F6368;
+    cursor: pointer; position: relative; transition: color 150ms ease-out; gap: 4px;
+  }
+  .tab.active { color: #1A73E8; }
+  .tab::after {
+    content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+    height: 3px; background: #1A73E8; border-radius: 3px 3px 0 0;
+    transform: scaleX(0); transition: transform 200ms var(--ease-out-expo);
+  }
+  .tab.active::after { transform: scaleX(1); }
+  .tab .badge {
+    font-size: 10px; min-width: 16px; height: 16px;
+    border-radius: 8px; display: inline-flex; align-items: center;
+    justify-content: center; padding: 0 4px; font-weight: 700;
+  }
+  .badge-blue { background: #E8F0FE; color: #1A73E8; }
+  .badge-amber { background: #FEF7E0; color: #b47a00; }
+  .badge-red { background: #FCE8E6; color: #D93025; }
+
+  /* Scrollable Content — height = screen - statusbar - header - filters - tabs - homebar */
+  /* phone-screen inner height = 844 - 22 (padding) = 822px */
+  .content {
+    height: calc(822px - 54px - 56px - 46px - 42px - 34px);
+    overflow-y: auto;
+    padding: 12px 16px;
+    background: #F8F9FA;
+    scroll-behavior: smooth;
+  }
+  .content::-webkit-scrollbar { width: 0; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .empty-state {
+    text-align: center; padding: 40px 24px; color: #9AA0A6;
+  }
+  .empty-state .material-symbols-outlined { font-size: 36px; margin-bottom: 8px; display: block; }
+  .empty-state p { font-size: 13px; line-height: 1.5; }
+
+  /* ═══ Product Cards ═══ */
+  .product-card {
+    background: #FFFFFF; border-radius: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+    opacity: 0; transform: translateY(20px);
+    animation: cardEnter 400ms var(--ease-out-expo) forwards;
+  }
+  .product-card:nth-child(1) { animation-delay: 40ms; }
+  .product-card:nth-child(2) { animation-delay: 80ms; }
+  .product-card:nth-child(3) { animation-delay: 120ms; }
+  .product-card:nth-child(4) { animation-delay: 160ms; }
+  .product-card:nth-child(5) { animation-delay: 200ms; }
+  .product-card:nth-child(6) { animation-delay: 240ms; }
+  .product-card:nth-child(7) { animation-delay: 280ms; }
+  .product-card:nth-child(8) { animation-delay: 320ms; }
+  .product-card.removing {
+    animation: cardExit 200ms cubic-bezier(0.4,0,1,1) forwards;
+  }
+  @keyframes cardEnter { to { opacity: 1; transform: translateY(0); } }
+  @keyframes cardExit { to { opacity: 0; transform: translateX(80px); max-height: 0; margin: 0; } }
+
+  .card-main { padding: 16px; cursor: pointer; transition: background 120ms ease-out; }
+  .card-main:active { background: #F8F9FA; }
+  @media (hover: hover) and (pointer: fine) {
+    .card-main:hover { background: #FAFBFC; }
+  }
+
+  .product-header { display: flex; gap: 12px; }
+  .product-image {
+    width: 80px; height: 80px; border-radius: 12px;
+    background: #F8F9FA; flex-shrink: 0; overflow: hidden;
+  }
+  .product-image img { width: 100%; height: 100%; object-fit: contain; }
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-size: 15px; font-weight: 500; color: #202124; margin-bottom: 1px; }
+  .product-brand { font-size: 12px; color: #5F6368; margin-bottom: 4px; }
+  .product-price { font-size: 18px; font-weight: 700; color: #202124; }
+
+  .product-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 9999px;
+  }
+  .chip--blue { background: #E8F0FE; color: #1A73E8; }
+  .chip--green { background: #E6F4EA; color: #1E8E3E; }
+  .chip--amber { background: #FEF7E0; color: #b47a00; }
+  .chip--teal { background: #E0F2F1; color: #00897B; }
+
+  .specs-row {
+    display: flex; align-items: center; gap: 8px; margin-top: 10px;
+    padding-top: 10px; border-top: 1px solid #F1F3F4;
+  }
+  .confidence-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 8px;
+  }
+  .confidence-pill.high { background: #E6F4EA; color: #1E8E3E; }
+  .confidence-pill.mid { background: #E8F0FE; color: #1A73E8; }
+  .confidence-pill.low { background: #FEF7E0; color: #b47a00; }
+  .spec-item {
+    font-size: 11px; color: #5F6368;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .spec-item .material-symbols-outlined { font-size: 14px; }
+
+  /* Quick actions — pill buttons matching p3-02 style */
+  .card-actions {
+    display: flex; gap: 6px;
+    padding: 8px 12px 10px;
+    background: #fff;
+  }
+  .card-action {
+    flex: 1; height: 40px;
+    border-radius: 100px; border: none;
+    display: flex; align-items: center; justify-content: center;
+    gap: 5px; cursor: pointer;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    letter-spacing: 0.2px;
+    transition: transform 120ms ease-out, opacity 120ms ease-out;
+  }
+  .card-action .material-symbols-outlined { font-size: 17px; }
+  .card-action:active { transform: scale(0.96); opacity: 0.85; }
+  .card-action--save { background: #E6F4EA; color: #1E8E3E; }
+  .card-action--hold { background: #FEF7E0; color: #E37400; }
+  .card-action--remove { background: #FDE7E5; color: #D93025; }
+  .card-action--restore { background: #E8F0FE; color: #1A73E8; }
+  @media (hover: hover) and (pointer: fine) {
+    .card-action--save:hover { background: #C8E6C9; }
+    .card-action--hold:hover { background: #FFF0C0; }
+    .card-action--remove:hover { background: #F5B7B1; }
+    .card-action--restore:hover { background: #D2E3FC; }
+  }
+
+  /* ═══ DETAIL BOTTOM SHEET ═══ */
+  .detail-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 50;
+    background: rgba(0,0,0,0.32);
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms;
+  }
+  .detail-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .detail-sheet {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    z-index: 51; background: #fff;
+    border-radius: 24px 24px 0 0;
+    transform: translateY(100%);
+    transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1);
+    height: calc(100% - 54px);
+    display: flex; flex-direction: column;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.15);
+  }
+  .detail-sheet.open { transform: translateY(0); }
+
+  .detail-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px 8px; flex-shrink: 0;
+  }
+  .detail-handle {
+    width: 32px; height: 4px; background: #DADCE0;
+    border-radius: 2px; position: absolute; top: 10px; left: 50%;
+    transform: translateX(-50%); cursor: pointer;
+  }
+  .detail-close {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #F1F3F4; border: none; cursor: pointer;
+    transition: background 150ms;
+  }
+  .detail-close:active { background: #DADCE0; }
+  .detail-close .material-symbols-outlined { font-size: 20px; color: #5F6368; }
+
+  .detail-nav {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .detail-nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #F1F3F4; border: none; cursor: pointer;
+    transition: background 150ms, opacity 150ms; font-family: inherit;
+  }
+  .detail-nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .detail-nav-btn:not(:disabled):active { background: #DADCE0; }
+  .detail-nav-btn .material-symbols-outlined { font-size: 20px; color: #5F6368; }
+  .detail-nav-counter {
+    font-size: 12px; color: #9AA0A6; font-weight: 500; min-width: 32px; text-align: center;
+  }
+
+  .detail-scroll {
+    overflow-y: auto; flex: 1; padding: 0 20px 24px;
+    overscroll-behavior: contain;
+  }
+  .detail-scroll::-webkit-scrollbar { width: 0; }
+
+  /* Gallery with dots */
+  .detail-gallery-wrap { position: relative; margin: 0 -20px; }
+  .detail-gallery {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding: 0 20px 8px;
+  }
+  .detail-gallery::-webkit-scrollbar { display: none; }
+  .detail-gallery-item {
+    width: 100%; flex-shrink: 0; scroll-snap-align: center;
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px;
+  }
+  .detail-gallery-item img {
+    width: 100%; max-height: 240px; object-fit: contain;
+    border-radius: 16px; background: #F8F9FA;
+  }
+  .gallery-dots {
+    display: flex; gap: 6px; justify-content: center; padding: 4px 0 12px;
+  }
+  .gallery-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #DADCE0; transition: background 150ms, width 150ms, border-radius 150ms;
+  }
+  .gallery-dot.active { background: #1A73E8; width: 18px; border-radius: 3px; }
+
+  .detail-title { font-size: 20px; font-weight: 700; color: #202124; margin-bottom: 2px; }
+  .detail-brand { font-size: 14px; color: #5F6368; margin-bottom: 4px; }
+  .detail-price { font-size: 24px; font-weight: 700; color: #202124; margin-bottom: 12px; }
+
+  .detail-section-title {
+    font-size: 11px; font-weight: 600; color: #9AA0A6;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin: 16px 0 8px; display: flex; align-items: center; gap: 6px;
+  }
+
+  /* Confidence detail */
+  .confidence-detail {
+    background: #F8F9FA; border-radius: 12px; padding: 14px;
+  }
+  .confidence-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .confidence-score { font-size: 20px; font-weight: 700; }
+  .confidence-score.high { color: #1E8E3E; }
+  .confidence-score.mid { color: #1A73E8; }
+  .confidence-score.low { color: #F9AB00; }
+  .confidence-basis { font-size: 12px; color: #5F6368; line-height: 1.5; }
+  .confidence-bar-wrap {
+    height: 6px; background: #E8EAED; border-radius: 3px;
+    overflow: hidden; margin-bottom: 8px;
+  }
+  .confidence-bar-fill {
+    height: 100%; border-radius: 3px; width: 0;
+    transition: width 600ms cubic-bezier(0.2,0,0,1);
+  }
+
+  /* Translation insight */
+  .translation-insight {
+    background: #F8F9FA;
+    border: 1px solid #E8EAED; border-radius: 12px; padding: 14px; margin-top: 8px;
+  }
+  .translation-label {
+    font-size: 11px; font-weight: 600; color: #5F6368;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .translation-text { font-size: 13px; color: #5F6368; line-height: 1.6; }
+  .translation-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .translation-tag {
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 4px; background: #fff; border: 1px solid #DADCE0; color: #5F6368;
+  }
+  .translation-tag.pass { background: #F1F3F4; border-color: #DADCE0; color: #1E8E3E; }
+  .translation-tag.fail { background: #F1F3F4; border-color: #DADCE0; color: #D93025; }
+
+  .detail-spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .detail-spec { background: #F8F9FA; border-radius: 12px; padding: 12px; }
+  .detail-spec-label { font-size: 11px; color: #9AA0A6; margin-bottom: 2px; }
+  .detail-spec-value { font-size: 14px; font-weight: 500; color: #202124; }
+
+  .detail-review { background: #F8F9FA; border-radius: 12px; padding: 14px; margin-top: 8px; }
+  .detail-review-text { font-size: 13px; color: #5F6368; line-height: 1.6; font-style: italic; }
+  .detail-review-source { font-size: 11px; color: #9AA0A6; margin-top: 6px; }
+
+  /* Sticky action bar at bottom of detail */
+  .detail-action-bar {
+    display: flex; gap: 6px; padding: 10px 16px 46px;
+    border-top: 1px solid #F1F3F4; flex-shrink: 0; background: #fff;
+  }
+  .detail-btn {
+    flex: 1; height: 44px; border-radius: 100px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: none; display: flex; align-items: center;
+    justify-content: center; gap: 6px;
+    transition: transform 120ms ease-out, opacity 120ms ease-out;
+    font-family: inherit; letter-spacing: 0.2px;
+  }
+  .detail-btn:active { transform: scale(0.96); opacity: 0.85; }
+  .detail-btn .material-symbols-outlined { font-size: 17px; }
+  .detail-btn--primary { background: #E6F4EA; color: #1E8E3E; }
+  .detail-btn--secondary { background: #FEF7E0; color: #E37400; }
+  .detail-btn--danger { background: #FDE7E5; color: #D93025; }
+  @media (hover: hover) and (pointer: fine) {
+    .detail-btn--primary:hover { background: #C8E6C9; }
+    .detail-btn--secondary:hover { background: #FFF0C0; }
+    .detail-btn--danger:hover { background: #F5B7B1; }
+  }
+
+  /* ═══ TOAST ═══ */
+  .toast {
+    position: absolute; top: 64px; left: 16px; right: 16px;
+    background: #202124; color: #fff; padding: 10px 16px;
+    border-radius: 12px; font-size: 13px; font-weight: 500;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 60; transform: translateY(-80px); opacity: 0;
+    transition: transform 180ms cubic-bezier(0.4, 0, 1, 1), opacity 150ms cubic-bezier(0.4, 0, 1, 1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  .toast.visible {
+    transform: translateY(0); opacity: 1;
+    transition: transform 320ms var(--ease-out-expo), opacity 280ms var(--ease-out-expo);
+  }
+  .toast-undo {
+    color: #8AB4F8; font-weight: 600; cursor: pointer;
+    padding: 4px 8px; border-radius: 8px; transition: background 150ms;
+  }
+  .toast-undo:active { background: rgba(138,180,248,0.15); }
+
+  /* ── Home Indicator ── */
+  .home-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    z-index: 52;
+    pointer-events: none;
+  }
+  .home-indicator-bar { width: 134px; height: 5px; background: #202124; border-radius: 100px; }
+
+  /* Subtitle */
+  .content-subtitle {
+    font-size: 12px; color: #9AA0A6; font-weight: 500;
+    padding: 0 0 8px; display: flex; align-items: center; gap: 4px;
+  }
+  .content-subtitle .material-symbols-outlined { font-size: 14px; }
+
+  /* Cast button */
+  .cast-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px; margin-top: 8px;
+    background: #1A73E8; color: #fff; border: none; border-radius: 12px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: inherit; transition: background 150ms, transform 150ms;
+  }
+  .cast-btn:active { background: #1765CC; transform: scale(0.98); }
+  .cast-btn .material-symbols-outlined { font-size: 20px; }
+
+  /* Translation signal banner */
+  .translation-signal {
+    background: linear-gradient(135deg, #EDE7F6 0%, #E8EAF6 100%);
+    border: 1px solid #D1C4E9; border-radius: 12px; padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .translation-signal-label {
+    font-size: 11px; font-weight: 600; color: #5E35B1;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .translation-signal-text {
+    font-size: 13px; color: #5F6368; line-height: 1.5;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ── Scene Badge (hidden) ── */
+  .scene-badge {
+    display: none !important;
+  }
+
+  /* ── Commute Ready Note ── */
+  .commute-ready-note {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 16px; margin-top: 8px;
+    background: #F8F9FA; border-radius: 12px;
+    font-size: 13px; font-weight: 500; color: #9AA0A6;
+    border: 1px dashed #DADCE0;
+  }
+  .commute-ready-note .material-symbols-outlined { font-size: 18px; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+<div class="phone-screen">
+  <div class="notch"></div>
+  <div class="scene-badge scene-badge--01">
+    <span class="material-symbols-outlined" style="font-size:12px">home</span>
+    Scene 1 · At Home
+  </div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-bar-right">
+      <span class="material-symbols-outlined">signal_cellular_alt</span>
+      <span class="material-symbols-outlined">wifi</span>
+      <span class="material-symbols-outlined">battery_full</span>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="header-left">
+      <span class="material-symbols-outlined">arrow_back</span>
+      <div class="gemini-badge"><span style="color:#1A73E8;">✦</span> Shoe Search</div>
+    </div>
+    <div class="header-right">
+      <span class="material-symbols-outlined">tune</span>
+      <span class="material-symbols-outlined">more_vert</span>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-chip active">✓ Waterproof</div>
+    <div class="filter-chip active">✓ Black</div>
+    <div class="filter-chip active">✓ No fluffy</div>
+    <div class="filter-chip active">✓ Size US 3Y</div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" data-tab="candidates" onclick="switchTab('candidates')">
+      Candidates <span class="badge badge-blue" id="badge-candidates">8</span>
+    </div>
+    <div class="tab" data-tab="saved" onclick="switchTab('saved')">
+      Saved <span class="badge badge-blue" id="badge-saved" style="display:none;"></span>
+    </div>
+    <div class="tab" data-tab="held" onclick="switchTab('held')">
+      Hold <span class="badge badge-amber" id="badge-held" style="display:none;"></span>
+    </div>
+    <div class="tab" data-tab="removed" onclick="switchTab('removed')">
+      Removed <span class="badge badge-red" id="badge-removed" style="display:none;"></span>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="tab-panel active" id="panel-candidates"></div>
+    <div class="tab-panel" id="panel-saved"></div>
+    <div class="tab-panel" id="panel-held"></div>
+    <div class="tab-panel" id="panel-removed"></div>
+  </div>
+
+  <!-- Detail bottom sheet -->
+  <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+  <div class="detail-sheet" id="detailSheet">
+    <div class="detail-handle" onclick="closeDetail()"></div>
+    <div class="detail-header">
+      <div class="detail-nav">
+        <button class="detail-nav-btn" id="detailPrev" onclick="navDetail(-1)">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <span class="detail-nav-counter" id="detailCounter"></span>
+        <button class="detail-nav-btn" id="detailNext" onclick="navDetail(1)">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+      <button class="detail-close" onclick="closeDetail()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="detail-scroll" id="detailContent"></div>
+    <div class="detail-action-bar" id="detailActions"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toast-msg"></span>
+    <span class="toast-undo" id="toast-undo" onclick="undoAction()">Undo</span>
+  </div>
+
+  <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+</div>
+</div>
+
+<script>
+const products = [
+  {
+    id: 'tnf', name: 'TNF Fastpack Hiker Mid WP', brand: 'The North Face', price: 69,
+    confidence: 94, confidenceClass: 'high', confidenceColor: '#1E8E3E',
+    confidenceBasis: 'From 312 reviews: waterproof confirmed in 89 mentions. Flexible sole praised for PE use. Lightweight at 312g.',
+    chips: [
+      { text: 'Waterproof', cls: 'chip--blue' },
+      { text: 'Flexible sole', cls: 'chip--green' },
+      { text: '312g', cls: 'chip--teal' },
+    ],
+    translation: {
+      verdict: 'PASS — No fluffy lining detected',
+      checks: [
+        { label: 'Fleece-lined', pass: true },
+        { label: 'Sherpa', pass: true },
+        { label: 'Fur lining', pass: true },
+        { label: 'Plush inner', pass: true },
+      ],
+      note: 'DryVent membrane with smooth textile lining. Reviews consistently confirm thin, non-padded interior suitable for PE.'
+    },
+    specs: { Weight: '312g', Material: 'Synthetic mesh', Sole: 'Flexible rubber', Lining: 'DryVent™ membrane', Closure: 'Lace-up', Height: 'Mid-cut' },
+    images: [
+      '../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp',
+    ],
+    review: { text: '"Great for school and outdoor activities. Waterproof held up well in rain. Flexible enough for PE class."', source: '312 reviews — Amazon, TNF.com' },
+    shipping: 'Arrives Friday',
+  },
+  {
+    id: 'nike', name: 'Nike SFB 6" NSW Leather', brand: 'Nike', price: 120,
+    confidence: 91, confidenceClass: 'high', confidenceColor: '#1E8E3E',
+    confidenceBasis: 'From 187 reviews: full leather build confirmed waterproof. 23 mentions of smooth inner material. Zero fleece reports.',
+    chips: [
+      { text: 'Full leather', cls: 'chip--blue' },
+      { text: 'Waterproof', cls: 'chip--green' },
+      { text: '380g', cls: 'chip--teal' },
+    ],
+    translation: {
+      verdict: 'PASS — No fluffy lining detected',
+      checks: [
+        { label: 'Fleece-lined', pass: true },
+        { label: 'Sherpa', pass: true },
+        { label: 'Fur lining', pass: true },
+        { label: 'Plush inner', pass: true },
+      ],
+      note: 'Full-grain leather upper with smooth textile lining. Reviews consistently confirm firm, non-padded interior.'
+    },
+    specs: { Weight: '380g', Material: 'Full-grain leather', Sole: 'Rubber lug', Lining: 'Smooth textile', Closure: 'Lace-up', Height: '6" boot' },
+    images: [
+      '../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif',
+    ],
+    review: { text: '"Inner is smooth, no fleece. Firm support. My son wears these for PE and hiking."', source: '187 reviews — Amazon, Nike.com' },
+    shipping: 'Arrives Friday',
+  },
+  {
+    id: 'puma', name: 'RS-X Mid Black Ice', brand: 'Puma', price: 100,
+    confidence: 85, confidenceClass: 'mid', confidenceColor: '#1A73E8',
+    confidenceBasis: 'From 96 reviews: water-resistant confirmed. Athletic sole praised for sports use. Lightweight build at 295g.',
+    chips: [
+      { text: 'Water-resistant', cls: 'chip--blue' },
+      { text: 'Athletic sole', cls: 'chip--green' },
+      { text: '295g', cls: 'chip--teal' },
+    ],
+    translation: {
+      verdict: 'PASS — No fluffy lining detected',
+      checks: [
+        { label: 'Fleece-lined', pass: true },
+        { label: 'Sherpa', pass: true },
+        { label: 'Fur lining', pass: true },
+        { label: 'Plush inner', pass: true },
+      ],
+      note: 'Synthetic upper with thin mesh lining. Athletic construction designed for movement, not insulation.'
+    },
+    specs: { Weight: '295g', Material: 'Synthetic + mesh', Sole: 'Athletic rubber', Lining: 'Thin mesh', Closure: 'Lace-up', Height: 'Mid-cut' },
+    images: [
+      '../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png',
+    ],
+    review: { text: '"Sporty feel, handles light rain. Good for school and casual wear. Not heavy at all."', source: '96 reviews — Amazon, Puma.com' },
+    shipping: 'Arrives Friday',
+  },
+  {
+    id: 'on', name: 'Cloudrock Mid WP', brand: 'On', price: 190,
+    confidence: 88, confidenceClass: 'mid', confidenceColor: '#1A73E8',
+    confidenceBasis: 'From 204 reviews: CloudTec cushioning praised. Waterproof membrane confirmed. Premium price but high durability reports.',
+    chips: [
+      { text: 'CloudTec', cls: 'chip--blue' },
+      { text: 'Waterproof', cls: 'chip--green' },
+      { text: '340g', cls: 'chip--teal' },
+    ],
+    translation: {
+      verdict: 'PASS — No fluffy lining detected',
+      checks: [
+        { label: 'Fleece-lined', pass: true },
+        { label: 'Sherpa', pass: true },
+        { label: 'Fur lining', pass: true },
+        { label: 'Plush inner', pass: true },
+      ],
+      note: 'Waterproof membrane with thin performance lining. CloudTec sole designed for comfort without bulk.'
+    },
+    specs: { Weight: '340g', Material: 'Engineered mesh', Sole: 'CloudTec rubber', Lining: 'Waterproof membrane', Closure: 'Speed lace', Height: 'Mid-cut' },
+    images: [
+      '../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif',
+    ],
+    review: { text: '"CloudTec sole is incredibly comfortable. Waterproof works great. Premium quality you can feel."', source: '204 reviews — Amazon, On-running.com' },
+    shipping: 'Arrives Saturday',
+  },
+  {
+    id: 'salomon', name: 'XA Pro V8 Mid', brand: 'Salomon', price: 75,
+    confidence: 82, confidenceClass: 'mid', confidenceColor: '#1A73E8',
+    confidenceBasis: 'From 158 reviews: Contagrip sole praised for traction. Water-resistant but not fully waterproof. Good value at this price.',
+    chips: [
+      { text: 'Contagrip', cls: 'chip--blue' },
+      { text: 'Water-resistant', cls: 'chip--green' },
+      { text: '290g', cls: 'chip--teal' },
+    ],
+    translation: {
+      verdict: 'PASS — No fluffy lining detected',
+      checks: [
+        { label: 'Fleece-lined', pass: true },
+        { label: 'Sherpa', pass: true },
+        { label: 'Fur lining', pass: true },
+        { label: 'Plush inner', pass: true },
+      ],
+      note: 'Trail-focused design with thin performance lining. Contagrip sole excels on wet surfaces.'
+    },
+    specs: { Weight: '290g', Material: 'Synthetic mesh', Sole: 'Contagrip® rubber', Lining: 'Performance textile', Closure: 'Quicklace', Height: 'Mid-cut' },
+    images: [
+      '../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp',
+    ],
+    review: { text: '"Amazing grip on wet surfaces. Light and comfortable. Great for school and trail walking."', source: '158 reviews — Amazon, Salomon.com' },
+    shipping: 'Arrives Friday',
+  },
+  {
+    id: 'vans', name: 'Sk8-Hi GORE-TEX', brand: 'Vans', price: 140,
+    confidence: 79, confidenceClass: 'low', confidenceColor: '#F9AB00',
+    confidenceBasis: 'From 67 reviews: GORE-TEX confirmed waterproof. High-top style. Heavier at 420g — may not suit PE.',
+    chips: [
+      { text: 'GORE-TEX', cls: 'chip--teal' },
+      { text: 'High-top', cls: 'chip--blue' },
+      { text: '420g', cls: 'chip--amber' },
+    ],
+    translation: {
+      verdict: 'LIKELY PASS — High-top may limit PE use',
+      checks: [
+        { label: 'Fleece-lined', pass: true },
+        { label: 'Sherpa', pass: true },
+        { label: 'Weight for PE', pass: false },
+        { label: 'Ankle mobility', pass: false },
+      ],
+      note: 'GORE-TEX membrane keeps water out. Classic Sk8-Hi silhouette. Heavier weight and high-top design may limit agility in PE class.'
+    },
+    specs: { Weight: '420g', Material: 'Canvas + suede', Sole: 'Waffle rubber', Lining: 'GORE-TEX membrane', Closure: 'Lace-up', Height: 'High-top' },
+    images: [
+      '../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif',
+    ],
+    review: { text: '"Waterproof Vans — finally. Looks great, GORE-TEX works. A bit heavy for running though."', source: '67 reviews — Amazon, Vans.com' },
+    shipping: 'Arrives Saturday',
+  },
+  {
+    id: 'adidas', name: 'Terrex Anylander Mid', brand: 'Adidas', price: 85,
+    confidence: 80, confidenceClass: 'mid', confidenceColor: '#1A73E8',
+    confidenceBasis: 'From 112 reviews: Climaproof confirmed water-resistant. Leather upper adds durability. Moderate weight at 350g.',
+    chips: [
+      { text: 'Climaproof', cls: 'chip--blue' },
+      { text: 'Leather upper', cls: 'chip--green' },
+      { text: '350g', cls: 'chip--teal' },
+    ],
+    translation: {
+      verdict: 'PASS — No fluffy lining detected',
+      checks: [
+        { label: 'Fleece-lined', pass: true },
+        { label: 'Sherpa', pass: true },
+        { label: 'Fur lining', pass: true },
+        { label: 'Plush inner', pass: true },
+      ],
+      note: 'Climaproof membrane with smooth leather upper. Designed for hiking with no insulated lining.'
+    },
+    specs: { Weight: '350g', Material: 'Leather + synthetic', Sole: 'Traxion rubber', Lining: 'Climaproof membrane', Closure: 'Lace-up', Height: 'Mid-cut' },
+    images: [
+      '../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif',
+    ],
+    review: { text: '"Solid leather build. Handles rain well. Good for school and weekend hikes."', source: '112 reviews — Amazon, Adidas.com' },
+    shipping: 'Arrives Friday',
+  },
+  {
+    id: 'ecco', name: 'Mid Boot GTX', brand: 'Ecco', price: 125,
+    confidence: 71, confidenceClass: 'low', confidenceColor: '#F9AB00',
+    confidenceBasis: 'Only 34 reviews available. GORE-TEX confirmed. Leather build. Limited data on PE suitability.',
+    chips: [
+      { text: 'GORE-TEX', cls: 'chip--teal' },
+      { text: 'Leather', cls: 'chip--blue' },
+      { text: '⚠ Few reviews', cls: 'chip--amber' },
+    ],
+    translation: {
+      verdict: '⚠ UNCERTAIN — Insufficient reviews',
+      checks: [
+        { label: 'Fleece-lined', pass: null },
+        { label: 'Sherpa', pass: null },
+        { label: 'Fur lining', pass: true },
+        { label: 'Inner texture', pass: null },
+      ],
+      note: 'GORE-TEX membrane with leather upper. Only 34 reviews — none describe inner material in detail. Recommend checking in-store.'
+    },
+    specs: { Weight: '390g', Material: 'Full leather', Sole: 'Rubber', Lining: 'GORE-TEX membrane', Closure: 'Lace-up', Height: 'Mid boot' },
+    images: [
+      '../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif',
+    ],
+    review: { text: '"Quality leather, GORE-TEX works. Limited reviews available — recommend trying in-store."', source: '34 reviews — Amazon, Ecco.com' },
+    shipping: 'Arrives Monday',
+  }
+];
+
+// ═══ STATE ═══
+const state = { candidates: ['tnf','nike','puma','on','salomon','vans','adidas','ecco'], saved: [], held: [], removed: [] };
+let lastAction = null;
+let currentDetailId = null;
+
+function getProduct(id) { return products.find(p => p.id === id); }
+
+// Find which list a product is in
+function findList(productId) {
+  for (const list of ['candidates','saved','held','removed']) {
+    if (state[list].includes(productId)) return list;
+  }
+  return null;
+}
+
+// All navigable products (for detail prev/next)
+function allProductIds() { return products.map(p => p.id); }
+
+// ═══ RENDER ═══
+function renderCard(product, listType) {
+  const actions = {
+    candidates: `
+      <button class="card-action card-action--save" onclick="event.stopPropagation(); moveProduct('${product.id}','candidates','saved')">
+        <span class="material-symbols-outlined">favorite</span> Keep
+      </button>
+      <button class="card-action card-action--hold" onclick="event.stopPropagation(); moveProduct('${product.id}','candidates','held')">
+        <span class="material-symbols-outlined">pause_circle</span> Hold
+      </button>
+      <button class="card-action card-action--remove" onclick="event.stopPropagation(); moveProduct('${product.id}','candidates','removed')">
+        <span class="material-symbols-outlined">close</span> Skip
+      </button>`,
+    saved: `
+      <button class="card-action card-action--hold" onclick="event.stopPropagation(); moveProduct('${product.id}','saved','held')">
+        <span class="material-symbols-outlined">pause_circle</span> Hold
+      </button>
+      <button class="card-action card-action--remove" onclick="event.stopPropagation(); moveProduct('${product.id}','saved','removed')">
+        <span class="material-symbols-outlined">close</span> Skip
+      </button>`,
+    held: `
+      <button class="card-action card-action--restore" onclick="event.stopPropagation(); moveProduct('${product.id}','held','candidates')">
+        <span class="material-symbols-outlined">undo</span> Restore
+      </button>
+      <button class="card-action card-action--save" onclick="event.stopPropagation(); moveProduct('${product.id}','held','saved')">
+        <span class="material-symbols-outlined">favorite</span> Keep
+      </button>`,
+    removed: `
+      <button class="card-action card-action--restore" onclick="event.stopPropagation(); moveProduct('${product.id}','removed','candidates')">
+        <span class="material-symbols-outlined">undo</span> Restore
+      </button>`
+  };
+
+  return `
+    <div class="product-card" id="card-${product.id}-${listType}" onclick="openDetail('${product.id}')">
+      <div class="card-main">
+        <div class="product-header">
+          <div class="product-image"><img src="${product.images[0]}" alt="${product.name}" loading="lazy"></div>
+          <div class="product-info">
+            <div class="product-name">${product.name}</div>
+            <div class="product-brand">${product.brand}</div>
+            <div class="product-price">$${product.price}</div>
+          </div>
+        </div>
+        <div class="product-meta">${product.chips.map(c => `<span class="chip ${c.cls}">${c.text}</span>`).join('')}</div>
+        <div class="specs-row">
+          <span class="confidence-pill ${product.confidenceClass}">${product.confidence}%</span>
+          <span class="spec-item"><span class="material-symbols-outlined">scale</span>${product.specs.Weight}</span>
+          <span class="spec-item"><span class="material-symbols-outlined">local_shipping</span>${product.shipping}</span>
+        </div>
+      </div>
+      <div class="card-actions">${actions[listType]}</div>
+    </div>`;
+}
+
+const emptyMessages = {
+  candidates: { icon: 'search_off', text: 'All candidates sorted.<br>Check Saved or Hold tabs.' },
+  saved: { icon: 'bookmark_border', text: 'No saved shoes yet.<br>Tap Save on a candidate.' },
+  held: { icon: 'pause_circle', text: 'No shoes on hold.' },
+  removed: { icon: 'delete_outline', text: 'No removed shoes.<br>Removed items can be restored.' },
+};
+
+function renderAll() {
+  ['candidates','saved','held','removed'].forEach(list => {
+    const panel = document.getElementById(`panel-${list}`);
+    const items = state[list];
+    if (items.length === 0) {
+      const e = emptyMessages[list];
+      panel.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined">${e.icon}</span><p>${e.text}</p></div>`;
+    } else {
+      let html = '';
+      if (list === 'candidates') {
+        html += `<div class="translation-signal">
+          <div class="translation-signal-label">✦ Translation Signal</div>
+          <div class="translation-signal-text">Your son needs winter shoes for school. Black, waterproof, no fluffy lining, PE-compatible. Size US 3Y. Gemini reviewed 847 results and shortlisted 20 candidates.</div>
+        </div>`;
+        html += `<div class="content-subtitle"><span class="material-symbols-outlined">filter_list</span> ${items.length} shortlisted from 20 AI candidates</div>`;
+      }
+      html += items.map(id => renderCard(getProduct(id), list)).join('');
+      if (list === 'candidates' && items.length > 0) {
+        html += `<div class="commute-ready-note">
+          <span class="material-symbols-outlined">train</span>
+          Shortlist saved · Continue reviewing on the train
+        </div>`;
+      }
+      panel.innerHTML = html;
+    }
+    const badge = document.getElementById(`badge-${list}`);
+    if (badge) {
+      badge.textContent = items.length;
+      badge.style.display = items.length > 0 ? 'inline-flex' : 'none';
+    }
+  });
+}
+
+// ═══ ACTIONS ═══
+function moveProduct(productId, from, to) {
+  lastAction = { productId, from, to };
+  const card = document.getElementById(`card-${productId}-${from}`);
+  if (card) {
+    card.classList.add('removing');
+    setTimeout(() => { commitMove(productId, from, to); }, 180);
+  } else {
+    commitMove(productId, from, to);
+  }
+  const labels = { saved:'Saved', held:'On Hold', removed:'Removed', candidates:'Candidates' };
+  showToast(`${getProduct(productId).brand} → ${labels[to]}`);
+}
+
+function commitMove(productId, from, to) {
+  state[from] = state[from].filter(id => id !== productId);
+  state[to].push(productId);
+  renderAll();
+  // If detail is open for this product, refresh actions
+  if (currentDetailId === productId) renderDetailActions(productId);
+}
+
+function undoAction() {
+  if (!lastAction) return;
+  const { productId, from, to } = lastAction;
+  state[to] = state[to].filter(id => id !== productId);
+  state[from].push(productId);
+  renderAll();
+  if (currentDetailId === productId) renderDetailActions(productId);
+  hideToast();
+  lastAction = null;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(hideToast, 3500);
+}
+function hideToast() { document.getElementById('toast').classList.remove('visible'); }
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${name}`));
+}
+
+// ═══ DETAIL SHEET ═══
+function openDetail(productId) {
+  currentDetailId = productId;
+  const p = getProduct(productId);
+  const all = allProductIds();
+  const idx = all.indexOf(productId);
+
+  // Nav counter
+  document.getElementById('detailCounter').textContent = `${idx + 1} / ${all.length}`;
+  document.getElementById('detailPrev').disabled = idx === 0;
+  document.getElementById('detailNext').disabled = idx === all.length - 1;
+
+  // Content
+  const dc = document.getElementById('detailContent');
+  dc.innerHTML = `
+    <div class="detail-gallery-wrap">
+      <div class="detail-gallery" id="gallery-${p.id}" onscroll="updateDots('${p.id}')">
+        ${p.images.map((src, i) => `<div class="detail-gallery-item"><img src="${src}" alt="${p.name} view ${i+1}"></div>`).join('')}
+      </div>
+      <div class="gallery-dots" id="dots-${p.id}">
+        ${p.images.map((_, i) => `<div class="gallery-dot${i===0?' active':''}" onclick="scrollGallery('${p.id}',${i})"></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="detail-title">${p.name}</div>
+    <div class="detail-brand">${p.brand}</div>
+    <div class="detail-price">$${p.price}</div>
+
+    <div class="detail-section-title"><span class="material-symbols-outlined" style="font-size:16px;">verified</span> Confidence</div>
+    <div class="confidence-detail">
+      <div class="confidence-header">
+        <span class="confidence-score ${p.confidenceClass}">${p.confidence}%</span>
+        <span style="font-size:12px;color:#9AA0A6;">${p.confidenceClass === 'high' ? 'High confidence' : p.confidenceClass === 'mid' ? 'Good confidence' : 'Low confidence'}</span>
+      </div>
+      <div class="confidence-bar-wrap">
+        <div class="confidence-bar-fill" id="conf-bar-${p.id}" style="background:${p.confidenceColor};"></div>
+      </div>
+      <div class="confidence-basis">${p.confidenceBasis}</div>
+    </div>
+
+    <div class="translation-insight">
+      <div class="translation-label">✦ Translation Layer — "Black, waterproof, no fluffy, PE-compatible"</div>
+      <div class="translation-text">${p.translation.verdict}</div>
+      <div class="translation-tags">
+        ${p.translation.checks.map(c =>
+          `<span class="translation-tag ${c.pass === true ? 'pass' : c.pass === false ? 'fail' : ''}">${c.pass === true ? '✓' : c.pass === false ? '⚠' : '?'} ${c.label}</span>`
+        ).join('')}
+      </div>
+      <div class="translation-text" style="margin-top:8px;font-size:12px;">${p.translation.note}</div>
+    </div>
+
+    <div class="detail-section-title"><span class="material-symbols-outlined" style="font-size:16px;">info</span> Specifications</div>
+    <div class="detail-spec-grid">
+      ${Object.entries(p.specs).map(([k,v]) => `
+        <div class="detail-spec">
+          <div class="detail-spec-label">${k}</div>
+          <div class="detail-spec-value">${v}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="detail-section-title"><span class="material-symbols-outlined" style="font-size:16px;">rate_review</span> Review Summary</div>
+    <div class="detail-review">
+      <div class="detail-review-text">${p.review.text}</div>
+      <div class="detail-review-source">${p.review.source}</div>
+    </div>
+
+    <div class="detail-section-title"><span class="material-symbols-outlined" style="font-size:16px;">local_shipping</span> Shipping</div>
+    <div class="detail-spec" style="margin-top:0;">
+      <div class="detail-spec-value">🚚 ${p.shipping} — Free shipping</div>
+    </div>
+  `;
+
+  // Scroll to top
+  dc.scrollTop = 0;
+
+  renderDetailActions(productId);
+
+  document.getElementById('detailOverlay').classList.add('open');
+  document.getElementById('detailSheet').classList.add('open');
+
+  // Animate confidence bar
+  setTimeout(() => {
+    const bar = document.getElementById(`conf-bar-${p.id}`);
+    if (bar) bar.style.width = p.confidence + '%';
+  }, 400);
+}
+
+function renderDetailActions(productId) {
+  const list = findList(productId);
+  const bar = document.getElementById('detailActions');
+  const actions = {
+    candidates: `
+      <button class="detail-btn detail-btn--primary" onclick="moveFromDetail('${productId}','saved')">
+        <span class="material-symbols-outlined">favorite</span> Keep
+      </button>
+      <button class="detail-btn detail-btn--secondary" onclick="moveFromDetail('${productId}','held')">
+        <span class="material-symbols-outlined">pause_circle</span> Hold
+      </button>
+      <button class="detail-btn detail-btn--danger" onclick="moveFromDetail('${productId}','removed')">
+        <span class="material-symbols-outlined">close</span> Skip
+      </button>`,
+    saved: `
+      <button class="detail-btn detail-btn--primary" style="opacity:0.6;" disabled>
+        <span class="material-symbols-outlined">check</span> Kept
+      </button>
+      <button class="detail-btn detail-btn--secondary" onclick="moveFromDetail('${productId}','held')">
+        <span class="material-symbols-outlined">pause_circle</span> Hold
+      </button>`,
+    held: `
+      <button class="detail-btn detail-btn--primary" onclick="moveFromDetail('${productId}','saved')">
+        <span class="material-symbols-outlined">favorite</span> Keep
+      </button>
+      <button class="detail-btn detail-btn--secondary" onclick="moveFromDetail('${productId}','candidates')">
+        <span class="material-symbols-outlined">undo</span> Restore
+      </button>`,
+    removed: `
+      <button class="detail-btn detail-btn--secondary" onclick="moveFromDetail('${productId}','candidates')">
+        <span class="material-symbols-outlined">undo</span> Restore
+      </button>`,
+  };
+  bar.innerHTML = actions[list] || '';
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.getElementById('detailSheet').classList.remove('open');
+  currentDetailId = null;
+}
+
+function moveFromDetail(productId, to) {
+  const from = findList(productId);
+  if (from && from !== to) moveProduct(productId, from, to);
+  // Don't close — let user continue browsing
+  renderDetailActions(productId);
+}
+
+function navDetail(dir) {
+  const all = allProductIds();
+  const idx = all.indexOf(currentDetailId);
+  const next = idx + dir;
+  if (next >= 0 && next < all.length) openDetail(all[next]);
+}
+
+// Gallery scroll + dots
+function updateDots(productId) {
+  const gallery = document.getElementById(`gallery-${productId}`);
+  if (!gallery) return;
+  const scrollLeft = gallery.scrollLeft;
+  const itemWidth = gallery.offsetWidth;
+  const activeIdx = Math.round(scrollLeft / itemWidth);
+  const dots = document.querySelectorAll(`#dots-${productId} .gallery-dot`);
+  dots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+}
+
+function scrollGallery(productId, idx) {
+  const gallery = document.getElementById(`gallery-${productId}`);
+  if (!gallery) return;
+  gallery.scrollTo({ left: idx * gallery.offsetWidth, behavior: 'smooth' });
+}
+
+// Init
+renderAll();
+
+// noframe mode
+if (new URLSearchParams(location.search).get('noframe') === '1') {
+  document.body.classList.add('noframe');
+}
+</script>
+</body>
+</html>

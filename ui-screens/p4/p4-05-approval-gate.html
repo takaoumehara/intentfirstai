@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P4-05 Approval Gate</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Noto Sans JP', system-ui, sans-serif;
+    padding: 20px;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #fdfcfa;
+    border-radius: 34px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #1a1816;
+    background: #fdfcfa;
+    padding-top: 16px;
+  }
+
+  .header {
+    padding: 12px 16px;
+    background: #fdfcfa;
+    border-bottom: 1px solid #f0ece4;
+  }
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 2px;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: #8a8580;
+  }
+
+  .content {
+    padding: 16px 12px 20px;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #8a8580;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .email-draft {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #f0ece4;
+    margin-bottom: 8px;
+  }
+
+  .draft-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #8a8580;
+    margin-bottom: 6px;
+  }
+
+  .draft-to {
+    font-size: 12px;
+    color: #1a1816;
+    margin-bottom: 4px;
+  }
+
+  .draft-subject {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0ece4;
+  }
+
+  .draft-body {
+    font-size: 12px;
+    color: #1a1816;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .evidence-box {
+    background: #fef3e2;
+    border-radius: 8px;
+    padding: 8px;
+    border-left: 3px solid #d97706;
+    font-size: 11px;
+    color: #92400e;
+    margin-bottom: 8px;
+  }
+
+  .evidence-icon {
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  .action-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .btn {
+    padding: 12px 8px;
+    border-radius: 12px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .btn-send {
+    background: #6889b4;
+    color: #fff;
+    grid-column: 1 / -1;
+  }
+
+  .btn-edit {
+    background: #fff;
+    color: #1a1816;
+    border: 1px solid #f0ece4;
+  }
+
+  .btn-discard {
+    background: #fff;
+    color: #1a1816;
+    border: 1px solid #f0ece4;
+  }
+
+  .friction-info {
+    background: #f0ece4;
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: #8a8580;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .friction-icon {
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-screen">
+    <div class="status-bar">
+      <span>14:23</span>
+      <span style="font-weight: 600;">●●●●●</span>
+    </div>
+
+    <div class="header">
+      <div class="header-title">提案メール</div>
+      <div class="header-subtitle">AI が作成 • 確認待ち</div>
+    </div>
+
+    <div class="phone-content">
+      <div class="content">
+        <div class="section">
+          <div class="section-title">ドラフト</div>
+
+          <div class="email-draft">
+            <div class="draft-label">宛先</div>
+            <div class="draft-to">tanaka@sonyeng.com</div>
+
+            <div class="draft-subject">ご提案: 生産最適化システム 導入スケジュール</div>
+
+            <div class="draft-body">
+              田中さん
+
+いつもお世話になっています。前回のデモで頂いたご意見をもとに、導入スケジュールを調整いたしました。
+
+特に「運用への影響を最小化する段階的導入」というご指摘に応じて、3段階の実装プランを用意させていただきました。
+
+火曜9時ですが、15分で概要をご説明できます。ご都合いかがでしょうか。
+            </div>
+
+            <div class="evidence-box">
+              <span class="evidence-icon">💡</span>
+              <strong>証拠:</strong> 過去メール: 火曜9時は返信率が最も高い (72%)
+            </div>
+
+            <div class="evidence-box">
+              <span class="evidence-icon">📊</span>
+              <strong>リスク低:</strong> メール = 撤回可能。送信しても再提案のチャンスあり
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">アクション</div>
+
+          <div class="action-group">
+            <button class="btn btn-send">今すぐ送信</button>
+            <button class="btn btn-edit">編集</button>
+            <button class="btn btn-discard">破棄</button>
+          </div>
+
+          <div class="friction-info">
+            <div class="friction-icon">⚙️</div>
+            <div>
+              <strong>ダイナミック摩擦:</strong> メールは「通知」レベルまで。契約は「確認」レベル必須
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

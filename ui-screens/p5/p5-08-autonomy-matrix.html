@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P5-08 Autonomy Dial Matrix</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Noto Sans JP', system-ui, sans-serif;
+    padding: 20px;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #fdfcfa;
+    border-radius: 34px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #1a1816;
+    background: #fdfcfa;
+    padding-top: 16px;
+  }
+
+  .header {
+    padding: 12px 16px 8px;
+    background: #fdfcfa;
+    border-bottom: 1px solid #f0ece4;
+  }
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1816;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: #8a8580;
+    margin-top: 2px;
+  }
+
+  .content {
+    padding: 16px 12px 20px;
+  }
+
+  /* Agent trust info */
+  .agent-info-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+
+  .agent-header {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1.5px solid #f0ece4;
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .agent-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1816;
+  }
+
+  .agent-tenure {
+    font-size: 10px;
+    color: #8a8580;
+  }
+
+  /* Autonomy matrix */
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #8a8580;
+    margin-bottom: 10px;
+    margin-top: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #f0ece4;
+  }
+
+  .matrix-cell {
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 10px;
+    border: 1px solid #f0ece4;
+  }
+
+  .matrix-header-cell {
+    background: #f8f7f4;
+    color: #8a8580;
+    font-weight: 600;
+    font-size: 9px;
+    padding: 8px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .matrix-agent-cell {
+    background: #f8f7f4;
+    color: #1a1816;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 8px;
+  }
+
+  /* Autonomy level colors */
+  .autonomy-suggest {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  .autonomy-confirm {
+    background: #fef3e0;
+    color: #b45309;
+  }
+
+  .autonomy-notify {
+    background: #ecfdf5;
+    color: #065f46;
+  }
+
+  .autonomy-auto {
+    background: #bfdbfe;
+    color: #0369a1;
+    font-weight: 600;
+  }
+
+  .autonomy-empty {
+    background: #f0ece4;
+    color: #8a8580;
+  }
+
+  .autonomy-label {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  /* Trust curve explanation */
+  .trust-curve-box {
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+
+  .trust-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #065f46;
+    margin-bottom: 8px;
+  }
+
+  .trust-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #047857;
+  }
+
+  .trust-indicator {
+    display: flex;
+    gap: 3px;
+  }
+
+  .trust-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #86efac;
+  }
+
+  .trust-dot.filled {
+    background: #065f46;
+  }
+
+  /* Time evolution note */
+  .evolution-note {
+    background: #f8f7f4;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #f0ece4;
+  }
+
+  .evolution-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 6px;
+  }
+
+  .evolution-text {
+    font-size: 11px;
+    color: #8a8580;
+    line-height: 1.4;
+  }
+
+  .evolution-timeline {
+    font-size: 10px;
+    color: #8a8580;
+    margin-top: 6px;
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-screen">
+    <div class="status-bar">
+      <span>16:00</span>
+      <span style="font-weight: 600;">●●●●●</span>
+    </div>
+
+    <div class="header">
+      <div class="header-title">自律度マトリックス</div>
+      <div class="header-subtitle">各エージェントの信頼度と自動化レベル</div>
+    </div>
+
+    <div class="phone-content">
+      <div class="content">
+        <!-- Autonomy Matrix -->
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="matrix-header-cell">エージェント</th>
+              <th class="matrix-header-cell">提案</th>
+              <th class="matrix-header-cell">承認</th>
+              <th class="matrix-header-cell">通知</th>
+              <th class="matrix-header-cell">自動</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Sales Agent -->
+            <tr>
+              <td class="matrix-agent-cell">営業<br>(3ヶ月)</td>
+              <td class="matrix-cell autonomy-empty">—</td>
+              <td class="matrix-cell autonomy-confirm">
+                <span class="autonomy-label">見積<br>契約</span>
+              </td>
+              <td class="matrix-cell autonomy-notify">
+                <span class="autonomy-label">フォロー<br>アップ</span>
+              </td>
+              <td class="matrix-cell autonomy-auto">
+                <span class="autonomy-label">ルーチン<br>タスク</span>
+              </td>
+            </tr>
+            <!-- Research Agent -->
+            <tr>
+              <td class="matrix-agent-cell">研究<br>(2週間)</td>
+              <td class="matrix-cell autonomy-suggest">
+                <span class="autonomy-label">全て</span>
+              </td>
+              <td class="matrix-cell autonomy-confirm">
+                <span class="autonomy-label">全て</span>
+              </td>
+              <td class="matrix-cell autonomy-empty">—</td>
+              <td class="matrix-cell autonomy-empty">—</td>
+            </tr>
+            <!-- Admin Agent -->
+            <tr>
+              <td class="matrix-agent-cell">管理<br>(1ヶ月)</td>
+              <td class="matrix-cell autonomy-empty">—</td>
+              <td class="matrix-cell autonomy-confirm">
+                <span class="autonomy-label">大型<br>経費</span>
+              </td>
+              <td class="matrix-cell autonomy-notify">
+                <span class="autonomy-label">会議<br>セットアップ</span>
+              </td>
+              <td class="matrix-cell autonomy-auto">
+                <span class="autonomy-label">ルーチン<br>予約</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Trust Curve Explanation -->
+        <div class="trust-curve-box">
+          <div class="trust-title">信頼度カーブ（時系列）</div>
+          <div class="trust-items">
+            <div class="trust-item">
+              <div class="trust-indicator">
+                <div class="trust-dot filled"></div>
+                <div class="trust-dot filled"></div>
+                <div class="trust-dot filled"></div>
+                <span style="font-size: 9px; color: #065f46;">営業</span>
+              </div>
+              <span>3ヶ月 — 最も信頼</span>
+            </div>
+            <div class="trust-item">
+              <div class="trust-indicator">
+                <div class="trust-dot filled"></div>
+                <div class="trust-dot"></div>
+                <div class="trust-dot"></div>
+                <span style="font-size: 9px; color: #8a8580;">管理</span>
+              </div>
+              <span>1ヶ月 — 中程度信頼</span>
+            </div>
+            <div class="trust-item">
+              <div class="trust-indicator">
+                <div class="trust-dot"></div>
+                <div class="trust-dot"></div>
+                <div class="trust-dot"></div>
+                <span style="font-size: 9px; color: #0369a1;">研究</span>
+              </div>
+              <span>2週間 — 学習中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evolution Note -->
+        <div class="evolution-note">
+          <div class="evolution-title">設定の進化</div>
+          <div class="evolution-text">
+            各エージェントの自律度設定は、時間とともに段階的に高まります。初期段階では「提案」と「承認」レベルに限定され、信頼スコアが上がるにつれて「通知」と「自動」へ移行します。
+          </div>
+          <span class="evolution-timeline">
+            初期 → 2週間 → 1ヶ月 → 3ヶ月 → 6ヶ月
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

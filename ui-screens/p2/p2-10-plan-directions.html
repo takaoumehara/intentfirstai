@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-10 Trip Plan Directions</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    padding: 40px 20px;
+  }
+
+  /* Phone Frame */
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #1a1a1a,
+      0 20px 60px rgba(0,0,0,0.3),
+      0 8px 24px rgba(0,0,0,0.2),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    border-radius: 34px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-content {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #202124;
+    position: sticky;
+    top: 0;
+    background: #FFFFFF;
+    z-index: 5;
+  }
+  .status-bar-right {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .status-bar-right .material-symbols-outlined { font-size: 16px; }
+
+  /* Header */
+  .header {
+    padding: 8px 20px 6px;
+    background: #FFFFFF;
+    position: sticky;
+    top: 34px;
+    z-index: 5;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .header .back {
+    font-size: 24px;
+    color: #202124;
+    cursor: pointer;
+  }
+  .header .title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #202124;
+  }
+  .header .flag { font-size: 20px; }
+  .header-meta {
+    display: flex;
+    gap: 12px;
+    padding-left: 32px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #E8EAED;
+  }
+  .header-meta .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+    color: #5F6368;
+  }
+  .header-meta .meta-item .material-symbols-outlined {
+    font-size: 14px;
+    color: #9AA0A6;
+  }
+
+  /* Section Label */
+  .section-label {
+    padding: 14px 20px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5F6368;
+  }
+
+  /* Plan Card */
+  .plan-card {
+    margin: 0 16px 10px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 14px 16px;
+    border: 1.5px solid #E8EAED;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    opacity: 0;
+    transform: translateY(16px);
+    cursor: pointer;
+    transition: border-color 200ms, box-shadow 200ms;
+    position: relative;
+  }
+
+  .plan-card.selected {
+    border-color: #1A73E8;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.18), 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .plan-card.selected::after {
+    content: '';
+    position: absolute;
+    top: -1.5px; right: -1.5px; bottom: -1.5px; left: -1.5px;
+    border-radius: 17px;
+    border: 2px solid #1A73E8;
+    pointer-events: none;
+  }
+
+  .plan-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .plan-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .plan-letter {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #FFFFFF;
+    flex-shrink: 0;
+  }
+  .plan-letter.a { background: #5F6368; }
+  .plan-letter.b { background: #E8710A; }
+  .plan-letter.c { background: #0D652D; }
+  .plan-letter.d { background: #1A73E8; }
+
+  .plan-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #202124;
+  }
+
+  .plan-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: #1A73E8;
+    background: #E8F0FE;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    display: none;
+  }
+  .plan-card.selected .plan-badge { display: inline-block; }
+
+  .plan-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-bottom: 6px;
+  }
+  .plan-detail {
+    font-size: 12px;
+    color: #5F6368;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .plan-detail .material-symbols-outlined { font-size: 14px; color: #9AA0A6; }
+
+  .plan-focus {
+    font-size: 12px;
+    color: #202124;
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+  .plan-focus strong {
+    font-weight: 500;
+  }
+
+  /* Bottom Actions */
+  .bottom-actions {
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 12px 16px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 200ms, transform 200ms;
+    font-family: inherit;
+    flex: 1;
+    text-align: center;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: #1A73E8;
+    color: #FFFFFF;
+  }
+  .btn-secondary {
+    background: #F1F3F4;
+    color: #202124;
+  }
+
+  /* Home Brain Note */
+  .brain-note {
+    margin: 4px 16px 8px;
+    background: linear-gradient(135deg, #EDE7F6 0%, #F3E5F5 50%, #E8F0FE 100%);
+    border-radius: 12px;
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  .brain-note::before {
+    content: '';
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, rgba(26,115,232,0.15) 0%, transparent 70%);
+    animation: sparkleGlow 3s ease-in-out infinite;
+  }
+  .brain-note-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #7B1FA2;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .brain-note-title .sparkle-icon {
+    font-size: 14px;
+    animation: sparkleRotate 4s ease-in-out infinite;
+    display: inline-block;
+  }
+  .brain-note-body {
+    font-size: 11px;
+    color: #5F6368;
+    line-height: 1.6;
+  }
+
+  @keyframes sparkleGlow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+  @keyframes sparkleRotate {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(15deg) scale(1.2); }
+    50% { transform: rotate(0deg) scale(1); }
+    75% { transform: rotate(-15deg) scale(1.1); }
+  }
+
+  /* Bottom padding */
+  .bottom-space { height: 20px; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover { background: #1765CC; }
+    .btn-secondary:hover { background: #E8EAED; }
+    .plan-card:hover:not(.selected) { border-color: #D2E3FC; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .screen-label {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: #5F6368;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="phone-frame">
+    <div class="phone-screen">
+      <div class="phone-content">
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="status-bar-right">
+            <span class="material-symbols-outlined">signal_cellular_alt</span>
+            <span class="material-symbols-outlined">wifi</span>
+            <span class="material-symbols-outlined">battery_5_bar</span>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+          <div class="header-top">
+            <span class="material-symbols-outlined back">arrow_back</span>
+            <span class="flag">&#x1F1EF;&#x1F1F5;</span>
+            <span class="title">Kyoto-Osaka 2026</span>
+          </div>
+          <div class="header-meta">
+            <span class="meta-item">
+              <span class="material-symbols-outlined">calendar_today</span>
+              14日間
+            </span>
+            <span class="meta-item">
+              <span class="material-symbols-outlined">group</span>
+              4人
+            </span>
+            <span class="meta-item">
+              <span class="material-symbols-outlined">payments</span>
+              $6,000
+            </span>
+          </div>
+        </div>
+
+        <!-- Section -->
+        <div class="section-label">Trip Brainが4つのプラン方向を提案</div>
+
+        <!-- Plan A -->
+        <div class="plan-card" data-delay="200">
+          <div class="plan-card-header">
+            <div class="plan-label">
+              <div class="plan-letter a">A</div>
+              <span class="plan-name">バランス型</span>
+            </div>
+            <span class="plan-badge">おすすめ</span>
+          </div>
+          <div class="plan-details">
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">schedule</span>
+              京都7日 / 大阪7日
+            </span>
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">savings</span>
+              均等配分
+            </span>
+          </div>
+          <div class="plan-focus">
+            <strong>特徴:</strong> 観光・体験・食・休息をバランスよく。祖父母合流は3日間。子供の体力に合わせたゆったりペース。
+          </div>
+        </div>
+
+        <!-- Plan B -->
+        <div class="plan-card" data-delay="320">
+          <div class="plan-card-header">
+            <div class="plan-label">
+              <div class="plan-letter b">B</div>
+              <span class="plan-name">子供の冒険型</span>
+            </div>
+            <span class="plan-badge">おすすめ</span>
+          </div>
+          <div class="plan-details">
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">schedule</span>
+              京都8日 / 大阪6日
+            </span>
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">savings</span>
+              体験重視 60%
+            </span>
+          </div>
+          <div class="plan-focus">
+            <strong>特徴:</strong> 忍者・刀鍛冶・陶芸など体験を最大化。Kaiの冒険心とMiaの創作欲にフォーカス。祖父母合流は2日間。
+          </div>
+        </div>
+
+        <!-- Plan C -->
+        <div class="plan-card" data-delay="440">
+          <div class="plan-card-header">
+            <div class="plan-label">
+              <div class="plan-letter c">C</div>
+              <span class="plan-name">文化・祖父母重視型</span>
+            </div>
+            <span class="plan-badge">おすすめ</span>
+          </div>
+          <div class="plan-details">
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">schedule</span>
+              京都9日 / 大阪5日
+            </span>
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">savings</span>
+              文化 50%
+            </span>
+          </div>
+          <div class="plan-focus">
+            <strong>特徴:</strong> 寺社・茶道・着物など伝統文化中心。祖父母と5日間一緒に過ごす。ペースは最もゆったり。
+          </div>
+        </div>
+
+        <!-- Plan D (Selected) -->
+        <div class="plan-card selected" data-delay="560">
+          <div class="plan-card-header">
+            <div class="plan-label">
+              <div class="plan-letter d">D</div>
+              <span class="plan-name">ハイブリッド型</span>
+            </div>
+            <span class="plan-badge">おすすめ</span>
+          </div>
+          <div class="plan-details">
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">schedule</span>
+              京都8日 / 大阪6日
+            </span>
+            <span class="plan-detail">
+              <span class="material-symbols-outlined">savings</span>
+              体験45% / 文化30% / 食25%
+            </span>
+          </div>
+          <div class="plan-focus">
+            <strong>特徴:</strong> 午前は文化体験、午後は子供の冒険アクティビティ。祖父母合流3日間は全員で京都散策。大阪はフリーデイ多め。
+          </div>
+        </div>
+
+        <!-- Home Brain Note -->
+        <div class="brain-note" data-delay="700">
+          <div class="brain-note-title">
+            <span class="sparkle-icon">&#10024;</span>
+            Home Brainから継承
+          </div>
+          <div class="brain-note-body">
+            Kaiは乳製品に敏感 / 午後3時以降に疲れる傾向<br>
+            Miaは長時間の移動で退屈しやすい / 工作系が集中力持続
+          </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="bottom-actions">
+          <button class="btn btn-primary">Sarahに共有して相談</button>
+          <button class="btn btn-secondary">詳細を見る</button>
+        </div>
+
+        <div class="bottom-space"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-label">P2-10 Trip Plan Directions &mdash; Takeshi's Phone</div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.plan-card, .brain-note');
+    cards.forEach(card => {
+      const delay = parseInt(card.dataset.delay) || 300;
+      setTimeout(() => {
+        card.style.animation = 'fadeUp 400ms cubic-bezier(0.23, 1, 0.32, 1) forwards';
+      }, delay);
+    });
+  });
+</script>
+</body>
+</html>

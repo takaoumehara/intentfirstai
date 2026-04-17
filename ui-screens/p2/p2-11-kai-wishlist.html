@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-11 Kai's Wishlist</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    padding: 40px 20px;
+  }
+
+  /* Phone Frame */
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #1a1a1a,
+      0 20px 60px rgba(0,0,0,0.3),
+      0 8px 24px rgba(0,0,0,0.2),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    border-radius: 34px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-content {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #202124;
+    position: sticky;
+    top: 0;
+    background: #FFFFFF;
+    z-index: 5;
+  }
+  .status-bar-right {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .status-bar-right .material-symbols-outlined { font-size: 16px; }
+
+  /* Header */
+  .header {
+    padding: 8px 20px 14px;
+    background: #FFFFFF;
+    position: sticky;
+    top: 34px;
+    z-index: 5;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .header .back {
+    font-size: 24px;
+    color: #202124;
+    cursor: pointer;
+  }
+  .header .title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #202124;
+  }
+  .header .flag { font-size: 20px; }
+  .header-subtitle {
+    padding-left: 32px;
+    font-size: 14px;
+    color: #5F6368;
+    font-weight: 400;
+  }
+
+  /* Activity Grid */
+  .activity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .activity-card {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: transform 200ms var(--ease-out-expo);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .activity-card:active { transform: scale(0.97); }
+
+  .activity-photo {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    position: relative;
+  }
+
+  .activity-photo.ninja { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+  .activity-photo.sword { background: linear-gradient(135deg, #4a1942, #6a2c70); }
+  .activity-photo.sushi { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+  .activity-photo.ramen { background: linear-gradient(135deg, #f9ca24, #f0932b); }
+  .activity-photo.anime { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+  .activity-photo.castle { background: linear-gradient(135deg, #2d3436, #636e72); }
+
+  .activity-info {
+    padding: 10px 12px 12px;
+    background: #FFFFFF;
+  }
+
+  .activity-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #202124;
+    margin-bottom: 4px;
+  }
+
+  .activity-quote {
+    font-size: 11px;
+    color: #5F6368;
+    line-height: 1.4;
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .heart-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1.5px solid #E8EAED;
+    background: #FFFFFF;
+    color: #5F6368;
+    cursor: pointer;
+    transition: all 200ms;
+    font-family: inherit;
+  }
+
+  .heart-btn.liked {
+    border-color: #EA4335;
+    background: #FCECEA;
+    color: #EA4335;
+  }
+  .heart-btn.liked .heart { color: #EA4335; }
+
+  .heart {
+    font-size: 14px;
+    transition: transform 200ms var(--ease-out-expo);
+  }
+  .heart-btn.liked .heart { transform: scale(1.15); }
+
+  /* Selection Summary */
+  .selection-summary {
+    margin: 4px 16px 8px;
+    background: #E8F0FE;
+    border-radius: 12px;
+    padding: 12px 14px;
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  .selection-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1A73E8;
+    margin-bottom: 4px;
+  }
+  .selection-items {
+    font-size: 12px;
+    color: #3C4043;
+    line-height: 1.5;
+  }
+
+  /* Footer Note */
+  .footer-note {
+    text-align: center;
+    padding: 8px 20px 4px;
+    font-size: 10px;
+    color: #BDC1C6;
+  }
+
+  .bottom-space { height: 24px; }
+
+  /* Animations */
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes heartPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); }
+    100% { transform: scale(1.15); }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .activity-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .heart-btn:hover:not(.liked) { border-color: #D2E3FC; background: #F8F9FA; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .screen-label {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: #5F6368;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="phone-frame">
+    <div class="phone-screen">
+      <div class="phone-content">
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span>16:22</span>
+          <div class="status-bar-right">
+            <span class="material-symbols-outlined">signal_cellular_alt</span>
+            <span class="material-symbols-outlined">wifi</span>
+            <span class="material-symbols-outlined">battery_3_bar</span>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+          <div class="header-top">
+            <span class="material-symbols-outlined back">arrow_back</span>
+            <span class="flag">&#x1F1EF;&#x1F1F5;</span>
+            <span class="title">Kai's Wishlist</span>
+          </div>
+          <div class="header-subtitle">京都・大阪で何したい？</div>
+        </div>
+
+        <!-- Activity Grid -->
+        <div class="activity-grid">
+
+          <!-- Card 1: Ninja -->
+          <div class="activity-card" data-delay="200">
+            <div class="activity-photo ninja">&#x1F977;</div>
+            <div class="activity-info">
+              <div class="activity-name">忍者体験</div>
+              <div class="activity-quote">「手裏剣投げたい！忍者になる！」</div>
+              <button class="heart-btn liked" onclick="toggleHeart(this)">
+                <span class="heart">&#9829;</span> 追加済み
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: Sword -->
+          <div class="activity-card" data-delay="280">
+            <div class="activity-photo sword">&#9876;&#65039;</div>
+            <div class="activity-info">
+              <div class="activity-name">刀鍛冶</div>
+              <div class="activity-quote">「本物の刀作れるの!? やばい！」</div>
+              <button class="heart-btn liked" onclick="toggleHeart(this)">
+                <span class="heart">&#9829;</span> 追加済み
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 3: Sushi -->
+          <div class="activity-card" data-delay="360">
+            <div class="activity-photo sushi">&#x1F363;</div>
+            <div class="activity-info">
+              <div class="activity-name">回転寿司</div>
+              <div class="activity-quote">「回ってくる寿司！何皿食べれるかな」</div>
+              <button class="heart-btn liked" onclick="toggleHeart(this)">
+                <span class="heart">&#9829;</span> 追加済み
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 4: Ramen -->
+          <div class="activity-card" data-delay="440">
+            <div class="activity-photo ramen">&#x1F35C;</div>
+            <div class="activity-info">
+              <div class="activity-name">ラーメン食べ歩き</div>
+              <div class="activity-quote">「毎日違うラーメン屋行きたい！」</div>
+              <button class="heart-btn liked" onclick="toggleHeart(this)">
+                <span class="heart">&#9829;</span> 追加済み
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 5: Anime Museum -->
+          <div class="activity-card" data-delay="520">
+            <div class="activity-photo anime">&#x1F3AE;</div>
+            <div class="activity-info">
+              <div class="activity-name">アニメミュージアム</div>
+              <div class="activity-quote">「原画とか見れるのかな？」</div>
+              <button class="heart-btn" onclick="toggleHeart(this)">
+                <span class="heart">&#9825;</span> 追加
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 6: Ninja House -->
+          <div class="activity-card" data-delay="600">
+            <div class="activity-photo castle">&#x1F3EF;</div>
+            <div class="activity-info">
+              <div class="activity-name">忍者屋敷</div>
+              <div class="activity-quote">「隠し扉とか落とし穴あるやつ！」</div>
+              <button class="heart-btn" onclick="toggleHeart(this)">
+                <span class="heart">&#9825;</span> 追加
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Selection Summary -->
+        <div class="selection-summary" data-delay="700">
+          <div class="selection-title">Kaiの選択 (4)</div>
+          <div class="selection-items">忍者体験, 刀鍛冶, 回転寿司, ラーメン食べ歩き</div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="footer-note">※ 料金は非表示。ワクワクだけ。</div>
+
+        <div class="bottom-space"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-label">P2-11 Kai's Wishlist &mdash; Kid's View</div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.activity-card, .selection-summary');
+    cards.forEach(card => {
+      const delay = parseInt(card.dataset.delay) || 300;
+      setTimeout(() => {
+        card.style.animation = 'fadeUp 400ms cubic-bezier(0.23, 1, 0.32, 1) forwards';
+      }, delay);
+    });
+  });
+
+  function toggleHeart(btn) {
+    const isLiked = btn.classList.toggle('liked');
+    const heart = btn.querySelector('.heart');
+    if (isLiked) {
+      heart.innerHTML = '&#9829;';
+      btn.innerHTML = '<span class="heart" style="animation: heartPop 300ms cubic-bezier(0.23, 1, 0.32, 1);">&#9829;</span> 追加済み';
+    } else {
+      btn.innerHTML = '<span class="heart">&#9825;</span> 追加';
+    }
+  }
+</script>
+</body>
+</html>

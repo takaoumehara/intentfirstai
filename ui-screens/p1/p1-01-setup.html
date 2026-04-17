@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1-01 — Home Brain Setup Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary: #1A73E8;
+    --surface: #FFFFFF;
+    --surface-dim: #F8F9FA;
+    --container: #F1F3F4;
+    --text-primary: #202124;
+    --text-secondary: #5F6368;
+    --text-disabled: #9AA0A6;
+    --disclosure-purple: #8E24AA;
+    --autonomy-green: #1E8E3E;
+    --warning-amber: #F9AB00;
+    --error-red: #D93025;
+    --medical-teal: #00897B;
+    --connective-coral: #E8710A;
+    --protective-indigo: #3949AB;
+    --radius-xs: 8px;
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 9999px;
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+    --font-headline: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Google Sans Text', 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  }
+
+  body {
+    background: #E8EAED;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--text-primary);
+  }
+
+  /* Device Frame */
+  .device-frame {
+    width: 390px;
+    height: 844px;
+    background: var(--surface);
+    border-radius: 44px;
+    box-shadow: 0 0 0 2px #BDC1C6, 0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px 0;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-headline);
+    color: var(--text-primary);
+    position: relative;
+    z-index: 10;
+  }
+  .status-bar .time { font-weight: 600; }
+  .status-icons { display: flex; gap: 4px; align-items: center; }
+  .status-icons .material-symbols-outlined { font-size: 17px; }
+
+  /* Home Indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: var(--text-primary);
+    border-radius: var(--radius-full);
+    opacity: 0.2;
+    z-index: 10;
+  }
+
+  /* Screen Content */
+  .screen-content {
+    position: relative;
+    height: calc(100% - 54px - 20px);
+    overflow: hidden;
+  }
+
+  .steps-container {
+    display: flex;
+    width: 400%;
+    height: 100%;
+    transition: transform 0.35s var(--ease-out-expo);
+  }
+
+  .step {
+    width: 25%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 8px 24px 40px;
+    scrollbar-width: none;
+  }
+  .step::-webkit-scrollbar { display: none; }
+
+  /* Step 1 — Welcome */
+  .gemini-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    background: linear-gradient(135deg, #4285F4, #8E24AA, #E8710A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 24px auto 16px;
+    animation: sparkle-pulse 2s ease-in-out infinite;
+  }
+  @keyframes sparkle-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.85; }
+  }
+
+  h1 {
+    font-family: var(--font-headline);
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .section-label {
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Checkboxes */
+  .checkbox-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s var(--ease);
+  }
+  /* hover states gated in @media block below */
+  .checkbox-item .cb {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid var(--text-disabled);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+    flex-shrink: 0;
+  }
+  .checkbox-item.checked .cb {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .checkbox-item .cb .material-symbols-outlined {
+    font-size: 16px;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.15s var(--ease);
+  }
+  .checkbox-item.checked .cb .material-symbols-outlined { opacity: 1; }
+  .cb-label {
+    font-size: 15px;
+    flex: 1;
+  }
+  .cb-label .icon-hint {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .privacy-note {
+    background: var(--surface-dim);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .privacy-note .material-symbols-outlined {
+    font-size: 18px;
+    color: var(--autonomy-green);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 16px;
+  }
+  .btn {
+    flex: 1;
+    height: 48px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-headline);
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  /* btn-primary:hover gated below */
+  .btn-secondary {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid #DADCE0;
+  }
+  /* btn-secondary:hover gated below */
+  .btn-full {
+    width: 100%;
+    height: 52px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-headline);
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    background: var(--primary);
+    color: white;
+    transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-full:active { transform: scale(0.97); }
+  /* btn-full:hover gated below */
+
+  /* Step Dots */
+  .step-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 0 4px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #DADCE0;
+    transition: background 0.4s var(--ease), width 0.4s var(--ease), border-radius 0.4s var(--ease);
+  }
+  .dot.active {
+    background: var(--primary);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  /* Step 2 — Family Members */
+  h2 {
+    font-family: var(--font-headline);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .step-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .member-card {
+    background: var(--surface);
+    border: 1px solid #E8EAED;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: box-shadow 0.2s var(--ease);
+  }
+  /* member-card:hover gated below */
+  .member-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+  }
+  .member-info { flex: 1; }
+  .member-name {
+    font-family: var(--font-headline);
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .member-role {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .member-age-input {
+    width: 52px;
+    height: 36px;
+    border-radius: var(--radius-xs);
+    border: 1px solid #DADCE0;
+    text-align: center;
+    font-size: 14px;
+    font-family: var(--font-body);
+    outline: none;
+    transition: border 0.2s var(--ease);
+  }
+  .member-age-input:focus { border-color: var(--primary); }
+  .member-age-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 2px;
+  }
+  .member-badge {
+    font-size: 12px;
+    background: #E8F0FE;
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-weight: 500;
+  }
+
+  .add-member-btn {
+    width: 100%;
+    height: 52px;
+    border: 2px dashed #DADCE0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--primary);
+    font-family: var(--font-headline);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.15s var(--ease);
+    margin-bottom: 20px;
+  }
+  .add-member-btn:active { transform: scale(0.97); }
+  /* add-member-btn:hover gated below */
+
+  /* Step 3 — Disclosure */
+  .disclosure-header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #E1BEE7, #CE93D8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px auto 20px;
+  }
+  .disclosure-header-icon .material-symbols-outlined {
+    font-size: 26px;
+    color: var(--disclosure-purple);
+  }
+
+  .radio-card {
+    border: 2px solid #E8EAED;
+    border-radius: var(--radius-md);
+    padding: 18px 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease), background 0.25s var(--ease), transform 0.15s var(--ease);
+    position: relative;
+  }
+  .radio-card:active { transform: scale(0.98); }
+  .radio-card.selected {
+    border-color: var(--disclosure-purple);
+    background: #F3E5F5;
+  }
+  .radio-card .radio-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--text-disabled);
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s var(--ease);
+  }
+  .radio-card.selected .radio-dot {
+    border-color: var(--disclosure-purple);
+  }
+  .radio-card.selected .radio-dot::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--disclosure-purple);
+    animation: dot-pop 0.25s var(--ease);
+  }
+  @keyframes dot-pop {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .radio-title {
+    font-family: var(--font-headline);
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    padding-right: 32px;
+  }
+  .radio-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding-right: 32px;
+  }
+  .radio-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--disclosure-purple);
+    background: #E1BEE7;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    margin-bottom: 8px;
+  }
+
+  .info-block {
+    background: var(--surface-dim);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-top: 20px;
+    margin-bottom: 24px;
+  }
+  .info-block h3 {
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .info-block p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Step 4 — Autonomy */
+  .autonomy-header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #C8E6C9, #81C784);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px auto 20px;
+  }
+  .autonomy-header-icon .material-symbols-outlined {
+    font-size: 26px;
+    color: var(--autonomy-green);
+  }
+
+  .slider-container {
+    background: var(--surface-dim);
+    border-radius: var(--radius-md);
+    padding: 24px 20px;
+    margin-bottom: 20px;
+  }
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .slider-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-disabled);
+    text-align: center;
+    transition: color 0.25s var(--ease-out-expo), font-weight 0.25s var(--ease-out-expo);
+    cursor: pointer;
+    padding: 4px 2px;
+    border-radius: var(--radius-xs);
+  }
+  .slider-label.active {
+    color: var(--autonomy-green);
+    font-weight: 600;
+  }
+  .slider-track {
+    position: relative;
+    height: 6px;
+    background: #DADCE0;
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+  .slider-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--autonomy-green);
+    border-radius: 3px;
+    transition: width 0.28s var(--ease-out-expo);
+  }
+  .slider-thumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background: var(--autonomy-green);
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: left 0.28s var(--ease-out-expo);
+    cursor: grab;
+  }
+  .slider-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-top: 16px;
+    min-height: 56px;
+    transition: opacity 0.3s var(--ease);
+  }
+
+  .autonomy-features {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .feature-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface-dim);
+    border-radius: var(--radius-sm);
+  }
+  .feature-row .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--autonomy-green);
+  }
+  .feature-row span {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  /* Checkbox active feedback */
+  .checkbox-item:active { background: var(--container); transition: background 0.08s var(--ease); }
+
+  /* ─── Hover states — touch-safe ─── */
+  @media (hover: hover) and (pointer: fine) {
+    .checkbox-item:hover { background: var(--surface-dim); }
+    .btn-primary:hover { background: #1557B0; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .btn-secondary:hover { background: #E8F0FE; }
+    .btn-full:hover { background: #1557B0; box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
+    .member-card:hover { box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+    .add-member-btn:hover { background: #E8F0FE; border-color: var(--primary); }
+  }
+
+  /* ─── Reduced motion ─── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Confetti */
+  .confetti-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="device-frame">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="status-icons">
+      <span class="material-symbols-outlined">signal_cellular_alt</span>
+      <span class="material-symbols-outlined">wifi</span>
+      <span class="material-symbols-outlined">battery_5_bar</span>
+    </div>
+  </div>
+
+  <div class="screen-content">
+    <div class="steps-container" id="stepsContainer">
+
+      <!-- Step 1: Welcome -->
+      <div class="step" id="step1">
+        <div class="gemini-icon">✦</div>
+        <h1>Welcome to<br>Home Brain</h1>
+        <p class="subtitle">Let your home learn your family's rhythms,<br>preferences, and daily patterns.</p>
+
+        <p class="section-label">Connect data sources</p>
+        <div class="checkbox-list">
+          <div class="checkbox-item checked" onclick="toggleCheck(this)">
+            <div class="cb"><span class="material-symbols-outlined">check</span></div>
+            <div class="cb-label">Search history<span class="icon-hint">Meal ideas, recent interests</span></div>
+          </div>
+          <div class="checkbox-item checked" onclick="toggleCheck(this)">
+            <div class="cb"><span class="material-symbols-outlined">check</span></div>
+            <div class="cb-label">Instacart<span class="icon-hint">Grocery orders, preferred stores</span></div>
+          </div>
+          <div class="checkbox-item checked" onclick="toggleCheck(this)">
+            <div class="cb"><span class="material-symbols-outlined">check</span></div>
+            <div class="cb-label">Calendar<span class="icon-hint">Schedule, events, availability</span></div>
+          </div>
+          <div class="checkbox-item" onclick="toggleCheck(this)">
+            <div class="cb"><span class="material-symbols-outlined">check</span></div>
+            <div class="cb-label">Spotify<span class="icon-hint">Listening patterns, mood signals</span></div>
+          </div>
+          <div class="checkbox-item" onclick="toggleCheck(this)">
+            <div class="cb"><span class="material-symbols-outlined">check</span></div>
+            <div class="cb-label">Instagram<span class="icon-hint">Visual preferences, saved items</span></div>
+          </div>
+        </div>
+
+        <div class="privacy-note">
+          <span class="material-symbols-outlined">verified_user</span>
+          <span>Your data stays on-device. Home Brain processes locally and never shares with third parties.</span>
+        </div>
+
+        <div class="step-dots">
+          <div class="dot active" id="dot0"></div>
+          <div class="dot" id="dot1"></div>
+          <div class="dot" id="dot2"></div>
+          <div class="dot" id="dot3"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(0)">Set Later</button>
+          <button class="btn btn-primary" onclick="goStep(1)">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Family Members -->
+      <div class="step" id="step2">
+        <div style="padding-top: 12px;">
+          <h2>Add Family Members</h2>
+          <p class="step-desc">Home Brain adapts to each person. Add your household members to personalize their experience.</p>
+
+          <div class="member-card">
+            <div class="member-avatar" style="background: var(--primary);">T</div>
+            <div class="member-info">
+              <div class="member-name">Takao</div>
+              <div class="member-role">Account owner</div>
+            </div>
+            <span class="member-badge">You</span>
+          </div>
+
+          <div class="member-card">
+            <div class="member-avatar" style="background: #E8710A;">W</div>
+            <div class="member-info">
+              <div class="member-name">Wife</div>
+              <div class="member-role">Family member</div>
+            </div>
+            <span class="material-symbols-outlined" style="color: var(--text-disabled); font-size: 20px;">edit</span>
+          </div>
+
+          <div class="member-card">
+            <div class="member-avatar" style="background: #8E24AA;">D</div>
+            <div class="member-info">
+              <div class="member-name">Daughter</div>
+              <div class="member-role">Child</div>
+            </div>
+            <div style="text-align: center;">
+              <input class="member-age-input" type="number" placeholder="Age" value="8">
+              <div class="member-age-label">age</div>
+            </div>
+          </div>
+
+          <div class="member-card">
+            <div class="member-avatar" style="background: #1E8E3E;">S</div>
+            <div class="member-info">
+              <div class="member-name">Son</div>
+              <div class="member-role">Child</div>
+            </div>
+            <div style="text-align: center;">
+              <input class="member-age-input" type="number" placeholder="Age" value="5">
+              <div class="member-age-label">age</div>
+            </div>
+          </div>
+
+          <button class="add-member-btn">
+            <span class="material-symbols-outlined">person_add</span>
+            Add member
+          </button>
+
+          <div class="step-dots">
+            <div class="dot" id="dot0b"></div>
+            <div class="dot active" id="dot1b"></div>
+            <div class="dot" id="dot2b"></div>
+            <div class="dot" id="dot3b"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="goStep(0)">Back</button>
+            <button class="btn btn-primary" onclick="goStep(2)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Disclosure -->
+      <div class="step" id="step3">
+        <div class="disclosure-header-icon">
+          <span class="material-symbols-outlined">visibility</span>
+        </div>
+        <h2 style="text-align: center;">Disclosure Dial</h2>
+        <p class="step-desc" style="text-align: center;">Control how much Home Brain can see about each family member's habits and preferences.</p>
+
+        <p class="section-label">Set sharing level</p>
+
+        <div class="radio-card selected" onclick="selectRadio(this)">
+          <div class="radio-dot"></div>
+          <span class="radio-tag">Recommended</span>
+          <div class="radio-title">Smart Defaults</div>
+          <div class="radio-desc">Home Brain sees meal preferences, schedule, and purchase history. Personal messages, health data, and finances stay private.</div>
+        </div>
+
+        <div class="radio-card" onclick="selectRadio(this)">
+          <div class="radio-dot"></div>
+          <div class="radio-title">Custom Setup</div>
+          <div class="radio-desc">Choose exactly which data categories each family member shares. Configure per-domain, per-person.</div>
+        </div>
+
+        <div class="info-block">
+          <h3><span class="material-symbols-outlined" style="font-size: 18px; color: var(--disclosure-purple);">info</span> Why Disclosure matters</h3>
+          <p>Autonomy requires knowledge. The system can only act independently on things you let it see. "Don't show it × Let it decide" is logically impossible.</p>
+        </div>
+
+        <div class="step-dots">
+          <div class="dot" id="dot0c"></div>
+          <div class="dot" id="dot1c"></div>
+          <div class="dot active" id="dot2c"></div>
+          <div class="dot" id="dot3c"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goStep(1)">Back</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Autonomy Dial -->
+      <div class="step" id="step4">
+        <div class="autonomy-header-icon">
+          <span class="material-symbols-outlined">tune</span>
+        </div>
+        <h2 style="text-align: center;">Autonomy Dial</h2>
+        <p class="step-desc" style="text-align: center;">How much should Home Brain act on its own? You can always change this later.</p>
+
+        <div class="slider-container">
+          <div class="slider-labels">
+            <span class="slider-label active" onclick="setAutonomy(0)">Suggest</span>
+            <span class="slider-label" onclick="setAutonomy(1)">Confirm</span>
+            <span class="slider-label" onclick="setAutonomy(2)">Notify</span>
+            <span class="slider-label" onclick="setAutonomy(3)">Auto</span>
+          </div>
+          <div class="slider-track">
+            <div class="slider-fill" id="sliderFill" style="width: 0%;"></div>
+            <div class="slider-thumb" id="sliderThumb" style="left: 0%;"></div>
+          </div>
+          <div class="slider-desc" id="sliderDesc">
+            Home Brain offers suggestions and waits for your decision. Full control stays with you.
+          </div>
+        </div>
+
+        <div class="autonomy-features">
+          <div class="feature-row">
+            <span class="material-symbols-outlined">speed</span>
+            <span>Adapts over time as trust builds</span>
+          </div>
+          <div class="feature-row">
+            <span class="material-symbols-outlined">family_restroom</span>
+            <span>Different levels per family member</span>
+          </div>
+          <div class="feature-row">
+            <span class="material-symbols-outlined">history</span>
+            <span>Always reversible — slide back anytime</span>
+          </div>
+        </div>
+
+        <div class="step-dots">
+          <div class="dot" id="dot0d"></div>
+          <div class="dot" id="dot1d"></div>
+          <div class="dot" id="dot2d"></div>
+          <div class="dot active" id="dot3d"></div>
+        </div>
+        <button class="btn-full" id="getStartedBtn" onclick="handleGetStarted()">
+          <span>Get Started</span>
+          <span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+let currentStep = 0;
+
+function goStep(n) {
+  currentStep = n;
+  document.getElementById('stepsContainer').style.transform = `translateX(-${n * 25}%)`;
+  updateDots(n);
+}
+
+function updateDots(n) {
+  const suffixes = ['', 'b', 'c', 'd'];
+  suffixes.forEach(s => {
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById('dot' + i + s);
+      if (el) el.classList.toggle('active', i === n);
+    }
+  });
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+}
+
+function selectRadio(el) {
+  document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+const autonomyDescs = [
+  'Home Brain offers suggestions and waits for your decision. Full control stays with you.',
+  'Home Brain prepares actions and asks for confirmation before executing. Quick approve or modify.',
+  'Home Brain acts and notifies you afterward. Review and undo within 30 minutes.',
+  'Home Brain handles routine decisions silently. You see a weekly summary of actions taken.'
+];
+
+function setAutonomy(level) {
+  const positions = [0, 33.33, 66.66, 100];
+  document.getElementById('sliderFill').style.width = positions[level] + '%';
+  document.getElementById('sliderThumb').style.left = positions[level] + '%';
+  document.getElementById('sliderDesc').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('sliderDesc').textContent = autonomyDescs[level];
+    document.getElementById('sliderDesc').style.opacity = '1';
+  }, 150);
+  document.querySelectorAll('.slider-label').forEach((l, i) => {
+    l.classList.toggle('active', i === level);
+  });
+}
+
+function handleGetStarted() {
+  const btn = document.getElementById('getStartedBtn');
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 22px;">check</span>';
+  btn.style.background = 'var(--autonomy-green)';
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 390;
+  canvas.height = 844;
+  const colors = ['#1A73E8', '#8E24AA', '#1E8E3E', '#F9AB00', '#E8710A', '#D93025'];
+  const particles = [];
+
+  for (let i = 0; i < 80; i++) {
+    particles.push({
+      x: 195 + (Math.random() - 0.5) * 40,
+      y: 780,
+      vx: (Math.random() - 0.5) * 12,
+      vy: -Math.random() * 18 - 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 6 + 3,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 10,
+      gravity: 0.25 + Math.random() * 0.1,
+      opacity: 1
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, 390, 844);
+    let alive = false;
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.vy += p.gravity;
+      p.y += p.vy;
+      p.rotation += p.rotSpeed;
+      p.opacity -= 0.008;
+      if (p.opacity <= 0) return;
+      alive = true;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation * Math.PI / 180);
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      ctx.restore();
+    });
+    if (alive) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, 390, 844);
+  }
+  animate();
+}
+</script>
+</body>
+</html>

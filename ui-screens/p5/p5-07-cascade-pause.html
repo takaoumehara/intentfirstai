@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P5-07 Cascade Paused by Emergency</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Noto Sans JP', system-ui, sans-serif;
+    padding: 20px;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #fdfcfa;
+    border-radius: 34px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #1a1816;
+    background: #fdfcfa;
+    padding-top: 16px;
+  }
+
+  .header {
+    padding: 12px 16px 8px;
+    background: #fdfcfa;
+    border-bottom: 1px solid #f0ece4;
+  }
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1816;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: #8a8580;
+    margin-top: 2px;
+  }
+
+  .content {
+    padding: 16px 12px 20px;
+  }
+
+  /* Status badge */
+  .status-badge {
+    background: #fef3e0;
+    border: 1.5px solid #fde68a;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .status-badge-icon {
+    font-size: 24px;
+  }
+
+  .status-badge-content {
+    flex: 1;
+  }
+
+  .status-badge-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #b45309;
+    margin-bottom: 2px;
+  }
+
+  .status-badge-text {
+    font-size: 11px;
+    color: #92400e;
+    line-height: 1.3;
+  }
+
+  /* Impact callout */
+  .impact-callout {
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+
+  .impact-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #065f46;
+    margin-bottom: 6px;
+  }
+
+  .impact-text {
+    font-size: 11px;
+    color: #047857;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .impact-time {
+    font-size: 11px;
+    color: #047857;
+    font-weight: 600;
+    display: block;
+  }
+
+  /* Task list */
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #8a8580;
+    margin-bottom: 10px;
+    margin-top: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .task-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1.5px solid #f0ece4;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .task-item.auto {
+    border-color: #bfdbfe;
+    background: #f0f9ff;
+  }
+
+  .task-item.paused {
+    border-color: #fecaca;
+    background: #fef2f2;
+  }
+
+  .task-item.done {
+    border-color: #86efac;
+    background: #f0fdf4;
+  }
+
+  .task-status-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .task-status-icon.auto {
+    background: #bfdbfe;
+    color: #0369a1;
+  }
+
+  .task-status-icon.paused {
+    background: #fecaca;
+    color: #b91c1c;
+  }
+
+  .task-status-icon.done {
+    background: #86efac;
+    color: #065f46;
+  }
+
+  .task-content {
+    flex: 1;
+  }
+
+  .task-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 4px;
+  }
+
+  .task-detail {
+    font-size: 11px;
+    color: #8a8580;
+    line-height: 1.3;
+  }
+
+  .task-autonomy {
+    font-size: 10px;
+    font-weight: 600;
+    color: #0369a1;
+    margin-top: 4px;
+    display: block;
+  }
+
+  .task-autonomy.paused {
+    color: #b91c1c;
+  }
+
+  .task-autonomy.done {
+    color: #065f46;
+  }
+
+  /* Timeline info */
+  .timeline-info {
+    background: #f8f7f4;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 14px;
+    border: 1px solid #f0ece4;
+  }
+
+  .timeline-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 8px;
+  }
+
+  .timeline-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #8a8580;
+    margin-bottom: 4px;
+  }
+
+  .timeline-item.change {
+    color: #b91c1c;
+    font-weight: 600;
+  }
+
+  .timeline-label {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .timeline-value {
+    display: block;
+    color: #1a1816;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-screen">
+    <div class="status-bar">
+      <span>15:12</span>
+      <span style="font-weight: 600;">●●●●●</span>
+    </div>
+
+    <div class="header">
+      <div class="header-title">カスケード一時停止</div>
+      <div class="header-subtitle">緊急対応に優先度変更</div>
+    </div>
+
+    <div class="phone-content">
+      <div class="content">
+        <!-- Status Badge -->
+        <div class="status-badge">
+          <div class="status-badge-icon">⏸</div>
+          <div class="status-badge-content">
+            <div class="status-badge-title">カスケード一時停止中</div>
+            <div class="status-badge-text">競合分析を自動昇格。スライド作成は更新待機中。</div>
+          </div>
+        </div>
+
+        <!-- Impact Callout -->
+        <div class="impact-callout">
+          <div class="impact-title">カスケード一時停止。リサーチを最高自律度に昇格。スライド作成は新しい研究成果待ち。</div>
+          <div class="impact-text">
+            <strong>タイムラインへの影響:</strong><br>
+            元々の完了予定: 17:30<br>
+            新しい推定: 18:45 (+1時間15分)
+          </div>
+        </div>
+
+        <!-- Task Status -->
+        <div class="section-label">現在のタスク状態</div>
+
+        <!-- Research Task (Auto) -->
+        <div class="task-item auto">
+          <div class="task-status-icon auto">⚡</div>
+          <div class="task-content">
+            <div class="task-name">競合分析</div>
+            <div class="task-detail">リサーチエージェント — 承認待機なしで実行</div>
+            <span class="task-autonomy">自律度: Auto（最高）</span>
+          </div>
+        </div>
+
+        <!-- Slides Task (Paused) -->
+        <div class="task-item paused">
+          <div class="task-status-icon paused">⏸</div>
+          <div class="task-content">
+            <div class="task-name">プレゼン作成</div>
+            <div class="task-detail">デザインエージェント — 更新リサーチ出力待機中</div>
+            <span class="task-autonomy paused">ステータス: ブロック（競合分析まで待機）</span>
+          </div>
+        </div>
+
+        <!-- Room Task (Done) -->
+        <div class="task-item done">
+          <div class="task-status-icon done">✓</div>
+          <div class="task-content">
+            <div class="task-name">会議室確保</div>
+            <div class="task-detail">管理エージェント — 13:00 予約済み（変更なし）</div>
+            <span class="task-autonomy done">ステータス: 完了</span>
+          </div>
+        </div>
+
+        <!-- Timeline Info -->
+        <div class="timeline-info">
+          <div class="timeline-title">推定完了タイムライン</div>
+          <div class="timeline-item">
+            <span>元々の完了時刻:</span>
+            <span style="color: #8a8580; text-decoration: line-through;">17:30</span>
+          </div>
+          <div class="timeline-item change">
+            <span>新しい推定:</span>
+            <span>18:45 (+1h 15m)</span>
+          </div>
+          <div class="timeline-item">
+            <span>リサーチ完了まで:</span>
+            <span style="color: #1a1816; font-weight: 600;">5時間</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

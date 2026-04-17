@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIはその仕事をこなせる。でも、こなすべきなのか？ ── あなたのプロダクトが無断で引いている「境界線」 — intentfirst.ai</title>
+<meta name="description" content="チームは機能的なジョブに向けてAIプロダクトを設計する。「どの判断をユーザー自身が握りたいか」を問うチームは、ほぼ存在しない。">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(253,252,250,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--color-grammar); }
+.nav-links a[href="../../journal/index.html"] { color: var(--color-grammar); }
+
+@media (max-width: 768px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+.lang-switch {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: rgba(253,252,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
+}
+.lang-switch a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 6px;
+  transition: color 0.3s var(--ease);
+  line-height: 1;
+}
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+.lang-switch-divider {
+  width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+@media (max-width: 768px) {
+  .lang-switch {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .lang-switch-divider {
+    width: 1px;
+    height: 14px;
+  }
+}
+
+/* ═══ ARTICLE HERO ═══ */
+.article-hero {
+  padding-top: 56px;
+}
+.article-hero-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-meta {
+  padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 48px) clamp(32px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.article-hero-meta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article-hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.15s forwards;
+}
+.article-hero-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.25s forwards;
+}
+.article-hero-subtitle {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.35s forwards;
+}
+.article-hero-date {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.8vw, 13px);
+  letter-spacing: 1px;
+  color: var(--text-3);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.45s forwards;
+}
+
+/* ═══ ARTICLE BODY ═══ */
+.article-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  font-size: clamp(16px, 1.1vw, 18px);
+  line-height: 1.8;
+  color: var(--text);
+}
+.article-body p {
+  margin-bottom: 1.6em;
+}
+.article-body h2 {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  margin-top: 2.8em;
+  margin-bottom: 1em;
+}
+.article-body h3 {
+  font-weight: 400;
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-top: 2.2em;
+  margin-bottom: 0.8em;
+}
+.article-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.article-body em {
+  font-style: italic;
+  color: var(--text-2);
+}
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.4em 0;
+}
+.article-body ul {
+  margin-bottom: 1.6em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+.article-body ul li {
+  position: relative;
+  padding-left: 1em;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grammar);
+}
+.article-body blockquote {
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin: 1.6em 0;
+  color: var(--text-2);
+  font-style: italic;
+}
+.article-body ol {
+  margin-bottom: 1.6em;
+  padding-left: 1.6em;
+}
+.article-body ol li {
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body .closing-note {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin-top: 2em;
+}
+.article-body .closing-note p {
+  margin-bottom: 0.8em;
+}
+.article-body .closing-note p:last-child {
+  margin-bottom: 0;
+}
+
+/* ═══ ARTICLE NAV ═══ */
+.article-nav {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.article-nav a {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+.article-nav a:hover {
+  color: var(--color-grammar);
+  border-color: var(--color-grammar);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(104,137,180,0.15);
+}
+
+/* ═══ SUBSCRIBE CTA ═══ */
+.subscribe-cta {
+  background: var(--bg-inverse);
+  color: #fff;
+  text-align: center;
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+}
+.subscribe-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.subscribe-sub {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+.subscribe-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--color-grammar);
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s var(--ease);
+  box-shadow: 0 4px 24px rgba(104,137,180,0.25);
+}
+.subscribe-btn:hover {
+  filter: brightness(0.85);
+  box-shadow: 0 6px 32px rgba(104,137,180,0.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 580px) {
+  .article-hero-title {
+    letter-spacing: -0.8px;
+  }
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article-nav a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo"><img src="../../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../../context-grammar/index.html">Context Grammar</a>
+      <a href="../../../projects/index.html">Projects</a>
+      <a href="../../industry/index.html">Industry</a>
+      <a href="../../about/index.html">About</a>
+      <a href="../../about/index.html#contact" class="nav-cta">Contact</a>
+    </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../../context-grammar/index.html">Context Grammar</a>
+    <a href="../../../projects/index.html">Projects</a>
+    <a href="../../industry/index.html">Industry</a>
+    <a href="../../about/index.html">About</a>
+    <a href="../../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../../journal/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../../journal/index.html">EN</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE HERO
+     ═══════════════════════════════════════ -->
+<section class="article-hero">
+  <img src="../../../assets/img/journal/13.webp" alt="AIにできる仕事と、AIに渡してはいけない判断。その境界線を、あなたのプロダクトは勝手に引いている。" class="article-hero-img">
+  <div class="article-hero-meta">
+    <div class="article-hero-meta-inner">
+      <p class="article-hero-label">エッセイ &mdash; 13</p>
+      <h1 class="article-hero-title">AIはその仕事をこなせる。でも、こなすべきなのか？ ── あなたのプロダクトが無断で引いている「境界線」</h1>
+      <p class="article-hero-subtitle">チームは機能的なジョブに向けてAIプロダクトを設計する。「どの判断をユーザー自身が握りたいか」を問うチームは、ほぼ存在しない。</p>
+      <p class="article-hero-date">2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE BODY
+     ═══════════════════════════════════════ -->
+<article class="article-body">
+  <div class="reveal">
+    <p>スキー場の中腹。雪が降っている。ゴーグルは少し曇っている。グローブをはめたまま、スマホを取り出してYouTubeを開いた。滑りのフォームを確認したかった。</p>
+
+    <p>アプリは動いた。動画は読み込まれた。機能的には、すべて正しかった。</p>
+
+    <p>それでも使えなかった。</p>
+
+    <p>ボタンはグローブの指には小さすぎた。シークバーは制御不能だった。リフトに戻るまでの5分間、凍えながら山の斜面に立っている人間のことを、そのインターフェースは何も知らなかった。ソファに座って動画を見ている人と、まったく同じ体験を差し出してきた。</p>
+
+    <p>プロダクトチームは機能的なジョブを設計した。「動画を見る」。正解だ。</p>
+
+    <p>でも、その下にある問いには触れなかった。「このユーザーは何をコントロールし続けたいのか。何をシステムに任せたいだけなのか？」</p>
+
+    <p>この二つはまったく別の問いだ。そしてその隙間こそ、ユーザー体験が壊れる場所だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>先週、自分の投稿へのコメントに手が止まった。</p>
+
+    <p>Skipper Chong Warsonがこう書いていた。</p>
+
+    <p>> 「チームはほぼ必ず機能的なジョブのために設計して、その境界線がどこにあるか分かっていると思い込んでいる。分かっていない、たいていの場合。そしてまさにそれが、いまAIシステムの設計に必要なことだ」</p>
+
+    <p>彼が話していたのは、「自律マップ」のフレーミングだ。「委譲すべきジョブ」と「自分で握るべき判断」。彼は正しかった。</p>
+
+    <p>でも、ずっと頭から離れないのはこの部分だ。チームは無能ではない。怠けてもいない。<strong>間違った問いに対して解を出している</strong>のだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>正しいプロダクト、間違ったデザイン</h2>
+
+    <p>ジョブ理論（Jobs-to-be-Done）。Tony Ulwickが1980年代後半にStrategynで開発したフレームワークだ。人はプロダクトを「使う」のではない。自分の人生のあるジョブを遂行するために「雇う」のだ。</p>
+
+    <p>すべてのジョブには三つの層がある。</p>
+
+    <p><strong>機能的：</strong> ユーザーが文字通り達成しようとしていること。</p>
+
+    <p><strong>感情的：</strong> それをしている間、どう感じたいか。</p>
+
+    <p><strong>社会的：</strong> その結果として、どう見られたいか。</p>
+
+    <p>ほとんどのチームは機能的な層を設計する。感情的な層に到達するチームもある。しかし、AIプロダクト設計で最も重要な問いに辿り着くチームは、ほぼ皆無だ。</p>
+
+    <p><strong>ユーザーは何のコントロールを手放したくないのか？</strong></p>
+
+    <p>この問いが決める。あなたのAIプロダクトが「協力者」に感じられるか、「侵入者」に感じられるか。機能リストからは答えられない。その人の状況の「肌理（きめ）」を理解する必要がある。物理的な文脈、認知的な負荷、賭けの大きさ、その瞬間。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>二種類のジョブ</h2>
+
+    <p>JTBD（ジョブ理論）をAIシステム設計に適用すると、ユーザーのジョブには隠れた内部構造があることが見えてくる。</p>
+
+    <p>ジョブの一部は<strong>委譲する価値がある</strong>。誰が、あるいは何が処理しても、ユーザーは本当に気にしない。確実に、正確に、中断なく完了してくれればいい。</p>
+
+    <p>別の一部は<strong>自分で握るべき判断</strong>だ。ユーザーが自分で決めたい、いや、自分で決める必要がある瞬間。これを奪っても助けにならない。不安にさせるだけだ。</p>
+
+    <p><strong>委譲する価値があるジョブ</strong>の特徴：</p>
+
+    <ul>
+      <li>間違っても低リスク</li>
+      <li>容易に元に戻せる</li>
+      <li>ルーティンで予測可能</li>
+      <li>ユーザーがそれを行うことに意味を感じない</li>
+    </ul>
+
+    <p><strong>自分で握るべき判断</strong>の特徴：</p>
+
+    <ul>
+      <li>高リスクまたは不可逆</li>
+      <li>アイデンティティや価値観に結びつく</li>
+      <li>予測不能で、即興的な判断を伴う</li>
+      <li>自分なしに決められたら「侵害」と感じる</li>
+    </ul>
+
+    <p>この二つのカテゴリの間のマッピング。特定のユーザーが、特定の文脈で、特定のジョブを遂行するとき。これを私は<strong>自律マップ（Autonomy Map）</strong>と呼ぶ。</p>
+
+    <p>そしてほぼすべてのプロダクトチームが、これを作っていない。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>スキー斜面をマッピングする</h2>
+
+    <p>スキー場の例をマッピングしてみる。</p>
+
+    <p>目的は滑りの技術を上げること。機能的なジョブは「インストラクション動画を見つけて見る」。でもその下には、アプリが見なかった層があった。</p>
+
+    <p><strong>喜んで委譲できたジョブ：</strong></p>
+
+    <ul>
+      <li>スキルレベルに合った動画を見つけること</li>
+      <li>前回のセッションの続きから再開すること</li>
+      <li>いまの地形に関係ないコンテンツをフィルターすること</li>
+    </ul>
+
+    <p><strong>自分で握る必要があった判断：</strong></p>
+
+    <ul>
+      <li><em>いつ</em>滑るのをやめて動画を見るか。それは身体の感覚、雪のコンディションの変化、子供のレッスンが終わるまでの残り時間に依存していた</li>
+      <li><em>どのくらい</em>見てから再び滑り出すか。そのリズムは自分で感じる必要があった。管理されるものではない</li>
+      <li><em>斜面のどの場所</em>で止まるか。安全性、視界、他のスキーヤー</li>
+    </ul>
+
+    <p>アプリはこれらの区別を一切しなかった。すべてを中立的な配信問題として扱った。「ここにコンテンツがあります。ここにインターフェースがあります。操作してください」</p>
+
+    <p>結果。機能的には100%正しく、その瞬間において本当に使えないプロダクト。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>現実世界が割り込むとき</h2>
+
+    <p>自分で握るべき判断には、もう一つの特徴がある。しばしば突発的だということだ。</p>
+
+    <p>先週、いつものルートを車で走っていた。後部座席に子供たち。カレンダーは空いている。</p>
+
+    <p>そこに。子供がトイレを急に必要とする。電話が鳴る。妻がケーキを買ってきてほしいと言う。自分もお腹が空いてきた。頭の中にあったルートは、もう走っているルートではなくなった。</p>
+
+    <p>ナビをオーバーライドした。二度。予定外の停車を三回。当初の到着予定より20分遅れた。</p>
+
+    <p>ナビゲーションシステムはこの一切を知らなかった。元の目的地に向けて黙々と再計算し続けた。辛抱強く、無益に、私が別のことを告げるまで。</p>
+
+    <p>もっと高性能なAIシステムを想像してみる。カレンダーも位置履歴も子供のスケジュールも過去の購買パターンも見えるシステム。いくつかは予測できたかもしれない。トイレ休憩を先回りして提案したかもしれない。</p>
+
+    <p>提案には感謝しただろう。</p>
+
+    <p>でも<strong>決定</strong>には抵抗した。「ここで停まる」という瞬間は、私のものだ。複雑だからではない。<strong>私の判断だから</strong>だ。</p>
+
+    <p>これがリアルなユーザー自律の「肌理」だ。従来の意味でのリスクや賭けの話ではない。自分の一日を自分で仕切っているという、即興的で予測不能な、極めて人間的な感覚の話だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>チームが境界線を間違える三つのパターン</h2>
+
+    <p>一貫して見られる三つの失敗モードがある。</p>
+
+    <p><strong>失敗1：ユーザーの希望ではなく、技術的能力で自動化する</strong></p>
+
+    <p>問いがこうなる。「これを自動でできるか？」。「すべきか？」ではなく。</p>
+
+    <p>システムがレスポンスを生成できるなら、生成する。予約を取れるなら、取る。エンジニアリングの能力がそのままデザインの判断になる。ユーザーの希望は、尋ねられるのではなく、仮定される。</p>
+
+    <p><strong>失敗2：全ユーザーに一律の自律レベル</strong></p>
+
+    <p>人によって、自律マップの引き方は異なる。AIスケジュールアシスタントを1年使った人と、初めて出会う人とでは、快適さのレベルがまるで違う。</p>
+
+    <p>でもほとんどのプロダクトは全員に同じ自律設定を適用する。熟練ユーザーは、もう必要のない確認リクエストを受ける。新規ユーザーは、まだ信頼を構築していない自動化を受ける。どちらの体験も正しくない。そして同じプロダクトが両方を生み出している。</p>
+
+    <p><strong>失敗3：コンテクストの無視</strong></p>
+
+    <p>同じユーザー、同じタスク、異なるコンテクスト。</p>
+
+    <p>穏やかな火曜の午後にカレンダーを確認するのと、見知らぬ山の斜面で子供のレッスンがあと40分で終わる状況で確認するのは、同じではない。</p>
+
+    <p>ジョブは名目上同一だ。自律マップはまったく異なる。</p>
+
+    <p>コンテクストに盲目なプロダクトは、両方に同じロジックを適用する。山を無視する。グローブを無視する。40分を無視する。技術的には正しいが、行動的には間違った体験を届ける。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>自律マップの作り方</h2>
+
+    <p>自律マップは一度作ってファイルに保存する成果物ではない。ユーザーのジョブにおける重要な瞬間ごとに問う、一連の問いだ。</p>
+
+    <p><strong>重要な瞬間ごとに問う：</strong></p>
+
+    <p>1. <em>ユーザーはここで実際に何をしようとしているか？</em>（機能的ジョブ）</p>
+
+    <p>2. <em>それをしている間、どう感じたいか？</em>（感情的ジョブ）</p>
+
+    <p>3. <em>どんなコンテクストにいるか？ 物理的、認知的、社会的に</em></p>
+
+    <p>4. <em>成功は何に見えるかではなく、どう感じるか？</em></p>
+
+    <p>5. <em>ユーザーは何のコントロールを保ちたいか？</em> ── これがマップの問いだ</p>
+
+    <p>6. <em>技術的には正しくても、「侵害」と感じるものは何か？</em></p>
+
+    <p>問い5と6の答えがマップを与える。「コントロールを保ちたい」列に入るものは、自律レベルを低く保つ。行動する前に確認する。あるいは決定のためにユーザーに提示する。それ以外は委譲できる。</p>
+
+    <p><strong>次に変動要因を重ねる：</strong></p>
+
+    <ul>
+      <li>ユーザーの経験値によって変わるか？</li>
+      <li>コンテクスト（場所、時間的プレッシャー、身体的状態）によって変わるか？</li>
+      <li>その判断が影響する他の人がいるかどうかで変わるか？</li>
+    </ul>
+
+    <p>自律マップは静的ではない。ユーザーの状況とともにシフトする。プロダクトは、それとともにシフトするように設計されなければならない。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>自律ダイアルとの接続</h2>
+
+    <p>マップができれば、ダイアルの設定に必要な情報が揃う。</p>
+
+    <p>自律ダイアル（Autonomy Dial）。別のエッセイで詳述したフレームワークだ。四つのポジションがある。「観察して提案」「確認して実行」「通知して実行」「自律的に実行」。</p>
+
+    <p>ほとんどのチームはマップなしにダイアルを設定しようとする。デフォルトを選び（たいていは慎重。慎重は弁護しやすいから）、一律に適用する。</p>
+
+    <p>結果。ユーザーが喜んで委譲するはずのことに対して、絶え間ない確認リクエスト。ユーザーが自分で握りたかったことの、無言の自動化。どちらも間違っている。どちらも信頼を侵食する。ただ方向が逆なだけだ。</p>
+
+    <p>マップが教えるのは、<strong>どの</strong>ダイアル設定が<strong>どの</strong>瞬間に属するか、だ。マップはダイアルを使えるようにする診断ツールだ。</p>
+
+    <p>マップなしでは、自律デザインの判断をしているのではない。推測しているだけだ。そしてその推測がユーザーの実際の体験と合致することを祈っているだけだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>マップを作ると何が変わるか</h2>
+
+    <p>チームがこの作業を行うとき。「このユーザーは何のコントロールを保ちたいか？」と実際に問うとき。いくつかのことが起きる。</p>
+
+    <p>プロダクトがより具体的になる。複雑な方向にではない。<strong>敬意ある</strong>方向に。ユーザーが処理してほしいタスクと、ユーザーが自分で下したい判断の違いを、理解しているかのように振る舞い始める。</p>
+
+    <p>ユーザーの認知負荷が下がる。AIがより多くのことをしているからではない。AIが<strong>正しいこと</strong>をしているからだ。処理すべきものを処理し、人間がそこにいる必要があるときには身を引く。</p>
+
+    <p>そして信頼が複利で積み上がる。大きなジェスチャーや機能発表によってではない。システムが自分の仕事の終わりとユーザーの仕事の始まりを理解しているという、小さく一貫した体験によって。</p>
+
+    <p>これはUXの目標ではない。<strong>関係性</strong>だ。</p>
+
+    <p>そしてすべての関係性と同じく、それは正しい問いから始まる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>自律レベルの設定フレームワーク ── 自律ダイアル ── は別のエッセイにある。これはその前に来る診断ツールだ。</em></p>
+
+    <p><em>もしあなたのチームが自律マップなしにAIプロダクトの判断を下しているなら、あなたは境界線を引いている。ただ、意図的に引いていないだけだ。</em></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>P.S. この記事を書きながら、ふと気づいた。私たちが「ユーザー中心設計」と呼んでいるものの多くは、ユーザーの「能力」を中心にしている。ユーザーの「意志」を中心にはしていない。AIの時代、その差は致命的になる。能力の問題はテクノロジーが解決する。意志の問題は、問いかけなければ永遠に見えない。</p>
+  </div>
+
+</article>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="article-nav reveal">
+  <a href="../12/index.html">&larr; 前の記事</a>
+  <a href="../index.html">一覧に戻る</a>
+  <a href="../14/index.html">次の記事 &rarr;</a>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     SUBSCRIBE
+     ═══════════════════════════════════════ -->
+<section class="subscribe-cta">
+  <div style="max-width: var(--max-w); margin: 0 auto;">
+    <h2 class="subscribe-title reveal">最新のエッセイを、<br>受信箱へ。</h2>
+    <p class="subscribe-sub reveal d1">Context Grammarは進化を続けています。その過程をお届けします。</p>
+    <a href="https://intentfirst.substack.com" target="_blank" class="subscribe-btn reveal d2">Substackで購読</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+
+</body>
+</html>

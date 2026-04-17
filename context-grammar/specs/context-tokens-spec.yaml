@@ -1,0 +1,904 @@
+# Context Grammar Token Specification
+# Machine-readable spec for AI systems making design decisions
+# Source: intentfirst.ai
+
+spec:
+  name: Context Grammar Token Specification
+  version: "1.0"
+  date: "2026-04-09"
+  description: "Machine-readable specification for Context Grammar's Intent + 8 Context Tokens"
+  license: "CC BY 4.0"
+  url: "https://intentfirst.ai/spec"
+  architecture_note: >
+    Intent is the starting point. 8 Context Tokens declare the user's current state.
+    Brain (3-layer memory: Identity / Accumulated Learning / Right Now) provides personal context.
+    Rule Engine transforms Token x Brain into concrete design rules.
+    Learning Loop feeds outcomes back into Brain, improving implicit Intent detection over time.
+
+# -------------------------------------------------------------------
+# Intent — separate from the 8 tokens
+# -------------------------------------------------------------------
+intent:
+  name: Intent
+  name_ja: "Intent (意図)"
+  id: intent
+  role: entry_point
+  description: "The user's goal — what they want to accomplish. Serves as the starting point for all Context Grammar decisions."
+  types:
+    explicit:
+      description: "User-declared intent expressed in words or direct action."
+      examples:
+        - "Find winter shoes for my son"
+        - "Plan a Kyoto trip"
+        - "Start spring cleaning today"
+      detection_method: "Natural language input, search query, direct command, or task initiation."
+      availability: now
+    implicit:
+      description: "Intent inferred from the intersection of Context Tokens and Brain memory, without the user stating it."
+      examples:
+        - "Yogurt at 20%, consumption rate 1 per 5 days, today is Wednesday — order to arrive by Friday."
+        - "Calendar shows dentist at 3pm, traffic building — suggest leaving now."
+        - "Child's shoe size updated 2 months ago, growth rate pattern suggests check soon."
+      detection_method: "Token state + Brain accumulated learning + temporal patterns."
+      availability: partial
+      dependencies:
+        - "Brain memory depth (more history = better inference)"
+        - "Disclosure Dial level (AI must know relevant data to infer)"
+        - "Autonomy Dial level (determines whether inference is acted upon)"
+  design_rules:
+    explicit_intent:
+      response_mode: direct
+      ui_pattern: "Show relevant results immediately. Match output to the specificity of the request."
+      latency_target_ms: 500
+    implicit_intent:
+      response_mode: contextual
+      ui_pattern: "Surface as a suggestion or ambient notification, never as an interruption. Confidence threshold must be met before surfacing."
+      confidence_threshold: 0.8
+      fallback: "If confidence < threshold, do not surface. Store as candidate and wait for additional signals."
+
+# -------------------------------------------------------------------
+# 8 Context Tokens
+# -------------------------------------------------------------------
+tokens:
+
+  # ---------------------------------------------------------------
+  # SITUATION TOKENS (1-6)
+  # ---------------------------------------------------------------
+
+  - name: Physical State
+    name_ja: "Physical State (身体状態)"
+    id: physical_state
+    number: 1
+    category: situation
+    description: "Declares the user's current bodily state — posture, mobility, and hand availability — to determine fundamental UI shape."
+    values:
+      - id: stationary_both_hands
+        label: "Stationary, both hands free"
+        description: "Seated or standing still, both hands available for interaction."
+      - id: stationary_one_hand
+        label: "Stationary, one hand occupied"
+        description: "Seated or standing still, one hand holding something (coffee, bag, child's hand)."
+      - id: walking
+        label: "Walking"
+        description: "On foot, device likely in one hand or pocket."
+      - id: transit_passive
+        label: "Passive transit"
+        description: "On train/bus, possibly standing and holding strap with one hand."
+      - id: driving
+        label: "Driving"
+        description: "Hands on wheel, eyes on road. No manual interaction permitted."
+      - id: exercising
+        label: "Exercising"
+        description: "Running, cycling, gym. Hands largely unavailable, screen glancing only."
+      - id: lying_down
+        label: "Lying down"
+        description: "In bed or on couch. Device likely held above face or propped."
+    signals:
+      - source: "Device motion sensors (accelerometer, gyroscope)"
+        method: "iOS CMMotionActivityManager / Android Activity Recognition API classifies walking, running, cycling, automotive, stationary."
+        availability: now
+      - source: "Smartwatch sensors"
+        method: "Heart rate + accelerometer patterns distinguish exercise from transit. Galaxy Watch blood pressure (US, March 2026)."
+        availability: now
+      - source: "Connected vehicle APIs"
+        method: "CarPlay / Android Auto connection confirms driving state."
+        availability: now
+      - source: "Grip pattern detection"
+        method: "Touch sensor + accelerometer fusion to detect one-hand vs two-hand grip. Research shows 84% accuracy but no shipping product."
+        availability: future
+    design_rules:
+      stationary_both_hands:
+        ui_density: high
+        interaction_complexity: full
+        touch_target_min_dp: 48
+        recommendation: "Full UI with standard controls. Complex forms, multi-step flows, and detailed content are all appropriate."
+      stationary_one_hand:
+        ui_density: medium
+        interaction_complexity: standard
+        touch_target_min_dp: 56
+        recommendation: "Bottom-aligned primary actions. Swipe-card UI. Avoid top-corner targets. Increase button size."
+      walking:
+        ui_density: low
+        interaction_complexity: minimal
+        touch_target_min_dp: 64
+        recommendation: "Large tap targets, glanceable info cards, haptic confirmation. No text input. Audio output preferred."
+      transit_passive:
+        ui_density: medium
+        interaction_complexity: standard
+        touch_target_min_dp: 56
+        recommendation: "Swipe-card UI optimized for one-hand thumb zone. Scrollable content OK. Avoid precision taps."
+      driving:
+        ui_density: low
+        interaction_complexity: minimal
+        touch_target_min_dp: null
+        recommendation: "Voice-only interaction. No visual UI changes that require attention. Audio confirmation for all actions. HUD-safe glanceable status only."
+        hard_constraint: "NEVER require visual attention or manual interaction while driving state is active."
+      exercising:
+        ui_density: low
+        interaction_complexity: minimal
+        touch_target_min_dp: 72
+        recommendation: "Wrist-glanceable summaries on watch. Audio cues. Pause/resume as single large target. No scrolling."
+      lying_down:
+        ui_density: medium
+        interaction_complexity: standard
+        touch_target_min_dp: 48
+        recommendation: "Content-consumption optimized. Auto-rotate awareness. Reduce brightness. Larger text for distance viewing if propped."
+    reality_level: 4
+    reality_note: "Activity recognition (walk/run/drive/stationary) ships on all major platforms and is mature. One-hand vs two-hand detection and automatic UI reshaping based on physical state remain unshipped."
+
+  - name: Cognitive Load
+    name_ja: "Cognitive Load (認知負荷)"
+    id: cognitive_load
+    number: 2
+    category: situation
+    description: "Estimates the user's current mental bandwidth to determine how much information and how many choices the UI should present."
+    values:
+      - id: low
+        label: "Low load"
+        description: "Relaxed, few demands. Open to exploration and complex choices."
+      - id: moderate
+        label: "Moderate load"
+        description: "Normal task engagement. Standard cognitive capacity available."
+      - id: high
+        label: "High load"
+        description: "Multiple demands competing. Limited capacity for new information."
+      - id: overloaded
+        label: "Overloaded"
+        description: "At or past cognitive capacity. Decision-making severely impaired."
+    estimation_method_note: >
+      IMPORTANT: Cognitive Load is NEVER directly measured. It is always estimated from
+      indirect signals. This is a fundamental design decision — no EEG, no biometric
+      brain scanning. Estimation from behavioral and contextual signals only.
+    signals:
+      - source: "Time of day"
+        method: "Late night (23:00-05:00) and post-lunch (13:00-14:00) mapped to higher baseline load via circadian model."
+        availability: now
+      - source: "Calendar density"
+        method: "Count meetings/events in surrounding 2-hour window. 3+ events with <15min gaps = high load signal."
+        availability: now
+      - source: "Recent app-switching frequency"
+        method: "5+ app switches in 10 minutes indicates fragmented attention. Screen Time API / Digital Wellbeing API."
+        availability: now
+      - source: "Previous task complexity"
+        method: "Completing a complex task (tax filing, long form, medical decisions) leaves residual load. Decay over 30-60 minutes."
+        availability: partial
+      - source: "Typing pattern degradation"
+        method: "Increased typo rate, slower typing speed relative to personal baseline. Samsung Brain Health (CES 2026) detects long-term cognitive patterns."
+        availability: partial
+      - source: "Focus Mode state"
+        method: "iOS Focus / Android Focus Mode active = user has self-declared a constrained attention context."
+        availability: now
+    design_rules:
+      low:
+        ui_density: high
+        interaction_complexity: full
+        max_choices: 8
+        recommendation: "Full exploration UI. Show categories, filters, detailed descriptions. User can handle comparison and nuanced decisions."
+      moderate:
+        ui_density: medium
+        interaction_complexity: standard
+        max_choices: 5
+        recommendation: "Balanced UI. Show curated options with clear differentiators. Progressive disclosure for details."
+      high:
+        ui_density: low
+        interaction_complexity: minimal
+        max_choices: 3
+        recommendation: "Simplified UI. Pre-filtered top recommendations. Binary or ternary choices only. Offer 'decide later' as explicit option."
+      overloaded:
+        ui_density: low
+        interaction_complexity: minimal
+        max_choices: 1
+        recommendation: "Single best recommendation with one-tap accept. 'Save for later' as alternative. No comparisons, no details unless requested. Shield from non-urgent notifications."
+        defer_pattern: "Queue non-critical decisions and resurface when load drops to moderate or below."
+    reality_level: 2
+    reality_note: "No shipping product performs real-time cognitive load estimation for UI adaptation. Individual signals (calendar, time, Focus Mode) are available today. The composite estimation model and UI response are entirely speculative. Closest analog: Focus Mode as a manual proxy."
+
+  - name: Social Exposure
+    name_ja: "Social Exposure (社会的露出)"
+    id: social_exposure
+    number: 3
+    category: situation
+    description: "Declares who can currently see or hear the device output, determining what information is safe to display and in what form."
+    values:
+      - id: private
+        label: "Private"
+        description: "User alone. Full information display is safe."
+      - id: trusted_partner
+        label: "Trusted partner"
+        description: "With spouse/partner. Shared view appropriate. Most personal info OK."
+      - id: family_with_children
+        label: "Family with children"
+        description: "Children present. Price, adult content, and sensitive topics should be filtered."
+      - id: social_acquaintances
+        label: "Social / acquaintances"
+        description: "Friends or colleagues nearby. Professional filter on personal information."
+      - id: public
+        label: "Public"
+        description: "Strangers can see screen. Maximum privacy protection required."
+    signals:
+      - source: "Face detection / Visual ID"
+        method: "Amazon Echo Show Visual ID identifies family members by face. Samsung Smart TV Voice ID identifies by voice. Detects known vs unknown presence."
+        availability: now
+      - source: "Privacy display sensor"
+        method: "Samsung Galaxy S26 Ultra Privacy Display detects nearby people via front-facing sensors and narrows viewing angle automatically."
+        availability: now
+      - source: "Bluetooth/Wi-Fi proximity"
+        method: "Detect known family member devices nearby via BLE beacons or Wi-Fi presence."
+        availability: now
+      - source: "Location context"
+        method: "GPS + venue data. Coffee shop, office, train = likely public. Home address = likely private."
+        availability: now
+      - source: "Audio environment analysis"
+        method: "Ambient noise classification (quiet room vs crowd vs office chatter) as supporting signal."
+        availability: partial
+    design_rules:
+      private:
+        ui_density: high
+        interaction_complexity: full
+        content_filter: none
+        recommendation: "Full information display. Prices, personal data, health info, recommendations all visible. Audio output OK."
+      trusted_partner:
+        ui_density: high
+        interaction_complexity: full
+        content_filter: light
+        recommendation: "Shared view layout when on large screen. Individual surprise/gift items hidden. Joint decision UI available."
+      family_with_children:
+        ui_density: medium
+        interaction_complexity: standard
+        content_filter: moderate
+        recommendation: "Hide prices on gift-related items. Filter age-inappropriate content. Show child-safe alternatives. Parental override available via discrete gesture or auth."
+        hidden_categories:
+          - prices_for_gifts
+          - adult_content
+          - financial_details
+          - medical_details
+      social_acquaintances:
+        ui_density: medium
+        interaction_complexity: standard
+        content_filter: significant
+        recommendation: "Minimize personal information on screen. Use notification previews without content. Professional/neutral presentation."
+        hidden_categories:
+          - financial_information
+          - health_data
+          - personal_messages_preview
+          - relationship_details
+      public:
+        ui_density: low
+        interaction_complexity: minimal
+        content_filter: maximum
+        recommendation: "Privacy mode. No personal info visible. Narrowed viewing angle if hardware supports. Notifications show sender only, no preview. Suggest switching to audio/haptic output."
+        hidden_categories:
+          - all_personal_information
+          - all_financial_data
+          - message_contents
+          - calendar_details
+    reality_level: 4
+    reality_note: "Privacy Display (Samsung S26 Ultra), Visual ID (Echo Show), Voice ID (Samsung TV), and attention detection (Apple) all ship today. Cross-device unified 'who is watching' protocol and automatic content filtering based on social context do not yet exist."
+
+  - name: Priority Weight
+    name_ja: "Priority Weight (優先度)"
+    id: priority_weight
+    number: 4
+    category: situation
+    description: "Resolves collisions when multiple demands compete for the user's attention or the system's resources. Operates at two layers: current urgency (Token) and learned tradeoff patterns (Brain)."
+    values:
+      - id: critical
+        label: "Critical"
+        description: "Time-sensitive and irreversible. Child safety, medical, hard deadlines."
+        urgency_range: [0.9, 1.0]
+      - id: high
+        label: "High"
+        description: "Time-sensitive but recoverable. Pickup times, cooking timers, meeting starts."
+        urgency_range: [0.7, 0.9]
+      - id: standard
+        label: "Standard"
+        description: "Important but flexible. Shopping tasks, meal planning, routine decisions."
+        urgency_range: [0.3, 0.7]
+      - id: low
+        label: "Low"
+        description: "No time pressure. Exploration, wishlist curation, long-term planning."
+        urgency_range: [0.0, 0.3]
+    collision_resolution:
+      description: >
+        When multiple items have competing priority, resolution uses two layers:
+        (1) Token layer — current urgency based on time proximity and irreversibility.
+        (2) Brain layer — learned tradeoff patterns accumulated over time (e.g., "this family prioritizes function over aesthetics", "when rushed, price tolerance increases").
+      algorithm: >
+        effective_priority = token_urgency * 0.6 + brain_tradeoff_weight * 0.4
+        If two items score within 0.05, surface both with explicit comparison UI.
+        Irreversible items get +0.2 boost.
+    signals:
+      - source: "Calendar/schedule proximity"
+        method: "Time until next commitment. <15 min = critical time pressure."
+        availability: now
+      - source: "Irreversibility detection"
+        method: "Rule-based classification: flight departure, event start, pharmacy closing = irreversible. Shopping, browsing = recoverable."
+        availability: now
+      - source: "Domain-level priority intelligence"
+        method: "Gmail Priority Inbox (Gemini, 3-5 day learning), Apple Intelligence Priority Notifications (iOS 18.4+), Reclaim.ai calendar optimization."
+        availability: now
+      - source: "Cross-domain priority integration"
+        method: "Unified priority across calendar, shopping, childcare, household tasks. Requires agent orchestration layer."
+        availability: future
+      - source: "Brain tradeoff patterns"
+        method: "Accumulated learning from past decisions: price sensitivity under time pressure, quality vs speed preferences, per-family-member priority structures."
+        availability: partial
+    design_rules:
+      critical:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Interrupt current flow. Full-screen alert with single primary action. Suppress all non-critical notifications. Countdown if time-bound."
+        notification_level: interrupt
+      high:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Prominent banner or overlay. Pre-computed best action as one-tap option. Show time remaining. Queue other tasks visibly but deprioritized."
+        notification_level: prominent
+      standard:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Normal task list ordering. Show relative priority indicators. Allow reordering. Brain-informed sorting (learned preferences influence default order)."
+        notification_level: normal
+      low:
+        ui_density: high
+        interaction_complexity: full
+        recommendation: "Exploration-friendly UI. No time pressure indicators. Rich browsing, comparison, and discovery features. Can be deferred indefinitely."
+        notification_level: ambient
+    reality_level: 3
+    reality_note: "Per-domain priority (email, calendar) ships today and works well. Cross-domain priority resolution (calendar vs shopping vs childcare vs guests) and agent-to-agent conflict resolution do not exist in any shipping product."
+
+  - name: Form Factor
+    name_ja: "Form Factor (フォームファクター)"
+    id: form_factor
+    number: 5
+    category: situation
+    description: "Detects available display surfaces and their capabilities to determine how content should be distributed and shaped across screens."
+    values:
+      - id: phone_handheld
+        label: "Phone (handheld)"
+        screen_size_range: "5-7 inch"
+        input_methods: [touch, voice, gesture]
+        description: "Primary personal device. Touch-first interaction."
+      - id: phone_folded
+        label: "Foldable phone (folded)"
+        screen_size_range: "3-4 inch cover display"
+        input_methods: [touch, voice]
+        description: "Cover display for glanceable info and quick actions."
+      - id: phone_unfolded
+        label: "Foldable phone (unfolded)"
+        screen_size_range: "7-8 inch"
+        input_methods: [touch, voice, stylus, gesture]
+        description: "Tablet-like canvas. Flex Mode splits UI at fold angle."
+      - id: tablet
+        label: "Tablet"
+        screen_size_range: "10-13 inch"
+        input_methods: [touch, voice, stylus, keyboard]
+        description: "Large personal screen. Multi-column layouts appropriate."
+      - id: tv_display
+        label: "TV / Large display"
+        screen_size_range: "40-85 inch"
+        input_methods: [voice, remote, gesture]
+        description: "Shared family screen. Lean-back viewing distance (2-4m)."
+      - id: fridge_display
+        label: "Smart fridge display"
+        screen_size_range: "21-32 inch"
+        input_methods: [touch, voice]
+        description: "Kitchen-anchored. Glanceable info while cooking. Wet/messy hands likely."
+      - id: car_display
+        label: "Car dashboard"
+        screen_size_range: "8-15 inch"
+        input_methods: [voice, limited_touch]
+        description: "Driving context. Voice-primary, glance-safe visuals only."
+      - id: watch
+        label: "Smartwatch"
+        screen_size_range: "1.2-2 inch"
+        input_methods: [touch, voice, crown, gesture]
+        description: "Wrist-glanceable. Notifications and quick actions only."
+      - id: desktop_monitor
+        label: "Desktop monitor (via DeX)"
+        screen_size_range: "13-34 inch"
+        input_methods: [mouse, keyboard, touch]
+        description: "Full desktop experience via Samsung DeX or equivalent."
+    signals:
+      - source: "Device hardware identification"
+        method: "Device model, screen dimensions, and input capabilities reported by OS."
+        availability: now
+      - source: "Connected display detection"
+        method: "Samsung DeX, Apple AirPlay, Google Cast, HDMI connection detection."
+        availability: now
+      - source: "Nearby device discovery"
+        method: "Matter protocol, Bluetooth LE, Wi-Fi Direct for discovering available surfaces in proximity."
+        availability: now
+      - source: "Fold angle sensor"
+        method: "Galaxy Z Fold hinge angle sensor triggers Flex Mode UI split at specific angles."
+        availability: now
+      - source: "Multi-surface orchestration"
+        method: "Dynamic content distribution across all detected surfaces simultaneously (e.g., phone + TV + fridge)."
+        availability: future
+    design_rules:
+      phone_handheld:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Single-column layout. Bottom navigation. Thumb-zone optimized. When casting to TV, auto-transform to remote-control UI."
+        typography_base_sp: 14
+        grid_columns: 1
+      phone_folded:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Glanceable cards only. Status, notifications, quick replies. No deep navigation."
+        typography_base_sp: 12
+        grid_columns: 1
+      phone_unfolded:
+        ui_density: high
+        interaction_complexity: full
+        recommendation: "Multi-pane layout. List-detail pattern. In Flex Mode (partially folded): top half content, bottom half controls."
+        typography_base_sp: 14
+        grid_columns: 2
+      tablet:
+        ui_density: high
+        interaction_complexity: full
+        recommendation: "Multi-column layout. Side navigation. Rich media display. Split-screen multitasking support."
+        typography_base_sp: 16
+        grid_columns: 2-3
+      tv_display:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Large image grid. 10-foot UI principles. Focus-based navigation (D-pad). Minimal text, large typography. Shared viewing context — respect Social Exposure token."
+        typography_base_sp: 32
+        grid_columns: 3-5
+      fridge_display:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Large touch targets (hands may be wet/messy). Recipe cards, grocery lists, family calendar. Quick-glance kitchen-relevant info. Voice interaction preferred while cooking."
+        typography_base_sp: 20
+        grid_columns: 2
+        touch_target_min_dp: 64
+      car_display:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Voice-primary. Glance-safe status only. No scrolling. Pre-computed actions. Inherits driving constraint from Physical State token."
+        typography_base_sp: 24
+        grid_columns: 1
+        hard_constraint: "Must comply with NHTSA visual-manual distraction guidelines."
+      watch:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Notification cards. Single action per screen. Haptic feedback for confirmation. Crown/bezel for scrolling."
+        typography_base_sp: 14
+        grid_columns: 1
+      desktop_monitor:
+        ui_density: high
+        interaction_complexity: full
+        recommendation: "Full desktop layout. Multi-window support. Keyboard shortcuts. Dense information display with hover states."
+        typography_base_sp: 14
+        grid_columns: 3-6
+    reality_level: 4
+    reality_note: "Device-to-device handoff (Continuity, DeX, CarPlay/Android Auto) and responsive layouts are mature and shipping. Dynamic multi-surface content distribution across 3+ heterogeneous screens simultaneously is not shipping in any product."
+
+  - name: Feasibility
+    name_ja: "Feasibility (実現可能性)"
+    id: feasibility
+    number: 6
+    category: situation
+    description: "Acts as a reality filter — constrains the ideal plan proposed by other tokens against what is actually possible right now in the physical world."
+    values:
+      - id: fully_feasible
+        label: "Fully feasible"
+        description: "All requirements met. Item in stock, within budget, delivery on time, weather OK."
+      - id: partially_feasible
+        label: "Partially feasible"
+        description: "Some constraints met, others require compromise. Substitution or schedule adjustment needed."
+      - id: infeasible
+        label: "Infeasible"
+        description: "Cannot be executed as planned. Alternative approach required."
+    constraint_dimensions:
+      - id: inventory
+        label: "Stock / Availability"
+        description: "Is the item or service available right now?"
+        check_method: "Real-time inventory API, store hours API"
+      - id: budget
+        label: "Budget"
+        description: "Is it within the user's price range or allocated budget?"
+        check_method: "Brain-stored budget preferences, price comparison API"
+      - id: time
+        label: "Time / Delivery"
+        description: "Can it be delivered or completed within the required timeframe?"
+        check_method: "Delivery estimation API, traffic/routing API"
+      - id: weather
+        label: "Weather"
+        description: "Does weather permit the planned activity?"
+        check_method: "Weather API (hourly forecast)"
+      - id: location
+        label: "Geographic access"
+        description: "Is the destination reachable? Is the store/venue nearby?"
+        check_method: "Maps API, routing API, geofencing"
+      - id: regulatory
+        label: "Regulatory / eligibility"
+        description: "Age restrictions, prescriptions, insurance coverage, regional availability."
+        check_method: "Rule-based eligibility check against user profile"
+    signals:
+      - source: "Real-time inventory / availability APIs"
+        method: "OpenTable, Uber Eats, retail inventory APIs for stock and availability checks."
+        availability: now
+      - source: "Maps and traffic APIs"
+        method: "Google Maps / Waze real-time traffic, ETA, fuel efficiency, alternate routes."
+        availability: now
+      - source: "Weather APIs"
+        method: "Hourly and daily forecast data for activity feasibility."
+        availability: now
+      - source: "Calendar and schedule APIs"
+        method: "Time-window availability based on existing commitments."
+        availability: now
+      - source: "Multi-constraint simultaneous optimization"
+        method: "Solving budget x time x inventory x family constraints simultaneously across vendors."
+        availability: future
+    design_rules:
+      fully_feasible:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Show plan as-is with confidence indicators. Green status. One-tap execution available."
+        visual_indicator: "success"
+      partially_feasible:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Show original plan with constraint violations highlighted. Offer pre-computed alternatives. Substitution modes apply (Exact / Flexible / Exploring / Surprise)."
+        visual_indicator: "warning"
+        substitution_modes:
+          exact: "Find the same item elsewhere (different store, different delivery window)."
+          flexible: "Find a close equivalent that meets most criteria."
+          exploring: "Suggest alternatives the user might not have considered."
+          surprise: "AI picks the best available option autonomously (requires high Autonomy Dial)."
+      infeasible:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Clear explanation of why the plan cannot proceed. Offer the closest viable alternative. Option to defer to a feasible time window."
+        visual_indicator: "error"
+        required_actions:
+          - "Show specific constraint that failed"
+          - "Offer at least one alternative path"
+          - "Allow user to adjust constraints (budget, timeline, location)"
+    reality_level: 3
+    reality_note: "Individual feasibility checks (inventory, maps, weather) are mature and shipping. Multi-constraint simultaneous optimization across vendors and cross-vendor rate limiting at scale remain unsolved."
+
+  # ---------------------------------------------------------------
+  # RELATIONSHIP DIALS (7-8)
+  # ---------------------------------------------------------------
+
+  - name: Autonomy Dial
+    name_ja: "Autonomy Dial (自律度ダイアル)"
+    id: autonomy_dial
+    number: 7
+    category: relationship_dial
+    description: "Declares how much autonomous authority the AI currently has — from suggestion-only to fully automatic execution. Shaped by three simultaneous forces, NOT purely user-controlled."
+    values:
+      - id: suggest
+        label: "Suggest"
+        description: "AI shows candidates. Human decides and executes. AI has no execution authority."
+        ai_authority: none
+      - id: confirm
+        label: "Confirm"
+        description: "AI proposes a specific action. Human approves to execute. AI cannot proceed without approval."
+        ai_authority: propose
+      - id: notify
+        label: "Notify"
+        description: "AI executes autonomously and notifies the user after the fact. User can undo within a window."
+        ai_authority: execute_and_report
+        undo_window_seconds: 300
+      - id: auto
+        label: "Auto"
+        description: "AI executes autonomously without notification. User trusts the system completely for this domain."
+        ai_authority: full
+    three_forces:
+      description: "The Autonomy Dial's position is determined by three forces acting simultaneously, not by user preference alone."
+      forces:
+        - id: service_default
+          label: "Service default"
+          description: "The starting position set by the service provider. Netflix and Amazon recommendations already operate at Suggest or higher by default."
+          examples:
+            - "Netflix autoplay = Notify level by default"
+            - "Amazon 'frequently bought together' = Suggest level by default"
+            - "Gmail spam filter = Auto level by default"
+        - id: ai_adjustment
+          label: "AI adjustment"
+          description: "AI observes patterns and proposes dial changes. 5 consecutive approvals may trigger 'should I do this automatically next time?' But pushing too far triggers backlash and dial regression."
+          learning_signal: "consecutive_approvals >= 5 → propose_upgrade"
+          backlash_signal: "user_override_or_undo → propose_downgrade"
+        - id: user_active_change
+          label: "User active change"
+          description: "User explicitly adjusts the dial. 'Just do it from now on' (upgrade) or 'Actually, ask me first' (downgrade). Always takes precedence."
+          precedence: highest
+    scope:
+      per_domain: true
+      per_person: true
+      temporal_evolution: true
+      examples:
+        - domain: "Grocery staples reorder"
+          typical_dial: notify
+          rationale: "Routine, low-risk, high-frequency. Dial tends to rise quickly."
+        - domain: "Dinner menu selection"
+          typical_dial: suggest
+          rationale: "Personal preference, variety desired. Dial stays low."
+        - domain: "Child's content filtering"
+          typical_dial: auto
+          rationale: "Safety-critical. Parents set to Auto and rarely revisit."
+        - domain: "Travel hotel booking"
+          typical_dial: confirm
+          rationale: "High cost, personal preference. AI narrows options, human decides."
+    prerequisite: >
+      Autonomy Dial level is bounded by Disclosure Dial level.
+      AI cannot automate what it does not know about.
+      If Disclosure Dial = minimal for a domain, Autonomy Dial cannot exceed Suggest for that domain.
+    design_rules:
+      suggest:
+        ui_density: high
+        interaction_complexity: full
+        recommendation: "Show ranked options with explanations. User browses, compares, and selects. No auto-execution. All decisions require explicit user action."
+        ui_pattern: "Card carousel or ranked list with comparison features."
+      confirm:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Show AI's top recommendation prominently with 'Approve' as primary action. Alternative options available but deprioritized. Single-tap approval flow."
+        ui_pattern: "Hero recommendation card with approve/modify/reject actions."
+      notify:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Show post-execution notification with undo option. 'Ordered [item]. Undo within 5 min.' No pre-approval UI needed. Undo must be maximally accessible."
+        ui_pattern: "Toast notification with undo action. Activity log for review."
+        undo_affordance: required
+      auto:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "No notification for individual actions. Periodic summary available in activity log. Trust indicator visible in settings. User can review and downgrade at any time."
+        ui_pattern: "Background execution. Weekly summary digest. Settings-accessible audit trail."
+    multi_person_orchestration:
+      description: "Different family members can have different Autonomy Dial levels for the same domain simultaneously."
+      example:
+        domain: "Grocery shopping"
+        members:
+          - person: "Father"
+            dial: notify
+            ui: "Receives post-purchase notification with undo"
+          - person: "Mother"
+            dial: confirm
+            ui: "Receives approval request before purchase"
+          - person: "10-year-old son"
+            dial: suggest
+            ui: "Can browse and add to wishlist, cannot trigger purchase"
+    reality_level: 3
+    reality_note: "Developer tools (Claude Code, GitHub Copilot, Cursor) ship 2-3 stage autonomy modes. Smart home automations allow per-device rules. Consumer-facing per-domain, per-person, temporally-evolving Autonomy Dials with multi-person orchestration do not exist in any shipping product."
+
+  - name: Disclosure Dial
+    name_ja: "Disclosure Dial (開示ダイアル)"
+    id: disclosure_dial
+    number: 8
+    category: relationship_dial
+    description: "Declares how much personal information the AI has access to, per domain and per person. Prerequisite for Autonomy — you cannot delegate what the AI does not know about."
+    values:
+      - id: none
+        label: "None"
+        description: "AI has no information about this domain. Cannot personalize or automate."
+      - id: minimal
+        label: "Minimal"
+        description: "Basic preferences only. Enough for simple filtering but not proactive suggestions."
+      - id: moderate
+        label: "Moderate"
+        description: "Preferences, history, and patterns shared. AI can make informed suggestions."
+      - id: full
+        label: "Full"
+        description: "Complete information access for this domain. AI can anticipate needs and act proactively."
+    logical_constraint: >
+      Disclosure Dial is the prerequisite for Autonomy Dial.
+      "Not disclosed + delegated" is logically impossible.
+      The AI cannot automate decisions in domains it knows nothing about.
+      Autonomy Dial level for any domain MUST NOT exceed the practical ceiling
+      set by the Disclosure Dial level for that same domain.
+    constraint_matrix:
+      - disclosure: none
+        max_autonomy: null
+        description: "AI has no involvement. Cannot even suggest."
+      - disclosure: minimal
+        max_autonomy: suggest
+        description: "AI can suggest based on limited info. Cannot confirm or auto-execute reliably."
+      - disclosure: moderate
+        max_autonomy: notify
+        description: "AI has enough context to act and report. May occasionally miss preferences."
+      - disclosure: full
+        max_autonomy: auto
+        description: "AI has complete context. Full automation is possible and reliable."
+    three_forces:
+      description: "Like Autonomy Dial, Disclosure Dial is shaped by three forces."
+      forces:
+        - id: service_default
+          label: "Service default"
+          description: "Services already access significant data by default. Google has location, search, and email. Samsung Family Hub stores family profiles."
+          examples:
+            - "Google: location history, search history, email content = moderate-to-full by default"
+            - "Samsung Family Hub: up to 6 family profiles, allergies, dietary restrictions, Voice ID"
+        - id: ai_proposal
+          label: "AI proposal"
+          description: "AI identifies value from additional disclosure. 'Share your music taste and I can suggest concerts on your trip. Share?'"
+          trigger: "Identified value-add from undisclosed domain"
+        - id: user_active_change
+          label: "User active change"
+          description: "User explicitly opens or closes disclosure. 'Share my music taste' or 'Stop accessing my health data.' Always takes precedence."
+          precedence: highest
+    scope:
+      per_domain: true
+      per_person: true
+      examples:
+        - person: "Father"
+          domains:
+            music: full
+            health: none
+            food: moderate
+            finance: minimal
+        - person: "Mother"
+          domains:
+            music: none
+            health: minimal
+            food: full
+            education: full
+        - person: "10-year-old son"
+          domains:
+            anime: full
+            gaming: moderate
+            education: moderate
+          managed_by: "Parents"
+    signals:
+      - source: "App permission grants"
+        method: "iOS/Android per-app permissions (camera, location, contacts, health). Granular opt-in."
+        availability: now
+      - source: "Connected app settings"
+        method: "Google Gemini Connected Apps — per-service opt-in (Gmail, Photos, YouTube, etc)."
+        availability: now
+      - source: "Device profile settings"
+        method: "Samsung Family Hub per-member profiles, dietary restrictions, Voice ID enrollment."
+        availability: now
+      - source: "Unified cross-domain disclosure management"
+        method: "Single interface to manage disclosure levels across all domains (music, food, health, travel, finance). Does not exist today."
+        availability: future
+      - source: "Family-member disclosure governance"
+        method: "Parents managing children's disclosure scope. Partial in parental controls but not as unified dial."
+        availability: partial
+    design_rules:
+      none:
+        ui_density: low
+        interaction_complexity: minimal
+        recommendation: "Generic, non-personalized UI. Offer clear value proposition for enabling disclosure. Show what the user would gain. Never pressure."
+        personalization_level: none
+        ai_capability: "No AI involvement in this domain."
+      minimal:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Basic preference-based filtering. AI can exclude known dislikes. Cannot proactively suggest. Suggest expanding disclosure when clear value exists."
+        personalization_level: basic_filtering
+        ai_capability: "Filter and basic suggest only."
+      moderate:
+        ui_density: medium
+        interaction_complexity: standard
+        recommendation: "Personalized recommendations based on history and patterns. AI can proactively suggest. Show how disclosed data improves suggestions to build trust."
+        personalization_level: personalized
+        ai_capability: "Suggest, confirm, and notify."
+      full:
+        ui_density: high
+        interaction_complexity: full
+        recommendation: "Deeply personalized, anticipatory UI. AI can predict needs before user articulates them. Implicit Intent detection enabled for this domain. Show transparency — what data is being used and why."
+        personalization_level: anticipatory
+        ai_capability: "Full spectrum including auto, implicit intent detection."
+    reality_level: 2
+    reality_note: "Per-app permissions and connected app settings ship today but are fragmented across platforms. A unified per-domain, per-person Disclosure Dial with clear Autonomy coupling does not exist. Closest analogs: Google Connected Apps, iOS app permissions, Samsung Family Hub profiles."
+
+# -------------------------------------------------------------------
+# Cross-Token Interactions
+# -------------------------------------------------------------------
+cross_token_rules:
+
+  - name: "Driving safety override"
+    condition:
+      physical_state: driving
+    effect:
+      form_factor: car_display
+      cognitive_load: "cap at low density regardless of estimated load"
+      interaction_complexity: minimal
+      hard_rule: "Voice-only interaction. No visual attention demands."
+
+  - name: "Cognitive overload protection"
+    condition:
+      cognitive_load: overloaded
+    effect:
+      max_choices: 1
+      defer_non_critical: true
+      notification_filter: "critical_only"
+      priority_weight: "auto-elevate critical, suppress standard and low"
+
+  - name: "Public privacy cascade"
+    condition:
+      social_exposure: public
+    effect:
+      disclosure_dial: "UI behaves as if disclosure = minimal regardless of actual setting"
+      content_filter: maximum
+      audio_output: "suppress unless headphones detected"
+
+  - name: "Children present filter"
+    condition:
+      social_exposure: family_with_children
+    effect:
+      content_filter: moderate
+      price_visibility: hidden_for_gifts
+      autonomy_dial: "child members capped at suggest"
+
+  - name: "Disclosure-Autonomy gate"
+    condition:
+      disclosure_dial: none
+    effect:
+      autonomy_dial: "forced to null — AI has no involvement"
+    condition_2:
+      disclosure_dial: minimal
+    effect_2:
+      autonomy_dial: "capped at suggest"
+
+  - name: "Multi-surface content distribution"
+    condition:
+      form_factor: "multiple surfaces detected"
+    effect:
+      content_distribution: "allocate content to optimal surface by type"
+      phone_role: "controller / detail view"
+      tv_role: "shared media / large visual"
+      fridge_role: "kitchen-context cards"
+      watch_role: "notifications / quick actions only"
+
+  - name: "Feasibility constraint override"
+    condition:
+      feasibility: infeasible
+    effect:
+      priority_weight: "deprioritize infeasible items regardless of urgency"
+      substitution_ui: "activate based on Autonomy Dial level"
+      user_notification: "explain constraint and offer alternatives"
+
+# -------------------------------------------------------------------
+# Substitution Modes (used by Feasibility + Autonomy interaction)
+# -------------------------------------------------------------------
+substitution_modes:
+  - id: exact
+    label: "Exact"
+    description: "Find the same item from a different source (different store, delivery window)."
+    autonomy_requirement: suggest
+    user_control: full
+
+  - id: flexible
+    label: "Flexible"
+    description: "Find a close equivalent meeting most criteria."
+    autonomy_requirement: confirm
+    user_control: "approves substitution"
+
+  - id: exploring
+    label: "Exploring"
+    description: "AI suggests alternatives the user might not have considered."
+    autonomy_requirement: confirm
+    user_control: "approves from expanded options"
+
+  - id: surprise
+    label: "Surprise"
+    description: "AI autonomously picks the best available option."
+    autonomy_requirement: notify
+    user_control: "undo after execution"

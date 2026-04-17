@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Specs — Context Grammar オープン仕様書</title>
+<meta name="description" content="Context Grammarの機械可読な仕様書。YAMLスキーマ、JSON構造、33のデザインルール。エージェントフレームワーク、AIシステム、Claude Codeワークフローに対応。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../../assets/css/nav.css">
+<style>
+
+/* ═══ LAYOUT ═══ */
+.page { padding-top: 56px; }
+.section { padding: clamp(56px, 8vw, 100px) clamp(24px, 4vw, 48px); }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+/* ═══ HERO ═══ */
+.hero {
+  background: var(--bg);
+  color: var(--text);
+  padding: clamp(80px, 12vw, 160px) clamp(24px, 4vw, 48px) clamp(56px, 8vw, 100px);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(122,155,196,0.06), transparent);
+  pointer-events: none;
+}
+.hero-inner { max-width: 780px; margin: 0 auto; position: relative; }
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--color-grammar);
+  margin-bottom: 20px;
+}
+.hero-title {
+  font-weight: 500;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+}
+.hero-sub {
+  font-size: clamp(15px, 1.15vw, 18px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.75;
+  max-width: 640px;
+  margin: 0 auto 32px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--color-grammar);
+  border: 1px solid var(--border);
+  padding: 8px 18px;
+  border-radius: 0;
+}
+
+/* ═══ SECTION HEADERS ═══ */
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--color-grammar);
+  margin-bottom: 14px;
+}
+.sec-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+.sec-desc {
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.75;
+  max-width: 600px;
+  margin-bottom: 40px;
+}
+
+/* ═══ SPEC CARDS ═══ */
+.spec-cards {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 3vw, 40px);
+}
+.spec-card {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+.spec-card-header {
+  padding: clamp(20px, 2.5vw, 32px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.spec-card-title-group { flex: 1; min-width: 240px; }
+.spec-card-filename {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-grammar);
+  margin-bottom: 6px;
+}
+.spec-card-title {
+  font-weight: 500;
+  font-size: clamp(20px, 1.6vw, 26px);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+.spec-card-desc {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+.spec-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ═══ CODE BLOCKS ═══ */
+.code-block-wrapper {
+  position: relative;
+  background: #08070b;
+  overflow: hidden;
+}
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: rgba(240,236,228,0.04);
+  border-bottom: 1px solid rgba(240,236,228,0.06);
+}
+.code-block-lang {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #5a5550;
+}
+.copy-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #5a5550;
+  background: rgba(240,236,228,0.06);
+  border: 1px solid rgba(240,236,228,0.08);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+  border-radius: 0;
+}
+.copy-btn:hover {
+  color: #f0ece4;
+  background: rgba(240,236,228,0.1);
+  border-color: rgba(240,236,228,0.15);
+}
+.copy-btn.copied {
+  color: #34d399;
+  border-color: rgba(52,211,153,0.3);
+}
+pre {
+  margin: 0;
+  padding: clamp(16px, 2vw, 24px) 20px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.85vw, 14px);
+  line-height: 1.7;
+  color: #f0ece4;
+  -webkit-overflow-scrolling: touch;
+}
+pre code { font-family: inherit; }
+
+/* Syntax colors */
+.sy-key { color: #34d399; }
+.sy-str { color: #fbbf24; }
+.sy-comment { color: #5a5550; }
+.sy-val { color: #7a9bc4; }
+.sy-num { color: #f0ece4; }
+.sy-bracket { color: #8a8580; }
+.sy-bool { color: #f0ece4; }
+
+/* ═══ USE CASE CARDS ═══ */
+.use-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+}
+@media (max-width: 900px) { .use-grid { grid-template-columns: 1fr; } }
+.use-card {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: clamp(24px, 2.5vw, 36px);
+  background: var(--bg);
+}
+.use-card-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--color-grammar);
+  margin-bottom: 12px;
+}
+.use-card-title {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  letter-spacing: -0.3px;
+  margin-bottom: 12px;
+}
+.use-card-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.use-card-list li {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.6;
+  padding-left: 16px;
+  position: relative;
+}
+.use-card-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 4px;
+  height: 4px;
+  background: var(--color-grammar);
+  border-radius: 0;
+}
+.use-card-example {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+/* ═══ RULES TABLE ═══ */
+.rules-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  min-width: 640px;
+}
+.rules-table thead th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 500;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.rules-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  font-weight: 300;
+  line-height: 1.5;
+}
+.rules-table tbody tr:nth-child(even) {
+  background: var(--bg-2);
+}
+.rules-table tbody td:first-child {
+  font-weight: 500;
+  color: var(--text);
+}
+.rules-table tbody td:nth-child(2) {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-3);
+}
+.rules-table .dir-delegation { color: var(--color-grammar); }
+.rules-table .dir-adaptation { color: var(--color-intent); }
+.rules-table .dir-escalation { color: var(--color-brain); }
+.rules-table .dir-all { color: var(--text-2); }
+
+/* ═══ DOWNLOAD SECTION ═══ */
+.download-section .code-block-wrapper {
+  border: 1px solid rgba(240,236,228,0.06);
+}
+
+/* ═══ CTA ═══ */
+.cta {
+  background: var(--bg);
+  color: var(--text);
+  text-align: center;
+  padding: clamp(64px, 10vw, 120px) clamp(24px, 4vw, 48px);
+  position: relative;
+}
+.cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(122,155,196,0.04), transparent);
+  pointer-events: none;
+}
+.cta-inner { position: relative; max-width: 600px; margin: 0 auto; }
+.cta-title {
+  font-weight: 500;
+  font-size: clamp(24px, 3vw, 40px);
+  letter-spacing: -1px;
+  margin-bottom: 32px;
+  line-height: 1.15;
+}
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  padding: 12px 28px;
+  border-radius: 0;
+  transition: all 0.3s var(--ease);
+}
+.cta-btn--primary {
+  background: var(--text);
+  color: var(--bg);
+}
+.cta-btn--primary:hover {
+  opacity: 0.85;
+}
+.cta-btn--secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.cta-btn--secondary:hover {
+  border-color: var(--text-3);
+  color: var(--text);
+}
+
+/* ═══ DARK SECTIONS ═══ */
+.sec-dark {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ═══ DIVIDER ═══ */
+.section-divider {
+  max-width: 1100px;
+  margin: 0 auto;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* ═══ REVEAL ANIMATION ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.d1 { transition-delay: 0.06s; }
+.d2 { transition-delay: 0.12s; }
+.d3 { transition-delay: 0.18s; }
+.d4 { transition-delay: 0.24s; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .hero { padding-top: clamp(80px, 15vw, 120px); }
+  .spec-card-header { flex-direction: column; }
+  pre { font-size: 11px; padding: 14px 16px; }
+}
+</style>
+</head>
+<body data-dark-nav>
+<div class="page sec-dark">
+
+<!-- ═══════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════ -->
+<section class="hero sec-dark">
+  <div class="hero-inner">
+    <p class="hero-label">Context Grammar / Specs</p>
+    <h1 class="hero-title">オープン仕様書</h1>
+    <p class="hero-sub">Context Grammarは理論だけではない。機械可読な仕様書だ。YAMLスキーマ、JSON構造、33のデザインルール -- エージェントフレームワーク、AIシステム、Claude Codeワークフローにそのまま統合できる。</p>
+    <span class="hero-badge">CC BY 4.0 オープン仕様</span>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════
+     THREE SPEC FILES
+     ═══════════════════════════════════════ -->
+<section class="section sec-dark">
+  <div class="section-inner">
+    <p class="sec-label">Core Schemas</p>
+    <h2 class="sec-title">3つの仕様ファイル</h2>
+    <p class="sec-desc">エージェントが人間のコンテキストを理解するために必要なすべて。8つのトークン、3層のブレイン、33のデザインルール -- 構造化データとして定義。</p>
+
+    <div class="spec-cards">
+
+      <!-- TOKEN SCHEMA -->
+      <div class="spec-card reveal">
+        <div class="spec-card-header">
+          <div class="spec-card-title-group">
+            <p class="spec-card-filename">context-tokens.yaml</p>
+            <h3 class="spec-card-title">トークンスキーマ</h3>
+            <p class="spec-card-desc">8トークンの型定義、値域、データソース、実装準備度。</p>
+          </div>
+          <span class="spec-badge">v2.0 · 8 tokens · 6 situation + 2 dials</span>
+        </div>
+        <div class="code-block-wrapper">
+          <div class="code-block-header">
+            <span class="code-block-lang">YAML</span>
+            <button class="copy-btn" data-target="code-tokens" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="code-tokens"><span class="sy-key">tokens</span><span class="sy-bracket">:</span>
+  <span class="sy-key">physical_state</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">stationary</span>, <span class="sy-str">walking</span>, <span class="sy-str">running</span>, <span class="sy-str">driving</span>, <span class="sy-str">resting</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">accelerometer</span>, <span class="sy-str">activity_recognition_api</span><span class="sy-bracket">]</span>
+    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">realtime</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
+
+  <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>
+    <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0.0</span>, <span class="sy-num">1.0</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">time_of_day</span>, <span class="sy-str">calendar_density</span>, <span class="sy-str">recent_activity</span><span class="sy-bracket">]</span>
+    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">minutes</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★☆☆☆"</span>
+    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"estimation only — no direct measurement"</span>
+
+  <span class="sy-key">social_exposure</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">alone</span>, <span class="sy-str">trusted_person</span>, <span class="sy-str">acquaintance</span>, <span class="sy-str">public</span>, <span class="sy-str">authority</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">proximity_sensor</span>, <span class="sy-str">voice_id</span>, <span class="sy-str">calendar_context</span><span class="sy-bracket">]</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
+
+  <span class="sy-key">priority_weight</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
+    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
+      <span class="sy-key">current_urgency</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>, <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0</span>, <span class="sy-num">1</span><span class="sy-bracket">]</span> <span class="sy-bracket">}</span>
+      <span class="sy-key">learned_patterns</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>, <span class="sy-key">items</span><span class="sy-bracket">:</span> <span class="sy-val">preference_rule</span> <span class="sy-bracket">}</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
+
+  <span class="sy-key">form_factor</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">watch</span>, <span class="sy-str">phone</span>, <span class="sy-str">tablet</span>, <span class="sy-str">laptop</span>, <span class="sy-str">tv</span>, <span class="sy-str">car</span>, <span class="sy-str">ambient</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">device_type</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
+
+  <span class="sy-key">feasibility</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
+    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
+      <span class="sy-key">available_apis</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span> <span class="sy-bracket">}</span>
+      <span class="sy-key">constraints</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span> <span class="sy-bracket">}</span>
+      <span class="sy-key">alternatives</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span> <span class="sy-bracket">}</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
+
+  <span class="sy-key">autonomy_dial</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">suggest</span>, <span class="sy-str">confirm</span>, <span class="sy-str">notify</span>, <span class="sy-str">auto</span><span class="sy-bracket">]</span>
+    <span class="sy-key">driven_by</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">service_default</span>, <span class="sy-str">ai_adjustment</span>, <span class="sy-str">user_override</span><span class="sy-bracket">]</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
+
+  <span class="sy-key">disclosure_dial</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">full</span>, <span class="sy-str">summary</span>, <span class="sy-str">existence</span>, <span class="sy-str">hidden</span><span class="sy-bracket">]</span>
+    <span class="sy-key">scope</span><span class="sy-bracket">:</span> <span class="sy-val">per_domain_per_person</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★☆☆☆☆"</span></code></pre>
+        </div>
+      </div>
+
+      <!-- BRAIN SCHEMA -->
+      <div class="spec-card reveal d1">
+        <div class="spec-card-header">
+          <div class="spec-card-title-group">
+            <p class="spec-card-filename">context-brain.yaml</p>
+            <h3 class="spec-card-title">ブレインスキーマ</h3>
+            <p class="spec-card-desc">3層メモリ構造。ドメイン軸、開示軸、使い捨てブレインのライフサイクル。</p>
+          </div>
+          <span class="spec-badge">v2.0 · 3 layers · domain-scoped</span>
+        </div>
+        <div class="code-block-wrapper">
+          <div class="code-block-header">
+            <span class="code-block-lang">YAML</span>
+            <button class="copy-btn" data-target="code-brain" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="code-brain"><span class="sy-key">brain</span><span class="sy-bracket">:</span>
+  <span class="sy-key">layers</span><span class="sy-bracket">:</span>
+    <span class="sy-key">identity</span><span class="sy-bracket">:</span>
+      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">months_to_years</span>
+      <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">explicit_input</span>
+      <span class="sy-key">disclosure_controlled</span><span class="sy-bracket">:</span> <span class="sy-bool">true</span>
+      <span class="sy-key">fields</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">demographics</span>, <span class="sy-str">family</span>, <span class="sy-str">dietary</span>, <span class="sy-str">accessibility</span>, <span class="sy-str">language</span><span class="sy-bracket">]</span>
+
+    <span class="sy-key">accumulated_learning</span><span class="sy-bracket">:</span>
+      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">days_to_weeks</span>
+      <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">implicit_observation</span>
+      <span class="sy-key">correction_mechanism</span><span class="sy-bracket">:</span> <span class="sy-val">user_feedback</span>
+      <span class="sy-key">fields</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">preferences</span>, <span class="sy-str">habits</span>, <span class="sy-str">patterns</span>, <span class="sy-str">communication_style</span><span class="sy-bracket">]</span>
+
+    <span class="sy-key">right_now</span><span class="sy-bracket">:</span>
+      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">seconds_to_minutes</span>
+      <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">sensor_data_and_session</span>
+      <span class="sy-key">fields</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">token_values</span>, <span class="sy-str">active_intent</span>, <span class="sy-str">device_state</span><span class="sy-bracket">]</span>
+
+  <span class="sy-key">special_forms</span><span class="sy-bracket">:</span>
+    <span class="sy-key">disposable_brain</span><span class="sy-bracket">:</span>
+      <span class="sy-key">lifecycle</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">born</span>, <span class="sy-str">learns</span>, <span class="sy-str">returns_to_home</span>, <span class="sy-str">dies</span><span class="sy-bracket">]</span>
+      <span class="sy-key">examples</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">trip_brain</span>, <span class="sy-str">project_brain</span><span class="sy-bracket">]</span></code></pre>
+        </div>
+      </div>
+
+      <!-- DESIGN RULES -->
+      <div class="spec-card reveal d2">
+        <div class="spec-card-header">
+          <div class="spec-card-title-group">
+            <p class="spec-card-filename">design-rules.yaml</p>
+            <h3 class="spec-card-title">デザインルール</h3>
+            <p class="spec-card-desc">33のif/thenルール。トークン状態をデザイン動作に変換する。3つの方向性: 委譲、適応、エスカレーション。</p>
+          </div>
+          <span class="spec-badge">v2.0 · 33 rules · 3 directions</span>
+        </div>
+        <div class="code-block-wrapper">
+          <div class="code-block-header">
+            <span class="code-block-lang">YAML</span>
+            <button class="copy-btn" data-target="code-rules" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="code-rules"><span class="sy-key">rules</span><span class="sy-bracket">:</span>
+  - <span class="sy-key">id</span><span class="sy-bracket">:</span> <span class="sy-val">R001</span>
+    <span class="sy-key">name</span><span class="sy-bracket">:</span> <span class="sy-val">cognitive_load_reduction</span>
+    <span class="sy-key">when</span><span class="sy-bracket">:</span>
+      <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span> <span class="sy-str">"&gt; 0.7"</span>
+      <span class="sy-key">form_factor</span><span class="sy-bracket">:</span> <span class="sy-val">phone</span>
+    <span class="sy-key">then</span><span class="sy-bracket">:</span>
+      <span class="sy-key">direction</span><span class="sy-bracket">:</span> <span class="sy-val">delegation</span>
+      <span class="sy-key">pattern</span><span class="sy-bracket">:</span> <span class="sy-val">progressive_disclosure</span>
+      <span class="sy-key">action</span><span class="sy-bracket">:</span> <span class="sy-str">"reduce options to top 3, defer detail"</span>
+
+  - <span class="sy-key">id</span><span class="sy-bracket">:</span> <span class="sy-val">R002</span>
+    <span class="sy-key">name</span><span class="sy-bracket">:</span> <span class="sy-val">social_privacy_guard</span>
+    <span class="sy-key">when</span><span class="sy-bracket">:</span>
+      <span class="sy-key">social_exposure</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">public</span>, <span class="sy-str">authority</span><span class="sy-bracket">]</span>
+    <span class="sy-key">then</span><span class="sy-bracket">:</span>
+      <span class="sy-key">direction</span><span class="sy-bracket">:</span> <span class="sy-val">adaptation</span>
+      <span class="sy-key">pattern</span><span class="sy-bracket">:</span> <span class="sy-val">social_aware_filter</span>
+      <span class="sy-key">action</span><span class="sy-bracket">:</span> <span class="sy-str">"suppress sensitive content, enlarge safe elements"</span>
+
+  - <span class="sy-key">id</span><span class="sy-bracket">:</span> <span class="sy-val">R003</span>
+    <span class="sy-key">name</span><span class="sy-bracket">:</span> <span class="sy-val">autonomy_escalation_check</span>
+    <span class="sy-key">when</span><span class="sy-bracket">:</span>
+      <span class="sy-key">autonomy_dial</span><span class="sy-bracket">:</span> <span class="sy-val">auto</span>
+      <span class="sy-key">disclosure_dial</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">hidden</span>, <span class="sy-str">existence</span><span class="sy-bracket">]</span>
+    <span class="sy-key">then</span><span class="sy-bracket">:</span>
+      <span class="sy-key">direction</span><span class="sy-bracket">:</span> <span class="sy-val">escalation</span>
+      <span class="sy-key">pattern</span><span class="sy-bracket">:</span> <span class="sy-val">approval_gate</span>
+      <span class="sy-key">action</span><span class="sy-bracket">:</span> <span class="sy-str">"block auto-action, request confirmation"</span>
+      <span class="sy-key">reason</span><span class="sy-bracket">:</span> <span class="sy-str">"insufficient disclosure for autonomous action"</span></code></pre>
+        </div>
+      </div>
+
+    </div><!-- /spec-cards -->
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════
+     HOW TO USE
+     ═══════════════════════════════════════ -->
+<section class="section sec-dark">
+  <div class="section-inner">
+    <p class="sec-label">Integration</p>
+    <h2 class="sec-title">使い方</h2>
+    <p class="sec-desc">Context Grammarは機械に読まれるために設計されている。システムに応じた3つの統合パス。</p>
+
+    <div class="use-grid">
+
+      <div class="use-card reveal">
+        <p class="use-card-num">01</p>
+        <h3 class="use-card-title">エージェントフレームワーク統合</h3>
+        <ul class="use-card-list">
+          <li>トークンスキーマをエージェントのコンテキストにロード</li>
+          <li>リアルタイムのトークン値を構造化入力として供給</li>
+          <li>ルールエンジンがコンテキストに応じた動作を生成</li>
+        </ul>
+        <div class="use-card-example">
+          agent.load_schema("context-tokens.yaml")<br>
+          agent.set_tokens({ cognitive_load: 0.8, form_factor: "phone" })<br>
+          rules = agent.evaluate()
+        </div>
+      </div>
+
+      <div class="use-card reveal d1">
+        <p class="use-card-num">02</p>
+        <h3 class="use-card-title">Claude Code / AIアシスタント</h3>
+        <ul class="use-card-list">
+          <li>CLAUDE.md統合: プロジェクト指示にContext Grammarルールを追加</li>
+          <li>トークン対応プロンプティング: システムプロンプトにユーザー状態を含める</li>
+          <li>リアルタイムシグナルに基づくコンテキスト適応型レスポンス</li>
+        </ul>
+        <div class="use-card-example">
+          User cognitive_load: 0.8<br>
+          social_exposure: alone<br>
+          → respond concisely, skip formalities
+        </div>
+      </div>
+
+      <div class="use-card reveal d2">
+        <p class="use-card-num">03</p>
+        <h3 class="use-card-title">デザインシステムブリッジ</h3>
+        <ul class="use-card-list">
+          <li>デザインルールをコンポーネントバリアントにマッピング</li>
+          <li>トークン値をCSSカスタムプロパティに変換し、適応型UIを実現</li>
+          <li>高い認知負荷でシンプルなレイアウトと大きなタッチターゲットを発動</li>
+        </ul>
+        <div class="use-card-example">
+          --cg-cognitive-load: 0.8;<br>
+          --cg-form-factor: phone;<br>
+          → .card { grid-cols: 1; font-size: 18px; }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════
+     FULL YAML DOWNLOAD
+     ═══════════════════════════════════════ -->
+<section class="section sec-dark download-section">
+  <div class="section-inner">
+    <p class="sec-label">Download</p>
+    <h2 class="sec-title">完全なトークンスキーマ</h2>
+    <p class="sec-desc">完全版のcontext-tokens.yamlファイル。コピーして、フォークして、あなたのシステムに統合しよう。</p>
+
+    <div class="code-block-wrapper reveal">
+      <div class="code-block-header">
+        <span class="code-block-lang">context-tokens.yaml</span>
+        <button class="copy-btn" data-target="code-full" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code id="code-full"><span class="sy-comment"># Context Grammar — Token Schema v2.0</span>
+<span class="sy-comment"># License: CC BY 4.0</span>
+<span class="sy-comment"># https://intentfirst.ai/context-grammar/specs</span>
+
+<span class="sy-key">version</span><span class="sy-bracket">:</span> <span class="sy-str">"2.0"</span>
+<span class="sy-key">license</span><span class="sy-bracket">:</span> <span class="sy-str">"CC BY 4.0"</span>
+
+<span class="sy-key">tokens</span><span class="sy-bracket">:</span>
+
+  <span class="sy-comment"># ── Situation Tokens (1-6) ──</span>
+
+  <span class="sy-key">physical_state</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">stationary</span>, <span class="sy-str">walking</span>, <span class="sy-str">running</span>, <span class="sy-str">driving</span>, <span class="sy-str">resting</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">accelerometer</span>, <span class="sy-str">activity_recognition_api</span><span class="sy-bracket">]</span>
+    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">realtime</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
+
+  <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>
+    <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0.0</span>, <span class="sy-num">1.0</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">time_of_day</span>, <span class="sy-str">calendar_density</span>, <span class="sy-str">recent_activity</span><span class="sy-bracket">]</span>
+    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">minutes</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★☆☆☆"</span>
+    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"estimation only — no direct measurement"</span>
+
+  <span class="sy-key">social_exposure</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">alone</span>, <span class="sy-str">trusted_person</span>, <span class="sy-str">acquaintance</span>, <span class="sy-str">public</span>, <span class="sy-str">authority</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">proximity_sensor</span>, <span class="sy-str">voice_id</span>, <span class="sy-str">calendar_context</span><span class="sy-bracket">]</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
+
+  <span class="sy-key">priority_weight</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
+    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
+      <span class="sy-key">current_urgency</span><span class="sy-bracket">:</span>
+        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>
+        <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0</span>, <span class="sy-num">1</span><span class="sy-bracket">]</span>
+      <span class="sy-key">learned_patterns</span><span class="sy-bracket">:</span>
+        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
+        <span class="sy-key">items</span><span class="sy-bracket">:</span> <span class="sy-val">preference_rule</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
+
+  <span class="sy-key">form_factor</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">watch</span>, <span class="sy-str">phone</span>, <span class="sy-str">tablet</span>, <span class="sy-str">laptop</span>, <span class="sy-str">tv</span>, <span class="sy-str">car</span>, <span class="sy-str">ambient</span><span class="sy-bracket">]</span>
+    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">device_type</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
+
+  <span class="sy-key">feasibility</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
+    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
+      <span class="sy-key">available_apis</span><span class="sy-bracket">:</span>
+        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
+      <span class="sy-key">constraints</span><span class="sy-bracket">:</span>
+        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
+      <span class="sy-key">alternatives</span><span class="sy-bracket">:</span>
+        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
+
+  <span class="sy-comment"># ── Relationship Dials (7-8) ──</span>
+
+  <span class="sy-key">autonomy_dial</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">suggest</span>, <span class="sy-str">confirm</span>, <span class="sy-str">notify</span>, <span class="sy-str">auto</span><span class="sy-bracket">]</span>
+    <span class="sy-key">driven_by</span><span class="sy-bracket">:</span>
+      - <span class="sy-str">service_default</span>    <span class="sy-comment"># Netflix, Amazon already default high</span>
+      - <span class="sy-str">ai_adjustment</span>      <span class="sy-comment"># system learns trust level</span>
+      - <span class="sy-str">user_override</span>      <span class="sy-comment"># explicit user change</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
+    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"not purely user-controlled — 3 forces model"</span>
+
+  <span class="sy-key">disclosure_dial</span><span class="sy-bracket">:</span>
+    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">full</span>, <span class="sy-str">summary</span>, <span class="sy-str">existence</span>, <span class="sy-str">hidden</span><span class="sy-bracket">]</span>
+    <span class="sy-key">scope</span><span class="sy-bracket">:</span> <span class="sy-val">per_domain_per_person</span>
+    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★☆☆☆☆"</span>
+    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"prerequisite for autonomy — hidden + auto is blocked"</span>
+
+<span class="sy-comment"># ── Intent ──</span>
+<span class="sy-comment"># Intent is separate from the 8 tokens.</span>
+<span class="sy-comment"># Can be explicit (user declares) or implicit</span>
+<span class="sy-comment"># (inferred from Token × Brain intersection).</span>
+
+<span class="sy-key">intent</span><span class="sy-bracket">:</span>
+  <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
+  <span class="sy-key">properties</span><span class="sy-bracket">:</span>
+    <span class="sy-key">mode</span><span class="sy-bracket">:</span>
+      <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+      <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">explicit</span>, <span class="sy-str">implicit</span><span class="sy-bracket">]</span>
+    <span class="sy-key">substitution_mode</span><span class="sy-bracket">:</span>
+      <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
+      <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">exact</span>, <span class="sy-str">flexible</span>, <span class="sy-str">exploring</span>, <span class="sy-str">surprise</span><span class="sy-bracket">]</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════
+     DESIGN RULES REFERENCE
+     ═══════════════════════════════════════ -->
+<section class="section sec-dark">
+  <div class="section-inner">
+    <p class="sec-label">Rule Engine</p>
+    <h2 class="sec-title">デザインルール一覧</h2>
+    <p class="sec-desc">7カテゴリに整理された33のルール。各ルールはトークン状態を評価し、デザインの方向性を出力する。</p>
+
+    <div class="rules-table-wrap reveal">
+      <table class="rules-table">
+        <thead>
+          <tr>
+            <th>カテゴリ</th>
+            <th>ルール</th>
+            <th>方向性</th>
+            <th>パターン例</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>認知</td>
+            <td>R001 – R005</td>
+            <td class="dir-delegation">委譲</td>
+            <td>段階的開示、自動要約</td>
+          </tr>
+          <tr>
+            <td>社会</td>
+            <td>R006 – R010</td>
+            <td class="dir-adaptation">適応</td>
+            <td>プライバシーガード、オーディエンス対応コンテンツ</td>
+          </tr>
+          <tr>
+            <td>信頼</td>
+            <td>R011 – R015</td>
+            <td class="dir-escalation">エスカレーション</td>
+            <td>承認ゲート、開示チェック</td>
+          </tr>
+          <tr>
+            <td>デバイス</td>
+            <td>R016 – R020</td>
+            <td class="dir-adaptation">適応</td>
+            <td>フォームファクター最適化</td>
+          </tr>
+          <tr>
+            <td>優先度</td>
+            <td>R021 – R025</td>
+            <td class="dir-delegation">委譲</td>
+            <td>衝突解決</td>
+          </tr>
+          <tr>
+            <td>時間</td>
+            <td>R026 – R030</td>
+            <td class="dir-all">全方向</td>
+            <td>フェーズ適応型動作</td>
+          </tr>
+          <tr>
+            <td>マルチパーソン</td>
+            <td>R031 – R033</td>
+            <td class="dir-all">全方向</td>
+            <td>ユーザー別自律レベル</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════ -->
+<section class="cta sec-dark">
+  <div class="cta-inner">
+    <h2 class="cta-title">Context Grammarはオープンだ。<br>これで、つくろう。</h2>
+    <div class="cta-buttons">
+      <a href="../index.html" class="cta-btn cta-btn--primary">概要に戻る</a>
+      <a href="../../projects/index.html" class="cta-btn cta-btn--secondary">プロジェクトを見る</a>
+    </div>
+  </div>
+</section>
+
+</div><!-- /page -->
+
+<script src="../../../assets/js/nav.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initNav({ basePath: '../../../', activePage: 'specs', lang: 'ja' });
+});
+
+// ── Copy button ──
+function copyCode(btn) {
+  var targetId = btn.getAttribute('data-target');
+  var codeEl = document.getElementById(targetId);
+  var text = codeEl.textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ── Scroll reveal ──
+var reveals = document.querySelectorAll('.reveal');
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+reveals.forEach(function(el) {
+  observer.observe(el);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 4 — The Sales Floor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/slide-layouts.css">
+<style>
+/* ── P4-specific: Lead cards ── */
+.lead-card { background: var(--bg-2); border-radius: 16px; padding: 24px; border: 1px solid var(--border); }
+.lead-card + .lead-card { margin-top: 12px; }
+.lead-card__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.lead-card__name { font-weight: 500; font-size: 16px; }
+.lead-card__company { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+.lead-card__status { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; }
+.lead-card__status--hot  { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.lead-card__status--warm { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.lead-card__status--cold { background: var(--chip-red-bg); color: var(--chip-red-text); }
+.lead-card__signal { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-bottom: 8px; }
+.lead-card__action { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--color-grammar); }
+.lead-card__bar { height: 4px; border-radius: 2px; margin-bottom: 12px; }
+.lead-card__bar--hot  { background: var(--color-success); width: 90%; }
+.lead-card__bar--warm { background: var(--color-intent); width: 55%; }
+.lead-card__bar--cold { background: var(--illust-red); width: 25%; }
+
+/* ── P4-specific: Dual screen boxes ── */
+.dual-screen { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dual-screen-box { background: var(--bg-2); border-radius: 12px; padding: 20px; border: 1px solid var(--border); }
+.dual-screen-box__title { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.dual-screen-box__dot { width: 8px; height: 8px; border-radius: 50%; }
+.screen-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.screen-item:last-child { border-bottom: none; }
+.screen-item__bar { height: 6px; border-radius: 3px; flex-shrink: 0; }
+.screen-item__hidden { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); font-style: italic; }
+
+/* ── P4-specific: Pyramid (Differentiation) ── */
+.pyramid { max-width: 580px; margin: 0 auto; }
+.pyramid-tier { border-radius: 12px; padding: 16px 20px; text-align: center; margin: 0 auto; }
+.pyramid-tier + .pyramid-tier { margin-top: 8px; }
+.pyramid-tier--top { background: var(--chip-amber-bg); color: var(--chip-amber-text); max-width: 340px; }
+.pyramid-tier--mid { background: var(--chip-blue-bg); color: var(--chip-blue-text); max-width: 430px; }
+.pyramid-tier--base { background: var(--bg-3); color: var(--text-2); max-width: 540px; }
+.pyramid-tier__label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.pyramid-tier__text { font-weight: 500; font-size: 15px; line-height: 1.4; }
+.pyramid-tier__sub { font-size: 12px; margin-top: 4px; opacity: 0.7; }
+
+/* ── P4-specific: Approval Gate flow ── */
+.gate-flow { display: flex; flex-direction: column; gap: 0; align-items: center; }
+.gate-email { background: var(--bg-2); border-radius: 12px; padding: 20px 24px; border: 1px solid var(--border); width: 100%; font-size: 13px; line-height: 1.7; }
+.gate-email__to { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
+.gate-email__subject { font-weight: 500; font-size: 14px; margin-bottom: 12px; }
+.gate-arrow { width: 2px; height: 24px; background: var(--border); position: relative; margin: 8px 0; }
+.gate-arrow::after { content: ''; position: absolute; bottom: -4px; left: -4px; width: 10px; height: 10px; border-right: 2px solid var(--border); border-bottom: 2px solid var(--border); transform: rotate(45deg); }
+.gate-actions { display: flex; gap: 10px; width: 100%; justify-content: center; }
+.gate-btn { flex: 1; padding: 10px 16px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: var(--bg-2); cursor: default; }
+.gate-btn--approve  { background: var(--chip-green-bg); color: var(--chip-green-text); border-color: transparent; }
+.gate-btn--edit     { background: var(--chip-amber-bg); color: var(--chip-amber-text); border-color: transparent; }
+.gate-btn--reject   { background: var(--chip-red-bg); color: var(--chip-red-text); border-color: transparent; }
+.gate-btn--schedule { background: var(--chip-blue-bg); color: var(--chip-blue-text); border-color: transparent; }
+
+/* ── P4-specific: Mobile phone card ── */
+.phone-card { background: var(--bg-2); border-radius: 16px; padding: 20px; border: 1px solid var(--border); max-width: 300px; margin: 0 auto; }
+.phone-card__status { font-family: var(--font-mono); font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+.phone-card__item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); padding: 6px 0; }
+.phone-card__actions { display: flex; gap: 8px; margin-top: 12px; }
+.phone-card__btn { flex: 1; padding: 12px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: 500; }
+
+/* ── P4-specific: Timeline ── */
+.timeline-row { display: grid; grid-template-columns: 100px 1fr; gap: 24px; align-items: start; padding: 20px 0; border-bottom: 1px solid var(--border); }
+.timeline-row:last-child { border-bottom: none; }
+.timeline-period { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--color-intent); }
+.timeline-content { font-size: 14px; line-height: 1.6; }
+.timeline-dial-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+/* ── P4-specific: Friction table (Dynamic Friction) ── */
+.friction-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 13px; }
+.friction-table th { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 10px 14px; background: var(--bg-3); color: var(--text-2); text-align: left; }
+.friction-table td { padding: 10px 14px; background: var(--bg-2); vertical-align: top; line-height: 1.5; }
+.friction-table td:first-child { font-weight: 500; white-space: nowrap; }
+
+/* ── P4-specific: Compare table ── */
+.compare-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; font-size: 13px; }
+.compare-table th { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 10px 14px; background: var(--bg-3); color: var(--text-2); text-align: left; }
+.compare-table td { padding: 10px 14px; background: var(--bg-2); vertical-align: top; line-height: 1.5; }
+.compare-table td:first-child { font-weight: 500; white-space: nowrap; font-family: var(--font-mono); font-size: 12px; }
+
+/* ── P4-specific: 3-layer badges ── */
+.layer-badge { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.3px; }
+.layer-badge--2026 { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.layer-badge--2028 { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.layer-badge--2031 { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+
+/* ── P4-specific: Hero quote ── */
+.hero-quote { font-weight: 400; font-size: clamp(16px, 1.8vw, 24px); line-height: 1.7; max-width: 640px; margin: 32px auto 0; text-align: center; color: var(--text-2); }
+
+/* ── P4-specific: Closing ── */
+.closing-stmt { font-size: clamp(22px, 3vw, 40px); font-weight: 500; line-height: 1.5; letter-spacing: -0.5px; max-width: 750px; text-align: center; }
+
+/* ── P4-specific: Dark centered quote (reusable) ── */
+.dark-quote { font-family: var(--font-sans); font-weight: 500; font-size: clamp(28px, 4.5vw, 56px); line-height: 1.2; letter-spacing: -0.02em; max-width: 800px; margin: 0 auto; }
+.dark-quote em { font-style: normal; color: var(--color-grammar); }
+
+/* ── P4-specific: Dynamic Friction note ── */
+.friction-note { background: var(--chip-amber-bg); color: var(--chip-amber-text); border-radius: 10px; padding: 14px 18px; font-size: 13px; line-height: 1.5; margin-top: 16px; }
+.friction-note__label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+
+/* ── P4-specific: Friction cards (Problem slide) ── */
+.friction-cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.friction-card { background: var(--bg-2); border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); display: flex; gap: 14px; align-items: flex-start; }
+.friction-card__num { font-family: var(--font-mono); font-size: 24px; font-weight: 600; color: var(--illust-red); line-height: 1; min-width: 28px; }
+.friction-card__title { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.friction-card__desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+/* ── P4-specific: Evidence cards ── */
+.evidence-card { background: var(--bg-2); border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); }
+.evidence-card__source { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--color-grammar); margin-bottom: 8px; }
+.evidence-card__text { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+/* ── P4-specific: Priority notification ── */
+.priority-notification { background: var(--bg-2); border-radius: 16px; padding: 24px; border: 1px solid var(--illust-amber); }
+.priority-notification__header { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--illust-amber); margin-bottom: 16px; }
+.priority-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: start; margin-bottom: 20px; }
+.priority-col { background: var(--bg-3); border-radius: 12px; padding: 16px; }
+.priority-col__label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; color: var(--text-3); }
+.priority-col__title { font-weight: 500; font-size: 14px; margin-bottom: 6px; }
+.priority-col__detail { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+.priority-divider { display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 20px; font-weight: 600; color: var(--illust-amber); }
+.priority-actions { display: flex; flex-direction: column; gap: 8px; }
+.priority-btn { padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: var(--bg); text-align: center; }
+.priority-btn--take { background: var(--chip-green-bg); color: var(--chip-green-text); border-color: transparent; }
+.priority-btn--vm { background: var(--chip-amber-bg); color: var(--chip-amber-text); border-color: transparent; }
+.priority-btn--ai { background: var(--chip-blue-bg); color: var(--chip-blue-text); border-color: transparent; }
+
+/* ── P4-specific: Summary dashboard ── */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.summary-card { background: var(--bg-2); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+.summary-card__label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+.summary-card__val { font-family: var(--font-mono); font-size: 28px; font-weight: 600; letter-spacing: -1px; }
+.summary-card__desc { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+
+/* ── P4-specific: Brain learning cards ── */
+.brain-card { background: var(--bg-2); border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); }
+.brain-card + .brain-card { margin-top: 10px; }
+.brain-card__type { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.brain-card__type--pattern { color: var(--color-grammar); }
+.brain-card__type--dial { color: var(--color-intent); }
+.brain-card__type--pref { color: var(--color-brain); }
+.brain-card__text { font-size: 13px; line-height: 1.6; }
+.brain-card__arrow { font-family: var(--font-mono); font-size: 12px; color: var(--color-success); margin-top: 6px; }
+
+/* ── P4-specific: Scene flow ── */
+.scene-flow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: 24px; }
+.scene-flow__item { background: var(--bg-2); border-radius: 10px; padding: 12px 16px; border: 1px solid var(--border); text-align: center; min-width: 120px; }
+.scene-flow__time { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--color-intent); }
+.scene-flow__name { font-size: 13px; font-weight: 500; margin-top: 4px; }
+.scene-flow__arrow { font-size: 18px; color: var(--text-3); }
+
+/* ── P4-specific: Disclosure cards ── */
+.disclosure-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.disclosure-card { background: var(--bg-2); border-radius: 14px; padding: 20px; border: 1px solid var(--border); }
+.disclosure-card__label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+
+/* ── Mobile adjustments ── */
+@media (max-width: 768px) {
+  .dual-screen { grid-template-columns: 1fr; }
+  .gate-actions { flex-wrap: wrap; }
+  .gate-btn { min-width: calc(50% - 8px); }
+  .compare-table { font-size: 11px; }
+  .friction-table { font-size: 11px; }
+  .friction-table th, .friction-table td { padding: 8px 10px; }
+  .timeline-row { grid-template-columns: 80px 1fr; gap: 16px; }
+  .summary-grid { grid-template-columns: 1fr; }
+  .priority-vs { grid-template-columns: 1fr; }
+  .priority-divider { transform: rotate(90deg); padding: 8px 0; }
+  .disclosure-cards { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="deck" data-dark-slides="s1,s7,s10,s15,s24">
+
+
+<!-- =============================================================
+     S1 — HERO (dark, photo background)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s1"
+  style="background-image: url('images/p4-hero-office-morning.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:var(--text-3);">Context Grammar — Project 04</div>
+      <h1 class="slide-title" style="font-size:clamp(36px,6vw,72px);max-width:100%;">
+        The Sales <span class="accent">Floor</span>
+      </h1>
+      <p class="slide-subtitle" style="max-width:560px;margin:0 auto;">
+        Social-Aware Filtering&ensp;/&ensp;Temporal Arc&ensp;/&ensp;Enterprise Trust Calibration
+      </p>
+      <div class="hero-quote">
+        300件のリードを開いた不安が、3件の確信に変わる。<br>
+        上司が近づけば画面が静かに変形し、体面は守られる。<br>
+        3ヶ月後、AIは空気のように動いている——<br>
+        Renが信頼を渡したからだ。
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:32px;flex-wrap:wrap;">
+        <span class="chip chip-blue">8 Context Tokens</span>
+        <span class="chip chip-amber">Autonomy Dial</span>
+        <span class="chip chip-green">Enterprise AX</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S2 — SETUP: Ren introduction
+     ============================================================= -->
+<section class="slide" id="s2">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Setup</div>
+        <h2 class="slide-title">Ren（蓮）、<br>営業マネージャー。<br><span class="accent">300件のリード</span>と1つのAI。</h2>
+        <p class="slide-subtitle">
+          Renの朝はCRMを開くことから始まる。300件のリード。未返信メール42通。今日のスタンドアップまであと1時間。どこから手をつけるべきか——その判断だけで30分が消える。
+        </p>
+        <p class="slide-subtitle" style="margin-top:12px;">
+          会社が導入したSales Agentは初日から動いている。だがRenはまだ信頼していない。AIが出す答えの根拠がわからないからだ。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:20px;flex-wrap:wrap;">
+          <span class="chip chip-blue">CRM: 300 leads</span>
+          <span class="chip chip-amber">Email: 42 unread</span>
+          <span class="chip chip-green">Calendar: 5 meetings</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="pyramid reveal">
+          <div class="pyramid-tier pyramid-tier--top">
+            <div class="pyramid-tier__label">業界初</div>
+            <div class="pyramid-tier__text">Social-Aware Filtering<br>Temporal Arc</div>
+            <div class="pyramid-tier__sub">上司検知で画面変形 / 信頼の時間進化</div>
+          </div>
+          <div class="pyramid-tier pyramid-tier--mid">
+            <div class="pyramid-tier__label">新しいが標準化が近い</div>
+            <div class="pyramid-tier__text">確信度UI / Approval Gate</div>
+            <div class="pyramid-tier__sub">根拠付きConfidence Signal + インライン承認</div>
+          </div>
+          <div class="pyramid-tier pyramid-tier--base">
+            <div class="pyramid-tier__label">既に実装済み — 前提</div>
+            <div class="pyramid-tier__text">クロスシステム分析</div>
+            <div class="pyramid-tier__sub">Copilot for Sales / Salesforce Einstein</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S3 — PROBLEM: Daily friction
+     ============================================================= -->
+<section class="slide" id="s3">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Before Context Grammar</div>
+        <h2 class="slide-title">毎日<span class="accent">7つの摩擦</span>が<br>Renの時間を奪う</h2>
+        <p class="slide-subtitle">
+          これらの摩擦はCRMの問題ではない。CRMはデータを出す。問題は「今のRenに、どの情報を、どう見せるか」の設計が存在しないことだ。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;">
+        <div class="friction-cards reveal">
+          <div class="friction-card">
+            <div class="friction-card__num">1</div>
+            <div><div class="friction-card__title">300件のリスト麻痺</div><div class="friction-card__desc">重要な3件が埋もれる。毎朝30分の選別作業</div></div>
+          </div>
+          <div class="friction-card">
+            <div class="friction-card__num">2</div>
+            <div><div class="friction-card__title">画面共有で数字が丸見え</div><div class="friction-card__desc">スタンドアップで未達率が全員に表示される</div></div>
+          </div>
+          <div class="friction-card">
+            <div class="friction-card__num">3</div>
+            <div><div class="friction-card__title">フォローアップに30分</div><div class="friction-card__desc">1通ずつ文面を考え、送信タイミングを悩む</div></div>
+          </div>
+          <div class="friction-card">
+            <div class="friction-card__num">4</div>
+            <div><div class="friction-card__title">会議中の重要電話</div><div class="friction-card__desc">誰の電話か、今出るべきかの判断材料がない</div></div>
+          </div>
+          <div class="friction-card">
+            <div class="friction-card__num">5</div>
+            <div><div class="friction-card__title">日報が手作業</div><div class="friction-card__desc">今日何をしたか構造化するだけで20分</div></div>
+          </div>
+          <div class="friction-card">
+            <div class="friction-card__num">6</div>
+            <div><div class="friction-card__title">AIの根拠が不透明</div><div class="friction-card__desc">「なぜこのリードが優先？」に答えられない</div></div>
+          </div>
+          <div class="friction-card">
+            <div class="friction-card__num">7</div>
+            <div><div class="friction-card__title">信頼の更新が手動</div><div class="friction-card__desc">AIの権限を変えるのは設定画面の奥</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S4 — THESIS: CG in enterprise
+     ============================================================= -->
+<section class="slide" id="s4">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Thesis</div>
+        <h2 class="slide-title">同じ8 Tokenが、<br><span class="accent">家庭も職場も</span><br>記述する</h2>
+        <p class="slide-subtitle">
+          P1-P3で家庭に適用したContext Grammarを、エンタープライズ営業に展開する。Tokenの定義は変えない。コンテキストだけが変わる。靴選びとリード管理が、同じ構造で記述できること——それがContext Grammarの汎用性の証明だ。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-blue">6 Situation Tokens</span>
+          <span class="chip chip-amber">2 Relationship Dials</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p4-concept-enterprise-cg.png" alt="Same 8 Tokens serve both home and enterprise" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S5 — SCENE 1: Morning 9:00 — 300→3 leads
+     ============================================================= -->
+<section class="slide" id="s5">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Scene 1 — Morning 9:00</div>
+        <h2 class="slide-title">300件の不安を<br><span class="accent">3件の確信</span>に変える</h2>
+        <p class="slide-subtitle">
+          Renの感情：「300件のリストを眺めて途方に暮れたくない。今日やるべき3件だけ見せてほしい。」CRM・メール・カレンダーの3システムを横断し、確信度付きでリードを並べる。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-blue">Physical: seated</span>
+          <span class="chip chip-blue">Cognitive: 低</span>
+          <span class="chip chip-blue">Social: PRIVATE</span>
+          <span class="chip chip-blue">Form: desktop</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;">
+        <div class="lead-card reveal">
+          <div class="lead-card__header">
+            <div>
+              <div class="lead-card__name">Lead A — 田中様</div>
+              <div class="lead-card__company">株式会社NeXT / Series B</div>
+            </div>
+            <div class="lead-card__status lead-card__status--hot">HOT</div>
+          </div>
+          <div class="lead-card__bar lead-card__bar--hot"></div>
+          <div class="lead-card__signal">メール返信24h以内 / 来週デモ確定 / クローズ可能</div>
+          <div class="lead-card__action">推奨 → デモ資料を先に送付</div>
+        </div>
+        <div class="lead-card reveal">
+          <div class="lead-card__header">
+            <div>
+              <div class="lead-card__name">Lead B — 佐藤様</div>
+              <div class="lead-card__company">グローバルテック株式会社</div>
+            </div>
+            <div class="lead-card__status lead-card__status--cold">COOLING</div>
+          </div>
+          <div class="lead-card__bar lead-card__bar--cold"></div>
+          <div class="lead-card__signal">返信5日遅延 / デモキャンセル / 再エンゲージメント必要</div>
+          <div class="lead-card__action">推奨 → 再アプローチメール</div>
+        </div>
+        <div class="lead-card reveal">
+          <div class="lead-card__header">
+            <div>
+              <div class="lead-card__name">Lead C — 鈴木様</div>
+              <div class="lead-card__company">イノベーションラボ合同会社</div>
+            </div>
+            <div class="lead-card__status lead-card__status--warm">WARMING</div>
+          </div>
+          <div class="lead-card__bar lead-card__bar--warm"></div>
+          <div class="lead-card__signal">昨日初回返信 / 関心の兆候 / デモ設定推奨</div>
+          <div class="lead-card__action">推奨 → デモ日程を提案</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S6 — DETAIL: Confidence signals
+     ============================================================= -->
+<section class="slide" id="s6">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Confidence Signals</div>
+        <h2 class="slide-title">AIが出す答えには、<br><span class="accent">根拠が見える</span></h2>
+        <p class="slide-subtitle">
+          「なぜこの3件？」にAIが答えられなければ、Renは使わない。3つのデータソースが交差する証拠を見せることで、Renは自分の判断を補強できる。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;gap:12px;">
+        <div class="evidence-card reveal">
+          <div class="evidence-card__source">CRM</div>
+          <div class="evidence-card__text">Lead A: 3回の商談。直近は先週木曜。ステージ: Proposal。競合なし。予算確保済み（Q4）。</div>
+        </div>
+        <div class="evidence-card reveal">
+          <div class="evidence-card__source">Email</div>
+          <div class="evidence-card__text">Lead A: 過去14通のやり取り。平均返信時間: 4.2時間。直近メール: 「来週のデモ楽しみにしています」。感情分析: Positive。</div>
+        </div>
+        <div class="evidence-card reveal">
+          <div class="evidence-card__source">Calendar</div>
+          <div class="evidence-card__text">火曜14:00にデモ枠あり。Lead Aの過去パターン: 火曜午後の出席率92%。会議室B空き。</div>
+        </div>
+        <div style="margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--text-3);">
+          3ソースの交差 → Confidence Score: 87% → HOT判定
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S7 — BREAK: Pre-standup hallway (dark photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s7"
+  style="background-image: url('images/p4-break-hallway.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(240,236,228,0.4);">Break</div>
+      <h2 style="font-size:clamp(24px,3vw,40px);font-weight:500;color:#f0ece4;letter-spacing:-0.5px;">
+        スタンドアップまであと5分。<br>
+        <span style="color:rgba(240,236,228,0.5);">画面共有の準備をしなければ。</span>
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S8 — SCENE 2: Standup 10:00 — Social-Aware Filtering
+     ============================================================= -->
+<section class="slide" id="s8">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Scene 2 — Standup 10:00</div>
+        <h2 class="slide-title">有能に見られたい。<br>でも未達の数字は<span class="accent">見せたくない</span></h2>
+        <p class="slide-subtitle">
+          画面共有した瞬間、個人の営業数字が全員に見える。CopilotもEinsteinも「情報を隠すべき瞬間」を設計していない。Social Exposure × Disclosure Dialが、場にいる人間に応じて表示情報を自動で再構成する。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-amber">Social: TEAM + BOSS</span>
+          <span class="chip chip-blue">Form: laptop + 会議室モニター</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;">
+        <div class="dual-screen reveal" style="width:100%;">
+          <div class="dual-screen-box">
+            <div class="dual-screen-box__title">
+              <div class="dual-screen-box__dot" style="background:var(--color-success);"></div>
+              Renのデスクトップ
+            </div>
+            <div class="screen-item">
+              <span>Lead A</span>
+              <span style="margin-left:auto;font-family:var(--font-mono);font-size:12px;">&#165;8,500,000</span>
+            </div>
+            <div class="screen-item">
+              <span>Lead B</span>
+              <span style="margin-left:auto;font-family:var(--font-mono);font-size:12px;">&#165;3,200,000</span>
+            </div>
+            <div class="screen-item">
+              <span>個人達成率</span>
+              <span style="margin-left:auto;font-family:var(--font-mono);font-size:12px;">78%</span>
+            </div>
+          </div>
+          <div class="dual-screen-box">
+            <div class="dual-screen-box__title">
+              <div class="dual-screen-box__dot" style="background:var(--color-intent);"></div>
+              会議室モニター
+            </div>
+            <div class="screen-item">
+              <span>Lead A</span>
+              <span style="margin-left:auto;">
+                <span class="screen-item__bar" style="display:inline-block;width:60px;background:var(--color-success);"></span>
+              </span>
+            </div>
+            <div class="screen-item">
+              <span>Lead B</span>
+              <span style="margin-left:auto;">
+                <span class="screen-item__bar" style="display:inline-block;width:24px;background:var(--illust-red);"></span>
+              </span>
+            </div>
+            <div class="screen-item">
+              <span class="screen-item__hidden">個人達成率: 非表示</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S9 — KEY MOMENT: Social-Aware instant
+     ============================================================= -->
+<section class="slide slide--dim" id="s9">
+  <div class="slide-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <div class="slide-label label-intent" style="margin-bottom:16px;">Key Moment</div>
+    <h2 class="slide-title" style="max-width:800px;">
+      画面共有が始まった<span class="accent">その瞬間</span>、<br>数字が消える
+    </h2>
+    <p class="slide-subtitle" style="max-width:640px;margin:16px auto 0;">
+      Renは何も操作していない。Social Exposure Tokenが「TEAM + BOSS」を検知し、Disclosure Dialが「PARTIAL」に自動調整。金額は進捗バーに、達成率は非表示に。Renの体面は守られた。
+    </p>
+    <div style="display:flex;gap:16px;margin-top:32px;flex-wrap:wrap;justify-content:center;">
+      <div style="background:var(--bg-2);border-radius:10px;padding:14px 20px;border:1px solid var(--border);text-align:center;">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);letter-spacing:1px;margin-bottom:6px;">BEFORE</div>
+        <div style="font-size:15px;font-weight:500;">&#165;8,500,000</div>
+      </div>
+      <div style="font-size:24px;color:var(--text-3);display:flex;align-items:center;">&rarr;</div>
+      <div style="background:var(--bg-2);border-radius:10px;padding:14px 20px;border:1px solid var(--border);text-align:center;">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);letter-spacing:1px;margin-bottom:6px;">AFTER</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="screen-item__bar" style="display:inline-block;width:60px;height:8px;background:var(--color-success);border-radius:4px;"></span>
+          <span style="font-size:12px;color:var(--text-2);">進行中</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:24px;">
+      Social Exposure: TEAM + BOSS → Disclosure: PARTIAL → Numbers → Progress bars
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S10 — BREAK: Afternoon (dark photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s10"
+  style="background-image: url('images/p4-break-afternoon.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(240,236,228,0.4);">Break</div>
+      <h2 style="font-size:clamp(24px,3vw,40px);font-weight:500;color:#f0ece4;letter-spacing:-0.5px;">
+        午後の集中。<br>
+        <span style="color:rgba(240,236,228,0.5);">Lead Bへの再アプローチを考えている。</span>
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S11 — SCENE 3: Afternoon 14:00 — Approval Gate
+     ============================================================= -->
+<section class="slide" id="s11">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Scene 3 — Afternoon 14:00</div>
+        <h2 class="slide-title">逃したくない。<br>でも30分<span class="accent">かけたくない</span></h2>
+        <p class="slide-subtitle">
+          Renの感情：「雑なメールで商談を失いたくないが、1通30分は非効率だ。」AIのドラフトを同じ画面で確認・編集・承認できるApproval Gateで、効率と品質のトレードオフを解決する。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-blue">Cognitive: 中</span>
+          <span class="chip chip-green">Autonomy: Suggest</span>
+        </div>
+        <div class="friction-note" style="margin-top:20px;">
+          <div class="friction-note__label">Dynamic Friction</div>
+          フォローアップメールは Notify まで上がれる。しかし契約書送付は永遠に Suggest のまま。信頼が蓄積されても、不可逆性が高いアクションのフリクションは残す。
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="gate-flow reveal" style="width:100%;max-width:360px;">
+          <div class="gate-email">
+            <div class="gate-email__to">To: 佐藤様（Lead B）</div>
+            <div class="gate-email__subject">先日のデモについて</div>
+            <div style="font-size:13px;color:var(--text-2);line-height:1.7;">
+              佐藤様<br><br>
+              先日はデモのスケジュール調整が叶わず残念でした。御社の課題について、別のアプローチをご提案できればと思いご連絡しました。<br><br>
+              来週のご都合はいかがでしょうか。
+            </div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-3);">
+              根拠: 過去のやり取りパターンと返信傾向から、火曜午前が最も返信率が高い時間帯
+            </div>
+          </div>
+          <div class="gate-arrow"></div>
+          <div class="gate-actions">
+            <div class="gate-btn gate-btn--approve">送信</div>
+            <div class="gate-btn gate-btn--edit">編集</div>
+            <div class="gate-btn gate-btn--reject">破棄</div>
+          </div>
+          <div style="margin-top:8px;width:100%;">
+            <div class="gate-btn gate-btn--schedule" style="width:100%;">火曜 9:00 に送信</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S12 — DETAIL: Dynamic Friction table
+     ============================================================= -->
+<section class="slide" id="s12">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Dynamic Friction</div>
+        <h2 class="slide-title">ビールは黙って出す。<br>15万円のワインリストは<span class="accent">勝手に開けない</span></h2>
+        <p class="slide-subtitle">
+          Autonomy Dialは一直線に上がるものではない。ドメインごとに天井がある。信頼が蓄積されても、不可逆性が高いアクションのフリクションは残す。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;">
+        <div class="reveal" style="width:100%;overflow-x:auto;">
+          <table class="friction-table">
+            <thead>
+              <tr>
+                <th>営業アクション</th>
+                <th>リスク</th>
+                <th>Autonomy上限</th>
+                <th>なぜ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>社内メモの要約</td>
+                <td><span class="chip chip-green" style="font-size:10px;padding:2px 6px;">ゼロ</span></td>
+                <td style="font-family:var(--font-mono);font-weight:600;">Auto</td>
+                <td style="font-size:12px;color:var(--text-2);">間違っても影響なし</td>
+              </tr>
+              <tr>
+                <td>フォローアップ</td>
+                <td><span class="chip chip-blue" style="font-size:10px;padding:2px 6px;">低</span></td>
+                <td style="font-family:var(--font-mono);font-weight:600;">Notify</td>
+                <td style="font-size:12px;color:var(--text-2);">送信取り消し可能</td>
+              </tr>
+              <tr>
+                <td>見積書の作成</td>
+                <td><span class="chip chip-amber" style="font-size:10px;padding:2px 6px;">中</span></td>
+                <td style="font-family:var(--font-mono);font-weight:600;">Confirm</td>
+                <td style="font-size:12px;color:var(--text-2);">金額が関わる</td>
+              </tr>
+              <tr>
+                <td>契約書の送付</td>
+                <td><span class="chip chip-red" style="font-size:10px;padding:2px 6px;">高</span></td>
+                <td style="font-family:var(--font-mono);font-weight:600;">Suggest</td>
+                <td style="font-size:12px;color:var(--text-2);">法的拘束力</td>
+              </tr>
+              <tr>
+                <td>値引き交渉</td>
+                <td><span class="chip chip-red" style="font-size:10px;padding:2px 6px;">最高</span></td>
+                <td style="font-family:var(--font-mono);font-weight:600;">Suggest + 上長承認</td>
+                <td style="font-size:12px;color:var(--text-2);">利益に直結</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S13 — SCENE 4: Emergency 15:30
+     ============================================================= -->
+<section class="slide" id="s13">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label" style="color:var(--illust-red);">Scene 4 — Emergency 15:30</div>
+        <h2 class="slide-title">会議中に<br><span style="color:var(--illust-red);">重要な電話</span>が鳴る</h2>
+        <p class="slide-subtitle">
+          Renはチームミーティングの最中。スマートフォンが震える。Lead Aの田中様からの着信。来週のデモの最終確認かもしれない——今出なければ、次のチャンスはいつ？
+        </p>
+        <p class="slide-subtitle" style="margin-top:12px;">
+          しかし今のミーティングも重要だ。Q4の戦略決定。上司が目の前にいる。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-red">Priority Weight: 衝突</span>
+          <span class="chip chip-amber">Cognitive: スパイク</span>
+          <span class="chip chip-blue">Social: MEETING</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p4-meeting-emergency.jpg" alt="Meeting room, phone vibrating" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S14 — KEY: Priority Weight collision
+     ============================================================= -->
+<section class="slide" id="s14">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-intent" style="margin-bottom:8px;">Key Moment — Priority Weight</div>
+      <h2 class="slide-title" style="margin-bottom:8px;">AIは<span class="accent">決めない</span>。<br>両方の重みを見せて、Renに委ねる。</h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:24px;">
+        単なる「応答/拒否」ではない。発信者のコンテキスト、現在のミーティングの重要度、そして第3の選択肢をAIが提示する。
+      </p>
+      <div class="priority-notification reveal">
+        <div class="priority-notification__header">&#128222; 着信 — 田中様（Lead A）</div>
+        <div class="priority-vs">
+          <div class="priority-col">
+            <div class="priority-col__label">着信コンテキスト</div>
+            <div class="priority-col__title">田中様（Lead A）</div>
+            <div class="priority-col__detail">
+              案件: &#165;8,500,000<br>
+              ステージ: Proposal → Close<br>
+              来週火曜デモ確定<br>
+              過去の着信: 重要確認のみ（3/3回）
+            </div>
+          </div>
+          <div class="priority-divider">vs</div>
+          <div class="priority-col">
+            <div class="priority-col__label">現在のミーティング</div>
+            <div class="priority-col__title">Q4戦略会議</div>
+            <div class="priority-col__detail">
+              参加者: チーム全員 + 上司<br>
+              種別: 定例（毎週）<br>
+              残り: 15分<br>
+              Renの発言済み: 完了
+            </div>
+          </div>
+        </div>
+        <div class="priority-actions">
+          <div class="priority-btn priority-btn--take">電話に出る</div>
+          <div class="priority-btn priority-btn--vm">ボイスメール + テキスト返信</div>
+          <div class="priority-btn priority-btn--ai">AI: 「会議中です。15分後に折り返します」を自動送信</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+          PW判定: Lead A着信 (商談クローズ直前) &gt; 定例会議 (発言済み・残り15分) → 推奨: 電話に出る
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S15 — BREAK: Sunset (dark photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s15"
+  style="background-image: url('images/p4-break-sunset.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(240,236,228,0.4);">Break</div>
+      <h2 style="font-size:clamp(24px,3vw,40px);font-weight:500;color:#f0ece4;letter-spacing:-0.5px;">
+        日が傾く。<br>
+        <span style="color:rgba(240,236,228,0.5);">今日のRenは、どれだけ前に進めたか。</span>
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S16 — SCENE 5: Evening 18:00 — Daily Summary
+     ============================================================= -->
+<section class="slide" id="s16">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-grammar">Scene 5 — Evening 18:00</div>
+      <h2 class="slide-title">今日何をしたか<span class="accent">構造化</span>して、<br>明日に引き継ぐ</h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:24px;">
+        Renの感情：「今日の成果を実感したい。明日の自分に、今日のRenが学んだことを渡したい。」AIが1日のアクティビティを自動構造化し、Brain学習のインジケーターも表示する。
+      </p>
+      <div class="summary-grid reveal">
+        <div class="summary-card">
+          <div class="summary-card__label">商談進捗</div>
+          <div class="summary-card__val" style="color:var(--color-success);">+2</div>
+          <div class="summary-card__desc">Lead A: デモ確定 / Lead C: 初回返信</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card__label">送信メール</div>
+          <div class="summary-card__val" style="color:var(--color-grammar);">7</div>
+          <div class="summary-card__desc">AI起草: 5 / 手動: 2 / 修正率: 14%</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card__label">AI承認率</div>
+          <div class="summary-card__val" style="color:var(--color-intent);">86%</div>
+          <div class="summary-card__desc">7通中6通を無編集承認</div>
+        </div>
+      </div>
+      <div style="margin-top:24px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="chip chip-blue">Cognitive: 低（終業）</span>
+        <span class="chip chip-green">Autonomy: Notify（サマリー）</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S17 — DETAIL: Brain learning
+     ============================================================= -->
+<section class="slide" id="s17">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-brain">Brain Learning</div>
+        <h2 class="slide-title">Brainが<span class="accent">今日学んだ</span>こと</h2>
+        <p class="slide-subtitle">
+          RenのBrainは3層構造。今日の行動は「Right Now」層に記録され、パターンが蓄積されると「Accumulated Learning」層に昇格する。Renはこのプロセスを見ることで、AIへの信頼を判断できる。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;">
+        <div class="brain-card reveal">
+          <div class="brain-card__type brain-card__type--pattern">Pattern Detected</div>
+          <div class="brain-card__text">Renはフォローアップメールを92%の確率で無編集承認する</div>
+          <div class="brain-card__arrow">→ Dial候補: Follow-up → Notify に昇格提案</div>
+        </div>
+        <div class="brain-card reveal">
+          <div class="brain-card__type brain-card__type--dial">Timing Learned</div>
+          <div class="brain-card__text">火曜 9:00 AM に送信したメールの返信率が最も高い（過去3ヶ月）</div>
+          <div class="brain-card__arrow">→ 送信タイミング推奨に反映</div>
+        </div>
+        <div class="brain-card reveal">
+          <div class="brain-card__type brain-card__type--pref">Preference Stored</div>
+          <div class="brain-card__text">Renは見積書の金額を必ず手動確認する（修正率: 40%）</div>
+          <div class="brain-card__arrow">→ 見積書のDial上限: Confirm（変更なし）</div>
+        </div>
+        <div style="margin-top:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-3);">
+          L3 Right Now → パターン蓄積 → L2 Accumulated Learning に昇格
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S18 — TEMPORAL ARC: Week 1 → Month 3
+     ============================================================= -->
+<section class="slide slide--dim" id="s18">
+  <div class="slide-inner">
+    <div class="layout-concept">
+      <div class="title-area">
+        <div class="slide-label label-intent">Temporal Arc</div>
+        <h2 class="slide-title">Autonomy Dialは<br><span class="accent-purple">時間で進化する</span></h2>
+        <p class="slide-subtitle">
+          Week 1 の全 Suggest から、Month 3 の安定した Dial 分布へ。「10回連続承認で昇格提案」は機械学習ではなく、単純なカウントルール。今日から実装できる。
+        </p>
+      </div>
+      <div class="steps stagger visible" style="grid-template-columns:repeat(4,1fr);">
+        <div class="step">
+          <div class="step-label" style="color:var(--color-intent);">WEEK 1</div>
+          <div class="step-desc" style="font-size:12px;line-height:1.5;">
+            全て Suggest / Confirm<br>
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">AIが初めてRenを観察</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-label" style="color:var(--color-intent);">WEEK 2</div>
+          <div class="step-desc" style="font-size:12px;line-height:1.5;">
+            フォローアップ → Notify<br>
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">12通中10通を無編集承認</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-label" style="color:var(--color-intent);">MONTH 1</div>
+          <div class="step-desc" style="font-size:12px;line-height:1.5;">
+            リード優先順位 → Notify<br>
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">精度 72% → 89%</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-label" style="color:var(--color-intent);">MONTH 3</div>
+          <div class="step-desc" style="font-size:12px;line-height:1.5;">
+            情報統合時間 40% → 15%<br>
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">Auto 2 / Notify 2 / Confirm 2</span>
+          </div>
+        </div>
+      </div>
+      <div class="footnote">
+        バックラッシュはシステムの失敗ではない。信頼のキャリブレーション機構が正しく動いている証拠だ。<br>
+        <span style="font-family:var(--font-mono);font-size:10px;">祝日ミスで Notify → Confirm に後退 → 改善後に再移行</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S19 — TEMPORAL: Dynamic Friction detailed
+     ============================================================= -->
+<section class="slide" id="s19">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-intent" style="margin-bottom:8px;">Dynamic Friction — Month 3</div>
+      <h2 class="slide-title" style="margin-bottom:24px;">3ヶ月後の<span class="accent">Dial分布</span></h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:24px;">
+        Month 3 のRen。6つのドメインで、それぞれ異なるAutonomy位置が確立している。全部Autoにはならない。全部Suggestでもない。ドメインの不可逆性に応じた天井が設計されている。
+      </p>
+      <div style="overflow-x:auto;">
+        <table class="friction-table reveal">
+          <thead>
+            <tr>
+              <th>ドメイン</th>
+              <th>Week 1</th>
+              <th>Month 3</th>
+              <th>天井</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>社内メモ要約</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Suggest</td>
+              <td style="font-family:var(--font-mono);font-weight:600;color:var(--color-success);">Auto</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Auto</td>
+            </tr>
+            <tr>
+              <td>フォローアップ</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Suggest</td>
+              <td style="font-family:var(--font-mono);font-weight:600;color:var(--color-success);">Notify</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Notify</td>
+            </tr>
+            <tr>
+              <td>リード優先順位</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Confirm</td>
+              <td style="font-family:var(--font-mono);font-weight:600;color:var(--color-intent);">Notify</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Notify</td>
+            </tr>
+            <tr>
+              <td>見積書作成</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Suggest</td>
+              <td style="font-family:var(--font-mono);font-weight:600;color:var(--illust-amber);">Confirm</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Confirm</td>
+            </tr>
+            <tr>
+              <td>契約書送付</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Suggest</td>
+              <td style="font-family:var(--font-mono);font-weight:600;color:var(--illust-red);">Suggest</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Suggest</td>
+            </tr>
+            <tr>
+              <td>値引き交渉</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Suggest</td>
+              <td style="font-family:var(--font-mono);font-weight:600;color:var(--illust-red);">Suggest + 上長</td>
+              <td style="font-family:var(--font-mono);font-size:12px;">Suggest + 上長</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S20 — SUMMARY: Disclosure × Social in enterprise
+     ============================================================= -->
+<section class="slide" id="s20">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Summary</div>
+        <h2 class="slide-title">Disclosure × Social<br><span class="accent">エンタープライズ</span>での発火</h2>
+        <p class="slide-subtitle">
+          P1-P3で家庭（TVに価格非表示）に使ったDisclosure × Social Exposureの連動は、エンタープライズでさらに鋭い形で発火する。「隠す」の設計は、家庭でもオフィスでも同じ構造。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;">
+        <div class="disclosure-cards reveal">
+          <div class="disclosure-card">
+            <div class="disclosure-card__label" style="color:var(--color-brain);">P3 — 家庭</div>
+            <p style="font-size:13px;color:var(--text-2);line-height:1.6;">TVに靴の価格を非表示にする。子供の前で「高い」と言われたくない。</p>
+            <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+              <span class="chip chip-blue" style="font-size:10px;">Social: 家族</span>
+              <span class="chip chip-amber" style="font-size:10px;">Disclosure: 部分的</span>
+            </div>
+          </div>
+          <div class="disclosure-card">
+            <div class="disclosure-card__label" style="color:var(--color-grammar);">P4 — オフィス</div>
+            <p style="font-size:13px;color:var(--text-2);line-height:1.6;">会議室モニターに営業数字を非表示にする。上司の前で未達を見せたくない。</p>
+            <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+              <span class="chip chip-blue" style="font-size:10px;">Social: チーム+上司</span>
+              <span class="chip chip-amber" style="font-size:10px;">Disclosure: 部分的</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--text-3);">
+          同じToken構造。異なるコンテキスト。同じ設計パターン。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S21 — SUMMARY: 5 Scenes recap
+     ============================================================= -->
+<section class="slide slide--dim" id="s21">
+  <div class="slide-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div class="slide-label label-grammar" style="margin-bottom:12px;">Recap</div>
+    <h2 class="slide-title" style="text-align:center;">Renの<span class="accent">1日</span>を振り返る</h2>
+    <div class="scene-flow reveal">
+      <div class="scene-flow__item">
+        <div class="scene-flow__time">9:00</div>
+        <div class="scene-flow__name">300 → 3</div>
+      </div>
+      <div class="scene-flow__arrow">&rarr;</div>
+      <div class="scene-flow__item">
+        <div class="scene-flow__time">10:00</div>
+        <div class="scene-flow__name">Social Filter</div>
+      </div>
+      <div class="scene-flow__arrow">&rarr;</div>
+      <div class="scene-flow__item">
+        <div class="scene-flow__time">14:00</div>
+        <div class="scene-flow__name">Approval Gate</div>
+      </div>
+      <div class="scene-flow__arrow">&rarr;</div>
+      <div class="scene-flow__item">
+        <div class="scene-flow__time">15:30</div>
+        <div class="scene-flow__name">Priority Weight</div>
+      </div>
+      <div class="scene-flow__arrow">&rarr;</div>
+      <div class="scene-flow__item">
+        <div class="scene-flow__time">18:00</div>
+        <div class="scene-flow__name">Brain Learning</div>
+      </div>
+    </div>
+    <p class="slide-subtitle" style="text-align:center;max-width:640px;margin-top:24px;">
+      朝の不安が確信に変わり、体面は守られ、効率と品質が両立し、緊急時にも判断材料があり、1日の学びが明日に引き継がれる。これがContext Grammarによるエンタープライズ営業の1日。
+    </p>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S22 — OS LAYER
+     ============================================================= -->
+<section class="slide" id="s22">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">OS Layer</div>
+        <h2 class="slide-title">Context Grammarは<br><span class="accent">OSレイヤー</span>で動く</h2>
+        <p class="slide-subtitle">
+          Context Grammarはアプリの機能ではない。OSの下に位置する設計言語レイヤーだ。CRM、メール、カレンダーはその上で動くアプリにすぎない。Tokenの読み取り、Brainの記憶、Rule Engineの変換——すべてがアプリの下で静かに機能する。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="layer-badge layer-badge--2026">App Layer</span>
+          <span class="layer-badge layer-badge--2028">CG Layer</span>
+          <span class="layer-badge layer-badge--2031">OS Layer</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p4-os-layer.png" alt="OS layer architecture — CG sits between OS and Apps" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S23 — APPENDIX: Same 8 Tokens
+     ============================================================= -->
+<section class="slide" id="s23">
+  <div class="slide-inner" style="display:flex;flex-direction:column;justify-content:center;">
+    <div style="max-width:100%;">
+      <div class="slide-label label-grammar" style="margin-bottom:8px;">汎用性の証明</div>
+      <h2 class="slide-title" style="margin-bottom:24px;">同じ8 Tokenが、<span class="accent">家庭も職場も</span>記述する</h2>
+      <div style="overflow-x:auto;">
+        <table class="compare-table reveal">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>P3 — 靴の買い物</th>
+              <th>P4 — 営業AI</th>
+              <th>共通構造</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>&#9312; Physical State</td>
+              <td>つり革 → 片手操作</td>
+              <td>歩行中 → 片手スマホ</td>
+              <td style="font-size:12px;color:var(--text-2);">Physical変化 → UI密度変化</td>
+            </tr>
+            <tr>
+              <td>&#9313; Cognitive Load</td>
+              <td>電車での分散注意</td>
+              <td>会議3つの間の5分</td>
+              <td style="font-size:12px;color:var(--text-2);">負荷推定 → 選択肢数の調整</td>
+            </tr>
+            <tr>
+              <td>&#9314; Social Exposure</td>
+              <td>家族の前で価格を隠す</td>
+              <td>上司の前で数字を隠す</td>
+              <td style="font-size:12px;color:var(--text-2);">社会的文脈 → 情報フィルタリング</td>
+            </tr>
+            <tr>
+              <td>&#9315; Priority Weight</td>
+              <td>子供の好み > ブランド</td>
+              <td>Q4目標 > 既存案件</td>
+              <td style="font-size:12px;color:var(--text-2);">衝突解決 → 優先構造の適用</td>
+            </tr>
+            <tr>
+              <td>&#9316; Form Factor</td>
+              <td>スマホ → TV変形</td>
+              <td>デスクトップ → プロジェクター変形</td>
+              <td style="font-size:12px;color:var(--text-2);">サーフェス追加 → UI再定義</td>
+            </tr>
+            <tr>
+              <td>&#9317; Feasibility</td>
+              <td>在庫・サイズ・配送日</td>
+              <td>予算残高・Q4残日数</td>
+              <td style="font-size:12px;color:var(--text-2);">制約 → 不可能な選択肢を除外</td>
+            </tr>
+            <tr>
+              <td>&#9318; Autonomy Dial</td>
+              <td>リサーチ=Auto、購入=Confirm</td>
+              <td>メモ=Auto、契約=Suggest</td>
+              <td style="font-size:12px;color:var(--text-2);">ドメイン別の段階的自律</td>
+            </tr>
+            <tr>
+              <td>&#9319; Disclosure Dial</td>
+              <td>TVに価格非表示</td>
+              <td>チームに営業数字非表示</td>
+              <td style="font-size:12px;color:var(--text-2);">Social × Disclosure の連動</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S24 — CLOSING (dark)
+     ============================================================= -->
+<section class="slide slide--dark slide-dark slide--v-center" id="s24">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:var(--text-3);">Context Grammar</div>
+      <h2 class="dark-quote">
+        1つの設計言語で、<br>
+        <em>家庭も職場も</em><br>
+        記述できる。
+      </h2>
+      <p class="slide-subtitle" style="max-width:560px;margin:24px auto 0;text-align:center;">
+        Token自体は変わらない。コンテキストだけが変わる。<br>
+        靴選びとリード管理が、同じ構造で記述できること——<br>
+        それがContext Grammarの汎用性の証明だ。
+      </p>
+      <div style="margin-top:32px;">
+        <a href="../project-05/p5-control-tower.html" style="display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:13px;color:var(--color-grammar);text-decoration:none;letter-spacing:0.5px;">
+          Next: The Control Tower &rarr;
+        </a>
+      </div>
+      <div style="display:flex;gap:24px;justify-content:center;margin-top:40px;">
+        <span style="font-family:var(--font-mono);font-size:12px;color:rgba(240,236,228,0.25);letter-spacing:2px;">intentfirst.ai</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:rgba(240,236,228,0.25);letter-spacing:2px;">Takao Umehara</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /#deck -->
+
+<!-- Unified deck navigation -->
+<script src="../../assets/js/deck-nav.js"></script>
+
+</body>
+</html>

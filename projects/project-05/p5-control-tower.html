@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 5 — The Control Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/slide-layouts.css">
+<style>
+/* ── P5-specific: Agent status cards ── */
+.agent-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; width: 100%; margin-top: 28px; }
+.agent-card { background: var(--bg-2); border-radius: 16px; padding: 24px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+.agent-card__header { display: flex; align-items: center; gap: 10px; }
+.agent-card__dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.agent-card__dot--green  { background: var(--illust-green); }
+.agent-card__dot--amber  { background: var(--illust-amber); }
+.agent-card__dot--red    { background: var(--illust-red); }
+.agent-card__name { font-weight: 500; font-size: 15px; }
+.agent-card__status { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; letter-spacing: 0.3px; margin-left: auto; }
+.agent-card__status--done    { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.agent-card__status--running { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.agent-card__status--error   { background: var(--chip-red-bg); color: var(--chip-red-text); }
+.agent-card__tasks { list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--text-2); line-height: 1.8; }
+.agent-card__tasks li::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+.agent-card__tasks li.task-done::before    { background: var(--illust-green); }
+.agent-card__tasks li.task-running::before { background: var(--illust-amber); }
+.agent-card__tasks li.task-error::before   { background: var(--illust-red); }
+.agent-card__tasks li.task-waiting::before { background: var(--text-3); }
+.agent-card__next { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); padding-top: 8px; border-top: 1px solid var(--border); margin-top: auto; }
+.agent-card__progress { height: 6px; border-radius: 3px; background: var(--bg-3); overflow: hidden; }
+.agent-card__progress-fill { height: 100%; border-radius: 3px; }
+.agent-card__progress-fill--green { background: var(--illust-green); }
+.agent-card__progress-fill--amber { background: var(--illust-amber); }
+.agent-card__action { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--illust-red); margin-top: 4px; }
+.summary-bar { display: flex; gap: 24px; font-family: var(--font-mono); font-size: 12px; color: var(--text-2); margin-top: 20px; flex-wrap: wrap; }
+.summary-bar span { display: flex; align-items: center; gap: 6px; }
+.summary-bar__dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── P5-specific: Friction list ── */
+.friction-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.friction-num { font-family: var(--font-mono); font-size: 28px; font-weight: 600; color: var(--illust-red); line-height: 1; min-width: 36px; flex-shrink: 0; }
+.friction-title { font-weight: 500; font-size: 15px; margin-bottom: 4px; }
+.friction-desc { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.friction-missing { font-family: var(--font-mono); font-size: 11px; color: var(--illust-red); margin-top: 4px; letter-spacing: 0.3px; }
+
+/* ── P5-specific: Autonomy Matrix ── */
+.autonomy-matrix { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: 12px; margin-top: 20px; }
+.autonomy-matrix th { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; padding: 10px 8px; background: var(--bg-3); color: var(--text-2); text-align: center; text-transform: uppercase; }
+.autonomy-matrix th:first-child { text-align: left; min-width: 120px; }
+.autonomy-matrix td { padding: 10px 8px; background: var(--bg-2); text-align: center; vertical-align: top; line-height: 1.5; border-radius: 4px; font-size: 12px; }
+.autonomy-matrix td:first-child { font-weight: 500; text-align: left; white-space: nowrap; }
+.autonomy-matrix .am-active { background: var(--chip-green-bg); color: var(--chip-green-text); font-weight: 600; }
+.autonomy-matrix .am-confirm { background: var(--chip-amber-bg); color: var(--chip-amber-text); font-weight: 600; }
+.autonomy-matrix .am-empty { background: var(--bg-3); color: var(--text-3); }
+.perf-row { display: flex; gap: 20px; margin-top: 16px; flex-wrap: wrap; }
+.perf-item { background: var(--bg-2); border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); flex: 1; min-width: 180px; }
+.perf-item__agent { font-weight: 500; font-size: 13px; margin-bottom: 8px; }
+.perf-item__stats { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); line-height: 1.8; }
+.perf-item__warn { color: var(--illust-amber); }
+
+/* ── P5-specific: Conflict box ── */
+.conflict-box { background: var(--bg-2); border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-top: 20px; }
+.conflict-header { display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 15px; margin-bottom: 16px; color: var(--illust-amber); }
+.conflict-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: start; margin-bottom: 20px; }
+.conflict-agent { background: var(--bg-3); border-radius: 12px; padding: 16px; }
+.conflict-agent__name { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+.conflict-agent__task { font-weight: 500; font-size: 14px; margin-bottom: 6px; }
+.conflict-agent__reason { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.conflict-divider { display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 20px; font-weight: 600; color: var(--illust-red); }
+.conflict-options { display: flex; flex-direction: column; gap: 8px; }
+.conflict-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; background: var(--bg); cursor: default; }
+.conflict-option__radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-hover); flex-shrink: 0; }
+.conflict-option--selected .conflict-option__radio { border-color: var(--color-grammar); background: var(--color-grammar); }
+.conflict-pw { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); line-height: 1.7; }
+
+/* ── P5-specific: Cascade flow ── */
+.cascade-flow { margin-top: 20px; position: relative; }
+.cascade-root { font-weight: 500; font-size: 14px; padding: 12px 20px; background: var(--bg-2); border-radius: 10px; border: 1px solid var(--border); display: inline-block; margin-bottom: 4px; }
+.cascade-branches { padding-left: 32px; border-left: 2px solid var(--border); margin-left: 20px; }
+.cascade-branch { position: relative; padding: 12px 0; }
+.cascade-branch::before { content: ''; position: absolute; left: -32px; top: 24px; width: 28px; height: 2px; background: var(--border); }
+.cascade-node { background: var(--bg-2); border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); margin-left: 4px; }
+.cascade-node__header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cascade-node__agent { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+.cascade-node__dial { font-family: var(--font-mono); font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto; }
+.cascade-node__dial--confirm { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.cascade-node__dial--auto { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.cascade-node__task { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.cascade-node__status { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.cascade-node__dep { font-size: 11px; color: var(--illust-amber); font-family: var(--font-mono); margin-top: 6px; }
+.cascade-dep-note { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); margin-top: 16px; padding: 12px 16px; background: var(--bg-3); border-radius: 8px; line-height: 1.6; }
+.cascade-progress { display: flex; align-items: center; gap: 12px; margin-top: 16px; font-family: var(--font-mono); font-size: 12px; color: var(--text-2); }
+.cascade-progress__bar { flex: 1; height: 6px; border-radius: 3px; background: var(--bg-3); overflow: hidden; }
+.cascade-progress__fill { height: 100%; border-radius: 3px; background: var(--illust-amber); }
+
+/* ── P5-specific: Emergency panel ── */
+.emergency-panel { background: var(--bg-2); border-radius: 16px; padding: 24px; border: 1px solid var(--illust-red); margin-top: 20px; }
+.emergency-header { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: var(--illust-red); margin-bottom: 16px; }
+.emergency-event { font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+.impact-list { list-style: none; padding: 0; margin: 0 0 16px 0; }
+.impact-list li { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; line-height: 1.5; }
+.impact-list li:last-child { border-bottom: none; }
+.impact-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.priority-shift { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-top: 16px; }
+.priority-shift__col { background: var(--bg-3); border-radius: 10px; padding: 14px; font-size: 12px; line-height: 1.6; }
+.priority-shift__col-title { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 6px; color: var(--text-3); text-transform: uppercase; }
+.priority-shift__arrow { font-size: 20px; color: var(--illust-red); text-align: center; }
+.emergency-options { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.emergency-btn { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: var(--bg-2); cursor: default; flex: 1; text-align: center; min-width: 140px; }
+.emergency-btn--urgent { background: var(--chip-red-bg); color: var(--chip-red-text); border-color: transparent; }
+.emergency-btn--parallel { background: var(--chip-amber-bg); color: var(--chip-amber-text); border-color: transparent; }
+.emergency-btn--review { background: var(--chip-blue-bg); color: var(--chip-blue-text); border-color: transparent; }
+
+/* ── P5-specific: 3-layer analysis ── */
+.layer-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+.layer-item { background: var(--bg-2); border-radius: 14px; padding: 20px 24px; border: 1px solid var(--border); }
+.layer-item__header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.layer-item__badge { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 5px; letter-spacing: 0.5px; }
+.layer-item__badge--l1 { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.layer-item__badge--l2 { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.layer-item__badge--l3 { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+.layer-item__title { font-weight: 500; font-size: 15px; }
+.layer-item__body { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.layer-item__tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+
+/* ── P5-specific: Hero stats ── */
+.p5-hero-stats { display: flex; gap: clamp(24px, 4vw, 56px); justify-content: center; margin-top: 40px; }
+.p5-hero-stat { text-align: center; }
+.p5-hero-stat__val { font-family: var(--font-mono); font-weight: 600; font-size: clamp(32px, 4.5vw, 56px); letter-spacing: -2px; line-height: 1; }
+.p5-hero-stat__val--red   { color: var(--illust-red); }
+.p5-hero-stat__val--green { color: var(--color-success); }
+.p5-hero-stat__val--blue  { color: var(--color-grammar); }
+.p5-hero-stat__label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; color: var(--text-3); margin-top: 8px; text-transform: uppercase; }
+
+/* ── P5-specific: Hero quote ── */
+.p5-hero-quote { font-weight: 500; font-size: clamp(18px, 2vw, 28px); line-height: 1.6; max-width: 700px; margin: 32px auto 0; text-align: center; color: var(--text-2); }
+.p5-hero-quote-mark { color: var(--color-intent); font-size: 1.3em; opacity: 0.6; }
+
+/* ── P5-specific: Closing ── */
+.closing-stmt { font-size: clamp(22px, 3vw, 40px); font-weight: 500; line-height: 1.5; letter-spacing: -0.5px; max-width: 750px; text-align: center; }
+
+/* ── P5-specific: Callout cards ── */
+.callout-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 24px; }
+.callout-card { background: var(--bg-2); border-radius: 14px; padding: 20px; border: 1px solid var(--border); }
+.callout-card__label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.callout-card__text { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+/* ── P5-specific: Dial cards ── */
+.dial-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+.dial-card { background: var(--bg-2); border-radius: 14px; padding: 20px; border: 1px solid var(--border); }
+.dial-card__agent { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 6px; }
+.dial-card__task { font-weight: 500; font-size: 14px; margin-bottom: 8px; }
+.dial-card__level { font-family: var(--font-mono); font-size: 12px; padding: 3px 10px; border-radius: 6px; display: inline-block; }
+
+/* ── P5-specific: Trust timeline ── */
+.trust-timeline { display: grid; grid-template-columns: 100px 1fr; gap: 0; margin-top: 24px; }
+.trust-timeline__period { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--color-intent); padding: 16px 0; border-bottom: 1px solid var(--border); }
+.trust-timeline__lanes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.trust-lane { font-size: 11px; padding: 6px 10px; border-radius: 6px; text-align: center; }
+
+/* ── P5-specific: Evolution grid ── */
+.evo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+.evo-item { background: var(--bg-2); border-radius: 12px; padding: 16px 20px; border: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+.evo-item__from { font-size: 13px; color: var(--text-2); min-width: 100px; }
+.evo-item__arrow { font-size: 18px; color: var(--color-grammar); }
+.evo-item__to { font-size: 14px; font-weight: 500; }
+
+/* ── P5-specific: Setup agents ── */
+.setup-agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+.setup-agent { background: var(--bg-2); border-radius: 12px; padding: 16px; border: 1px solid var(--border); text-align: center; }
+.setup-agent__name { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.setup-agent__tenure { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); margin-bottom: 8px; }
+.setup-agent__bar { height: 6px; border-radius: 3px; margin: 0 auto; }
+
+/* ── Mobile adjustments ── */
+@media (max-width: 768px) {
+  .agent-cards { grid-template-columns: 1fr; }
+  .conflict-vs { grid-template-columns: 1fr; }
+  .conflict-divider { transform: rotate(90deg); padding: 8px 0; }
+  .priority-shift { grid-template-columns: 1fr; }
+  .priority-shift__arrow { transform: rotate(90deg); }
+  .emergency-options { flex-direction: column; }
+  .perf-row { flex-direction: column; }
+  .autonomy-matrix { font-size: 10px; }
+  .autonomy-matrix th, .autonomy-matrix td { padding: 6px 4px; }
+  .callout-cards { grid-template-columns: 1fr; }
+  .dial-cards { grid-template-columns: 1fr; }
+  .evo-grid { grid-template-columns: 1fr; }
+  .setup-agents { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="deck" data-dark-slides="s1,s7,s11,s15,s24">
+
+
+<!-- =============================================================
+     S1 — HERO
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s1"
+  style="background-image: url('images/p5-hero-control-room.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:var(--text-3);">Context Grammar — Project 05</div>
+      <h1 class="slide-title" style="font-size:clamp(36px,6vw,72px);max-width:100%;">
+        The Control <span class="accent">Tower</span>
+      </h1>
+      <p class="slide-subtitle" style="max-width:600px;margin:0 auto;">
+        Multi-Agent Orchestration&ensp;/&ensp;Cascade Delegation&ensp;/&ensp;Trust Architecture
+      </p>
+      <div class="p5-hero-quote">
+        <span class="p5-hero-quote-mark">&ldquo;</span>ピッチの準備をして<span class="p5-hero-quote-mark">&rdquo;</span><br>
+        <span style="font-size:0.75em; color:var(--text-3);">——Renの一言で、3つのAIエージェントが連携し、<br>競合分析・資料作成・会議室予約が同時に動き出す。</span>
+      </div>
+      <div class="p5-hero-stats">
+        <div class="p5-hero-stat">
+          <div class="p5-hero-stat__val p5-hero-stat__val--red">3</div>
+          <div class="p5-hero-stat__label">AI Agents</div>
+        </div>
+        <div class="p5-hero-stat">
+          <div class="p5-hero-stat__val p5-hero-stat__val--green">90<span style="font-size:0.6em;">min</span></div>
+          <div class="p5-hero-stat__label">Day 1</div>
+        </div>
+        <div class="p5-hero-stat">
+          <div class="p5-hero-stat__val p5-hero-stat__val--blue">20<span style="font-size:0.6em;">min</span></div>
+          <div class="p5-hero-stat__label">Month 3</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:32px;flex-wrap:wrap;">
+        <span class="chip chip-amber">Autonomy Matrix</span>
+        <span class="chip chip-blue">Cascade Delegation</span>
+        <span class="chip chip-green">Conflict Resolution</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S2 — SETUP: Ren 3 months later
+     ============================================================= -->
+<section class="slide" id="s2">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Setup — 3ヶ月後</div>
+        <h2 class="slide-title">Ren（蓮）、<br><span class="accent">3つのAI</span>と働く</h2>
+        <p class="slide-subtitle">
+          P4から3ヶ月。会社の「AIエージェント導入プログラム」で2つの追加エージェントがRenのチームに加わった。Sales Agentとの信頼は確立済み。しかし新しい2つは、まだ見知らぬ同僚のようなものだ。
+        </p>
+        <div class="setup-agents reveal">
+          <div class="setup-agent">
+            <div class="setup-agent__name">Sales Agent</div>
+            <div class="setup-agent__tenure">3ヶ月</div>
+            <div class="setup-agent__bar" style="width:85%;background:var(--color-success);"></div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:6px;">信頼: 高</div>
+          </div>
+          <div class="setup-agent">
+            <div class="setup-agent__name">Research Agent</div>
+            <div class="setup-agent__tenure">2週間</div>
+            <div class="setup-agent__bar" style="width:25%;background:var(--illust-amber);"></div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:6px;">信頼: 低</div>
+          </div>
+          <div class="setup-agent">
+            <div class="setup-agent__name">Admin Agent</div>
+            <div class="setup-agent__tenure">1ヶ月</div>
+            <div class="setup-agent__bar" style="width:55%;background:var(--color-grammar);"></div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:6px;">信頼: 中</div>
+          </div>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p5-desk-notifications.jpg" alt="Multi-monitor desk with notifications" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S3 — PROBLEM: Multi-Agent Friction
+     ============================================================= -->
+<section class="slide" id="s3">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Before</div>
+        <h2 class="slide-title">1エージェントは解決済。<br><span class="accent">N</span>エージェントは<span class="accent">未開拓。</span></h2>
+        <p class="slide-subtitle">
+          エージェントが増えたのに、管理コストも増えた。レストランで言えば——シェフ、ホール、仕入れ担当がいるが、マネージャーがいないレストラン。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;gap:12px;">
+        <div class="friction-item">
+          <div class="friction-num">1</div>
+          <div>
+            <div class="friction-title">エージェント間の状態が見えない</div>
+            <div class="friction-desc">3つの画面を巡回しないと全体像がわからない</div>
+            <div class="friction-missing">MISSING: Unified Dashboard</div>
+          </div>
+        </div>
+        <div class="friction-item">
+          <div class="friction-num">2</div>
+          <div>
+            <div class="friction-title">データが流れない</div>
+            <div class="friction-desc">Research Agentの競合情報をSales Agentに手動コピペ</div>
+            <div class="friction-missing">MISSING: Inter-Agent Pipeline</div>
+          </div>
+        </div>
+        <div class="friction-item">
+          <div class="friction-num">3</div>
+          <div>
+            <div class="friction-title">スケジュールが衝突する</div>
+            <div class="friction-desc">デモと経費レビューが同じ時間帯に。誰も止めない</div>
+            <div class="friction-missing">MISSING: Conflict Detection</div>
+          </div>
+        </div>
+        <div class="friction-item">
+          <div class="friction-num">4</div>
+          <div>
+            <div class="friction-title">信頼度がバラバラ</div>
+            <div class="friction-desc">3ヶ月のSalesと先週入ったResearchが同じ権限</div>
+            <div class="friction-missing">MISSING: Autonomy Matrix</div>
+          </div>
+        </div>
+        <div class="friction-item" style="border-bottom:none;">
+          <div class="friction-num">5</div>
+          <div>
+            <div class="friction-title">連鎖的な委任ができない</div>
+            <div class="friction-desc">「ピッチ準備をして」を3つに分割して個別指示</div>
+            <div class="friction-missing">MISSING: Cascade Delegation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S4 — THESIS: Autonomy Matrix
+     ============================================================= -->
+<section class="slide" id="s4">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Thesis</div>
+        <h2 class="slide-title">1D Dial → <span class="accent">2D Matrix</span><br>信頼設計のスケーリング</h2>
+        <p class="slide-subtitle">
+          P4ではAutonomy Dialは1本だった。P5ではエージェントごと × ドメインごとに独立した位置を持つ2次元マトリクスに進化する。同じ概念が、1エージェントから3エージェントに拡張される。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-amber">P4: 1 Agent × 1 Dial</span>
+          <span class="chip chip-green">P5: N Agents × N Domains</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p5-autonomy-matrix-concept.png" alt="1D Dial evolves to 2D Matrix" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S5 — SCENE 1: Morning Dashboard
+     ============================================================= -->
+<section class="slide" id="s5">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-grammar">Scene 1 — 朝9:00</div>
+      <h2 class="slide-title">Morning <span class="accent">Dashboard</span></h2>
+      <p class="slide-subtitle" style="max-width:600px;">
+        出社してコーヒーを置き、Control Tower Dashboardを開く。3つのエージェントが昨夜から動いていた結果が一目でわかる。
+      </p>
+      <div class="agent-cards reveal">
+        <div class="agent-card">
+          <div class="agent-card__header">
+            <div class="agent-card__dot agent-card__dot--green"></div>
+            <div class="agent-card__name">Sales Agent</div>
+            <div class="agent-card__status agent-card__status--done">DONE</div>
+          </div>
+          <ul class="agent-card__tasks">
+            <li class="task-done">Lead A フォローアップ送信済</li>
+            <li class="task-done">Lead C デモ資料ドラフト完了</li>
+            <li class="task-done">パイプライン更新完了</li>
+          </ul>
+          <div class="agent-card__next">NEXT: Lead B 再提案 [承認待ち]</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-card__header">
+            <div class="agent-card__dot agent-card__dot--amber"></div>
+            <div class="agent-card__name">Research Agent</div>
+            <div class="agent-card__status agent-card__status--running">RUNNING</div>
+          </div>
+          <ul class="agent-card__tasks">
+            <li class="task-running">競合X社分析</li>
+          </ul>
+          <div class="agent-card__progress">
+            <div class="agent-card__progress-fill agent-card__progress-fill--amber" style="width:68%;"></div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:4px;">完了予定: 10:30</div>
+          <div class="agent-card__next">NEXT: 市場規模レポート</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-card__header">
+            <div class="agent-card__dot agent-card__dot--red"></div>
+            <div class="agent-card__name">Admin Agent</div>
+            <div class="agent-card__status agent-card__status--error">ERROR</div>
+          </div>
+          <ul class="agent-card__tasks">
+            <li class="task-error">経費精算で承認待ち</li>
+          </ul>
+          <div class="agent-card__action">&#9888; 領収書の日付不一致 → 確認が必要</div>
+        </div>
+      </div>
+      <div class="summary-bar">
+        <span><div class="summary-bar__dot" style="background:var(--illust-green);"></div>完了: 3</span>
+        <span><div class="summary-bar__dot" style="background:var(--illust-amber);"></div>実行中: 1</span>
+        <span><div class="summary-bar__dot" style="background:var(--color-intent);"></div>承認待ち: 1</span>
+        <span><div class="summary-bar__dot" style="background:var(--illust-red);"></div>エラー: 1</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S6 — DETAIL: Agent capabilities
+     ============================================================= -->
+<section class="slide" id="s6">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-grammar">Agent Capabilities</div>
+      <h2 class="slide-title">3つのエージェント、<span class="accent">3つの信頼レベル</span></h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:16px;">
+        エージェントごとに蓄積された信頼が異なる。同じ「確認」でも、Sales Agentの確認は形式的で、Research Agentの確認は実質的だ。
+      </p>
+      <div class="perf-row reveal">
+        <div class="perf-item">
+          <div class="perf-item__agent">Sales Agent（3ヶ月）</div>
+          <div class="perf-item__stats">
+            承認率 94%&ensp;/&ensp;修正 6%&ensp;/&ensp;ミス 0<br>
+            得意: フォローアップ、リード分析、資料ドラフト<br>
+            Dial: Follow-up=Notify / 見積=Confirm
+          </div>
+        </div>
+        <div class="perf-item">
+          <div class="perf-item__agent">Research Agent（2週間）</div>
+          <div class="perf-item__stats perf-item__warn">
+            承認率 78%&ensp;/&ensp;修正 15%&ensp;/&ensp;ミス 1<br>
+            得意: 競合分析、市場調査、データ収集<br>
+            Dial: 全タスク=Confirm（まだ信頼構築中）
+          </div>
+        </div>
+        <div class="perf-item">
+          <div class="perf-item__agent">Admin Agent（1ヶ月）</div>
+          <div class="perf-item__stats">
+            承認率 99%&ensp;/&ensp;修正 1%&ensp;/&ensp;ミス 0<br>
+            得意: 会議設定、経費処理、定型業務<br>
+            Dial: 定型=Auto / 大型予算=Confirm
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S7 — BREAK: Coffee (dark photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s7"
+  style="background-image: url('images/p5-break-coffee.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(240,236,228,0.4);">Break</div>
+      <h2 style="font-size:clamp(24px,3vw,40px);font-weight:500;color:#f0ece4;letter-spacing:-0.5px;">
+        コーヒーを一口。<br>
+        <span style="color:rgba(240,236,228,0.5);">3つのエージェントが静かに動いている。</span>
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S8 — SCENE 2 INTRO: Conflict detected
+     ============================================================= -->
+<section class="slide" id="s8">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Scene 2 — 10:30</div>
+        <h2 class="slide-title">2つのエージェントが<br><span class="accent">同じ時間</span>を取り合う</h2>
+        <p class="slide-subtitle">
+          Sales AgentがLead Aのデモを火曜14:00に設定しようとした。同時にAdmin Agentが同じ枠に経費レビューMTGを入れた。どちらも正当な根拠がある。
+        </p>
+        <p class="slide-subtitle" style="margin-top:12px;font-style:italic;color:var(--text-3);">
+          従来のカレンダーは「先着順」。Context Grammarは「根拠を並べて人間に委ねる」。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-red">Priority Weight: 衝突</span>
+          <span class="chip chip-amber">2 Agents × 1 Slot</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p5-conflict-resolution.jpg" alt="Conflict between agents" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S9 — KEY: Conflict Resolution
+     ============================================================= -->
+<section class="slide" id="s9">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-intent" style="margin-bottom:8px;">Key Moment — Conflict Resolution</div>
+      <h2 class="slide-title" style="margin-bottom:24px;">AIは<span class="accent">決めない</span>。両方の根拠を対等に見せる。</h2>
+      <div class="conflict-box reveal">
+        <div class="conflict-header">&#9888; Conflict Detected — 火曜 14:00</div>
+        <div class="conflict-vs">
+          <div class="conflict-agent">
+            <div class="conflict-agent__name" style="color:var(--color-grammar);">SALES AGENT</div>
+            <div class="conflict-agent__task">Lead A デモを設定したい</div>
+            <div class="conflict-agent__reason">「Lead Aの過去パターンでは火曜午後の返信率が最高。このタイミングが最適です」</div>
+          </div>
+          <div class="conflict-divider">&harr;</div>
+          <div class="conflict-agent">
+            <div class="conflict-agent__name" style="color:var(--color-intent);">ADMIN AGENT</div>
+            <div class="conflict-agent__task">経費レビューMTGを予約済み</div>
+            <div class="conflict-agent__reason">「経費レビューは月末締切まで3営業日。経理部の空きは火曜14:00のみです」</div>
+          </div>
+        </div>
+        <div class="conflict-options">
+          <div class="conflict-option conflict-option--selected">
+            <div class="conflict-option__radio"></div>
+            Lead Aデモを優先（経費レビューを水曜に移動）
+          </div>
+          <div class="conflict-option">
+            <div class="conflict-option__radio"></div>
+            経費レビューを優先（デモを火曜午前に変更）
+          </div>
+          <div class="conflict-option">
+            <div class="conflict-option__radio"></div>
+            両方再調整（AIに別スロットを探させる）
+          </div>
+        </div>
+        <div class="conflict-pw">
+          PW参考: Lead A = &#165;8,500,000 案件 / 今週クローズ可能性&ensp;&bull;&ensp;経費精算 = 月末締切 / 遅延で個人評価に影響
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S10 — DETAIL: Priority Weight as arbiter
+     ============================================================= -->
+<section class="slide" id="s10">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-intent">Priority Weight</div>
+      <h2 class="slide-title">Priority Weightは<span class="accent">審判</span>であり、<span class="accent">独裁者</span>ではない</h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:8px;">
+        PWは重要度をランク付けするのではない。競合する要求の重みを証拠付きで並べ、人間に判断材料を提供する。そして判断パターンはBrainに蓄積される。
+      </p>
+      <div class="callout-cards reveal">
+        <div class="callout-card">
+          <div class="callout-card__label" style="color:var(--color-grammar);">提示</div>
+          <div class="callout-card__text">AIは両方の根拠を対等に提示する。Sales Agentの「&#165;8.5M」もAdmin Agentの「月末締切」も等しく表示。</div>
+        </div>
+        <div class="callout-card">
+          <div class="callout-card__label" style="color:var(--color-intent);">判断</div>
+          <div class="callout-card__text">人間が決める。Renが「Lead Aを優先」を選んだ。その判断はBrainの「Accumulated Learning」層に記録される。</div>
+        </div>
+        <div class="callout-card">
+          <div class="callout-card__label" style="color:var(--color-brain);">学習</div>
+          <div class="callout-card__text">次回同種の衝突では、Brainが「商談クローズ直前 > 定例業務」のパターンを示し、AIが1択に絞る提案をする。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S11 — BREAK: Meeting room (dark photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s11"
+  style="background-image: url('images/p5-break-meeting.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(240,236,228,0.4);">Break</div>
+      <h2 style="font-size:clamp(24px,3vw,40px);font-weight:500;color:#f0ece4;letter-spacing:-0.5px;">
+        午後。ピッチの準備が始まる。<br>
+        <span style="color:rgba(240,236,228,0.5);">Renは一言だけ伝えればいい。</span>
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S12 — SCENE 3: Cascade Delegation intro
+     ============================================================= -->
+<section class="slide" id="s12">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Scene 3 — 13:00</div>
+        <h2 class="slide-title"><span class="accent">「ピッチの準備をして」</span><br>1文で3エージェントが動く</h2>
+        <p class="slide-subtitle">
+          Renの一言が、3つのエージェントへのサブタスクに自動分解される。Research → Sales → Admin の依存関係が可視化され、各サブタスクのAutonomy Dialはエージェントごとに独立。
+        </p>
+        <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
+          <span class="chip chip-blue">Auto Decomposition</span>
+          <span class="chip chip-amber">Dependency Graph</span>
+          <span class="chip chip-green">Independent Dials</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p5-cascade-tree.png" alt="Cascade delegation tree" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S13 — KEY: Cascade progress
+     ============================================================= -->
+<section class="slide" id="s13">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-grammar" style="margin-bottom:8px;">Cascade Delegation</div>
+      <h2 class="slide-title" style="margin-bottom:24px;">依存関係と進捗が<span class="accent">リアルタイム</span>で見える</h2>
+      <div class="cascade-flow reveal">
+        <div class="cascade-root">Renの指示:「Lead A ピッチ準備をして」</div>
+        <div class="cascade-branches">
+          <div class="cascade-branch">
+            <div class="cascade-node">
+              <div class="cascade-node__header">
+                <div class="agent-card__dot agent-card__dot--amber"></div>
+                <div class="cascade-node__agent">RESEARCH AGENT</div>
+                <div class="cascade-node__dial cascade-node__dial--confirm">CONFIRM</div>
+              </div>
+              <div class="cascade-node__task">競合X社の最新プロダクト情報収集 + 業界トレンドレポート</div>
+              <div class="cascade-node__status">
+                <span style="color:var(--illust-amber);">&#9679;</span> 実行中&ensp;
+                <span style="font-family:var(--font-mono);font-size:11px;">[45%]</span>
+              </div>
+              <div class="cascade-node__dep">→ 完了後、Sales Agentに自動転送</div>
+            </div>
+          </div>
+          <div class="cascade-branch">
+            <div class="cascade-node">
+              <div class="cascade-node__header">
+                <div class="agent-card__dot" style="background:var(--text-3);"></div>
+                <div class="cascade-node__agent">SALES AGENT</div>
+                <div class="cascade-node__dial cascade-node__dial--confirm">CONFIRM</div>
+              </div>
+              <div class="cascade-node__task">ピッチ資料ドラフト作成</div>
+              <div class="cascade-node__status">
+                <span style="color:var(--text-3);">&#9679;</span> Research Agent の競合データ待ち
+              </div>
+              <div class="cascade-node__dep">&#8987; 依存: Research Agent 完了後に開始</div>
+            </div>
+          </div>
+          <div class="cascade-branch">
+            <div class="cascade-node">
+              <div class="cascade-node__header">
+                <div class="agent-card__dot agent-card__dot--green"></div>
+                <div class="cascade-node__agent">ADMIN AGENT</div>
+                <div class="cascade-node__dial cascade-node__dial--auto">AUTO</div>
+              </div>
+              <div class="cascade-node__task">火曜14:00 会議室B予約 + プロジェクター手配</div>
+              <div class="cascade-node__status">
+                <span style="color:var(--illust-green);">&#9679;</span> 完了
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cascade-dep-note">
+          依存関係: Research Agent 完了 → Sales Agent 開始&ensp;|&ensp;Admin Agent は独立（並行実行）
+        </div>
+        <div class="cascade-progress">
+          全体進捗:
+          <div class="cascade-progress__bar">
+            <div class="cascade-progress__fill" style="width:33%;"></div>
+          </div>
+          33%&ensp;&bull;&ensp;完了予定: 17:00
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S14 — DETAIL: Independent Autonomy per sub-task
+     ============================================================= -->
+<section class="slide" id="s14">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-grammar">Independent Autonomy</div>
+      <h2 class="slide-title">サブタスクごとに<span class="accent">Dialが独立</span></h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:8px;">
+        同じ「ピッチ準備」のCascadeでも、各サブタスクのAutonomy位置はエージェントの信頼度とタスクのリスクで決まる。
+      </p>
+      <div class="dial-cards reveal">
+        <div class="dial-card">
+          <div class="dial-card__agent" style="color:var(--illust-amber);">RESEARCH AGENT</div>
+          <div class="dial-card__task">競合分析</div>
+          <div class="dial-card__level" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">CONFIRM</div>
+          <p style="font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.5;">新しいエージェント（2週間）。分析の質がまだ安定しない。人間が確認してから次のステップへ。</p>
+        </div>
+        <div class="dial-card">
+          <div class="dial-card__agent" style="color:var(--color-grammar);">SALES AGENT</div>
+          <div class="dial-card__task">ピッチ資料</div>
+          <div class="dial-card__level" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">CONFIRM</div>
+          <p style="font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.5;">信頼は高いが、クライアント向け資料は常にConfirm。Dynamic Frictionの天井。</p>
+        </div>
+        <div class="dial-card">
+          <div class="dial-card__agent" style="color:var(--color-success);">ADMIN AGENT</div>
+          <div class="dial-card__task">会議室予約</div>
+          <div class="dial-card__level" style="background:var(--chip-green-bg);color:var(--chip-green-text);">AUTO</div>
+          <p style="font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.5;">低リスク、実績ある定型業務。承認なしで即実行。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S15 — BREAK: Afternoon (dark photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s15"
+  style="background-image: url('images/p5-break-afternoon.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(240,236,228,0.4);">Break</div>
+      <h2 style="font-size:clamp(24px,3vw,40px);font-weight:500;color:#f0ece4;letter-spacing:-0.5px;">
+        午後の光。順調だった——<br>
+        <span style="color:rgba(240,236,228,0.5);">競合のプレスリリースが出るまでは。</span>
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S16 — SCENE 4: Emergency
+     ============================================================= -->
+<section class="slide" id="s16">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label" style="color:var(--illust-red);">Scene 4 — 15:00</div>
+        <h2 class="slide-title">Emergency<br><span style="color:var(--illust-red);">Escalation</span></h2>
+        <p class="slide-subtitle">
+          競合X社が本日15:00にプレスリリースを発表。Priority Weightが動的に変化し、進行中のCascadeに波及。Research Agentは自分だけで判断せず、全エージェントへの影響を人間に見せてからアクションを求める。
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;">
+          <span class="chip chip-red">Priority Weight 動的変化</span>
+          <span class="chip chip-amber">Cascade 一時停止</span>
+          <span class="chip chip-blue">Cross-Agent 波及</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;gap:16px;">
+        <div class="emergency-panel reveal">
+          <div class="emergency-header">&#128308; URGENT — Research Agent</div>
+          <div class="emergency-event">
+            競合X社が本日15:00にプレスリリースを発表。<br>
+            Lead Aのターゲット市場に直接競合する新サービス。
+          </div>
+          <ul class="impact-list">
+            <li><span class="impact-icon">&#9888;</span>ピッチ資料 → 競合比較セクションが無効化</li>
+            <li><span class="impact-icon">&#9888;</span>Sales Agentのドラフト → 一部書き直しが必要</li>
+            <li><span class="impact-icon">&#9888;</span>火曜デモ → アジェンダ変更の可能性</li>
+          </ul>
+          <div class="emergency-options">
+            <div class="emergency-btn emergency-btn--urgent">緊急更新</div>
+            <div class="emergency-btn emergency-btn--parallel">並行作業</div>
+            <div class="emergency-btn emergency-btn--review">人間判断</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S17 — KEY: Cascade pause + impact map
+     ============================================================= -->
+<section class="slide" id="s17">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label" style="color:var(--illust-red);margin-bottom:8px;">Impact Map</div>
+      <h2 class="slide-title">Cascadeが<span style="color:var(--illust-red);">停止</span>。影響が全エージェントに波及。</h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:24px;">
+        Research Agentが単独で対応するのではなく、Cascade全体への影響をマッピングして人間に提示する。これがP5の設計原則：「スケールしても、緊急時の判断は人間に返す」。
+      </p>
+      <div class="priority-shift reveal">
+        <div class="priority-shift__col">
+          <div class="priority-shift__col-title">Before 15:00</div>
+          Lead Aピッチ準備 → 最優先<br>
+          競合モニタリング → バックグラウンド<br>
+          Research: 45%完了<br>
+          Sales: 待機中
+        </div>
+        <div class="priority-shift__arrow">→</div>
+        <div class="priority-shift__col">
+          <div class="priority-shift__col-title">After 15:00</div>
+          <strong style="color:var(--illust-red);">競合分析・反映 → 最優先</strong><br>
+          ピッチ準備 → 一時停止<br>
+          Research: リセット→競合PR分析<br>
+          Sales: ドラフト一部無効化
+        </div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:16px;text-align:center;">
+        Admin Agent (会議室予約) は影響なし — 独立タスクのため継続
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S18 — MATRIX: Full Autonomy Matrix
+     ============================================================= -->
+<section class="slide" id="s18">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Autonomy Matrix</div>
+        <h2 class="slide-title">3エージェント &times;<br>ドメイン別の<br><span class="accent">信頼の2次元管理</span></h2>
+        <p class="slide-subtitle">
+          同じAutonomy Dialが、エージェントごとに独立して進化する。Sales Agentは3ヶ月の蓄積で右寄り。Research Agentは2週間で左寄り。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;justify-content:center;">
+        <table class="autonomy-matrix reveal">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Suggest</th>
+              <th>Confirm</th>
+              <th>Notify</th>
+              <th>Auto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Sales Agent<br><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">3ヶ月</span></td>
+              <td class="am-empty">&mdash;</td>
+              <td class="am-confirm">初回CT<br>見積書</td>
+              <td class="am-active">Follow<br>アップ</td>
+              <td class="am-active">リサーチ</td>
+            </tr>
+            <tr>
+              <td>Research Agent<br><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">2週間</span></td>
+              <td class="am-empty">&mdash;</td>
+              <td class="am-confirm">全タスク</td>
+              <td class="am-empty">&mdash;</td>
+              <td class="am-empty">&mdash;</td>
+            </tr>
+            <tr>
+              <td>Admin Agent<br><span style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);">1ヶ月</span></td>
+              <td class="am-empty">&mdash;</td>
+              <td class="am-confirm">大型予算</td>
+              <td class="am-active">MTG調整</td>
+              <td class="am-active">定型処理</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:12px;text-align:center;">
+          Suggest → Confirm → Notify → Auto
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S19 — TEMPORAL: 3-agent trust timeline
+     ============================================================= -->
+<section class="slide slide--dim" id="s19">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-intent">Temporal Arc — 3 Agents</div>
+      <h2 class="slide-title">3つの信頼が<span class="accent">異なる速度</span>で成長する</h2>
+      <p class="slide-subtitle" style="max-width:640px;margin-bottom:8px;">
+        Sales Agentは3ヶ月で安定域に。Research Agentは慎重に。Admin Agentは定型業務で早期にAutoへ。
+      </p>
+      <div class="trust-timeline reveal">
+        <div class="trust-timeline__period">Week 1</div>
+        <div class="trust-timeline__lanes">
+          <div class="trust-lane" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">Sales: Confirm</div>
+          <div class="trust-lane" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">Research: Confirm</div>
+          <div class="trust-lane" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">Admin: Confirm</div>
+        </div>
+        <div class="trust-timeline__period">Week 2</div>
+        <div class="trust-timeline__lanes">
+          <div class="trust-lane" style="background:var(--chip-green-bg);color:var(--chip-green-text);">Sales: Notify</div>
+          <div class="trust-lane" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">Research: Confirm</div>
+          <div class="trust-lane" style="background:var(--chip-green-bg);color:var(--chip-green-text);">Admin: Notify</div>
+        </div>
+        <div class="trust-timeline__period">Month 1</div>
+        <div class="trust-timeline__lanes">
+          <div class="trust-lane" style="background:var(--chip-green-bg);color:var(--chip-green-text);">Sales: Notify+</div>
+          <div class="trust-lane" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">Research: Confirm</div>
+          <div class="trust-lane" style="background:var(--chip-green-bg);color:var(--chip-green-text);">Admin: Auto(定型)</div>
+        </div>
+        <div class="trust-timeline__period">Month 3</div>
+        <div class="trust-timeline__lanes">
+          <div class="trust-lane" style="background:var(--chip-green-bg);color:var(--chip-green-text);">Sales: Auto/Notify</div>
+          <div class="trust-lane" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">Research: Notify(一部)</div>
+          <div class="trust-lane" style="background:var(--chip-green-bg);color:var(--chip-green-text);">Admin: Auto(大半)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S20 — 3-LAYER ANALYSIS
+     ============================================================= -->
+<section class="slide" id="s20">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-grammar">Analysis</div>
+      <h2 class="slide-title">3層分析:&ensp;<span class="accent">何が作れて、何が新しいか</span></h2>
+      <div class="layer-stack reveal">
+        <div class="layer-item">
+          <div class="layer-item__header">
+            <span class="layer-item__badge layer-item__badge--l1">LAYER 1</span>
+            <span class="layer-item__title">今作れるもの（2026年の技術）</span>
+          </div>
+          <div class="layer-item__body">
+            CrewAI Studio、AutoGen Studio等の既存マルチエージェントダッシュボード。GitHub ActionsやAirflow等のワークフローエンジンによるタスク依存関係管理。Google Calendarの衝突検出。
+          </div>
+          <div class="layer-item__tags">
+            <span class="chip chip-green">Status Cards</span>
+            <span class="chip chip-green">Approval Gate</span>
+            <span class="chip chip-green">Calendar Conflict</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-item__header">
+            <span class="layer-item__badge layer-item__badge--l2">LAYER 2</span>
+            <span class="layer-item__title">Context Grammarが加えるもの</span>
+          </div>
+          <div class="layer-item__body">
+            エージェントごと × ドメインごとに異なるAutonomy Dial。Cascade内のサブタスクにグラデーション。衝突をエラーではなくEscalationパターンとして設計。
+          </div>
+          <div class="layer-item__tags">
+            <span class="chip chip-blue">Autonomy Matrix</span>
+            <span class="chip chip-blue">Conflict as Pattern</span>
+            <span class="chip chip-blue">Cascade + Dial</span>
+          </div>
+        </div>
+        <div class="layer-item">
+          <div class="layer-item__header">
+            <span class="layer-item__badge layer-item__badge--l3">LAYER 3</span>
+            <span class="layer-item__title">提唱する未来（2-5年先）</span>
+          </div>
+          <div class="layer-item__body">
+            自動Cascade分解。Agent-to-Agent学習。衝突解決自体のAuto移行。Dynamic Agent Composition。
+          </div>
+          <div class="layer-item__tags">
+            <span class="chip chip-purple">Auto Cascade</span>
+            <span class="chip chip-purple">Agent-to-Agent Learning</span>
+            <span class="chip chip-purple">Proactive Orchestration</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S21 — SUMMARY: P4→P5 evolution
+     ============================================================= -->
+<section class="slide slide--dim" id="s21">
+  <div class="slide-inner">
+    <div style="max-width:100%;">
+      <div class="slide-label label-intent">Evolution</div>
+      <h2 class="slide-title">P4 → P5:&ensp;<span class="accent">同じ文法</span>がスケールする</h2>
+      <div class="evo-grid reveal">
+        <div class="evo-item">
+          <div class="evo-item__from">P4: 1 Agent</div>
+          <div class="evo-item__arrow">→</div>
+          <div class="evo-item__to">P5: 3 Agents</div>
+        </div>
+        <div class="evo-item">
+          <div class="evo-item__from">P4: 1D Dial</div>
+          <div class="evo-item__arrow">→</div>
+          <div class="evo-item__to">P5: 2D Matrix</div>
+        </div>
+        <div class="evo-item">
+          <div class="evo-item__from">P4: 単一Escalation</div>
+          <div class="evo-item__arrow">→</div>
+          <div class="evo-item__to">P5: Cross-Agent Cascade</div>
+        </div>
+        <div class="evo-item">
+          <div class="evo-item__from">P4: 個別の信頼</div>
+          <div class="evo-item__arrow">→</div>
+          <div class="evo-item__to">P5: Trust Architecture</div>
+        </div>
+      </div>
+      <p class="slide-subtitle" style="text-align:center;max-width:640px;margin:24px auto 0;">
+        Token自体は増えていない。Autonomy Dialの次元が増え、Cascadeの概念が加わっただけ。同じ設計言語が、1→Nに自然に拡張された。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S22 — OS LAYER: Multi-Agent
+     ============================================================= -->
+<section class="slide" id="s22">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">OS Layer</div>
+        <h2 class="slide-title">Multi-Agentは<br><span class="accent">OSレベル</span>で調整される</h2>
+        <p class="slide-subtitle">
+          衝突解決、優先順位の裁定、Cascade管理——これらはアプリの中ではなく、OSレイヤーで動く。エージェント間の衝突を個別アプリで解決しようとすると、スケールしない。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <img src="images/p5-os-multi-agent.png" alt="Multi-agent OS layer arbitration" class="reveal" style="width:100%;height:auto;border-radius:16px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S23 — APPENDIX: Same grammar scales
+     ============================================================= -->
+<section class="slide" id="s23">
+  <div class="slide-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <div class="slide-label label-grammar" style="margin-bottom:12px;">Appendix</div>
+    <h2 class="slide-title">同じContext Grammarが、<br><span class="accent">すべてのスケール</span>で機能する</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:32px;">
+      <span class="chip chip-green">P1: 1人 × 家庭</span>
+      <span class="chip chip-green">P2: 家族 × 旅行</span>
+      <span class="chip chip-green">P3: 1人 × 買い物</span>
+      <span class="chip chip-amber">P4: 1人 × 1 Agent × 営業</span>
+      <span class="chip chip-amber">P5: 1人 × 3 Agents × 営業</span>
+    </div>
+    <p class="slide-subtitle" style="max-width:600px;margin:24px auto 0;">
+      コンシューマーからエンタープライズへ。<br>
+      1エージェントからNエージェントへ。<br>
+      Token定義は一切変わっていない。
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:24px;">
+      <span class="chip chip-blue">8 Context Tokens</span>
+      <span class="chip chip-blue">3-Layer Brain</span>
+      <span class="chip chip-blue">Rule Engine</span>
+      <span class="chip chip-blue">Autonomy Dial → Matrix</span>
+      <span class="chip chip-blue">Disclosure Dial</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S24 — CLOSING (dark)
+     ============================================================= -->
+<section class="slide slide--dark slide-dark slide--v-center" id="s24">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:var(--text-3);">Portfolio Completion</div>
+      <h2 class="closing-stmt" style="color:#f0ece4;">
+        1つの設計言語で、<br>
+        コンシューマーも<span style="color:var(--color-grammar);">エンタープライズ</span>も、<br>
+        1エージェントも<span style="color:var(--color-intent);">N</span>エージェントも<br>
+        記述できる。
+      </h2>
+      <p class="slide-subtitle" style="color:rgba(240,236,228,0.5);max-width:560px;margin:24px auto 0;text-align:center;">
+        P1-P3はContext Grammarが家庭で機能する証明。<br>
+        P4は同じ設計言語がエンタープライズで機能する証明。<br>
+        P5は同じ設計言語がNエージェントに拡張できる最終証明。
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:32px;flex-wrap:wrap;">
+        <span class="chip chip-green">P1 Living Home</span>
+        <span class="chip chip-green">P2 Family Trip</span>
+        <span class="chip chip-green">P3 Fluid Handoff</span>
+        <span class="chip chip-amber">P4 Sales Floor</span>
+        <span class="chip chip-amber">P5 Control Tower</span>
+      </div>
+      <div style="display:flex;gap:24px;justify-content:center;margin-top:40px;">
+        <span style="font-family:var(--font-mono);font-size:12px;color:rgba(240,236,228,0.25);letter-spacing:2px;">intentfirst.ai</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:rgba(240,236,228,0.25);letter-spacing:2px;">Takao Umehara</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /#deck -->
+
+<!-- Unified deck navigation -->
+<script src="../../assets/js/deck-nav.js"></script>
+
+</body>
+</html>

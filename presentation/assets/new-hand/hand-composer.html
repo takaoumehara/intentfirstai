@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>New Hand + Phone — Composer (A/B/C Sets)</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #D8D8D8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 40px;
+  padding: 32px 40px;
+  font-family: -apple-system, system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Stage ── */
+.stage-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  position: sticky;
+  top: 32px;
+}
+.stage-meta {
+  font-size: 10px; color: #888; font-family: monospace;
+  display: flex; gap: 16px;
+}
+
+.stage-viewport {
+  width: 500px;
+  height: 660px;
+  overflow: hidden;
+  position: relative;
+  background:
+    repeating-conic-gradient(#c0c0c0 0% 25%, #d8d8d8 0% 50%)
+    0 0 / 12px 12px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.composition {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1000px;
+  height: 1200px;
+  transform-origin: top left;
+  transform: scale(var(--scale, 0.50));
+}
+
+.layer {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Phone mock */
+.phone-mock {
+  width: 390px; height: 844px;
+  border-radius: 48px;
+  background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+  padding: 11px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+}
+.phone-notch {
+  position: absolute;
+  top: 14px; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 34px;
+  background: #1a1a1c; border-radius: 17px; z-index: 10;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  border-radius: 38px;
+  background: #fff; overflow: hidden;
+}
+.phone-screen iframe {
+  width: 390px; height: 844px;
+  border: none; display: block;
+  pointer-events: none;
+}
+
+/* ── Controls ── */
+.controls {
+  width: 380px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: 95vh; overflow-y: auto;
+  padding-right: 4px;
+}
+.controls::-webkit-scrollbar { width: 4px; }
+.controls::-webkit-scrollbar-thumb { background: #bbb; border-radius: 2px; }
+
+.scale-section {
+  background: #111; color: #fff;
+  border-radius: 12px; padding: 14px 16px;
+}
+.scale-section h3 {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 12px;
+  color: rgba(255,255,255,0.6);
+}
+.scale-big {
+  font-size: 36px; font-family: monospace; font-weight: 700;
+  color: #f9c74f; letter-spacing: -1px; line-height: 1;
+}
+.scale-info {
+  font-size: 10px; color: rgba(255,255,255,0.4);
+  margin-top: 4px; font-family: monospace;
+}
+
+.section {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.section-head {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 10px;
+}
+.section-title {
+  font-size: 11px; font-weight: 700; color: #222;
+  display: flex; align-items: center; gap: 8px;
+}
+.ctrl-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+}
+.ctrl-row > label { width: 50px; font-size: 10px; color: #999; flex-shrink: 0; }
+.ctrl-row input[type=range] { flex: 1; accent-color: #1a73e8; }
+.ctrl-val {
+  width: 44px; text-align: right;
+  font-family: monospace; font-size: 10px; color: #333; flex-shrink: 0;
+}
+.svg-dim { font-size: 9px; color: #bbb; font-family: monospace; }
+
+/* Set switcher */
+.set-switcher {
+  display: flex; gap: 4px;
+}
+.set-btn {
+  flex: 1; height: 40px;
+  border-radius: 8px; border: 2px solid #ddd;
+  background: #f8f8f8; cursor: pointer;
+  font-size: 14px; font-weight: 700; font-family: inherit;
+  color: #888;
+  transition: all 0.15s;
+}
+.set-btn.active {
+  border-color: #1a73e8;
+  background: #1a73e8;
+  color: #fff;
+}
+.set-btn:hover:not(.active) { border-color: #aaa; }
+
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-base { background: #e8710a; }
+.dot-phone { background: #1a73e8; }
+.dot-thumb { background: #1e8e3e; }
+
+/* Output */
+.output-box {
+  background: #111; border-radius: 8px;
+  padding: 12px 14px;
+  font-family: 'Menlo', monospace; font-size: 10px;
+  line-height: 1.8; color: #a8f0a0;
+  white-space: pre; overflow-x: auto;
+  max-height: 300px; overflow-y: auto;
+}
+.copy-btn {
+  margin-top: 8px; padding: 6px 16px;
+  border-radius: 6px; background: #1a73e8; color: #fff;
+  font-size: 11px; font-weight: 600; cursor: pointer; border: none;
+}
+.copy-btn:hover { background: #1558b0; }
+
+.eye-btn {
+  font-size: 14px; cursor: pointer; background: none; border: none;
+  color: #888; padding: 2px 4px; line-height: 1;
+}
+
+/* z-index controls */
+.z-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.z-row > label { font-size: 10px; color: #999; width: 50px; flex-shrink: 0; }
+.z-btns { display: flex; gap: 3px; }
+.z-btn {
+  width: 32px; height: 24px; border-radius: 5px;
+  border: 1px solid #ddd; background: #f8f8f8;
+  font-size: 11px; font-family: monospace; cursor: pointer; color: #555;
+}
+.z-btn.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+.z-badge {
+  font-family: monospace; font-size: 10px;
+  padding: 2px 7px; border-radius: 4px;
+  background: #f0f0f0; color: #666;
+  border: 1px solid #ddd; min-width: 32px; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<!-- ── Stage ── -->
+<div class="stage-wrap">
+  <div class="stage-meta">
+    <span>Native canvas: 1000 x 1200px</span>
+    <span id="meta-scale">Display: 50%</span>
+  </div>
+  <div class="stage-viewport">
+    <div class="composition" id="comp">
+
+      <!-- Base hand (behind phone) — z:0 -->
+      <img id="base-el" class="layer"
+           src="SVG/A_new-hand-base-left.svg"
+           style="z-index:0; left:100px; top:200px; width:600px;">
+
+      <!-- Phone — z:1 -->
+      <div id="phone-el" class="layer"
+           style="z-index:1; left:280px; top:50px; width:390px; height:844px;">
+        <div class="phone-mock">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <iframe src="../../../ui-screens/p3/p3-02-commute.html" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thumb (in front of phone) — z:2 -->
+      <img id="thumb-el" class="layer"
+           src="SVG/A_new-thumb-left.svg"
+           style="z-index:2; left:400px; top:500px; width:400px;">
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Controls ── -->
+<div class="controls">
+
+  <!-- Set Switcher -->
+  <div class="section" style="background:#f0f4ff;">
+    <div class="section-title" style="margin-bottom:10px;">
+      Active Set — タップ位置を切り替え
+    </div>
+    <div class="set-switcher">
+      <button class="set-btn active" id="btn-A" onclick="switchSet('A')">A  Left</button>
+      <button class="set-btn" id="btn-B" onclick="switchSet('B')">B  Middle</button>
+      <button class="set-btn" id="btn-C" onclick="switchSet('C')">C  Right</button>
+    </div>
+    <div style="font-size:10px; color:#888; margin-top:8px; line-height:1.5;">
+      ベースと親指のSVGが切り替わります。<br>
+      ベースの位置は全セット共通。親指の位置はセットごとに保存。
+    </div>
+  </div>
+
+  <!-- Global Scale -->
+  <div class="scale-section">
+    <h3>Global Scale</h3>
+    <div class="ctrl-row" style="margin-bottom:8px;">
+      <label style="color:rgba(255,255,255,0.5);">Scale</label>
+      <input type="range" id="global-scale" min="20" max="100" value="50"
+             style="accent-color:#f9c74f;" oninput="updateScale()">
+      <span class="ctrl-val" id="global-scale-v" style="color:#f9c74f;">50%</span>
+    </div>
+    <div class="scale-big" id="scale-big">50%</div>
+    <div class="scale-info" id="scale-info">Display: 500 x 600px (native 1000x1200)</div>
+  </div>
+
+  <!-- Base Hand -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="dot dot-base"></span>
+        Base Hand <span class="svg-dim" id="base-dim">905x987</span>
+        <span class="z-badge" id="base-zbadge">z:0</span>
+      </div>
+      <button class="eye-btn" onclick="toggleVis('base')" id="eye-base">&#128065;</button>
+    </div>
+    <div class="z-row">
+      <label>z-index</label>
+      <div class="z-btns" id="base-zbtns">
+        <button class="z-btn active" onclick="setZ('base',0)">0</button>
+        <button class="z-btn" onclick="setZ('base',1)">1</button>
+        <button class="z-btn" onclick="setZ('base',2)">2</button>
+        <button class="z-btn" onclick="setZ('base',3)">3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Left</label>
+      <input type="range" id="base-left" min="-400" max="800" value="100" oninput="update()">
+      <span class="ctrl-val" id="base-left-v">100</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Top</label>
+      <input type="range" id="base-top" min="-200" max="1000" value="200" oninput="update()">
+      <span class="ctrl-val" id="base-top-v">200</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Width</label>
+      <input type="range" id="base-width" min="200" max="1000" value="600" oninput="update()">
+      <span class="ctrl-val" id="base-width-v">600</span>
+    </div>
+  </div>
+
+  <!-- Phone -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="dot dot-phone"></span>
+        Phone <span class="svg-dim">390x844</span>
+        <span class="z-badge" id="phone-zbadge" style="background:#1a73e8;color:#fff;border-color:#1a73e8;">z:1</span>
+      </div>
+      <button class="eye-btn" onclick="toggleVis('phone')" id="eye-phone">&#128065;</button>
+    </div>
+    <div class="z-row">
+      <label>z-index</label>
+      <div class="z-btns" id="phone-zbtns">
+        <button class="z-btn" onclick="setZ('phone',0)">0</button>
+        <button class="z-btn active" onclick="setZ('phone',1)">1</button>
+        <button class="z-btn" onclick="setZ('phone',2)">2</button>
+        <button class="z-btn" onclick="setZ('phone',3)">3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Left</label>
+      <input type="range" id="phone-left" min="-200" max="800" value="280" oninput="update()">
+      <span class="ctrl-val" id="phone-left-v">280</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Top</label>
+      <input type="range" id="phone-top" min="-200" max="600" value="50" oninput="update()">
+      <span class="ctrl-val" id="phone-top-v">50</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Scale</label>
+      <input type="range" id="phone-scale" min="50" max="150" value="100" oninput="update()">
+      <span class="ctrl-val" id="phone-scale-v">100%</span>
+    </div>
+  </div>
+
+  <!-- Thumb -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="dot dot-thumb"></span>
+        Thumb <span class="svg-dim" id="thumb-dim">633x386</span>
+        <span class="z-badge" id="thumb-zbadge" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e;">z:2</span>
+      </div>
+      <button class="eye-btn" onclick="toggleVis('thumb')" id="eye-thumb">&#128065;</button>
+    </div>
+    <div class="z-row">
+      <label>z-index</label>
+      <div class="z-btns" id="thumb-zbtns">
+        <button class="z-btn" onclick="setZ('thumb',0)">0</button>
+        <button class="z-btn" onclick="setZ('thumb',1)">1</button>
+        <button class="z-btn active" onclick="setZ('thumb',2)">2</button>
+        <button class="z-btn" onclick="setZ('thumb',3)">3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Left</label>
+      <input type="range" id="thumb-left" min="-400" max="800" value="400" oninput="update()">
+      <span class="ctrl-val" id="thumb-left-v">400</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Top</label>
+      <input type="range" id="thumb-top" min="-200" max="1000" value="500" oninput="update()">
+      <span class="ctrl-val" id="thumb-top-v">500</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Width</label>
+      <input type="range" id="thumb-width" min="100" max="800" value="400" oninput="update()">
+      <span class="ctrl-val" id="thumb-width-v">400</span>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="section">
+    <div style="font-size:11px; font-weight:700; color:#222; margin-bottom:6px;">
+      Output HTML snippet
+    </div>
+    <div style="font-size:10px; color:#888; margin-bottom:10px; line-height:1.5;">
+      All coordinates are native 1x. Wrap in a container with transform:scale() to resize.
+    </div>
+    <div class="output-box" id="output-box">--</div>
+    <button class="copy-btn" onclick="copyOutput()">Copy HTML snippet</button>
+  </div>
+
+</div>
+
+<script>
+// ═══ SET DATA ═══
+var SETS = {
+  A: {
+    base: 'SVG/A_new-hand-base-left.svg',
+    thumb: 'SVG/A_new-thumb-left.svg',
+    baseDim: '905x987',
+    thumbDim: '633x386',
+    // Per-set thumb position (saved when switching away)
+    thumbLeft: 400, thumbTop: 500, thumbWidth: 400
+  },
+  B: {
+    base: 'SVG/B_new-hand-base-middle.svg',
+    thumb: 'SVG/B_new-thumb-middle.svg',
+    baseDim: '905x987',
+    thumbDim: '476x435',
+    thumbLeft: 350, thumbTop: 480, thumbWidth: 350
+  },
+  C: {
+    base: 'SVG/C_new-hand-base-right.svg',
+    thumb: 'SVG/C_new-thumb-right.svg',
+    baseDim: '905x987',
+    thumbDim: '460x396',
+    thumbLeft: 300, thumbTop: 520, thumbWidth: 340
+  }
+};
+
+var currentSet = 'A';
+
+var baseEl = document.getElementById('base-el');
+var phoneEl = document.getElementById('phone-el');
+var thumbEl = document.getElementById('thumb-el');
+var compEl = document.getElementById('comp');
+
+// ═══ Z-INDEX STATE ═══
+var zState = { base: 0, phone: 1, thumb: 2 };
+var badgeBg = ['', '#1a73e8', '#1e8e3e', '#8e24aa'];
+
+function setZ(layer, z) {
+  zState[layer] = z;
+  var el = layer === 'base' ? baseEl : layer === 'phone' ? phoneEl : thumbEl;
+  el.style.zIndex = z;
+
+  // Update badge
+  var badge = document.getElementById(layer + '-zbadge');
+  badge.textContent = 'z:' + z;
+  if (z > 0) {
+    badge.style.background = badgeBg[z];
+    badge.style.color = '#fff';
+    badge.style.borderColor = badgeBg[z];
+  } else {
+    badge.style.background = '#f0f0f0';
+    badge.style.color = '#666';
+    badge.style.borderColor = '#ddd';
+  }
+
+  // Update active button
+  var btns = document.getElementById(layer + '-zbtns');
+  btns.querySelectorAll('.z-btn').forEach(function(b, i) {
+    b.classList.toggle('active', i === z);
+  });
+
+  renderOutput();
+}
+
+// ═══ HELPERS ═══
+function gv(id) { return parseInt(document.getElementById(id).value); }
+function sv(id, v) { document.getElementById(id + '-v').textContent = v; }
+function setSlider(id, val) {
+  document.getElementById(id).value = val;
+  sv(id, val);
+}
+
+// ═══ SET SWITCHING ═══
+function switchSet(name) {
+  // Save current thumb position
+  SETS[currentSet].thumbLeft = gv('thumb-left');
+  SETS[currentSet].thumbTop = gv('thumb-top');
+  SETS[currentSet].thumbWidth = gv('thumb-width');
+
+  currentSet = name;
+  var s = SETS[name];
+
+  // Update SVG sources
+  baseEl.src = s.base;
+  thumbEl.src = s.thumb;
+
+  // Update dim labels
+  document.getElementById('base-dim').textContent = s.baseDim;
+  document.getElementById('thumb-dim').textContent = s.thumbDim;
+
+  // Restore thumb position for this set
+  setSlider('thumb-left', s.thumbLeft);
+  setSlider('thumb-top', s.thumbTop);
+  setSlider('thumb-width', s.thumbWidth);
+
+  // Update button states
+  ['A','B','C'].forEach(function(k) {
+    document.getElementById('btn-' + k).classList.toggle('active', k === name);
+  });
+
+  update();
+}
+
+// ═══ VISIBILITY ═══
+var visibility = { base: true, phone: true, thumb: true };
+function toggleVis(layer) {
+  visibility[layer] = !visibility[layer];
+  var el = layer === 'base' ? baseEl : layer === 'phone' ? phoneEl : thumbEl;
+  el.style.opacity = visibility[layer] ? '1' : '0';
+  document.getElementById('eye-' + layer).textContent = visibility[layer] ? '\u{1F441}' : '\u{1F6AB}';
+}
+
+// ═══ GLOBAL SCALE ═══
+function updateScale() {
+  var pct = gv('global-scale');
+  var scale = pct / 100;
+  compEl.style.setProperty('--scale', scale);
+  document.getElementById('global-scale-v').textContent = pct + '%';
+  document.getElementById('scale-big').textContent = pct + '%';
+  document.getElementById('meta-scale').textContent = 'Display: ' + pct + '%';
+  var dw = Math.round(1000 * scale);
+  var dh = Math.round(1200 * scale);
+  document.getElementById('scale-info').textContent = 'Display: ' + dw + ' x ' + dh + 'px (native 1000x1200)';
+  renderOutput();
+}
+
+// ═══ UPDATE POSITIONS ═══
+function update() {
+  var bl = gv('base-left'), bt = gv('base-top'), bw = gv('base-width');
+  var pl = gv('phone-left'), pt = gv('phone-top'), ps = gv('phone-scale');
+  var tl = gv('thumb-left'), tt = gv('thumb-top'), tw = gv('thumb-width');
+
+  sv('base-left', bl); sv('base-top', bt); sv('base-width', bw);
+  sv('phone-left', pl); sv('phone-top', pt);
+  document.getElementById('phone-scale-v').textContent = ps + '%';
+  sv('thumb-left', tl); sv('thumb-top', tt); sv('thumb-width', tw);
+
+  // Apply to elements
+  baseEl.style.left = bl + 'px';
+  baseEl.style.top = bt + 'px';
+  baseEl.style.width = bw + 'px';
+
+  phoneEl.style.left = pl + 'px';
+  phoneEl.style.top = pt + 'px';
+  var phoneScale = ps / 100;
+  phoneEl.style.transform = 'scale(' + phoneScale + ')';
+  phoneEl.style.transformOrigin = 'top left';
+
+  thumbEl.style.left = tl + 'px';
+  thumbEl.style.top = tt + 'px';
+  thumbEl.style.width = tw + 'px';
+
+  renderOutput();
+}
+
+// ═══ OUTPUT ═══
+var outputText = '';
+
+function renderOutput() {
+  var pct = gv('global-scale');
+  var scale = (pct / 100).toFixed(3);
+  var bl = gv('base-left'), bt = gv('base-top'), bw = gv('base-width');
+  var pl = gv('phone-left'), pt = gv('phone-top'), ps = gv('phone-scale');
+  var tl = gv('thumb-left'), tt = gv('thumb-top'), tw = gv('thumb-width');
+  var s = SETS[currentSet];
+  var phoneScaleStr = (ps / 100).toFixed(2);
+
+  var displayW = Math.round(1000 * pct / 100);
+  var displayH = Math.round(1200 * pct / 100);
+
+  var zb = zState.base, zp = zState.phone, zt = zState.thumb;
+
+  outputText =
+'<!-- Set ' + currentSet + ' | scale=' + scale + ' | display=' + displayW + 'x' + displayH + 'px -->\n' +
+'<div style="\n' +
+'  position: relative;\n' +
+'  display: inline-block;\n' +
+'  width: ' + displayW + 'px;\n' +
+'  height: ' + displayH + 'px;\n' +
+'  overflow: visible;\n' +
+'">\n' +
+'  <div style="\n' +
+'    position: absolute;\n' +
+'    top: 0; left: 0;\n' +
+'    width: 1000px; height: 1200px;\n' +
+'    transform: scale(' + scale + ');\n' +
+'    transform-origin: top left;\n' +
+'  ">\n' +
+'\n' +
+'    <!-- Base hand  z:' + zb + ' -->\n' +
+'    <img src="' + s.base + '"\n' +
+'      style="position:absolute; z-index:' + zb + ';\n' +
+'             left:' + bl + 'px; top:' + bt + 'px;\n' +
+'             width:' + bw + 'px; pointer-events:none;">\n' +
+'\n' +
+'    <!-- Phone  z:' + zp + ' -->\n' +
+'    <iframe src="../../ui-screens/p3/p3-02-commute.html" loading="lazy"\n' +
+'      style="position:absolute; z-index:' + zp + ';\n' +
+'             left:' + pl + 'px; top:' + pt + 'px;\n' +
+'             width:390px; height:844px;\n' +
+'             border:none; display:block;\n' +
+'             transform:scale(' + phoneScaleStr + '); transform-origin:top left;\n' +
+'             background:transparent;"></iframe>\n' +
+'\n' +
+'    <!-- Thumb (' + currentSet + ')  z:' + zt + ' -->\n' +
+'    <img src="' + s.thumb + '"\n' +
+'      style="position:absolute; z-index:' + zt + ';\n' +
+'             left:' + tl + 'px; top:' + tt + 'px;\n' +
+'             width:' + tw + 'px; pointer-events:none;">\n' +
+'\n' +
+'  </div>\n' +
+'</div>';
+
+  document.getElementById('output-box').textContent = outputText;
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(outputText).then(function() {
+    var btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy HTML snippet'; }, 1500);
+  });
+}
+
+// ═══ INIT ═══
+update();
+updateScale();
+</script>
+</body>
+</html>

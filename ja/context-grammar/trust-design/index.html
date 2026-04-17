@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trust Design — Context Grammar</title>
+<meta name="description" content="Autonomy DialとDisclosure Dial。人間とAIの信頼をどう設計するか。Context Grammarが提示する、段階的な自律性の仕組み。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../../assets/css/nav.css">
+<style>
+
+/* ═══ LAYOUT ═══ */
+main { padding-top: 56px; }
+
+section {
+  padding: clamp(56px, 8vw, 120px) clamp(24px, 4vw, 48px);
+}
+
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.container--wide {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* ═══ HERO ═══ */
+.hero {
+  background: #08070b;
+  color: #f0ece4;
+  padding: clamp(100px, 14vw, 200px) clamp(24px, 4vw, 48px) clamp(72px, 10vw, 140px);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(184,136,78,0.06), transparent);
+  pointer-events: none;
+}
+
+.hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(240, 236, 228, 0.3);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+
+.hero-title {
+  font-weight: 500;
+  font-size: clamp(36px, 5vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -2.5px;
+  margin-bottom: 28px;
+  max-width: 700px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+
+.hero-title em {
+  font-style: normal;
+  color: var(--color-intent);
+}
+
+.hero-sub {
+  font-size: clamp(15px, 1.15vw, 18px);
+  font-weight: 300;
+  color: rgba(240, 236, 228, 0.45);
+  line-height: 1.8;
+  max-width: 600px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+
+/* ═══ SECTION LABELS ═══ */
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+  margin-bottom: 16px;
+}
+
+.sec-title {
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.sec-title em {
+  font-style: normal;
+  color: var(--color-intent);
+}
+
+/* ═══ BODY TEXT ═══ */
+.body-text {
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+
+.body-text strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.body-text:last-child {
+  margin-bottom: 0;
+}
+
+.lead-text {
+  font-size: clamp(17px, 1.3vw, 21px);
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 32px;
+  letter-spacing: -0.3px;
+}
+
+/* ═══ CONCEPT NAME HIERARCHY ═══ */
+.concept-name {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 36px);
+  letter-spacing: -1px;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.concept-sub {
+  font-size: clamp(14px, 1vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  margin-bottom: 32px;
+}
+
+/* ═══ DISCLOSURE LEVELS ═══ */
+.dial-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 40px 0;
+}
+
+.dial-level {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 24px;
+  align-items: start;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dial-level:first-child {
+  padding-top: 0;
+}
+
+.dial-level:last-child {
+  border-bottom: none;
+}
+
+.dial-level-name {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+}
+
+.dial-level-bar {
+  height: 4px;
+  background: var(--bg-3);
+  border-radius: 0;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.dial-level-bar-fill {
+  height: 100%;
+  background: var(--color-intent);
+  border-radius: 0;
+  transition: width 0.6s var(--ease);
+}
+
+.dial-level-desc {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+.dial-level-desc strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .dial-level {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* ═══ AUTONOMY STAGES ═══ */
+.stages {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 40px 0;
+  position: relative;
+}
+
+.stages::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 32px;
+  bottom: 32px;
+  width: 2px;
+  background: var(--border);
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 20px;
+  align-items: start;
+  padding: 24px 0;
+  position: relative;
+}
+
+.stage-number {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-intent);
+  border: 2px solid var(--color-intent);
+  border-radius: 0;
+  background: var(--bg);
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s var(--ease);
+}
+
+.stage:hover .stage-number {
+  background: var(--color-intent);
+  color: #fff;
+}
+
+.stage-content {
+  padding-top: 4px;
+}
+
+.stage-name {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 22px);
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.stage-quote {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--color-intent);
+  margin-bottom: 12px;
+}
+
+.stage-desc {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.stage-metaphor {
+  font-size: clamp(13px, 0.9vw, 15px);
+  font-weight: 400;
+  color: var(--text-3);
+  line-height: 1.6;
+  padding-left: 16px;
+  border-left: 2px solid var(--border);
+  border-radius: 0;
+}
+
+/* ═══ 2x2 MATRIX ═══ */
+.matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 40px 0;
+  background: var(--border);
+}
+
+.matrix-cell {
+  padding: clamp(24px, 3vw, 40px);
+  background: var(--bg);
+  position: relative;
+}
+
+.matrix-cell--danger {
+  background: rgba(220, 38, 38, 0.03);
+}
+
+.matrix-cell--dream {
+  background: rgba(5, 150, 105, 0.03);
+}
+
+.matrix-cell-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.matrix-cell--danger .matrix-cell-label {
+  color: #dc2626;
+}
+
+.matrix-cell--dream .matrix-cell-label {
+  color: var(--color-success);
+}
+
+.matrix-cell-title {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 22px);
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.matrix-cell-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.matrix-axis-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: center;
+  padding: 12px 0;
+}
+
+@media (max-width: 600px) {
+  .matrix {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══ TIMELINE ═══ */
+.trust-timeline {
+  display: flex;
+  gap: 0;
+  margin: 40px 0;
+  position: relative;
+}
+
+.trust-timeline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--border);
+}
+
+.trust-phase {
+  flex: 1;
+  text-align: center;
+  padding: 0 12px 28px;
+  position: relative;
+}
+
+.trust-phase::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--color-intent);
+  z-index: 1;
+}
+
+.trust-phase-num {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: var(--color-intent);
+  margin-bottom: 8px;
+}
+
+.trust-phase-name {
+  font-weight: 500;
+  font-size: clamp(14px, 1.1vw, 18px);
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.trust-phase-desc {
+  font-size: clamp(12px, 0.85vw, 14px);
+  font-weight: 400;
+  color: var(--text-3);
+  line-height: 1.55;
+}
+
+.trust-phase-stage {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.7vw, 11px);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--color-intent);
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: var(--chip-amber-bg);
+  border-radius: 0;
+  display: inline-block;
+}
+
+@media (max-width: 700px) {
+  .trust-timeline {
+    flex-direction: column;
+    gap: 0;
+    padding-left: 24px;
+  }
+
+  .trust-timeline::after {
+    width: 2px;
+    height: 100%;
+    top: 0;
+    bottom: auto;
+    left: 0;
+    right: auto;
+  }
+
+  .trust-phase {
+    text-align: left;
+    padding: 20px 0 20px 20px;
+  }
+
+  .trust-phase::after {
+    left: -29px;
+    bottom: auto;
+    top: 28px;
+    transform: none;
+  }
+}
+
+/* ═══ MULTI-PERSON GRID ═══ */
+.person-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: 40px 0;
+  background: var(--border);
+}
+
+.person-card {
+  background: var(--bg);
+  padding: clamp(20px, 2.5vw, 32px);
+}
+
+.person-card-role {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+.person-card-name {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 22px);
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.person-card-detail {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+
+.person-card-dial {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.person-card-dial-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.7vw, 11px);
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.person-card-dial-value {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--color-intent);
+  padding: 3px 8px;
+  background: var(--chip-amber-bg);
+  border-radius: 0;
+}
+
+@media (max-width: 700px) {
+  .person-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══ FORCES LIST ═══ */
+.forces {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 28px 0;
+}
+
+.force {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.force:last-child {
+  border-bottom: none;
+}
+
+.force-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-intent);
+  margin-top: 2px;
+}
+
+.force-text {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+.force-text strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ═══ SECTION DIVIDERS ═══ */
+.sec-alt {
+  background: var(--bg-2);
+}
+
+.divider-line {
+  max-width: 780px;
+  margin: 0 auto;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ═══ CTA SECTION ═══ */
+.cta-section {
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(184,136,78,0.04), transparent);
+  pointer-events: none;
+}
+
+.cta-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-title {
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 44px);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.cta-desc {
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 300;
+  color: rgba(240, 236, 228, 0.5);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto 36px;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-btn {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 12px 28px;
+  border: 1px solid rgba(240, 236, 228, 0.2);
+  border-radius: 0;
+  color: rgba(240, 236, 228, 0.8);
+  transition: all 0.3s var(--ease);
+}
+
+.cta-btn:hover {
+  border-color: #f0ece4;
+  color: #f0ece4;
+}
+
+.cta-btn--primary {
+  background: rgba(240, 236, 228, 0.08);
+  border-color: rgba(240, 236, 228, 0.3);
+}
+
+.cta-btn--primary:hover {
+  background: rgba(240, 236, 228, 0.14);
+}
+
+/* ═══ P.S. SECTION ═══ */
+.ps-section {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 48px;
+}
+
+.ps-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 16px;
+}
+
+.ps-text {
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.85;
+  font-style: italic;
+}
+
+/* ═══ HIGHLIGHT BOX ═══ */
+.highlight-box {
+  border-left: 3px solid var(--color-intent);
+  border-radius: 0;
+  padding: 20px 24px;
+  background: var(--bg-2);
+  margin: 32px 0;
+}
+
+.highlight-box p {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.highlight-box p + p {
+  margin-top: 12px;
+}
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.d1 { transition-delay: 0.06s; }
+.d2 { transition-delay: 0.12s; }
+.d3 { transition-delay: 0.18s; }
+.d4 { transition-delay: 0.24s; }
+
+/* ═══ RESPONSIVE SPACING ═══ */
+@media (max-width: 768px) {
+  .hero {
+    padding: clamp(80px, 12vw, 140px) clamp(20px, 4vw, 40px) clamp(56px, 8vw, 100px);
+  }
+
+  section {
+    padding: clamp(40px, 6vw, 80px) clamp(20px, 4vw, 40px);
+  }
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  padding: 40px clamp(24px, 4vw, 48px);
+  border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-copy {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-links a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+
+.footer-links a:hover {
+  color: var(--color-intent);
+}
+
+@media (max-width: 600px) {
+  .footer-inner {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+</style>
+</head>
+
+<body data-dark-nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <p class="hero-label">Context Grammar / Trust Design</p>
+    <h1 class="hero-title">信頼はトグルではない。<br><em>ダイヤル</em>だ。</h1>
+    <p class="hero-sub">あらゆる関係は境界線から始まる。良い関係は、そこから進化する。Context Grammarは人間とAIに同じ仕組みを与える。2つのダイヤルが、時間をかけて、分野ごとに、一人ひとり異なる信頼を調整していく。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     THE PREREQUISITE
+     ═══════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <p class="sec-label reveal">The Problem</p>
+    <h2 class="sec-title reveal d1">ほとんどのAIが無視している前提条件</h2>
+
+    <p class="lead-text reveal d2">初めて入ったレストラン。あなたは席に着く。ウェイターが近づいてきて、こう言う。「お任せでよろしいですか？」。ナッツアレルギーがあることも、記念日であることも、予算の上限も、何も伝えていないのに。</p>
+
+    <p class="body-text reveal">あらゆるAIエージェントフレームワークには自律性の制御が組み込まれている。レベル。モード。権限のティア。アーキテクチャは揃っている。だが、そのすべての前に来るべき問いを、どれも投げかけていない。<strong>AIはあなたについて、賢く行動できるだけの情報を持っているのか？</strong></p>
+
+    <p class="body-text reveal">あなたの代わりに行動できるが、あなたの人生について何も知らないシステム。それは「自律的」ではない。無謀だ。</p>
+
+    <div class="highlight-box reveal">
+      <p><strong>Context Grammarの答え：開示（Disclosure）が先。自律（Autonomy）は後。常に。</strong></p>
+      <p>教えていないことは、任せられない。これがルールだ。他のすべては、ここから流れる。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════════════
+     DISCLOSURE DIAL
+     ═══════════════════════════════════════════ -->
+<section>
+  <div class="container">
+    <p class="sec-label reveal">Dial 01</p>
+    <div class="reveal d1">
+      <h2 class="concept-name">Disclosure Dial</h2>
+      <p class="concept-sub">AIがあなたについてどこまで知っているか</p>
+    </div>
+
+    <p class="body-text reveal d2">AIが行動する前に、まず知る必要がある。Disclosure Dialは、あなたが共有する情報の深さを制御する。ON/OFFの二択ではなく、4つの意味ある閾値を持つ連続的なスペクトラムとして。</p>
+
+    <p class="body-text reveal">レストランで考えてみよう。席に着く。ウェイターが近づいてくる。</p>
+
+    <div class="dial-levels">
+      <div class="dial-level reveal">
+        <div>
+          <p class="dial-level-name">Full</p>
+          <div class="dial-level-bar"><div class="dial-level-bar-fill" style="width:100%"></div></div>
+        </div>
+        <div class="dial-level-desc">
+          <strong>全部教える。</strong>アレルギー。記念日であること。予算。娘がパクチーを嫌いなこと。AIは深くパーソナライズされた判断ができる。コース料理を選び、3皿目を差し替え、シャンパンに合わせてデザートのタイミングを調整する。
+        </div>
+      </div>
+
+      <div class="dial-level reveal">
+        <div>
+          <p class="dial-level-name">Summary</p>
+          <div class="dial-level-bar"><div class="dial-level-bar-fill" style="width:66%"></div></div>
+        </div>
+        <div class="dial-level-desc">
+          <strong>要約だけ伝える。</strong>食事制限があるとだけ言う。何のアレルギーかは言わない。AIは慎重に振る舞えるが、最適化はできない。アレルゲンを含む可能性のある料理にフラグを立て、注文前に確認する。十分だが、完璧ではない。
+        </div>
+      </div>
+
+      <div class="dial-level reveal">
+        <div>
+          <p class="dial-level-name">Existence</p>
+          <div class="dial-level-bar"><div class="dial-level-bar-fill" style="width:33%"></div></div>
+        </div>
+        <div class="dial-level-desc">
+          <strong>「何かある」ことだけ伝える。</strong>AIは自分が知らない何かがあると認識している。すべてのステップで追加の確認をしながら進む。遅い。慎重。こだわりがありそうだと感じ取っているが、理由は聞かされていないウェイターのように。
+        </div>
+      </div>
+
+      <div class="dial-level reveal">
+        <div>
+          <p class="dial-level-name">Hidden</p>
+          <div class="dial-level-bar"><div class="dial-level-bar-fill" style="width:5%"></div></div>
+        </div>
+        <div class="dial-level-desc">
+          <strong>何も言わない。</strong>一般的な対応だけ。標準メニュー。パーソナライズなし。推測なし。あなたは見知らぬ客で、システムはそのように扱う。安全。非個人的。それがまさに望んでいることもある。
+        </div>
+      </div>
+    </div>
+
+    <p class="body-text reveal"><strong>分野ごとに設定できる。</strong>ヘルスケアAIにはFULLを設定するかもしれない。服用中の薬、家族の病歴、睡眠パターンを知っている必要があるから。でもSNSのAIにはHIDDEN。同じ人間、異なる境界線。これは妄想ではない。アーキテクチャだ。</p>
+
+    <p class="body-text reveal"><strong>人ごとにも設定できる。</strong>共有のFamily Hubで、パパの健康データはFULL。子どもたちはSUMMARY。おばあちゃんはEXISTENCE。オプトインはしたが、詳細の設定はまだ。同じキッチン。同じデバイス。異なるDisclosureレベルが同時に動いている。</p>
+  </div>
+</section>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════════════
+     AUTONOMY DIAL
+     ═══════════════════════════════════════════ -->
+<section class="sec-alt">
+  <div class="container">
+    <p class="sec-label reveal">Dial 02</p>
+    <div class="reveal d1">
+      <h2 class="concept-name">Autonomy Dial</h2>
+      <p class="concept-sub">AIがどこまで自分で動けるか</p>
+    </div>
+
+    <p class="body-text reveal d2">2つ目のダイヤル。AIが十分に知った上で、次の問いが生まれる。聞かずにどこまでやっていいのか？ 4つのステージ。それぞれが異なる関係性だ。</p>
+
+    <div class="stages">
+      <div class="stage reveal">
+        <div class="stage-number">1</div>
+        <div class="stage-content">
+          <h3 class="stage-name">Suggest（提案）</h3>
+          <p class="stage-quote">「メニューです。おすすめはこちらになります」</p>
+          <p class="stage-desc">AIは選択肢を提示する。人間がすべてを決める。推測なし、近道なし。初来店のレストラン。ウェイターは丁寧で、礼儀正しく、手を出さない。まだあなたのことを知らない。</p>
+          <p class="stage-metaphor">すべての新しい関係はここから始まる。AIは有能さを証明している段階。人間は信頼するかどうかを判断している。</p>
+        </div>
+      </div>
+
+      <div class="stage reveal">
+        <div class="stage-number">2</div>
+        <div class="stage-content">
+          <h3 class="stage-name">Confirm（確認）</h3>
+          <p class="stage-quote">「前回のサーモン、またいかがですか？」</p>
+          <p class="stage-desc">AIは学習したパターンに基づいて提案する。人間は承認または修正する。常連客。ウェイターはあなたの注文を予測するが、キッチンに通す前に必ず確認する。</p>
+          <p class="stage-metaphor">信頼が形成されつつある。AIの予測は正確になってきている。だが、許可はまだ人間の側にある。</p>
+        </div>
+      </div>
+
+      <div class="stage reveal">
+        <div class="stage-number">3</div>
+        <div class="stage-content">
+          <h3 class="stage-name">Notify（通知）</h3>
+          <p class="stage-quote">「いつもの前菜、もう作り始めてます」</p>
+          <p class="stage-desc">AIは行動し、報告する。人間は止められるが、自分から始める必要はない。信頼された常連。ウェイターが段取りし、進捗を伝える。止めることはできるが、めったにしない。</p>
+          <p class="stage-metaphor">バランスが移った。AIがデフォルトの行為者。人間は例外処理の担当だ。</p>
+        </div>
+      </div>
+
+      <div class="stage reveal">
+        <div class="stage-number">4</div>
+        <div class="stage-content">
+          <h3 class="stage-name">Auto（お任せ）</h3>
+          <p class="stage-quote">「座るだけで大丈夫です。すべてお任せください」</p>
+          <p class="stage-desc">AIは静かに行動する。人間は問題があるときだけ介入する。VIPのお任せコース。シェフを完全に信頼している。料理が運ばれてくる。完璧だ。メニューは見ていない。</p>
+          <p class="stage-metaphor">これは見えないステージだ。優れたウェイターのように。いることを忘れる。でも、すべてがうまくいく。</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sec-title reveal" style="font-size:clamp(20px,2vw,28px); margin-top:48px;">3つの力。スイッチ1つではない</h3>
+    <p class="body-text reveal">Autonomy Dialは<strong>ユーザーだけが制御するものではない。</strong>3つの力がその位置を押し引きしている。</p>
+
+    <div class="forces reveal">
+      <div class="force">
+        <span class="force-num">01</span>
+        <p class="force-text"><strong>サービスデフォルト。</strong>Netflixは高い自律性から始まる。次のエピソードを確認なしで自動再生する。銀行はSuggestから始まる。すべての取引を確認する。初期位置はドメインのリスクの大きさで決まる。</p>
+      </div>
+      <div class="force">
+        <span class="force-num">02</span>
+        <p class="force-text"><strong>AI調整。</strong>パフォーマンスのフィードバックがダイヤルを動かす。繰り返しの修正は自律性を下げる。一貫した正確さは上げる。システムは自分のポジションを稼ぐ。</p>
+      </div>
+      <div class="force">
+        <span class="force-num">03</span>
+        <p class="force-text"><strong>ユーザー操作。</strong>明示的なユーザーの意思表示。「5,000円以上の買い物はすべて承認させて」「音楽のことはもう聞かないで」。人間がすべてを上書きする。</p>
+      </div>
+    </div>
+
+    <p class="body-text reveal"><strong>分野ごとに独立している。</strong>音楽のプレイリストはAuto。医療の判断はSuggest。食料品の注文はConfirm。すべてのドメインが独立して、自分の信頼レベルを獲得していく。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CORE RULE: DISCLOSURE x AUTONOMY
+     ═══════════════════════════════════════════ -->
+<section>
+  <div class="container--wide">
+    <p class="sec-label reveal">System Specification</p>
+    <h2 class="sec-title reveal d1">核心のルール：Disclosure <em>&times;</em> Autonomy</h2>
+
+    <p class="body-text reveal d2" style="max-width:780px;">2つのダイヤル。4つの象限。すべてを支配する1つのルール。</p>
+
+    <div class="matrix-axis-label reveal">Autonomy &rarr;</div>
+
+    <div class="matrix reveal">
+      <div class="matrix-cell matrix-cell--dream">
+        <p class="matrix-cell-label">High Disclosure + High Autonomy</p>
+        <h3 class="matrix-cell-title">シームレス</h3>
+        <p class="matrix-cell-desc">理想の状態。AIがあなたを深く理解し、それに応じて行動する。在庫が減る前に食料品が届く。プレイリストが気分に合う。サーモスタットが寒さを感じる前に調整される。見えない。個人的。的確。</p>
+      </div>
+
+      <div class="matrix-cell">
+        <p class="matrix-cell-label" style="color:var(--text-3)">Low Disclosure + High Autonomy</p>
+        <h3 class="matrix-cell-title">安全だが無用</h3>
+        <p class="matrix-cell-desc">プライバシーモード。AIは知らないから、できることも少ない。すべてのやり取りがゼロから。安全。匿名。そして自販機に話しかけるのと同じくらい非個人的。</p>
+      </div>
+
+      <div class="matrix-cell">
+        <p class="matrix-cell-label" style="color:var(--text-3)">High Disclosure + Low Autonomy</p>
+        <h3 class="matrix-cell-title">知っているが手動</h3>
+        <p class="matrix-cell-desc">トレーニング段階。AIはあなたの好みを知っているが、行動する前にまだ確認する。すべてのレコメンデーションが提案。あなたは承認し、修正し、教える。忍耐が要る。必要。一時的。</p>
+      </div>
+
+      <div class="matrix-cell matrix-cell--danger">
+        <p class="matrix-cell-label">Low Disclosure + High Autonomy</p>
+        <h3 class="matrix-cell-title">危険</h3>
+        <p class="matrix-cell-desc">ほとんどのAIが陥る罠。文脈なしに大胆に行動する。ナッツアレルギーの人が何も伝えずに「お任せで」と言う状態。地図のない自動操縦。自信に満ち、高速で、壁に向かっている。</p>
+      </div>
+    </div>
+
+    <div class="matrix-axis-label reveal">&uarr; Disclosure</div>
+
+    <div class="highlight-box reveal" style="max-width:780px; margin-left:auto; margin-right:auto;">
+      <p><strong>核心のインサイト：</strong>「教えていないことは、任せられない。」Context Grammarはこれを構造的に強制する。システムはDisclosureが支える範囲を超えてAutonomyを進めない。危険な象限は警告ではない。壁だ。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider-line"></div>
+
+<!-- ═══════════════════════════════════════════
+     TEMPORAL ARC
+     ═══════════════════════════════════════════ -->
+<section class="sec-alt">
+  <div class="container--wide">
+    <p class="sec-label reveal">Temporal Design</p>
+    <div class="reveal d1">
+      <h2 class="concept-name">Trust Over Time</h2>
+      <p class="concept-sub">Temporal Arc ── 信頼が4つのフェーズを経て成長する仕組み</p>
+    </div>
+
+    <p class="body-text reveal d2" style="max-width:780px;">信頼は設定するものではない。育てるものだ。あらゆるAIとの関係は同じ4つのフェーズを通過する。1つでも飛ばそうとすれば、契約は壊れる。</p>
+
+    <div class="trust-timeline reveal">
+      <div class="trust-phase">
+        <p class="trust-phase-num">Phase 01</p>
+        <h3 class="trust-phase-name">初対面</h3>
+        <p class="trust-phase-desc">すべてが手動。AIは小さく正しい行動で能力を証明する。人間は注意深く見ている。</p>
+        <span class="trust-phase-stage">Suggest</span>
+      </div>
+
+      <div class="trust-phase">
+        <p class="trust-phase-num">Phase 02</p>
+        <h3 class="trust-phase-name">学習</h3>
+        <p class="trust-phase-desc">AIがパターンを読み始める。小さな成功が信頼を築く。「コーヒーの注文を3回連続で当てた。」</p>
+        <span class="trust-phase-stage">Confirm</span>
+      </div>
+
+      <div class="trust-phase">
+        <p class="trust-phase-num">Phase 03</p>
+        <h3 class="trust-phase-name">成熟</h3>
+        <p class="trust-phase-desc">AIがルーティンを処理する。人間は例外に集中する。システムが先に動く権利を獲得した。</p>
+        <span class="trust-phase-stage">Notify</span>
+      </div>
+
+      <div class="trust-phase">
+        <p class="trust-phase-num">Phase 04</p>
+        <h3 class="trust-phase-name">透明化</h3>
+        <p class="trust-phase-desc">AIが環境に溶け込む。優れたウェイターのように。いることを忘れるが、すべてがうまくいく。</p>
+        <span class="trust-phase-stage">Auto</span>
+      </div>
+    </div>
+
+    <p class="body-text reveal" style="max-width:780px;">タイムラインはドメインごとに異なる。音楽は1週間でAutoに到達するかもしれない。ヘルスケアはConfirmから先に進まないかもしれない。それでいい。信頼は画一的ではない。較正されるものだ。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     MULTI-PERSON TRUST
+     ═══════════════════════════════════════════ -->
+<section>
+  <div class="container--wide">
+    <p class="sec-label reveal">Multi-Person Orchestration</p>
+    <h2 class="sec-title reveal d1">同じAI。同じキッチン。<br>3つの異なる信頼関係。</h2>
+
+    <p class="body-text reveal d2" style="max-width:780px;">信頼は個人的なものだ。複数の人間がシステムを共有するとき、それぞれが独自の境界線、快適さのレベル、AIとの履歴を持ち込む。Context Grammarはこれを単一の設定に潰さない。並列の信頼状態を走らせる。</p>
+
+    <div class="person-grid reveal">
+      <div class="person-card">
+        <p class="person-card-role">Parent</p>
+        <h3 class="person-card-name">パパ</h3>
+        <p class="person-card-detail">システムと6ヶ月。食料品のDisclosureはFull、Samsung Healthと健康データを連携済み。日用品の購入はAIを完全に信頼している。</p>
+        <div class="person-card-dial">
+          <span class="person-card-dial-label">Autonomy</span>
+          <span class="person-card-dial-value">Auto</span>
+        </div>
+        <div class="person-card-dial" style="margin-top:6px;">
+          <span class="person-card-dial-label">Disclosure</span>
+          <span class="person-card-dial-value">Full</span>
+        </div>
+      </div>
+
+      <div class="person-card">
+        <p class="person-card-role">Parent</p>
+        <h3 class="person-card-name">ママ</h3>
+        <p class="person-card-detail">購入前に確認するのが好み。DisclosureはSummary。AIは食事制限を知っているが、個人の健康データは知らない。すべての注文をチェックする。</p>
+        <div class="person-card-dial">
+          <span class="person-card-dial-label">Autonomy</span>
+          <span class="person-card-dial-value">Confirm</span>
+        </div>
+        <div class="person-card-dial" style="margin-top:6px;">
+          <span class="person-card-dial-label">Disclosure</span>
+          <span class="person-card-dial-value">Summary</span>
+        </div>
+      </div>
+
+      <div class="person-card">
+        <p class="person-card-role">Child</p>
+        <h3 class="person-card-name">子ども</h3>
+        <p class="person-card-detail">提案のみに制限。閲覧可、リクエスト可、購入不可。DisclosureはExistence。子どものプロフィールがあることは知っているが、詳細は知らない。</p>
+        <div class="person-card-dial">
+          <span class="person-card-dial-label">Autonomy</span>
+          <span class="person-card-dial-value">Suggest</span>
+        </div>
+        <div class="person-card-dial" style="margin-top:6px;">
+          <span class="person-card-dial-label">Disclosure</span>
+          <span class="person-card-dial-value">Existence</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="body-text reveal" style="max-width:780px;">Samsung Family Hubはすでに家族データを保存している。アレルギー、食事制限、最大6人の個人プロフィール、Voice ID、Samsung Health連携。インフラは存在する。足りないのは<strong>信頼のレイヤー</strong>だ。保存されたデータを、一人ひとりの、分野ごとの、時間をかけた較正された自律性に変換するデザイン言語。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════════ -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-title reveal">信頼は設計するもの。<br>仮定するものではない。</h2>
+    <p class="cta-desc reveal d1">技術仕様の全文を読む。あるいは、これらのダイヤルが実際のプロジェクトでどう動くかを見る。</p>
+    <div class="cta-buttons reveal d2">
+      <a href="../specs/index.html" class="cta-btn cta-btn--primary">Specsを読む &rarr;</a>
+      <a href="../index.html" class="cta-btn">概要に戻る &rarr;</a>
+    </div>
+
+    <div class="ps-section reveal d3">
+      <p class="ps-label">P.S.</p>
+      <p class="ps-text">信頼の設計で最も難しいのは、アーキテクチャではない。正直さだ。すべてのダイヤルの位置は、ひとつの告白でもある。「あなたについて、まだこれだけ知らない。まだこれだけのことを、自信を持ってできない。」ほとんどのAIプロダクトは、この不確実性を自信の演技で隠す。Context Grammarはそれを可視化する。築く価値のある信頼とは、双方が見えるものだけだからだ。</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="footer-copy">&copy; 2026 intentfirst.ai</span>
+    <div class="footer-links">
+      <a href="../../../ja/about/index.html">About</a>
+      <a href="../../../ja/contact/index.html">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ NAV + SCROLL REVEAL ═══ -->
+<script src="../../../assets/js/nav.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initNav({ basePath: '../../../', activePage: 'trust', lang: 'ja' });
+
+  // Scroll reveal
+  var reveals = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  reveals.forEach(function(el) {
+    observer.observe(el);
+  });
+});
+</script>
+
+</body>
+</html>

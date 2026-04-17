@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P5-03 Conflict Detection Alert</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Noto Sans JP', system-ui, sans-serif;
+    padding: 20px;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #fdfcfa;
+    border-radius: 34px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #1a1816;
+    background: #fdfcfa;
+    padding-top: 16px;
+  }
+
+  .header {
+    padding: 12px 16px 8px;
+    background: #fdfcfa;
+    border-bottom: 1px solid #f0ece4;
+  }
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1816;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: #8a8580;
+    margin-top: 2px;
+  }
+
+  .content {
+    padding: 16px 12px 20px;
+  }
+
+  /* Alert banner */
+  .alert-banner {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .alert-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .alert-content {
+    flex: 1;
+  }
+
+  .alert-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #b91c1c;
+    margin-bottom: 2px;
+  }
+
+  .alert-message {
+    font-size: 12px;
+    color: #991b1b;
+    line-height: 1.4;
+  }
+
+  /* Conflict info section */
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #8a8580;
+    margin-bottom: 10px;
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Conflict detail cards */
+  .conflict-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: 1.5px solid #f0ece4;
+    position: relative;
+  }
+
+  .conflict-card.collision {
+    border-color: #fecaca;
+    background: #fef9f9;
+  }
+
+  .agent-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .agent-tag.sales {
+    background: #ecfdf5;
+    color: #065f46;
+  }
+
+  .agent-tag.admin {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  .conflict-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 4px;
+  }
+
+  .conflict-detail {
+    font-size: 12px;
+    color: #8a8580;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .conflict-value {
+    font-weight: 600;
+    color: #1a1816;
+  }
+
+  .priority-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #fef3e0;
+    color: #92400e;
+    margin-top: 6px;
+  }
+
+  /* Collision indicator */
+  .collision-arrow {
+    text-align: center;
+    font-size: 14px;
+    color: #b91c1c;
+    font-weight: 600;
+    margin: 6px 0;
+  }
+
+  /* Resolution note */
+  .resolution-note {
+    background: #f8f7f4;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid #f0ece4;
+    margin-bottom: 12px;
+  }
+
+  .resolution-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 4px;
+  }
+
+  .resolution-text {
+    font-size: 12px;
+    color: #8a8580;
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  /* Action buttons */
+  .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .btn {
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn:active {
+    transform: scale(0.96);
+  }
+
+  .btn-primary {
+    background: #6889b4;
+    color: #fff;
+  }
+
+  .btn-secondary {
+    background: #f0ece4;
+    color: #1a1816;
+  }
+
+  .btn-tertiary {
+    background: #fff;
+    color: #1a1816;
+    border: 1px solid #f0ece4;
+  }
+
+  .btn-full {
+    grid-column: 1 / -1;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-screen">
+    <div class="status-bar">
+      <span>10:30</span>
+      <span style="font-weight: 600;">●●●●●</span>
+    </div>
+
+    <div class="header">
+      <div class="header-title">スケジュール競合</div>
+      <div class="header-subtitle">2つのエージェントが同じ時間をリクエスト</div>
+    </div>
+
+    <div class="phone-content">
+      <div class="content">
+        <!-- Alert Banner -->
+        <div class="alert-banner">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-title">リソース競合を検出</div>
+            <div class="alert-message">火曜日 14:00 の時間枠に対する2つのリクエストが衝突しています。</div>
+          </div>
+        </div>
+
+        <!-- Conflict Details -->
+        <div class="section-label">リクエスト内容</div>
+
+        <!-- Sales Agent Request -->
+        <div class="conflict-card collision">
+          <div class="agent-tag sales">営業エージェント</div>
+          <div class="conflict-title">Lead A 製品デモ</div>
+          <div class="conflict-detail">
+            <span>時間:</span>
+            <span class="conflict-value">火曜 14:00-15:00</span>
+          </div>
+          <div class="conflict-detail">
+            <span>機会額:</span>
+            <span class="conflict-value">¥8.5M</span>
+          </div>
+          <div class="conflict-detail">
+            <span>ステータス:</span>
+            <span class="conflict-value">スケジュール済み</span>
+          </div>
+          <div class="priority-badge">優先度：高</div>
+        </div>
+
+        <!-- Collision Arrow -->
+        <div class="collision-arrow">↕️ 衝突</div>
+
+        <!-- Admin Agent Request -->
+        <div class="conflict-card collision">
+          <div class="agent-tag admin">管理エージェント</div>
+          <div class="conflict-title">財務部 経費監査会議</div>
+          <div class="conflict-detail">
+            <span>時間:</span>
+            <span class="conflict-value">火曜 14:00-15:30</span>
+          </div>
+          <div class="conflict-detail">
+            <span>理由:</span>
+            <span class="conflict-value">四半期必須会議</span>
+          </div>
+          <div class="conflict-detail">
+            <span>ステータス:</span>
+            <span class="conflict-value">スケジュール済み</span>
+          </div>
+          <div class="priority-badge">優先度：高</div>
+        </div>
+
+        <!-- Resolution Note -->
+        <div class="resolution-note">
+          <div class="resolution-title">判断が必要です</div>
+          <div class="resolution-text">AIは両方のリクエストの優先度が同等と判断しました。どちらを優先しますか？</div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn btn-primary">営業を優先</button>
+          <button class="btn btn-secondary">管理を優先</button>
+          <button class="btn btn-tertiary btn-full">時間を変更</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

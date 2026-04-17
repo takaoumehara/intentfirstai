@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disposable UI — Born, Transform, Die</title>
+<style>
+/* ============================================
+   RESET & TOKENS
+   ============================================ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#1A73E8;
+  --surface:#FFFFFF;
+  --surface-dim:#F8F9FA;
+  --surface-container:#F1F3F4;
+  --text:#202124;
+  --text-secondary:#5F6368;
+  --text-tertiary:#9AA0A6;
+  --green:#1E8E3E;
+  --amber:#F9AB00;
+  --red:#D93025;
+  --coral:#E8710A;
+  --border:#DADCE0;
+  --border-light:#E8EAED;
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:24px;
+  --ease:cubic-bezier(0.2,0,0,1);
+  --ease-out-expo:cubic-bezier(0.23,1,0.32,1);
+  --ease-in-out-expo:cubic-bezier(0.77,0,0.175,1);
+  --phone-w:280px;
+  --phone-h:580px;
+  --tv-w:640px;
+  --tv-h:400px;
+}
+html{
+  scroll-snap-type:y proximity;
+  scroll-behavior:smooth;
+}
+body{
+  font-family:'Google Sans','Segoe UI',system-ui,sans-serif;
+  background:var(--surface);
+  color:var(--text);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ============================================
+   STAGE LAYOUT
+   ============================================ */
+.stage{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:80px 48px;
+  scroll-snap-align:start;
+  position:relative;
+}
+.stage-inner{
+  display:flex;
+  align-items:center;
+  gap:80px;
+  max-width:1200px;
+  width:100%;
+}
+.stage-visual{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  min-height:480px;
+  min-width:0;
+  overflow:hidden;
+}
+.stage-text{
+  flex:0 0 380px;
+  max-width:380px;
+}
+.stage--tall{
+  min-height:300vh;
+  align-items:flex-start;
+  padding-top:0;
+  padding-bottom:0;
+}
+.stage--tall .stage-inner{
+  position:sticky;
+  top:0;
+  height:100vh;
+  padding:80px 48px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+.stage-label{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text-tertiary);
+  margin-bottom:16px;
+}
+.stage-label .num{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;height:24px;
+  border-radius:50%;
+  background:var(--text);
+  color:#fff;
+  font-size:11px;
+  letter-spacing:0;
+}
+.stage-heading{
+  font-size:36px;
+  font-weight:500;
+  line-height:1.2;
+  margin-bottom:20px;
+  letter-spacing:-0.5px;
+}
+.stage-body{
+  font-size:16px;
+  color:var(--text-secondary);
+  line-height:1.7;
+  margin-bottom:28px;
+}
+.stage-body strong{
+  color:var(--text);
+  font-weight:500;
+}
+
+/* ============================================
+   TOKEN BADGES
+   ============================================ */
+.tokens{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.token{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:500;
+  background:var(--surface-dim);
+  border:1px solid var(--border-light);
+  color:var(--text-secondary);
+}
+.token .dot{
+  width:8px;height:8px;border-radius:50%;
+}
+.dot--intent{background:var(--primary)}
+.dot--priority{background:var(--amber)}
+.dot--form{background:var(--coral)}
+.dot--physical{background:var(--green)}
+.dot--social{background:#7B1FA2}
+.dot--cognitive{background:var(--red)}
+.dot--autonomy{background:#00897B}
+
+/* ============================================
+   PHONE MOCKUP
+   ============================================ */
+.phone{
+  width:var(--phone-w);
+  height:var(--phone-h);
+  max-height:calc(100vh - 200px);
+  background:#1A1A1A;
+  border-radius:40px;
+  padding:12px;
+  position:relative;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.08),
+    0 12px 40px rgba(0,0,0,0.15),
+    inset 0 0 0 1px rgba(255,255,255,0.08);
+  flex-shrink:0;
+  transition:transform 0.8s var(--ease),opacity 0.8s var(--ease),background 0.8s var(--ease);
+}
+.phone-screen{
+  width:100%;
+  height:100%;
+  background:var(--surface);
+  border-radius:30px;
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
+.phone .notch{
+  position:absolute;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%);
+  width:80px;
+  height:24px;
+  background:#1A1A1A;
+  border-radius:14px;
+  z-index:10;
+}
+.phone .home-bar{
+  position:absolute;
+  bottom:8px;
+  left:50%;
+  transform:translateX(-50%);
+  width:100px;
+  height:4px;
+  background:rgba(0,0,0,0.2);
+  border-radius:2px;
+  z-index:10;
+}
+
+/* Status bar */
+.status-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:36px 20px 8px;
+  font-size:11px;
+  font-weight:600;
+  color:var(--text);
+  flex-shrink:0;
+}
+.status-bar .time{font-size:12px}
+.status-bar .icons{display:flex;gap:4px;align-items:center}
+.status-bar .icons svg{width:14px;height:14px}
+
+/* Phone content area */
+.phone-content{
+  flex:1;
+  overflow-y:auto;
+  padding:8px 16px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* ============================================
+   NOTIFICATION CARD (Stage 1)
+   ============================================ */
+.notification{
+  background:var(--surface);
+  border:2px solid var(--amber);
+  border-radius:var(--radius-md);
+  padding:16px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  animation:pulse-border 2s ease-in-out infinite;
+  margin-top:60px;
+}
+@keyframes pulse-border{
+  0%,100%{border-color:var(--amber);box-shadow:0 0 0 0 rgba(249,171,0,0.15)}
+  50%{border-color:#FDD835;box-shadow:0 0 0 8px rgba(249,171,0,0)}
+}
+.notification .gemini-icon{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#4285F4,#EA4335,#FBBC04,#34A853);
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.notification .gemini-icon svg{width:20px;height:20px;fill:#fff}
+.notification-text{
+  flex:1;
+}
+.notification-text .app-name{
+  font-size:11px;
+  color:var(--text-tertiary);
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  margin-bottom:4px;
+}
+.notification-text .message{
+  font-size:14px;
+  line-height:1.45;
+  color:var(--text);
+}
+.notification-text .message .shoe-emoji{
+  font-size:16px;
+}
+.notification-actions{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.notification-actions button{
+  padding:6px 16px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  border:none;
+  font-family:inherit;
+}
+.notification-actions .btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+.notification-actions .btn-secondary{
+  background:var(--surface-dim);
+  color:var(--text-secondary);
+  border:1px solid var(--border-light);
+}
+
+/* ============================================
+   PRODUCT CARDS (Stage 2/3)
+   ============================================ */
+.product-cards{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  width:100%;
+}
+.product-card{
+  display:flex;
+  gap:12px;
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-sm);
+  padding:12px;
+  transition:opacity 0.5s var(--ease-out-expo),transform 0.5s var(--ease-out-expo);
+  opacity:0;
+  transform:translateY(20px);
+  will-change:transform,opacity;
+}
+.product-card.visible{
+  opacity:1;
+  transform:translateY(0);
+}
+.product-card .product-img{
+  width:72px;
+  height:72px;
+  border-radius:8px;
+  overflow:hidden;
+  flex-shrink:0;
+  background:var(--surface-dim);
+}
+.product-card .product-img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.product-card .product-info{
+  flex:1;
+  min-width:0;
+}
+.product-card .product-name{
+  font-size:13px;
+  font-weight:500;
+  line-height:1.3;
+  margin-bottom:2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.product-card .product-price{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:4px;
+}
+.confidence-bar{
+  height:4px;
+  border-radius:2px;
+  background:var(--surface-container);
+  overflow:hidden;
+  margin-bottom:4px;
+}
+.confidence-bar .fill{
+  height:100%;
+  border-radius:2px;
+  transition:width 1s var(--ease);
+}
+.confidence-bar .fill--high{background:var(--green)}
+.confidence-bar .fill--med{background:var(--primary)}
+.confidence-bar .fill--low{background:var(--amber)}
+.product-card .product-meta{
+  font-size:11px;
+  color:var(--text-tertiary);
+}
+.product-card .confidence-label{
+  font-size:11px;
+  color:var(--text-tertiary);
+  display:flex;
+  justify-content:space-between;
+}
+
+/* Card header */
+.card-header{
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  padding:4px 0 8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.card-header .gemini-small{
+  width:18px;height:18px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#4285F4,#EA4335,#FBBC04,#34A853);
+}
+
+/* ============================================
+   FULL BROWSE CARDS (Stage 3a)
+   ============================================ */
+.browse-card{
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  transition:border-color 0.5s var(--ease),box-shadow 0.5s var(--ease);
+}
+.browse-card .browse-img{
+  width:100%;
+  height:80px;
+  overflow:hidden;
+  background:var(--surface-dim);
+  flex-shrink:0;
+}
+.browse-card .browse-img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.browse-card .browse-details{
+  padding:10px 12px;
+}
+.browse-card .browse-name{
+  font-size:12px;
+  font-weight:500;
+  margin-bottom:2px;
+}
+.browse-card .browse-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:4px;
+}
+.browse-card .browse-price{
+  font-size:14px;
+  font-weight:600;
+}
+.browse-card .browse-confidence{
+  font-size:11px;
+  color:var(--text-tertiary);
+}
+.browse-card .browse-meta{
+  font-size:11px;
+  color:var(--text-tertiary);
+  line-height:1.4;
+}
+
+/* ============================================
+   COMPACT CARDS (One-hand mode)
+   ============================================ */
+.compact-card{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:10px;
+  padding:8px 12px;
+}
+.compact-card .compact-img{
+  width:40px;height:40px;
+  border-radius:8px;
+  overflow:hidden;
+  flex-shrink:0;
+  background:var(--surface-dim);
+}
+.compact-card .compact-img img{
+  width:100%;height:100%;object-fit:cover;
+}
+.compact-card .compact-info{
+  flex:1;
+  min-width:0;
+}
+.compact-card .compact-name{
+  font-size:12px;
+  font-weight:500;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.compact-card .compact-row{
+  display:flex;align-items:center;gap:8px;
+}
+.compact-card .compact-price{
+  font-size:13px;font-weight:600;
+}
+.compact-card .compact-conf{
+  font-size:11px;
+  color:var(--green);
+  font-weight:500;
+}
+
+/* ============================================
+   TV MOCKUP
+   ============================================ */
+.tv{
+  width:var(--tv-w);
+  background:#111;
+  border-radius:12px;
+  padding:10px;
+  position:relative;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.1),
+    0 16px 48px rgba(0,0,0,0.12);
+  flex-shrink:0;
+}
+.tv::after{
+  content:'';
+  display:block;
+  width:120px;
+  height:8px;
+  background:#222;
+  border-radius:0 0 8px 8px;
+  margin:0 auto;
+}
+.tv-screen{
+  width:100%;
+  aspect-ratio:16/9;
+  background:#1A1A1E;
+  border-radius:6px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  padding:20px;
+}
+.tv-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+}
+.tv-header .tv-gemini{
+  width:28px;height:28px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#4285F4,#EA4335,#FBBC04,#34A853);
+}
+.tv-header .tv-title{
+  font-size:18px;
+  font-weight:500;
+  color:#E8EAED;
+}
+.tv-grid{
+  display:flex;
+  gap:16px;
+  flex:1;
+}
+.tv-card{
+  flex:1;
+  background:#2A2A2E;
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  transition:border-color 0.3s var(--ease),box-shadow 0.3s var(--ease);
+  border:3px solid transparent;
+}
+.tv-card--focused{
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(26,115,232,0.3);
+}
+.tv-card .tv-card-img{
+  width:100%;
+  flex:1;
+  overflow:hidden;
+  background:#333;
+  min-height:0;
+}
+.tv-card .tv-card-img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.tv-card .tv-card-label{
+  padding:10px 12px;
+  text-align:center;
+}
+.tv-card .tv-card-name{
+  font-size:14px;
+  font-weight:500;
+  color:#E8EAED;
+  margin-bottom:4px;
+}
+.tv-card .tv-card-tag{
+  font-size:12px;
+  color:#9AA0A6;
+}
+
+/* ============================================
+   REMOTE MOCKUP
+   ============================================ */
+.remote-phone{
+  width:200px;
+  height:400px;
+  flex-shrink:0;
+}
+.remote-phone .phone{
+  width:200px;
+  height:400px;
+  --phone-w:200px;
+  --phone-h:400px;
+}
+.remote-phone .phone-screen{
+  border-radius:22px;
+}
+.remote-phone .notch{
+  width:60px;height:18px;border-radius:10px;top:12px;
+}
+.dpad-container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  padding:16px 12px 8px;
+  flex:1;
+}
+.dpad{
+  width:120px;
+  height:120px;
+  position:relative;
+  display:grid;
+  grid-template:1fr 1fr 1fr / 1fr 1fr 1fr;
+  gap:2px;
+}
+.dpad-btn{
+  background:var(--surface-dim);
+  border:1px solid var(--border-light);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:default;
+  color:var(--text-secondary);
+}
+.dpad-btn svg{width:16px;height:16px;fill:currentColor}
+.dpad-up{grid-column:2;grid-row:1;border-radius:10px 10px 4px 4px}
+.dpad-left{grid-column:1;grid-row:2;border-radius:10px 4px 4px 10px}
+.dpad-ok{grid-column:2;grid-row:2;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:600}
+.dpad-right{grid-column:3;grid-row:2;border-radius:4px 10px 10px 4px}
+.dpad-down{grid-column:2;grid-row:3;border-radius:4px 4px 10px 10px}
+.dpad .dpad-corner{grid-column:1;grid-row:1;background:transparent;border:none}
+.dpad .dpad-corner2{grid-column:3;grid-row:1;background:transparent;border:none}
+.dpad .dpad-corner3{grid-column:1;grid-row:3;background:transparent;border:none}
+.dpad .dpad-corner4{grid-column:3;grid-row:3;background:transparent;border:none}
+
+.remote-detail{
+  padding:8px 12px;
+  text-align:center;
+}
+.remote-detail .remote-product-img{
+  width:56px;height:56px;
+  border-radius:8px;
+  overflow:hidden;
+  margin:0 auto 6px;
+  background:var(--surface-dim);
+}
+.remote-detail .remote-product-img img{
+  width:100%;height:100%;object-fit:cover;
+}
+.remote-detail .remote-name{
+  font-size:11px;font-weight:500;margin-bottom:2px;
+}
+.remote-detail .remote-price{
+  font-size:14px;font-weight:600;margin-bottom:6px;
+}
+.remote-detail .remote-buy{
+  display:inline-block;
+  padding:6px 24px;
+  border-radius:20px;
+  background:var(--primary);
+  color:#fff;
+  font-size:12px;
+  font-weight:500;
+  border:none;
+  font-family:inherit;
+}
+.remote-note{
+  font-size:10px;
+  color:var(--text-tertiary);
+  margin-top:8px;
+  text-align:center;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  justify-content:center;
+}
+.remote-note svg{width:12px;height:12px;fill:var(--text-tertiary)}
+
+/* ============================================
+   COMPLETION (Stage 4)
+   ============================================ */
+.completion{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  padding:40px 20px;
+  text-align:center;
+  gap:16px;
+}
+.check-circle{
+  width:72px;height:72px;
+  position:relative;
+}
+.check-circle svg{
+  width:72px;height:72px;
+}
+.check-circle .circle{
+  fill:none;
+  stroke:var(--green);
+  stroke-width:3;
+  stroke-dasharray:200;
+  stroke-dashoffset:200;
+  transition:stroke-dashoffset 1s var(--ease);
+}
+.check-circle .check{
+  fill:none;
+  stroke:var(--green);
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:40;
+  stroke-dashoffset:40;
+  transition:stroke-dashoffset 0.6s var(--ease) 0.6s;
+}
+.stage--4.in-view .check-circle .circle{stroke-dashoffset:0}
+.stage--4.in-view .check-circle .check{stroke-dashoffset:0}
+
+.completion-title{
+  font-size:18px;font-weight:500;color:var(--green);
+}
+.completion-product{
+  font-size:14px;color:var(--text);font-weight:500;
+}
+.completion-date{
+  font-size:13px;color:var(--text-secondary);
+}
+.progress-track{
+  width:160px;height:4px;
+  border-radius:2px;
+  background:var(--surface-container);
+  overflow:hidden;
+}
+.progress-track .progress-fill{
+  width:30%;height:100%;
+  background:var(--green);
+  border-radius:2px;
+  transition:width 1.5s var(--ease) 0.8s;
+}
+.stage--4.in-view .progress-fill{width:30%}
+
+/* ============================================
+   GHOST / DISSOLVE (Stage 5)
+   ============================================ */
+.ghost-container{
+  display:flex;
+  align-items:center;
+  gap:32px;
+  transition:opacity 1.5s var(--ease-out-expo),transform 1.5s var(--ease-out-expo);
+}
+.ghost-phone{
+  opacity:0.15;
+  filter:blur(1px);
+  transition:opacity 1.5s var(--ease-out-expo),filter 1.5s var(--ease-out-expo),transform 1.5s var(--ease-out-expo);
+  will-change:opacity,filter,transform;
+}
+.ghost-phone .phone{
+  background:#E8EAED;
+}
+.ghost-phone .phone-screen{
+  background:var(--surface-dim);
+}
+.ghost-tv{
+  opacity:0.1;
+  filter:blur(2px);
+  transition:opacity 1.5s var(--ease-out-expo),filter 1.5s var(--ease-out-expo),transform 1.5s var(--ease-out-expo);
+  transform:scale(0.95);
+  will-change:opacity,filter,transform;
+}
+.ghost-tv .tv{
+  background:#E8EAED;
+  width:360px;
+}
+.ghost-tv .tv-screen{
+  background:#F1F3F4;
+}
+.ghost-card{
+  border:2px dashed var(--border);
+  background:transparent;
+  border-radius:var(--radius-sm);
+  height:48px;
+  margin:6px 16px;
+}
+.stage--5.in-view .ghost-phone{
+  opacity:0.08;
+  filter:blur(3px);
+  transform:scale(0.92);
+}
+.stage--5.in-view .ghost-tv{
+  opacity:0.04;
+  filter:blur(4px);
+  transform:scale(0.88);
+}
+
+/* ============================================
+   BRAIN LEGACY (Stage 6)
+   ============================================ */
+.brain-container{
+  position:relative;
+  width:320px;
+  height:320px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.brain-icon{
+  width:80px;height:80px;
+  background:linear-gradient(135deg,#E8EAF6,#C5CAE9);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 4px 24px rgba(57,73,171,0.15);
+  z-index:2;
+  position:relative;
+}
+.brain-icon svg{width:40px;height:40px;fill:#3949AB}
+.learning-tag{
+  position:absolute;
+  padding:8px 16px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:500;
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  white-space:nowrap;
+  opacity:0;
+  transition:opacity 0.8s var(--ease-out-expo),transform 0.8s var(--ease-out-expo);
+  will-change:opacity;
+}
+.stage--6.in-view .learning-tag{opacity:1}
+.learning-tag:nth-child(2){top:20px;left:50%;transform:translateX(-50%);transition-delay:0.1s}
+.learning-tag:nth-child(3){top:50%;right:-20px;transform:translateY(-50%);transition-delay:0.3s}
+.learning-tag:nth-child(4){bottom:20px;left:50%;transform:translateX(-50%);transition-delay:0.5s}
+.learning-tag:nth-child(5){top:50%;left:-20px;transform:translateY(-50%);transition-delay:0.7s}
+.learning-tag:nth-child(6){top:60px;right:0;transition-delay:0.4s}
+.learning-tag:nth-child(7){bottom:60px;left:0;transition-delay:0.6s}
+
+/* ============================================
+   ONE-HAND BADGE
+   ============================================ */
+.mode-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:10px;
+  font-weight:500;
+  background:rgba(249,171,0,0.1);
+  color:#E37400;
+  border:1px solid rgba(249,171,0,0.2);
+}
+
+/* ============================================
+   HAND OVERLAY
+   ============================================ */
+.hand-zone-overlay{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:40%;
+  background:linear-gradient(180deg,rgba(0,0,0,0.04) 0%,transparent 100%);
+  border-radius:30px 30px 0 0;
+  z-index:5;
+  pointer-events:none;
+}
+
+/* ============================================
+   TV+REMOTE LAYOUT
+   ============================================ */
+.tv-remote-layout{
+  display:flex;
+  align-items:flex-start;
+  gap:24px;
+  max-width:100%;
+  transform:scale(0.65);
+  transform-origin:center center;
+}
+
+/* ============================================
+   SCROLL-DRIVEN ANIMATIONS FOR TRANSFORM
+   ============================================ */
+.transform-content{
+  position:relative;
+  width:100%;
+  height:calc(100vh - 160px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.transform-scene{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transition:opacity 0.6s var(--ease-out-expo);
+  pointer-events:none;
+  overflow:visible;
+  will-change:opacity;
+}
+.transform-scene.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* Transform text panels */
+.stage--tall .stage-text{
+  position:relative;
+}
+.transform-text-panel{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  opacity:0;
+  transition:opacity 0.5s var(--ease-out-expo);
+  pointer-events:none;
+}
+.transform-text-panel.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* ============================================
+   PRICE-HIDDEN NOTE
+   ============================================ */
+.price-note{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:12px;
+  padding:8px 12px;
+  border-radius:8px;
+  background:rgba(123,31,162,0.06);
+  border:1px solid rgba(123,31,162,0.12);
+}
+.price-note svg{width:16px;height:16px;fill:#7B1FA2;flex-shrink:0}
+.price-note span{font-size:12px;color:#6A1B9A}
+
+/* ============================================
+   PAGE TITLE
+   ============================================ */
+.page-header{
+  min-height:60vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:120px 48px 80px;
+  scroll-snap-align:start;
+}
+.page-header .kicker{
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text-tertiary);
+  margin-bottom:16px;
+}
+.page-header h1{
+  font-size:56px;
+  font-weight:400;
+  letter-spacing:-1.5px;
+  line-height:1.15;
+  margin-bottom:20px;
+  max-width:640px;
+}
+.page-header h1 em{
+  font-style:normal;
+  color:var(--primary);
+}
+.page-header .subtitle{
+  font-size:18px;
+  color:var(--text-secondary);
+  max-width:480px;
+  line-height:1.6;
+}
+
+/* ============================================
+   SCROLL PROGRESS
+   ============================================ */
+.scroll-progress{
+  position:fixed;
+  top:0;left:0;right:0;
+  height:3px;
+  background:transparent;
+  z-index:1000;
+}
+.scroll-progress .bar{
+  height:100%;
+  width:0%;
+  background:var(--primary);
+  transition:width 0.1s linear;
+}
+
+/* ============================================
+   STAGE INDICATOR
+   ============================================ */
+.stage-nav{
+  position:fixed;
+  right:24px;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  z-index:100;
+}
+.stage-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--border);
+  transition:background 0.2s var(--ease),transform 0.2s var(--ease);
+  cursor:pointer;
+  border:none;
+  padding:0;
+}
+.stage-dot.active{
+  background:var(--primary);
+  transform:scale(1.4);
+}
+.stage-dot:active{
+  transform:scale(0.9);
+}
+
+/* ============================================
+   ACTIVE FEEDBACK
+   ============================================ */
+.notification-actions button:active{
+  transform:scale(0.96);
+}
+.remote-buy:active{
+  transform:scale(0.96);
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media(max-width:1024px){
+  .stage-inner{
+    flex-direction:column;
+    gap:40px;
+  }
+  .stage-text{
+    flex:none;
+    max-width:100%;
+    text-align:center;
+  }
+  .tokens{justify-content:center}
+  .stage{padding:60px 24px}
+  .tv{width:100%;max-width:500px}
+  .tv-remote-layout{flex-direction:column;align-items:center}
+  .page-header h1{font-size:40px}
+  .stage-nav{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Scroll Progress -->
+<div class="scroll-progress"><div class="bar" id="progressBar"></div></div>
+
+<!-- Stage Nav Dots -->
+<nav class="stage-nav" id="stageNav">
+  <button class="stage-dot active" data-stage="0" aria-label="Intro"></button>
+  <button class="stage-dot" data-stage="1" aria-label="Trigger"></button>
+  <button class="stage-dot" data-stage="2" aria-label="Born"></button>
+  <button class="stage-dot" data-stage="3" aria-label="Transform"></button>
+  <button class="stage-dot" data-stage="4" aria-label="Purpose Served"></button>
+  <button class="stage-dot" data-stage="5" aria-label="Dies"></button>
+  <button class="stage-dot" data-stage="6" aria-label="Legacy"></button>
+</nav>
+
+<!-- ============================
+     HEADER
+     ============================ -->
+<header class="page-header" id="stage-0">
+  <p class="kicker">Context Grammar / Concept 04</p>
+  <h1>Interfaces that <em>live</em>, transform, and <em>vanish</em></h1>
+  <p class="subtitle">A father needs winter shoes for his son. Watch the UI come alive, shift across three devices, and dissolve after purchase.</p>
+</header>
+
+<!-- ============================
+     STAGE 1 — TRIGGER
+     ============================ -->
+<section class="stage stage--1" id="stage-1">
+  <div class="stage-inner">
+    <div class="stage-visual">
+      <div class="phone" id="phone-trigger">
+        <div class="notch"></div>
+        <div class="phone-screen">
+          <div class="status-bar">
+            <span class="time">8:42</span>
+            <span class="icons">
+              <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="currentColor"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="phone-content" style="justify-content:flex-start">
+            <div class="notification">
+              <div class="gemini-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.18l6 3V17l-6 3-6-3V7.18l6-3z"/></svg>
+              </div>
+              <div class="notification-text">
+                <div class="app-name">Gemini</div>
+                <div class="message">
+                  <span class="shoe-emoji">&#x1F45F;</span> Your son's shoes are running small. Time to size up?
+                </div>
+                <div class="notification-actions">
+                  <button class="btn-primary">Find options</button>
+                  <button class="btn-secondary">Later</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="stage-text">
+      <div class="stage-label"><span class="num">1</span> Trigger</div>
+      <h2 class="stage-heading">The moment<br>intent surfaces</h2>
+      <p class="stage-body">The system detects a signal: purchase history shows the last pair was bought 8 months ago and the child has grown two sizes since. <strong>A proactive nudge</strong> surfaces without any search or app launch.</p>
+      <div class="tokens">
+        <span class="token"><span class="dot dot--intent"></span>Intent</span>
+        <span class="token"><span class="dot dot--priority"></span>Priority Weight</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     STAGE 2 — BORN
+     ============================ -->
+<section class="stage stage--2" id="stage-2">
+  <div class="stage-inner">
+    <div class="stage-visual">
+      <div class="phone" id="phone-born">
+        <div class="notch"></div>
+        <div class="phone-screen">
+          <div class="status-bar">
+            <span class="time">8:42</span>
+            <span class="icons">
+              <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="currentColor"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="phone-content">
+            <div class="card-header">
+              <div class="gemini-small"></div>
+              Winter Boots for Marcus
+            </div>
+
+            <div class="product-card" data-delay="0">
+              <div class="product-img">
+                <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB 6">
+              </div>
+              <div class="product-info">
+                <div class="product-name">Nike SFB 6" NSW Leather</div>
+                <div class="product-price">$89.99</div>
+                <div class="confidence-bar"><div class="fill fill--high" style="width:0%"></div></div>
+                <div class="confidence-label"><span>Confidence</span><span>92%</span></div>
+                <div class="product-meta">Free delivery Fri, Apr 4</div>
+              </div>
+            </div>
+
+            <div class="product-card" data-delay="150">
+              <div class="product-img">
+                <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex Free Hiker">
+              </div>
+              <div class="product-info">
+                <div class="product-name">Adidas Terrex Free Hiker 2.0</div>
+                <div class="product-price">$109.99</div>
+                <div class="confidence-bar"><div class="fill fill--med" style="width:0%"></div></div>
+                <div class="confidence-label"><span>Confidence</span><span>78%</span></div>
+                <div class="product-meta">Free delivery Mon, Apr 7</div>
+              </div>
+            </div>
+
+            <div class="product-card" data-delay="300">
+              <div class="product-img">
+                <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack Hiker Mid">
+              </div>
+              <div class="product-info">
+                <div class="product-name">TNF Fastpack Hiker Mid WP</div>
+                <div class="product-price">$74.99</div>
+                <div class="confidence-bar"><div class="fill fill--low" style="width:0%"></div></div>
+                <div class="confidence-label"><span>Confidence</span><span>65%</span></div>
+                <div class="product-meta">Free delivery Tue, Apr 8</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="stage-text">
+      <div class="stage-label"><span class="num">2</span> Born</div>
+      <h2 class="stage-heading">A comparison board<br>spawns instantly</h2>
+      <p class="stage-body">Tap "Find options" and a <strong>disposable comparison UI</strong> materializes. No app store. No sign-in. Three curated options ranked by the Brain's learned preferences: waterproof, cushioned, within budget.</p>
+      <div class="tokens">
+        <span class="token"><span class="dot dot--intent"></span>Intent</span>
+        <span class="token"><span class="dot dot--autonomy"></span>Autonomy Dial</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     STAGE 3 — TRANSFORM (300vh hero)
+     ============================ -->
+<section class="stage stage--3 stage--tall" id="stage-3">
+  <div class="stage-inner">
+    <div class="stage-visual">
+      <div class="transform-content" id="transformContent">
+
+        <!-- Scene A: Full Browse -->
+        <div class="transform-scene active" id="scene-a">
+          <div class="phone" id="phone-browse">
+            <div class="notch"></div>
+            <div class="phone-screen">
+              <div class="status-bar">
+                <span class="time">8:43</span>
+                <span class="icons">
+                  <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="currentColor"/></svg>
+                  <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z" fill="currentColor"/></svg>
+                </span>
+              </div>
+              <div class="phone-content">
+                <div class="card-header">
+                  <div class="gemini-small"></div>
+                  Winter Boots for Marcus
+                </div>
+                <div class="browse-card">
+                  <div class="browse-img">
+                    <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB">
+                  </div>
+                  <div class="browse-details">
+                    <div class="browse-name">Nike SFB 6" NSW Leather</div>
+                    <div class="browse-row">
+                      <span class="browse-price">$89.99</span>
+                      <span class="browse-confidence">92% match</span>
+                    </div>
+                    <div class="browse-meta">Waterproof, cushioned midsole. Free delivery Fri.</div>
+                  </div>
+                </div>
+                <div class="browse-card">
+                  <div class="browse-img">
+                    <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex">
+                  </div>
+                  <div class="browse-details">
+                    <div class="browse-name">Adidas Terrex Free Hiker 2.0</div>
+                    <div class="browse-row">
+                      <span class="browse-price">$109.99</span>
+                      <span class="browse-confidence">78% match</span>
+                    </div>
+                    <div class="browse-meta">Gore-Tex, continental sole. Delivery Mon.</div>
+                  </div>
+                </div>
+                <div class="browse-card">
+                  <div class="browse-img">
+                    <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack">
+                  </div>
+                  <div class="browse-details">
+                    <div class="browse-name">TNF Fastpack Hiker Mid WP</div>
+                    <div class="browse-row">
+                      <span class="browse-price">$74.99</span>
+                      <span class="browse-confidence">65% match</span>
+                    </div>
+                    <div class="browse-meta">Lightweight, waterproof. Delivery Tue.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="home-bar"></div>
+          </div>
+        </div>
+
+        <!-- Scene B: One-hand Mode -->
+        <div class="transform-scene" id="scene-b">
+          <div class="phone" id="phone-onehand" style="transform:rotate(2deg)">
+            <div class="notch"></div>
+            <div class="phone-screen">
+              <div class="hand-zone-overlay"></div>
+              <div class="status-bar">
+                <span class="time">8:51</span>
+                <span class="icons">
+                  <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="currentColor"/></svg>
+                  <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z" fill="currentColor"/></svg>
+                </span>
+              </div>
+              <div class="phone-content" style="justify-content:flex-end;padding-top:40px">
+                <div style="flex:1"></div>
+                <div style="padding:0 4px 0;">
+                  <div class="mode-badge" style="margin-bottom:12px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 00-4 0M14 11V4a2 2 0 00-4 0v7M10 10.5V5a2 2 0 00-4 0v9"/><path d="M18 11a2 2 0 014 0v3a8 8 0 01-8 8h-2c-2.5 0-4-1-6.5-3.5L4 17"/></svg>
+                    One-hand Mode
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <div class="compact-card">
+                      <div class="compact-img">
+                        <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB">
+                      </div>
+                      <div class="compact-info">
+                        <div class="compact-name">Nike SFB 6"</div>
+                        <div class="compact-row">
+                          <span class="compact-price">$89.99</span>
+                          <span class="compact-conf">92%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="compact-card">
+                      <div class="compact-img">
+                        <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex">
+                      </div>
+                      <div class="compact-info">
+                        <div class="compact-name">Adidas Terrex 2.0</div>
+                        <div class="compact-row">
+                          <span class="compact-price">$109.99</span>
+                          <span class="compact-conf">78%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="compact-card">
+                      <div class="compact-img">
+                        <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack">
+                      </div>
+                      <div class="compact-info">
+                        <div class="compact-name">TNF Fastpack Mid</div>
+                        <div class="compact-row">
+                          <span class="compact-price">$74.99</span>
+                          <span class="compact-conf">65%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="home-bar"></div>
+          </div>
+        </div>
+
+        <!-- Scene C: TV + Remote -->
+        <div class="transform-scene" id="scene-c">
+          <div class="tv-remote-layout">
+            <div class="tv">
+              <div class="tv-screen">
+                <div class="tv-header">
+                  <div class="tv-gemini"></div>
+                  <span class="tv-title">Pick your new boots!</span>
+                </div>
+                <div class="tv-grid">
+                  <div class="tv-card tv-card--focused">
+                    <div class="tv-card-img">
+                      <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB">
+                    </div>
+                    <div class="tv-card-label">
+                      <div class="tv-card-name">Nike SFB 6"</div>
+                      <div class="tv-card-tag">Water-resistant! &#x1F327;&#xFE0F;</div>
+                    </div>
+                  </div>
+                  <div class="tv-card">
+                    <div class="tv-card-img">
+                      <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex">
+                    </div>
+                    <div class="tv-card-label">
+                      <div class="tv-card-name">Adidas Terrex</div>
+                      <div class="tv-card-tag">Super comfy! &#x2601;&#xFE0F;</div>
+                    </div>
+                  </div>
+                  <div class="tv-card">
+                    <div class="tv-card-img">
+                      <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack">
+                    </div>
+                    <div class="tv-card-label">
+                      <div class="tv-card-name">TNF Fastpack</div>
+                      <div class="tv-card-tag">Great for running! &#x1F3C3;</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Remote phone -->
+            <div class="remote-phone">
+              <div class="phone">
+                <div class="notch"></div>
+                <div class="phone-screen">
+                  <div class="status-bar" style="padding-top:28px">
+                    <span class="time">7:15</span>
+                    <span class="icons">
+                      <svg viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="currentColor"/></svg>
+                    </span>
+                  </div>
+                  <div class="dpad-container">
+                    <div style="font-size:10px;color:var(--text-tertiary);font-weight:500;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px">TV Remote</div>
+                    <div class="dpad">
+                      <div class="dpad-corner"></div>
+                      <div class="dpad-btn dpad-up"><svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg></div>
+                      <div class="dpad-corner2"></div>
+                      <div class="dpad-btn dpad-left"><svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5z"/></svg></div>
+                      <div class="dpad-btn dpad-ok">OK</div>
+                      <div class="dpad-btn dpad-right"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5z"/></svg></div>
+                      <div class="dpad-corner3"></div>
+                      <div class="dpad-btn dpad-down"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div>
+                      <div class="dpad-corner4"></div>
+                    </div>
+                    <div style="width:100%;height:1px;background:var(--border-light);margin:4px 0"></div>
+                    <div class="remote-detail">
+                      <div class="remote-product-img">
+                        <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB">
+                      </div>
+                      <div class="remote-name">Nike SFB 6" NSW Leather</div>
+                      <div class="remote-price">$89.99</div>
+                      <button class="remote-buy">Buy</button>
+                      <div class="remote-note">
+                        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                        <span>Price visible only on parent's phone</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="home-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="stage-text">
+      <!-- Text panels that swap with scroll -->
+      <div class="transform-text-panel active" id="text-a">
+        <div class="stage-label"><span class="num">3</span> Transform</div>
+        <h2 class="stage-heading">Full Browse</h2>
+        <p class="stage-body">At the kitchen table, <strong>full detail mode</strong>. Large product images, review summaries, price comparisons, delivery estimates. Every data point visible for a deliberate decision.</p>
+        <div class="tokens">
+          <span class="token"><span class="dot dot--form"></span>Form Factor</span>
+          <span class="token"><span class="dot dot--cognitive"></span>Cognitive Load</span>
+        </div>
+      </div>
+      <div class="transform-text-panel" id="text-b">
+        <div class="stage-label"><span class="num">3</span> Transform</div>
+        <h2 class="stage-heading">One-hand Mode</h2>
+        <p class="stage-body">Dad steps onto the train. The accelerometer detects motion, the grip shifts to single-hand. Cards <strong>compress and slide into the thumb zone</strong>. Only the essentials: image thumbnail, price, confidence score. The top 40% of the screen goes quiet.</p>
+        <div class="tokens">
+          <span class="token"><span class="dot dot--physical"></span>Physical State</span>
+          <span class="token"><span class="dot dot--form"></span>Form Factor</span>
+        </div>
+      </div>
+      <div class="transform-text-panel" id="text-c">
+        <div class="stage-label"><span class="num">3</span> Transform</div>
+        <h2 class="stage-heading">TV + Remote</h2>
+        <p class="stage-body">Evening. The family gathers in the living room. The UI <strong>migrates to the TV</strong> with kid-friendly labels and big photos. The son browses with the D-pad. <strong>Prices stay hidden on the parent's phone</strong> -- the Social Exposure token shapes what each person sees.</p>
+        <div class="tokens">
+          <span class="token"><span class="dot dot--social"></span>Social Exposure</span>
+          <span class="token"><span class="dot dot--form"></span>Form Factor</span>
+          <span class="token"><span class="dot dot--autonomy"></span>Autonomy Dial</span>
+        </div>
+        <div class="price-note">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          <span>Disclosure Dial controls what the TV can access. Price data is gated to parent's device only.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     STAGE 4 — PURPOSE SERVED
+     ============================ -->
+<section class="stage stage--4" id="stage-4">
+  <div class="stage-inner">
+    <div class="stage-visual">
+      <div class="phone" id="phone-complete">
+        <div class="notch"></div>
+        <div class="phone-screen">
+          <div class="status-bar">
+            <span class="time">7:22</span>
+            <span class="icons">
+              <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" fill="currentColor"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z" fill="currentColor"/></svg>
+            </span>
+          </div>
+          <div class="completion">
+            <div class="check-circle">
+              <svg viewBox="0 0 72 72">
+                <circle class="circle" cx="36" cy="36" r="32"/>
+                <polyline class="check" points="22,36 32,46 50,28"/>
+              </svg>
+            </div>
+            <div class="completion-title">Purchase Complete</div>
+            <div class="completion-product">Nike SFB 6" NSW Leather -- Size 3Y</div>
+            <div class="completion-date">Arriving Friday, Apr 4</div>
+            <div class="progress-track">
+              <div class="progress-fill"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px">Order confirmed</div>
+          </div>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+    <div class="stage-text">
+      <div class="stage-label"><span class="num">4</span> Purpose Served</div>
+      <h2 class="stage-heading">Mission<br>accomplished</h2>
+      <p class="stage-body">The son picks the Nike SFB. Dad taps Buy on his phone. <strong>The interface has fulfilled its single purpose.</strong> A confirmation card appears, delivery tracking begins. There is nothing left to do here.</p>
+      <div class="tokens">
+        <span class="token"><span class="dot dot--intent"></span>Intent (resolved)</span>
+        <span class="token"><span class="dot dot--autonomy"></span>Autonomy Dial</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     STAGE 5 — DIES
+     ============================ -->
+<section class="stage stage--5" id="stage-5">
+  <div class="stage-inner">
+    <div class="stage-visual">
+      <div class="ghost-container">
+        <div class="ghost-phone">
+          <div class="phone" style="width:180px;height:360px">
+            <div class="phone-screen" style="border-radius:22px">
+              <div class="ghost-card"></div>
+              <div class="ghost-card"></div>
+              <div class="ghost-card"></div>
+            </div>
+          </div>
+        </div>
+        <div class="ghost-tv">
+          <div class="tv" style="width:360px">
+            <div class="tv-screen" style="padding:16px">
+              <div style="display:flex;gap:12px">
+                <div style="flex:1;height:80px;border:2px dashed #DADCE0;border-radius:8px"></div>
+                <div style="flex:1;height:80px;border:2px dashed #DADCE0;border-radius:8px"></div>
+                <div style="flex:1;height:80px;border:2px dashed #DADCE0;border-radius:8px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stage-text">
+      <div class="stage-label"><span class="num">5</span> Dies</div>
+      <h2 class="stage-heading">No app to close.<br>No tab to remember.</h2>
+      <p class="stage-body">The comparison board dissolves. The TV card vanishes. The remote UI evaporates. <strong>There is no dead app icon, no orphaned bookmark, no unread notification.</strong> The interface was born from intent, and intent is gone.</p>
+      <div class="tokens">
+        <span class="token"><span class="dot dot--intent"></span>Intent (none)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================
+     STAGE 6 — LEGACY
+     ============================ -->
+<section class="stage stage--6" id="stage-6">
+  <div class="stage-inner">
+    <div class="stage-visual">
+      <div class="brain-container">
+        <div class="brain-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
+        <div class="learning-tag" style="color:#1E8E3E">"fluffy" = cushioned midsole</div>
+        <div class="learning-tag" style="color:var(--primary)">Prefers waterproof</div>
+        <div class="learning-tag" style="color:#7B1FA2">Nike SFB: good fit for Marcus</div>
+        <div class="learning-tag" style="color:var(--coral)">Budget ceiling ~$100</div>
+        <div class="learning-tag" style="color:#00897B">Family co-browse works well</div>
+        <div class="learning-tag" style="color:#3949AB">Confidence +12% next time</div>
+      </div>
+    </div>
+    <div class="stage-text">
+      <div class="stage-label"><span class="num">6</span> Legacy</div>
+      <h2 class="stage-heading">The UI vanishes.<br>The Brain remembers.</h2>
+      <p class="stage-body">Every interaction feeds back into the Brain's Accumulated Learning layer. Preference signals, co-browse patterns, substitution tolerance. <strong>Next time, the system starts smarter.</strong> The interface was disposable. The intelligence is permanent.</p>
+      <div class="tokens">
+        <span class="token"><span class="dot dot--autonomy"></span>Autonomy Dial</span>
+        <span class="token"><span class="dot" style="background:#3949AB"></span>Brain</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer spacer -->
+<div style="height:20vh"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ==========================================
+  // SCROLL PROGRESS BAR
+  // ==========================================
+  const progressBar = document.getElementById('progressBar');
+  function updateProgress(){
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+
+  // ==========================================
+  // STAGE NAV DOTS
+  // ==========================================
+  const stages = document.querySelectorAll('[id^="stage-"]');
+  const dots = document.querySelectorAll('.stage-dot');
+
+  function updateNav(){
+    let activeIdx = 0;
+    const scrollY = window.scrollY + window.innerHeight * 0.4;
+    stages.forEach(function(s, i){
+      if(scrollY >= s.offsetTop) activeIdx = i;
+    });
+    dots.forEach(function(d, i){
+      d.classList.toggle('active', i === activeIdx);
+    });
+  }
+
+  dots.forEach(function(d){
+    d.addEventListener('click', function(){
+      const idx = parseInt(this.dataset.stage);
+      if(stages[idx]) stages[idx].scrollIntoView({behavior:'smooth'});
+    });
+  });
+
+  // ==========================================
+  // INTERSECTION OBSERVER — general in-view
+  // ==========================================
+  const inViewObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('in-view');
+      }
+    });
+  }, {threshold:0.3});
+
+  document.querySelectorAll('.stage').forEach(function(s){
+    inViewObserver.observe(s);
+  });
+
+  // ==========================================
+  // PRODUCT CARD STAGGER (Stage 2)
+  // ==========================================
+  const cardObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        const cards = entry.target.querySelectorAll('.product-card');
+        cards.forEach(function(card, i){
+          const delay = parseInt(card.dataset.delay || 0);
+          setTimeout(function(){
+            card.classList.add('visible');
+            // Animate confidence bars
+            const fill = card.querySelector('.confidence-bar .fill');
+            if(fill){
+              const widths = [92, 78, 65];
+              fill.style.width = widths[i] + '%';
+            }
+          }, 200 + delay);
+        });
+      }
+    });
+  }, {threshold:0.4});
+
+  const stage2 = document.getElementById('stage-2');
+  if(stage2) cardObserver.observe(stage2);
+
+  // ==========================================
+  // TRANSFORM SECTION — scroll-driven scenes
+  // ==========================================
+  const stage3 = document.getElementById('stage-3');
+  const scenes = [
+    document.getElementById('scene-a'),
+    document.getElementById('scene-b'),
+    document.getElementById('scene-c')
+  ];
+  const texts = [
+    document.getElementById('text-a'),
+    document.getElementById('text-b'),
+    document.getElementById('text-c')
+  ];
+
+  function updateTransform(){
+    if(!stage3) return;
+    const rect = stage3.getBoundingClientRect();
+    const stageH = stage3.offsetHeight;
+    const viewH = window.innerHeight;
+
+    // How far scrolled into this stage (0 = just entered, 1 = about to leave)
+    const scrolled = -rect.top / (stageH - viewH);
+    const progress = Math.max(0, Math.min(1, scrolled));
+
+    // 3 scenes: 0-0.3 = A, 0.3-0.65 = B, 0.65-1 = C
+    let activeScene = 0;
+    if(progress > 0.6) activeScene = 2;
+    else if(progress > 0.28) activeScene = 1;
+
+    scenes.forEach(function(s, i){
+      if(s) s.classList.toggle('active', i === activeScene);
+    });
+    texts.forEach(function(t, i){
+      if(t) t.classList.toggle('active', i === activeScene);
+    });
+  }
+
+  // ==========================================
+  // SCROLL HANDLER
+  // ==========================================
+  let ticking = false;
+  window.addEventListener('scroll', function(){
+    if(!ticking){
+      requestAnimationFrame(function(){
+        updateProgress();
+        updateNav();
+        updateTransform();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // Init
+  updateProgress();
+  updateNav();
+  updateTransform();
+
+})();
+</script>
+</body>
+</html>

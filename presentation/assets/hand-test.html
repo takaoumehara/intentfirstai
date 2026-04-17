@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Hand + Phone — Native Scale Composer</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #D8D8D8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 40px;
+  padding: 32px 40px;
+  font-family: -apple-system, system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Stage ── */
+.stage-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  position: sticky;
+  top: 32px;
+}
+.stage-meta {
+  font-size: 10px; color: #888; font-family: monospace;
+  display: flex; gap: 16px;
+}
+
+/* Outer clip box — fixed display size */
+.stage-viewport {
+  width: 420px;
+  height: 560px;
+  overflow: hidden;
+  position: relative;
+  background:
+    repeating-conic-gradient(#c0c0c0 0% 25%, #d8d8d8 0% 50%)
+    0 0 / 12px 12px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* Native-size composition — scale applied here */
+.composition {
+  position: absolute;
+  top: 0; left: 0;
+  /* Native canvas = 800 × 1050px (all elements at 1:1) */
+  width: 800px;
+  height: 1050px;
+  transform-origin: top left;
+  /* --scale is set by JS */
+  transform: scale(var(--scale, 0.42));
+}
+
+.layer {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Phone mock — native size: 390 × 844px */
+.phone-mock {
+  width: 390px; height: 844px;
+  border-radius: 48px;
+  background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+  padding: 11px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+}
+.phone-notch {
+  position: absolute;
+  top: 14px; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 34px;
+  background: #1a1a1c; border-radius: 17px; z-index: 10;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  border-radius: 38px;
+  background: #fff; overflow: hidden;
+}
+.phone-screen iframe {
+  width: 390px; height: 844px;
+  border: none; display: block;
+  pointer-events: none;
+}
+
+/* ── Controls ── */
+.controls {
+  width: 360px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 10px;
+  max-height: 90vh; overflow-y: auto;
+  padding-right: 4px;
+}
+.controls::-webkit-scrollbar { width: 4px; }
+.controls::-webkit-scrollbar-thumb { background: #bbb; border-radius: 2px; }
+
+/* Global scale section */
+.scale-section {
+  background: #111; color: #fff;
+  border-radius: 12px; padding: 14px 16px;
+}
+.scale-section h3 {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 12px;
+  color: rgba(255,255,255,0.6);
+}
+.scale-big {
+  font-size: 36px; font-family: monospace; font-weight: 700;
+  color: #f9c74f; letter-spacing: -1px;
+  line-height: 1;
+}
+.scale-info {
+  font-size: 10px; color: rgba(255,255,255,0.4);
+  margin-top: 4px; font-family: monospace;
+}
+
+.section {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.section-head {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 10px;
+}
+.section-title {
+  font-size: 11px; font-weight: 700; color: #222;
+  display: flex; align-items: center; gap: 8px;
+}
+.z-badge {
+  font-family: monospace; font-size: 10px;
+  padding: 2px 7px; border-radius: 4px;
+  background: #f0f0f0; color: #666;
+  border: 1px solid #ddd; min-width: 44px; text-align: center;
+}
+.eye-btn {
+  font-size: 14px; cursor: pointer; background: none; border: none;
+  color: #888; padding: 2px 4px; line-height: 1;
+}
+.z-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.z-row > label { font-size: 10px; color: #999; width: 52px; flex-shrink: 0; }
+.z-btns { display: flex; gap: 3px; }
+.z-btn {
+  width: 32px; height: 24px; border-radius: 5px;
+  border: 1px solid #ddd; background: #f8f8f8;
+  font-size: 11px; font-family: monospace; cursor: pointer; color: #555;
+}
+.z-btn.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+.ctrl-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+}
+.ctrl-row > label { width: 40px; font-size: 10px; color: #999; flex-shrink: 0; }
+.ctrl-row input[type=range] { flex: 1; accent-color: #1a73e8; }
+.ctrl-val {
+  width: 38px; text-align: right;
+  font-family: monospace; font-size: 10px; color: #333; flex-shrink: 0;
+}
+.svg-dim { font-size: 9px; color: #bbb; font-family: monospace; }
+.svg-thumb {
+  width: 28px; height: 28px;
+  border: 1px solid #eee; border-radius: 3px;
+  object-fit: contain; background: #f5f5f5; flex-shrink: 0;
+}
+
+/* Output */
+.output-box {
+  background: #111; border-radius: 8px;
+  padding: 12px 14px;
+  font-family: 'Menlo', monospace; font-size: 10px;
+  line-height: 1.8; color: #a8f0a0;
+  white-space: pre; overflow-x: auto;
+  max-height: 260px; overflow-y: auto;
+}
+.copy-btn {
+  margin-top: 8px; padding: 6px 16px;
+  border-radius: 6px; background: #1a73e8; color: #fff;
+  font-size: 11px; font-weight: 600; cursor: pointer; border: none;
+}
+.copy-btn:hover { background: #1558b0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-a { background: #e8710a; }
+.dot-b { background: #1a73e8; }
+.dot-c { background: #1e8e3e; }
+.dot-d { background: #8e24aa; }
+</style>
+</head>
+<body>
+
+<!-- ── Stage ── -->
+<div class="stage-wrap">
+  <div class="stage-meta">
+    <span>Native canvas: 800 × 1050px</span>
+    <span id="meta-scale">Display: 42%</span>
+    <span id="meta-output">Output: 42%</span>
+  </div>
+  <div class="stage-viewport">
+    <div class="composition" id="comp">
+
+      <!-- Layer A: Wrist (624×302) — behind phone -->
+      <img id="la-el" class="layer"
+           src="SVG/onehand-wrist.svg"
+           style="z-index:0; left:40px; top:640px; width:624px;">
+
+      <!-- Layer B: Phone (390×844) -->
+      <div id="lb-el" class="layer"
+           style="z-index:1; left:160px; top:20px; width:390px; height:844px;">
+        <div class="phone-mock">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <iframe src="../../ui-screens/p3/p3-01-browse.html" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer C: Thumb (278×793) — front of screen -->
+      <img id="lc-el" class="layer"
+           src="SVG/onehand-thumb.svg"
+           style="z-index:2; left:380px; top:80px; width:278px;">
+
+      <!-- Layer D: Fingers (104×480) — left grip -->
+      <img id="ld-el" class="layer"
+           src="SVG/onehand-left.svg"
+           style="z-index:0; left:100px; top:220px; width:104px;">
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Controls ── -->
+<div class="controls">
+
+  <!-- Global scale -->
+  <div class="scale-section">
+    <h3>🔢 Global Scale — 全体を拡縮</h3>
+    <div class="ctrl-row" style="margin-bottom:8px;">
+      <label style="color:rgba(255,255,255,0.5);">Scale</label>
+      <input type="range" id="global-scale" min="20" max="100" value="42"
+             style="accent-color:#f9c74f;" oninput="updateScale()">
+      <span class="ctrl-val" id="global-scale-v" style="color:#f9c74f; width:44px;">42%</span>
+    </div>
+    <div class="scale-big" id="scale-big">42%</div>
+    <div class="scale-info" id="scale-info">Display size: 336 × 441px (native 800×1050)</div>
+    <div style="margin-top:10px; font-size:10px; color:rgba(255,255,255,0.35); line-height:1.6;">
+      スライダーを動かすと全SVG・電話が<br>
+      比率を保ったまま同時に拡縮します
+    </div>
+  </div>
+
+  <!-- Layer A: Wrist -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="dot dot-a"></span>
+        <img src="SVG/onehand-wrist.svg" class="svg-thumb">
+        <span>Layer A — Wrist</span>
+        <span class="svg-dim">624×302</span>
+        <span id="la-zbadge" class="z-badge">z:0</span>
+      </div>
+      <button class="eye-btn" onclick="toggleVis('a')" id="eye-a" title="Toggle visibility">👁</button>
+    </div>
+    <div class="z-row">
+      <label>z-index</label>
+      <div class="z-btns" id="la-zbtns">
+        <button class="z-btn active" onclick="setZ('a',0)">0</button>
+        <button class="z-btn" onclick="setZ('a',1)">1</button>
+        <button class="z-btn" onclick="setZ('a',2)">2</button>
+        <button class="z-btn" onclick="setZ('a',3)">3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Left</label>
+      <input type="range" id="la-left" min="-200" max="600" value="40" oninput="update()">
+      <span class="ctrl-val" id="la-left-v">40</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Top</label>
+      <input type="range" id="la-top" min="-100" max="1000" value="640" oninput="update()">
+      <span class="ctrl-val" id="la-top-v">640</span>
+    </div>
+    <div style="font-size:10px; color:#bbb; margin-top:4px;">
+      Width固定 = SVGネイティブ幅 624px を維持
+    </div>
+  </div>
+
+  <!-- Layer B: Phone -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="dot dot-b"></span>
+        📱
+        <span>Layer B — Phone</span>
+        <span class="svg-dim">390×844 (native iframe)</span>
+        <span id="lb-zbadge" class="z-badge" style="background:#1a73e8;color:#fff;border-color:#1a73e8;">z:1</span>
+      </div>
+    </div>
+    <div class="z-row">
+      <label>z-index</label>
+      <div class="z-btns" id="lb-zbtns">
+        <button class="z-btn" onclick="setZ('b',0)">0</button>
+        <button class="z-btn active" onclick="setZ('b',1)">1</button>
+        <button class="z-btn" onclick="setZ('b',2)">2</button>
+        <button class="z-btn" onclick="setZ('b',3)">3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Left</label>
+      <input type="range" id="lb-left" min="-100" max="600" value="160" oninput="update()">
+      <span class="ctrl-val" id="lb-left-v">160</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Top</label>
+      <input type="range" id="lb-top" min="-100" max="300" value="20" oninput="update()">
+      <span class="ctrl-val" id="lb-top-v">20</span>
+    </div>
+  </div>
+
+  <!-- Layer C: Thumb -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="dot dot-c"></span>
+        <img src="SVG/onehand-thumb.svg" class="svg-thumb">
+        <span>Layer C — Thumb</span>
+        <span class="svg-dim">278×793</span>
+        <span id="lc-zbadge" class="z-badge" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e;">z:2</span>
+      </div>
+      <button class="eye-btn" onclick="toggleVis('c')" id="eye-c">👁</button>
+    </div>
+    <div class="z-row">
+      <label>z-index</label>
+      <div class="z-btns" id="lc-zbtns">
+        <button class="z-btn" onclick="setZ('c',0)">0</button>
+        <button class="z-btn" onclick="setZ('c',1)">1</button>
+        <button class="z-btn active" onclick="setZ('c',2)">2</button>
+        <button class="z-btn" onclick="setZ('c',3)">3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Left</label>
+      <input type="range" id="lc-left" min="-100" max="700" value="380" oninput="update()">
+      <span class="ctrl-val" id="lc-left-v">380</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Top</label>
+      <input type="range" id="lc-top" min="-200" max="600" value="80" oninput="update()">
+      <span class="ctrl-val" id="lc-top-v">80</span>
+    </div>
+    <div style="font-size:10px; color:#bbb; margin-top:4px;">
+      Width固定 = SVGネイティブ幅 278px を維持
+    </div>
+  </div>
+
+  <!-- Layer D: Fingers -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="dot dot-d"></span>
+        <img src="SVG/onehand-left.svg" class="svg-thumb">
+        <span>Layer D — Fingers</span>
+        <span class="svg-dim">104×480</span>
+        <span id="ld-zbadge" class="z-badge">z:0</span>
+      </div>
+      <button class="eye-btn" onclick="toggleVis('d')" id="eye-d">👁</button>
+    </div>
+    <div class="z-row">
+      <label>z-index</label>
+      <div class="z-btns" id="ld-zbtns">
+        <button class="z-btn active" onclick="setZ('d',0)">0</button>
+        <button class="z-btn" onclick="setZ('d',1)">1</button>
+        <button class="z-btn" onclick="setZ('d',2)">2</button>
+        <button class="z-btn" onclick="setZ('d',3)">3</button>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Left</label>
+      <input type="range" id="ld-left" min="-200" max="600" value="100" oninput="update()">
+      <span class="ctrl-val" id="ld-left-v">100</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Top</label>
+      <input type="range" id="ld-top" min="-100" max="800" value="220" oninput="update()">
+      <span class="ctrl-val" id="ld-top-v">220</span>
+    </div>
+    <div style="font-size:10px; color:#bbb; margin-top:4px;">
+      Width固定 = SVGネイティブ幅 104px を維持
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="section">
+    <div style="font-size:11px; font-weight:700; color:#222; margin-bottom:6px;">
+      出力HTML（ネイティブ座標 + transform:scale）
+    </div>
+    <div style="font-size:10px; color:#888; margin-bottom:10px;">
+      ✓ 全座標はネイティブ1×px<br>
+      ✓ 1つのscale値で全体サイズを制御<br>
+      ✓ プレゼン側でscaleを変えるだけ
+    </div>
+    <div class="output-box" id="output-box">—</div>
+    <button class="copy-btn" onclick="copyOutput()">📋 Copy HTML snippet</button>
+  </div>
+
+</div>
+
+<script>
+// ── State ──
+const L = {
+  a: { el: document.getElementById('la-el'), badge: document.getElementById('la-zbadge'), btns: document.getElementById('la-zbtns'), z: 0, vis: true },
+  b: { el: document.getElementById('lb-el'), badge: document.getElementById('lb-zbadge'), btns: document.getElementById('lb-zbtns'), z: 1, vis: true },
+  c: { el: document.getElementById('lc-el'), badge: document.getElementById('lc-zbadge'), btns: document.getElementById('lc-zbtns'), z: 2, vis: true },
+  d: { el: document.getElementById('ld-el'), badge: document.getElementById('ld-zbadge'), btns: document.getElementById('ld-zbtns'), z: 0, vis: true },
+};
+const badgeBg = ['', '#1a73e8', '#1e8e3e', '#8e24aa'];
+
+// ── Global scale ──
+function updateScale() {
+  const pct = parseInt(document.getElementById('global-scale').value);
+  const scale = pct / 100;
+  document.getElementById('comp').style.setProperty('--scale', scale);
+  document.getElementById('global-scale-v').textContent = pct + '%';
+  document.getElementById('scale-big').textContent = pct + '%';
+  document.getElementById('meta-scale').textContent = `Display: ${pct}%`;
+  document.getElementById('meta-output').textContent = `Output: ${pct}%`;
+  const dw = Math.round(800 * scale);
+  const dh = Math.round(1050 * scale);
+  document.getElementById('scale-info').textContent = `Display size: ${dw} × ${dh}px (native 800×1050)`;
+  renderOutput(pct);
+}
+
+// ── z-index ──
+function setZ(id, z) {
+  const l = L[id];
+  l.z = z;
+  l.el.style.zIndex = z;
+  l.badge.textContent = 'z:' + z;
+  if (z > 0) {
+    l.badge.style.background = badgeBg[z];
+    l.badge.style.color = '#fff';
+    l.badge.style.borderColor = badgeBg[z];
+  } else {
+    l.badge.style.background = '#f0f0f0';
+    l.badge.style.color = '#666';
+    l.badge.style.borderColor = '#ddd';
+  }
+  l.btns.querySelectorAll('.z-btn').forEach((b, i) => b.classList.toggle('active', i === z));
+  renderOutput(parseInt(document.getElementById('global-scale').value));
+}
+
+// ── Visibility ──
+function toggleVis(id) {
+  const l = L[id];
+  l.vis = !l.vis;
+  l.el.style.opacity = l.vis ? '1' : '0';
+  document.getElementById('eye-' + id).textContent = l.vis ? '👁' : '🚫';
+}
+
+// ── Sliders ──
+function gv(id) { return parseInt(document.getElementById(id).value); }
+function sv(id, v) { document.getElementById(id + '-v').textContent = v; }
+
+let outputText = '';
+
+function update() {
+  const al = gv('la-left'), at = gv('la-top');
+  const bl = gv('lb-left'), bt = gv('lb-top');
+  const cl = gv('lc-left'), ct = gv('lc-top');
+  const dl = gv('ld-left'), dt = gv('ld-top');
+
+  sv('la-left', al); sv('la-top', at);
+  sv('lb-left', bl); sv('lb-top', bt);
+  sv('lc-left', cl); sv('lc-top', ct);
+  sv('ld-left', dl); sv('ld-top', dt);
+
+  // Apply to elements (native coordinates — composition handles scale)
+  L.a.el.style.left = al + 'px'; L.a.el.style.top = at + 'px';
+  L.b.el.style.left = bl + 'px'; L.b.el.style.top = bt + 'px';
+  L.c.el.style.left = cl + 'px'; L.c.el.style.top = ct + 'px';
+  L.d.el.style.left = dl + 'px'; L.d.el.style.top = dt + 'px';
+
+  renderOutput(parseInt(document.getElementById('global-scale').value));
+}
+
+function renderOutput(pct) {
+  const al = gv('la-left'), at = gv('la-top');
+  const bl = gv('lb-left'), bt = gv('lb-top');
+  const cl = gv('lc-left'), ct = gv('lc-top');
+  const dl = gv('ld-left'), dt = gv('ld-top');
+  const scale = (pct / 100).toFixed(2);
+  const {a:{z:za}, b:{z:zb}, c:{z:zc}, d:{z:zd}} = L;
+  const displayW = Math.round(800 * pct / 100);
+  const displayH = Math.round(1050 * pct / 100);
+
+  outputText =
+`<!-- Hand + Phone Composition
+     Scale: ${pct}%  →  ${displayW}×${displayH}px displayed
+     Positions: native 1× pixels (no multiplication needed) -->
+
+<div style="
+  position: relative;
+  display: inline-block;
+  width: ${displayW}px;
+  height: ${displayH}px;
+  overflow: visible;
+">
+  <!-- Inner native container -->
+  <div style="
+    position: absolute;
+    top: 0; left: 0;
+    width: 800px; height: 1050px;
+    transform: scale(${scale});
+    transform-origin: top left;
+  ">
+
+    <!-- Layer A: Wrist  z:${za}  624×302px -->
+    <img src="../assets/SVG/onehand-wrist.svg"
+      style="position:absolute; z-index:${za};
+             left:${al}px; top:${at}px;
+             width:624px; pointer-events:none;">
+
+    <!-- Layer B: Phone  z:${zb}  390×844px (native — no class scaling) -->
+    <iframe src="../../ui-screens/p3/p3-02-commute.html"
+      loading="lazy"
+      style="position:absolute; z-index:${zb};
+             left:${bl}px; top:${bt}px;
+             width:390px; height:844px;
+             border:none; display:block;
+             pointer-events:none;"></iframe>
+
+    <!-- Layer C: Thumb  z:${zc}  278×793px -->
+    <img src="../assets/SVG/onehand-thumb.svg"
+      style="position:absolute; z-index:${zc};
+             left:${cl}px; top:${ct}px;
+             width:278px; pointer-events:none;">
+
+    <!-- Layer D: Fingers  z:${zd}  104×480px -->
+    <img src="../assets/SVG/onehand-left.svg"
+      style="position:absolute; z-index:${zd};
+             left:${dl}px; top:${dt}px;
+             width:104px; pointer-events:none;">
+
+  </div>
+</div>`;
+
+  document.getElementById('output-box').textContent = outputText;
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(outputText).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy HTML snippet', 1500);
+  });
+}
+
+// Init
+updateScale();
+update();
+</script>
+</body>
+</html>

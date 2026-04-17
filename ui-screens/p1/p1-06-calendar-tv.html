@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1-06 Calendar Guest Mode (TV)</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #202124;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 20px;
+  gap: 24px;
+}
+
+.toggle-container {
+  display: flex; gap: 12px; align-items: center;
+}
+.toggle-label { color: #9AA0A6; font-size: 14px; font-weight: 500; }
+.toggle-btn {
+  position: relative;
+  width: 200px; height: 40px;
+  background: #303134;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+.toggle-track {
+  display: flex; height: 100%;
+}
+.toggle-option {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 500;
+  color: #9AA0A6;
+  position: relative; z-index: 2;
+  transition: color 200ms var(--ease-out-expo);
+  cursor: pointer;
+}
+.toggle-option.active { color: #202124; }
+.toggle-pill {
+  position: absolute;
+  width: 50%; height: calc(100% - 4px);
+  background: #FFFFFF;
+  border-radius: 9999px;
+  top: 2px; left: 2px;
+  transition: transform 180ms var(--ease-out-expo);
+}
+.toggle-pill.right { transform: translateX(calc(100% - 0px)); }
+.toggle-btn:active { transform: scale(0.97); }
+
+.tv-frame {
+  width: 960px;
+  height: 540px;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 0 0 2px #303134;
+}
+
+/* Normal Mode */
+.normal-mode {
+  position: absolute; inset: 0;
+  background: #FFFFFF;
+  padding: 32px 40px;
+  transition: opacity 500ms cubic-bezier(0.2, 0, 0, 1);
+  display: flex; flex-direction: column;
+}
+.normal-mode.hidden { opacity: 0; pointer-events: none; }
+
+.cal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.cal-header h1 { font-size: 28px; font-weight: 500; color: #202124; }
+.cal-header .today-pill {
+  background: #E8F0FE; color: #1A73E8; font-size: 13px; font-weight: 500;
+  padding: 6px 16px; border-radius: 9999px;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  flex: 1;
+}
+.day-col { display: flex; flex-direction: column; gap: 6px; }
+.day-label {
+  font-size: 12px; font-weight: 500; color: #5F6368;
+  text-align: center; padding-bottom: 8px;
+  border-bottom: 1px solid #E8EAED;
+}
+.day-label.today { color: #1A73E8; }
+.day-num {
+  text-align: center; font-size: 20px; font-weight: 400; color: #202124;
+  margin-bottom: 4px;
+}
+.day-num.today {
+  background: #1A73E8; color: #fff; width: 32px; height: 32px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 4px;
+  font-size: 14px;
+}
+
+.event-chip {
+  font-size: 11px; padding: 4px 8px; border-radius: 6px;
+  color: #fff; font-weight: 500; line-height: 1.3;
+  opacity: 0;
+  animation: chipIn 300ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+.event-chip.father { background: #4285F4; }
+.event-chip.mother { background: #EA4335; }
+.event-chip.daughter { background: #FBBC04; color: #202124; }
+.event-chip.son { background: #34A853; }
+
+.cal-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 16px; padding-top: 12px; border-top: 1px solid #E8EAED;
+}
+.weather-info { display: flex; align-items: center; gap: 8px; color: #5F6368; font-size: 14px; }
+.clock-info { font-size: 14px; color: #9AA0A6; }
+
+/* Guest Mode */
+.guest-mode {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #F8F9FA 0%, #E8EAED 50%, #F1F3F4 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 800ms cubic-bezier(0.2, 0, 0, 1);
+}
+.guest-mode.visible { opacity: 1; pointer-events: auto; }
+
+.guest-weekday {
+  font-size: 24px; font-weight: 300; color: #5F6368;
+  letter-spacing: 2px; text-transform: uppercase;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 600ms cubic-bezier(0.2, 0, 0, 1) 300ms, transform 600ms cubic-bezier(0.2, 0, 0, 1) 300ms;
+}
+.guest-mode.visible .guest-weekday { opacity: 1; transform: translateY(0); }
+
+.guest-date {
+  font-size: 96px; font-weight: 300; color: #202124;
+  line-height: 1; margin: 8px 0 4px;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 700ms cubic-bezier(0.2, 0, 0, 1) 400ms, transform 700ms cubic-bezier(0.2, 0, 0, 1) 400ms;
+}
+.guest-mode.visible .guest-date { opacity: 1; transform: translateY(0); }
+
+.guest-month {
+  font-size: 20px; font-weight: 400; color: #5F6368;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 600ms cubic-bezier(0.2, 0, 0, 1) 500ms, transform 600ms cubic-bezier(0.2, 0, 0, 1) 500ms;
+}
+.guest-mode.visible .guest-month { opacity: 1; transform: translateY(0); }
+
+.guest-weather {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 32px;
+  font-size: 18px; color: #5F6368;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 600ms cubic-bezier(0.2, 0, 0, 1) 700ms, transform 600ms cubic-bezier(0.2, 0, 0, 1) 700ms;
+}
+.guest-mode.visible .guest-weather { opacity: 1; transform: translateY(0); }
+
+.guest-time {
+  position: absolute; bottom: 32px;
+  font-size: 14px; color: #9AA0A6;
+  opacity: 0;
+  transition: opacity 600ms cubic-bezier(0.2, 0, 0, 1) 900ms;
+}
+.guest-mode.visible .guest-time { opacity: 1; }
+
+.legend {
+  display: flex; gap: 20px; align-items: center;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9AA0A6; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="toggle-container">
+  <div class="toggle-btn" id="toggleBtn">
+    <div class="toggle-pill" id="togglePill"></div>
+    <div class="toggle-track">
+      <div class="toggle-option active" id="optNormal" onclick="setMode('normal')">Normal</div>
+      <div class="toggle-option" id="optGuest" onclick="setMode('guest')">Guest Mode</div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#4285F4"></div>Father</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EA4335"></div>Mother</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FBBC04"></div>Daughter</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#34A853"></div>Son</div>
+  </div>
+</div>
+
+<div class="tv-frame">
+  <!-- Normal Calendar Mode -->
+  <div class="normal-mode" id="normalMode">
+    <div class="cal-header">
+      <h1>April Schedule</h1>
+      <span class="today-pill">This Week</span>
+    </div>
+    <div class="week-grid">
+      <!-- Monday -->
+      <div class="day-col">
+        <div class="day-label">Mon</div>
+        <div class="day-num">7</div>
+      </div>
+      <!-- Tuesday -->
+      <div class="day-col">
+        <div class="day-label">Tue</div>
+        <div class="day-num">8</div>
+        <div class="event-chip daughter" style="animation-delay:100ms">🎹 Piano<br>16:00</div>
+        <div class="event-chip mother" style="animation-delay:200ms">Grocery Run<br>11:00</div>
+      </div>
+      <!-- Wednesday -->
+      <div class="day-col">
+        <div class="day-label today">Wed</div>
+        <div class="day-num today">9</div>
+        <div class="event-chip son" style="animation-delay:150ms">Soccer<br>15:30</div>
+      </div>
+      <!-- Thursday -->
+      <div class="day-col">
+        <div class="day-label">Thu</div>
+        <div class="day-num">10</div>
+        <div class="event-chip father" style="animation-delay:250ms">1:1 w/ VP<br>14:00</div>
+        <div class="event-chip daughter" style="animation-delay:300ms">Art Class<br>16:30</div>
+      </div>
+      <!-- Friday -->
+      <div class="day-col">
+        <div class="day-label">Fri</div>
+        <div class="day-num">11</div>
+        <div class="event-chip mother" style="animation-delay:350ms">PTA Meeting<br>10:00</div>
+      </div>
+      <!-- Saturday -->
+      <div class="day-col">
+        <div class="day-label">Sat</div>
+        <div class="day-num">12</div>
+        <div class="event-chip mother" style="animation-delay:400ms">💃 Dance Lesson<br>10:00</div>
+        <div class="event-chip father" style="animation-delay:450ms">Family Brunch<br>11:30</div>
+      </div>
+      <!-- Sunday -->
+      <div class="day-col">
+        <div class="day-label">Sun</div>
+        <div class="day-num">13</div>
+      </div>
+    </div>
+    <div class="cal-bottom">
+      <div class="weather-info">
+        <span class="material-symbols-outlined">wb_sunny</span>
+        72°F — Clear skies all week
+      </div>
+      <div class="clock-info">Updated just now</div>
+    </div>
+  </div>
+
+  <!-- Guest Mode -->
+  <div class="guest-mode" id="guestMode">
+    <div class="guest-weekday">Wednesday</div>
+    <div class="guest-date">9</div>
+    <div class="guest-month">April</div>
+    <div class="guest-weather">
+      <span class="material-symbols-outlined" style="font-size:28px">wb_sunny</span>
+      72°F
+    </div>
+    <div class="guest-time">6:42 PM</div>
+  </div>
+</div>
+
+<script>
+let currentMode = 'normal';
+
+function setMode(mode) {
+  if (mode === currentMode) return;
+  currentMode = mode;
+
+  const normalMode = document.getElementById('normalMode');
+  const guestMode = document.getElementById('guestMode');
+  const pill = document.getElementById('togglePill');
+  const optNormal = document.getElementById('optNormal');
+  const optGuest = document.getElementById('optGuest');
+
+  if (mode === 'guest') {
+    pill.classList.add('right');
+    optNormal.classList.remove('active');
+    optGuest.classList.add('active');
+    normalMode.classList.add('hidden');
+    guestMode.classList.add('visible');
+  } else {
+    pill.classList.remove('right');
+    optNormal.classList.add('active');
+    optGuest.classList.remove('active');
+    normalMode.classList.remove('hidden');
+    guestMode.classList.remove('visible');
+  }
+}
+
+// Update guest time
+function updateTime() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes().toString().padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  document.querySelector('.guest-time').textContent = `${h12}:${m} ${ampm}`;
+}
+setInterval(updateTime, 10000);
+</script>
+</body>
+</html>

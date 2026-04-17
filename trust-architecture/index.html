@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trust Architecture — Context Grammar</title>
+<meta name="description" content="How Context Grammar designs trust between humans and AI. Temporal Arc, Bidirectional Disclosure, Graceful Demotion — the three principles of calibrated AI trust.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/nav.css">
+<style>
+
+/* ═══ BASE LAYOUT ═══ */
+main { padding-top: 0; }
+
+section {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.container--wide {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ═══ HERO ═══ */
+.hero {
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+  padding: clamp(100px, 14vw, 180px) clamp(24px, 4vw, 48px) clamp(80px, 10vw, 120px);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(122,85,32,0.07), transparent 70%);
+  pointer-events: none;
+}
+
+.hero-tag {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(184,136,78,0.7);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s 0.1s forwards;
+  position: relative;
+}
+
+.hero-title {
+  font-weight: 500;
+  font-size: clamp(36px, 5.5vw, 76px);
+  line-height: 1.05;
+  letter-spacing: -2.5px;
+  color: #f0ece4;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.25s forwards;
+  position: relative;
+}
+
+.hero-sub {
+  font-size: clamp(16px, 1.3vw, 20px);
+  font-weight: 400;
+  color: rgba(240,236,228,0.55);
+  line-height: 1.7;
+  max-width: 560px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.45s forwards;
+  position: relative;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══ SECTION LABELS ═══ */
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.sec-title {
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 42px);
+  line-height: 1.1;
+  letter-spacing: -1.2px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.sec-lead {
+  font-size: clamp(16px, 1.2vw, 19px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.8;
+  max-width: 640px;
+  margin-bottom: 0;
+}
+
+/* ═══ BODY TEXT ═══ */
+.body-text {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.85;
+  max-width: 640px;
+  margin-bottom: 20px;
+}
+.body-text strong { font-weight: 600; color: var(--text); }
+.body-text:last-child { margin-bottom: 0; }
+
+/* ═══ SECTION MODES ═══ */
+.sec-dim { background: var(--bg-2); }
+.sec-dark { background: #08070b; color: #f0ece4; }
+
+/* ═══ DIVIDER ═══ */
+.divider {
+  max-width: 860px;
+  margin: 0 auto;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ═══ PROBLEM STATEMENT ═══ */
+.problem-list {
+  list-style: none;
+  padding: 0;
+  margin: 36px 0;
+  max-width: 640px;
+  counter-reset: prob;
+}
+.problem-list li {
+  counter-increment: prob;
+  display: flex;
+  gap: 18px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: clamp(15px, 1.05vw, 17px);
+  color: var(--text-2);
+  line-height: 1.7;
+  font-weight: 400;
+}
+.problem-list li:first-child { border-top: 1px solid var(--border); }
+.problem-list li::before {
+  content: "0" counter(prob);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: var(--color-intent);
+  flex-shrink: 0;
+  padding-top: 3px;
+  width: 28px;
+}
+
+/* ═══ PRINCIPLE CARDS ═══ */
+.principle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+  margin: 48px 0;
+}
+
+.principle-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: clamp(24px, 2.5vw, 36px);
+  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+.principle-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 36px rgba(0,0,0,0.05);
+}
+
+.principle-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: var(--color-intent);
+  margin-bottom: 14px;
+  display: block;
+}
+.principle-card h3 {
+  font-weight: 500;
+  font-size: clamp(18px, 1.5vw, 22px);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.principle-card p {
+  font-size: clamp(14px, 0.95vw, 16px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .principle-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ TEMPORAL ARC VISUALIZATION ═══ */
+.arc-timeline {
+  position: relative;
+  margin: 48px 0;
+  max-width: 640px;
+}
+
+.arc-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 20px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.arc-stage {
+  flex: 1;
+  padding: 16px 14px;
+  text-align: center;
+  position: relative;
+  border-right: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.arc-stage:last-child { border-right: none; }
+
+.arc-stage-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.arc-stage-name {
+  font-weight: 500;
+  font-size: clamp(13px, 0.95vw, 15px);
+  color: var(--text);
+  display: block;
+}
+
+.arc-stage--s1 { border-top: 3px solid rgba(138,106,176,0.5); }
+.arc-stage--s2 { border-top: 3px solid rgba(122,85,32,0.6); }
+.arc-stage--s3 { border-top: 3px solid rgba(58,106,58,0.7); }
+.arc-stage--s4 { border-top: 3px solid var(--color-success); }
+
+.arc-labels {
+  display: flex;
+  gap: 0;
+}
+.arc-label-cell {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.5px;
+}
+
+.arc-arrow-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.arc-arrow-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, rgba(138,106,176,0.3), var(--color-success));
+  border-radius: 1px;
+}
+.arc-arrow-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.arc-arrow-tip {
+  font-size: 14px;
+  color: var(--color-success);
+}
+
+/* Crisis marker */
+.arc-crisis {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.arc-crisis-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+  flex-shrink: 0;
+}
+.arc-crisis strong { color: #dc2626; font-weight: 500; }
+
+@media (max-width: 520px) {
+  .arc-stage-name { font-size: 12px; }
+  .arc-stage { padding: 12px 8px; }
+}
+
+/* ═══ DISCLOSURE MATRIX TABLE ═══ */
+.flow-table {
+  width: 100%;
+  max-width: 720px;
+  border-collapse: collapse;
+  margin: 36px 0;
+  font-size: clamp(14px, 0.95vw, 15px);
+}
+
+.flow-table th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.flow-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.6;
+  vertical-align: top;
+}
+
+.flow-table td:first-child {
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.flow-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  padding: 3px 10px;
+  margin-bottom: 6px;
+}
+.flow-tag--grammar { background: rgba(74,106,144,0.1); color: var(--color-grammar); }
+.flow-tag--intent  { background: rgba(122,85,32,0.1); color: var(--color-intent); }
+.flow-tag--brain   { background: rgba(122,85,170,0.1); color: var(--color-brain); }
+
+.flow-table .flow-example {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .flow-table { font-size: 13px; }
+  .flow-table td:first-child { white-space: normal; }
+}
+
+/* ═══ PULLQUOTE ═══ */
+.pullquote {
+  padding: 24px 0 24px 24px;
+  border-left: 2px solid var(--color-intent);
+  font-weight: 500;
+  font-size: clamp(17px, 1.5vw, 22px);
+  line-height: 1.45;
+  letter-spacing: -0.4px;
+  max-width: 600px;
+  margin: 40px 0;
+  color: var(--text);
+}
+
+/* ═══ HIGHLIGHT BOX ═══ */
+.highlight-box {
+  border-left: 3px solid var(--color-intent);
+  padding: 20px 24px;
+  background: var(--bg-2);
+  margin: 32px 0;
+  max-width: 640px;
+}
+.highlight-box p {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.7;
+  margin: 0;
+}
+.highlight-box p + p { margin-top: 10px; }
+
+/* ═══ CTA SECTION ═══ */
+.cta-section {
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+  position: relative;
+  overflow: hidden;
+}
+.cta-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(122,85,32,0.05), transparent 70%);
+  pointer-events: none;
+}
+.cta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.cta-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+.cta-desc {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 400;
+  color: rgba(240,236,228,0.5);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto 36px;
+}
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cta-btn {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 16px 32px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.3s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.cta-btn--primary {
+  background: #f0ece4;
+  color: #08070b;
+}
+.cta-btn--primary:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(240,236,228,0.1);
+}
+.cta-btn--secondary {
+  background: transparent;
+  color: rgba(240,236,228,0.6);
+  border: 1px solid rgba(240,236,228,0.12);
+}
+.cta-btn--secondary:hover {
+  color: #f0ece4;
+  border-color: rgba(240,236,228,0.3);
+  transform: translateY(-2px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: #08070b;
+  color: rgba(240,236,228,0.35);
+  border-top: 1px solid rgba(240,236,228,0.04);
+}
+.footer-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a {
+  color: rgba(240,236,228,0.35);
+  text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer-links a:hover { color: var(--color-grammar); }
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.d1 { transition-delay: 0.08s; }
+.d2 { transition-delay: 0.16s; }
+.d3 { transition-delay: 0.24s; }
+.d4 { transition-delay: 0.32s; }
+.d5 { transition-delay: 0.40s; }
+
+/* ═══ SELECTION ═══ */
+::selection { background: rgba(122,85,32,0.15); }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  section { padding: clamp(56px, 8vw, 100px) clamp(20px, 5vw, 36px); }
+}
+
+</style>
+</head>
+
+<body data-dark-nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <p class="hero-tag">Context Grammar / Trust Architecture</p>
+  <h1 class="hero-title">Trust Architecture</h1>
+  <p class="hero-sub">AIとの信頼を設計する。段階的に、双方向で。</p>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     PROBLEM STATEMENT
+     ═══════════════════════════════════════════ -->
+<section id="problem">
+  <div class="container">
+    <span class="sec-label reveal">Why It Matters</span>
+    <h2 class="sec-title reveal d1">AI is capable.<br>But you can't delegate yet.</h2>
+
+    <p class="sec-lead reveal d2">ChatGPT can write. Gemini can plan your trip. But you don't want either of them spending your credit card without asking. Why? Because trust isn't there yet — and today's AI products have no architecture for building it.</p>
+
+    <ul class="problem-list">
+      <li class="reveal d2">AI systems have no mechanism to <strong>earn</strong> autonomy over time. Every session starts from zero.</li>
+      <li class="reveal d3">Information sharing is designed only one way — users protect data from AI. The inverse direction (AI bridging human relationships) has no design language.</li>
+      <li class="reveal d3">When AI makes a mistake, there is no graceful recovery path. Trust collapses silently.</li>
+      <li class="reveal d4">Multi-person contexts (families, teams) require different trust levels per person, per domain, simultaneously — no platform addresses this.</li>
+    </ul>
+
+    <div class="pullquote reveal d4">
+      The question isn't "what can AI do?" It's "what are you willing to let AI do?" — and that answer changes over time.
+    </div>
+
+    <div class="highlight-box reveal d5">
+      <p><strong>Context Grammar's answer:</strong> Trust is not a toggle. It is an architecture — with temporal stages, bidirectional flows, and graceful failure modes. These three principles make it designable.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     THREE PRINCIPLES
+     ═══════════════════════════════════════════ -->
+<section id="principles" class="sec-dim">
+  <div class="container--wide">
+    <span class="sec-label reveal">The Framework</span>
+    <h2 class="sec-title reveal d1">Three Principles of Trust Design</h2>
+    <p class="sec-lead reveal d2">Context Grammar designs trust through three interlocking principles. Each addresses a different failure mode in today's AI.</p>
+
+    <div class="principle-grid">
+
+      <div class="principle-card reveal d2">
+        <span class="principle-num">Principle 01</span>
+        <h3>Temporal Arc</h3>
+        <p>Trust builds over time through accumulated results — not through configuration. Every AI relationship passes through five phases: Encounter, Learning, Maturation, Crisis, Ambient. Trying to skip a phase breaks the contract.</p>
+        <p style="font-size:14px; color:var(--text-3); margin-top:12px; font-style:italic;">Trust climbs stairs. It falls by elevator.</p>
+      </div>
+
+      <div class="principle-card reveal d3">
+        <span class="principle-num">Principle 02</span>
+        <h3>Bidirectional Disclosure</h3>
+        <p>Information sharing has two directions that must both be designed. The <strong>Protective</strong> direction controls what you share with AI. The <strong>Connective</strong> direction enables AI to bridge interests between people — a direction that exists in zero products today.</p>
+      </div>
+
+      <div class="principle-card reveal d4">
+        <span class="principle-num">Principle 03</span>
+        <h3>Graceful Demotion</h3>
+        <p>When AI makes a mistake, the Autonomy Dial drops instantly — multiple levels at once. The human regains control. Recovery is gradual, transparent, and asymmetric: building trust takes months, losing it takes seconds.</p>
+        <p style="font-size:14px; color:var(--text-3); margin-top:12px; font-style:italic;">Design for the fall before the rise.</p>
+      </div>
+
+    </div>
+
+    <div class="highlight-box reveal d5" style="max-width:720px; margin-left:auto; margin-right:auto;">
+      <p><strong>The coupling rule:</strong> Disclosure &ge; Autonomy. You can't delegate what you haven't disclosed. Context Grammar enforces this structurally — the system won't advance Autonomy beyond what Disclosure supports.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     TEMPORAL ARC VISUAL
+     ═══════════════════════════════════════════ -->
+<section id="temporal-arc">
+  <div class="container">
+    <span class="sec-label reveal">Principle 01</span>
+    <h2 class="sec-title reveal d1">The Temporal Arc</h2>
+    <p class="body-text reveal d2">Trust isn't configured — it's grown. The Autonomy Dial moves through four actionable stages as results accumulate. Each stage reflects a different balance of human control and AI initiative.</p>
+
+    <div class="arc-timeline reveal d3">
+      <div class="arc-track">
+        <div class="arc-stage arc-stage--s1">
+          <p class="arc-stage-num">01</p>
+          <span class="arc-stage-name">Suggest</span>
+        </div>
+        <div class="arc-stage arc-stage--s2">
+          <p class="arc-stage-num">02</p>
+          <span class="arc-stage-name">Confirm</span>
+        </div>
+        <div class="arc-stage arc-stage--s3">
+          <p class="arc-stage-num">03</p>
+          <span class="arc-stage-name">Notify</span>
+        </div>
+        <div class="arc-stage arc-stage--s4">
+          <p class="arc-stage-num">04</p>
+          <span class="arc-stage-name">Auto</span>
+        </div>
+      </div>
+      <div class="arc-labels">
+        <div class="arc-label-cell">Week 1–2</div>
+        <div class="arc-label-cell">Month 1–2</div>
+        <div class="arc-label-cell">Month 3–6</div>
+        <div class="arc-label-cell">Month 6+</div>
+      </div>
+      <div class="arc-arrow-row">
+        <span class="arc-arrow-label">Trust builds</span>
+        <div class="arc-arrow-line"></div>
+        <span class="arc-arrow-tip">&#9654;</span>
+      </div>
+      <div class="arc-crisis">
+        <div class="arc-crisis-dot"></div>
+        <span>A single failure triggers <strong>instant demotion</strong> — the dial drops multiple levels at once, at any phase.</span>
+      </div>
+    </div>
+
+    <p class="body-text reveal d4"><strong>Suggest</strong> — AI presents options; human decides everything. No assumptions.<br>
+    <strong>Confirm</strong> — AI proposes based on learned patterns; human approves before execution.<br>
+    <strong>Notify</strong> — AI acts and informs; human can override but doesn't need to initiate.<br>
+    <strong>Auto</strong> — AI acts silently; human intervenes only if something is wrong.</p>
+
+    <p class="body-text reveal d4">The timeline is different for every domain. Music might reach Auto in a week. Healthcare might never get past Confirm. Trust isn't uniform — it's calibrated.</p>
+
+    <div class="pullquote reveal d5">
+      Think about becoming a regular at a restaurant. It takes six months before they bring your usual beer without asking. AI relationships follow the same arc.
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     DISCLOSURE MATRIX
+     ═══════════════════════════════════════════ -->
+<section id="disclosure" class="sec-dim">
+  <div class="container--wide">
+    <span class="sec-label reveal">Principle 02</span>
+    <h2 class="sec-title reveal d1">Bidirectional Disclosure</h2>
+    <p class="body-text reveal d2" style="max-width:680px;">Most AI products design only one information flow — what the user shares with AI. Context Grammar designs three distinct flows, each requiring different granularity and permissions.</p>
+
+    <table class="flow-table reveal d3">
+      <thead>
+        <tr>
+          <th>Flow</th>
+          <th>Direction</th>
+          <th>What It Designs</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <span class="flow-tag flow-tag--grammar">Protective</span><br>
+            User &rarr; AI
+          </td>
+          <td>Inbound</td>
+          <td>Per-domain control over what data you share with AI services. Four levels: Full, Summary, Existence, Hidden.</td>
+          <td class="flow-example">Health data: Full to medical AI, Hidden from hobby AI</td>
+        </tr>
+        <tr>
+          <td>
+            <span class="flow-tag flow-tag--intent">Connective</span><br>
+            AI &rarr; Human
+          </td>
+          <td>Bridging</td>
+          <td>AI surfaces relevant signals between people at appropriate granularity — interests, habits, activities. Exists in zero products today.</td>
+          <td class="flow-example">Son's Minecraft BGM: appears in Dad's Spotify playlist</td>
+        </tr>
+        <tr>
+          <td>
+            <span class="flow-tag flow-tag--brain">Selective</span><br>
+            AI &harr; Others
+          </td>
+          <td>Outbound</td>
+          <td>Controlled disclosure to third parties. Based on intent, the AI decides what to share, with whom, and when.</td>
+          <td class="flow-example">Medical info: Full to Mom, Summary to Dad, Hidden from school</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="body-text reveal d4">The Connective direction is the gap. Spotify Family Mix blends randomly. Context Grammar's Connective flow bridges with context — "the song your son plays every day in Minecraft, placed in Dad's playlist." <strong>Discovery with intent, not coincidence.</strong></p>
+
+    <div class="highlight-box reveal d5">
+      <p><strong>Protective vs. Connective:</strong> Protective is "who do you tell about your allergies?" Connective is "recommend this new dish to the customer who loved the last one." Same act of sharing. Completely different purpose.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     GRACEFUL DEMOTION (Principle 03)
+     ═══════════════════════════════════════════ -->
+<section id="demotion">
+  <div class="container">
+    <span class="sec-label reveal">Principle 03</span>
+    <h2 class="sec-title reveal d1">Graceful Demotion</h2>
+    <p class="body-text reveal d2">The moment AI gets it wrong will come. A nut-allergy sufferer is served the wrong dish. An auto-order arrives for the wrong brand. The problem isn't the failure itself — it's what happens next.</p>
+
+    <p class="body-text reveal d3">Context Grammar's recovery path follows three rules:</p>
+
+    <ul class="problem-list">
+      <li class="reveal d3"><strong>Instant Retreat</strong> — The moment failure occurs, the related Autonomy Dial drops two levels immediately. Decision-making authority returns to the human.</li>
+      <li class="reveal d4"><strong>Accountability</strong> — The system explains what went wrong. No black boxes. "A new staff member didn't check the allergy notes." Honest and specific.</li>
+      <li class="reveal d4"><strong>Asymmetric Recovery</strong> — Rebuilding trust takes longer than the original trust-building. Not a restart from zero, but a more cautious re-entry. There are no shortcuts.</li>
+    </ul>
+
+    <div class="pullquote reveal d5">
+      Building trust takes months.<br>Losing it takes seconds.<br>Designing for this asymmetry is the core of Trust Architecture.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     CTA — Link to full deep-dive
+     ═══════════════════════════════════════════ -->
+<section class="cta-section" id="cta">
+  <div class="cta-inner">
+    <h2 class="cta-title reveal">Trust Is Designed,<br>Not Assumed.</h2>
+    <p class="cta-desc reveal d1">This page is a summary. The full Trust Design chapter covers the Disclosure Dial (four levels, per domain), the Autonomy Dial (three driving forces), Dynamic Friction, the 5-phase Temporal Arc, Multi-Person Orchestration, and all Six Design Principles.</p>
+    <div class="cta-buttons reveal d2">
+      <a href="../context-grammar/trust-design/index.html" class="cta-btn cta-btn--primary">Full Trust Design Deep-Dive &rarr;</a>
+      <a href="../context-grammar/index.html" class="cta-btn cta-btn--secondary">Context Grammar Overview &rarr;</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ NAV + SCROLL REVEAL ═══ -->
+<script src="../assets/js/nav.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initNav({ basePath: '../', activePage: 'trust', lang: 'en' });
+
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+});
+</script>
+
+</body>
+</html>

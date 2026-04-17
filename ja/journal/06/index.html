@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>壊れたプロセスを自動化で抜け出すことはできない。破綻が速くなるだけだ。 — intentfirst.ai</title>
+<meta name="description" content="ボトルネックは人材不足ではなく構造不全。知識基盤・エージェント役割・運用統合の欠落を現場視点で解く。">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(253,252,250,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--color-grammar); }
+.nav-links a[href="../../journal/index.html"] { color: var(--color-grammar); }
+
+@media (max-width: 768px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+.lang-switch {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: rgba(253,252,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
+}
+.lang-switch a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 6px;
+  transition: color 0.3s var(--ease);
+  line-height: 1;
+}
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+.lang-switch-divider {
+  width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+@media (max-width: 768px) {
+  .lang-switch {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .lang-switch-divider {
+    width: 1px;
+    height: 14px;
+  }
+}
+
+/* ═══ ARTICLE HERO ═══ */
+.article-hero {
+  padding-top: 56px;
+}
+.article-hero-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-meta {
+  padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 48px) clamp(32px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.article-hero-meta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article-hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.15s forwards;
+}
+.article-hero-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.25s forwards;
+}
+.article-hero-subtitle {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.35s forwards;
+}
+.article-hero-date {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.8vw, 13px);
+  letter-spacing: 1px;
+  color: var(--text-3);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.45s forwards;
+}
+
+/* ═══ ARTICLE BODY ═══ */
+.article-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  font-size: clamp(16px, 1.1vw, 18px);
+  line-height: 1.8;
+  color: var(--text);
+}
+.article-body p {
+  margin-bottom: 1.6em;
+}
+.article-body h2 {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  margin-top: 2.8em;
+  margin-bottom: 1em;
+}
+.article-body h3 {
+  font-weight: 400;
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-top: 2.2em;
+  margin-bottom: 0.8em;
+}
+.article-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.article-body em {
+  font-style: italic;
+  color: var(--text-2);
+}
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.4em 0;
+}
+.article-body ul {
+  margin-bottom: 1.6em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+.article-body ul li {
+  position: relative;
+  padding-left: 1em;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grammar);
+}
+.article-body .closing-note {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin-top: 2em;
+}
+.article-body .closing-note p {
+  margin-bottom: 0.8em;
+}
+.article-body .closing-note p:last-child {
+  margin-bottom: 0;
+}
+
+/* ═══ ARTICLE NAV ═══ */
+.article-nav {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.article-nav a {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+.article-nav a:hover {
+  color: var(--color-grammar);
+  border-color: var(--color-grammar);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(104,137,180,0.15);
+}
+
+/* ═══ SUBSCRIBE CTA ═══ */
+.subscribe-cta {
+  background: var(--bg-inverse);
+  color: #fff;
+  text-align: center;
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+}
+.subscribe-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.subscribe-sub {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+.subscribe-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--color-grammar);
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s var(--ease);
+  box-shadow: 0 4px 24px rgba(104,137,180,0.25);
+}
+.subscribe-btn:hover {
+  filter: brightness(0.85);
+  box-shadow: 0 6px 32px rgba(104,137,180,0.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 580px) {
+  .article-hero-title {
+    letter-spacing: -0.8px;
+  }
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article-nav a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo"><img src="../../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../../context-grammar/index.html">Context Grammar</a>
+      <a href="../../../projects/index.html">Projects</a>
+      <a href="../../industry/index.html">Industry</a>
+      <a href="../../about/index.html">About</a>
+      <a href="../../about/index.html#contact" class="nav-cta">Contact</a>
+    </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../../context-grammar/index.html">Context Grammar</a>
+    <a href="../../../projects/index.html">Projects</a>
+    <a href="../../industry/index.html">Industry</a>
+    <a href="../../about/index.html">About</a>
+    <a href="../../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../../journal/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../../journal/index.html">EN</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE HERO
+     ═══════════════════════════════════════ -->
+<section class="article-hero">
+  <img src="../../../assets/img/journal/06.webp" alt="エンタープライズAIは導入で失敗するのではない。設計で失敗する" class="article-hero-img">
+  <div class="article-hero-meta">
+    <div class="article-hero-meta-inner">
+      <p class="article-hero-label">エッセイ &mdash; 06</p>
+      <h1 class="article-hero-title">壊れたプロセスを自動化で抜け出すことはできない。破綻が速くなるだけだ。</h1>
+      <p class="article-hero-subtitle">ボトルネックは人材不足ではなく構造不全。知識基盤・エージェント役割・運用統合の欠落を現場視点で解く。</p>
+      <p class="article-hero-date">2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE BODY
+     ═══════════════════════════════════════ -->
+<article class="article-body">
+  <div class="reveal">
+    <p>ほとんどのエンタープライズAI施策は、同じ弧を描く。</p>
+
+    <p>経営層が推進を宣言する。ツールが選定される。トレーニングが実施される。導入率がトラッキングされる。半年後、誰かが「なぜ何も変わっていないのか」と問う。返ってくる答えはたいてい、「チェンジマネジメントを強化すべき」か「使い方が一貫していない」だ。</p>
+
+    <p>どちらも間違っている。</p>
+
+    <p>問題は導入率ではない。問題は、組織がAIを使って仕事の実行を速くしようとしていることだ——実際に仕事を遅くしているのは、構造的な問題なのに。</p>
+
+    <p><strong>壊れたプロセスを自動化で抜け出すことはできない。破綻が速くなるだけだ。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>3つの失敗モード</h2>
+
+    <h3>失敗モード1：ツールファーストの思考</h3>
+
+    <p>最も一般的なパターン。経営層がどのAIツールを導入するかを決め、チームにユースケースを見つけるよう求める。</p>
+
+    <p>順番が逆だ。</p>
+
+    <p>ツールは「how」に答える。最初に来るべき問いは「実際の痛みはどこに住んでいるか？」だ。</p>
+
+    <p>Verizonでは、AIシステムを一つもデプロイする前に、1ヶ月をかけてデザイナーにインタビューした。AIについてではない。彼らの仕事についてだ。深刻度とビジネスインパクトでランク付けした40以上の摩擦点が見つかった。AIアーキテクチャはその診断から生まれた——たまたま手元にあったツールの機能からではない。</p>
+
+    <p>診断を飛ばせば、アーキテクチャを飛ばすことになる。アーキテクチャがなければ、変革のふりをした散発的なプロンプティングが残るだけだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>失敗モード2：インフラのない活動</h3>
+
+    <p>生産的な感触はあるが、持続的な価値を生まないAI作業のカテゴリーがある。一回限りのプロンプト、アドホックな要約、チャットインターフェースで声に出して考える。</p>
+
+    <p>これは間違いではない。ただ、インフラではない。</p>
+
+    <p>インフラとは、AIに質問することと、<strong>Project Master Brain</strong>——あるプロジェクトの全文書、会議の書き起こし、戦略的意思決定を保持する、一元化されたクエリ可能なシステム——を持つことの違いだ。前者は時々使うツール。後者はチーム全体の意思決定の仕方を変えるシステムだ。</p>
+
+    <p>ほとんどの組織は活動から先に進まない。AI成功の指標を、実行したプロンプト数や節約した時間で測る。どちらも、間違ったものを最適化する指標だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>失敗モード3：コンテキストの真空にAIをデプロイする</h3>
+
+    <p>AIは、アクセスできるコンテキストと同じだけの力しか持たない。</p>
+
+    <p>汎用モデルに曖昧なブリーフを渡せば、汎用的な回答が返る。これは失敗ではない。入力に対する正しい出力だ。組織は「AIにはこの手の戦略的作業はできない」と結論づける。本当の結論はこうあるべきだ。「まだ何も実質的なものを渡していない。」</p>
+
+    <p>ほとんどの組織は、膨大な量の組織知を持っている——メールスレッドに、会議録に、最も長くいる人の頭の中に。どれも構造化されていない。どれもクエリ可能でない。だからAIが到着した時、貧弱なコンテキストで稼働し、貧弱なアウトプットを出す。</p>
+
+    <p><strong>解決策はより良いモデルではない。まずナレッジ層を構築することだ。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>うまくいくものに共通していること</h2>
+
+    <p>私は複数の組織でAI意思決定インフラを構築してきた——Verizonの42人のデザインチーム、Dysonにおける仕様駆動型プロダクト開発ワークフロー、戦略から機能プロトタイプまでを実行するマルチエージェント・デザインシステム。</p>
+
+    <p>本当に定着する変革には、3つの共通点がある。</p>
+
+    <p><strong>ツール選定ではなく、摩擦リサーチから始まっている。</strong></p>
+
+    <p>AIシステムを構築する前に、誰かがオペレーション上のドラッグが実際にどこに存在するかを理解しなければならない。サーベイではない。仕事をしている人への本物のインタビュー。簡単には言語化できないものを浮かび上がらせるよう構造化されたインタビューだ。不可視の遅延、意思決定の負債、あまりにも長く行われてきたために不可視になったワークアラウンド。このリサーチが最も難しい部分だ。その後に構築される全ては、その診断と同じだけの精度しか持たない。</p>
+
+    <p><strong>エージェントを生産性ツールではなく、役割の代替として扱っている。</strong></p>
+
+    <p>最も有用なフレーム：「AIが何を手伝えるか？」と問うな。「このワークフローで現在埋まっていない構造的役割は何か——そしてAIエージェントがそれを恒久的に埋められるか？」と問え。Verizonでのギャップは：中央集権的なナレッジシステムの不在、予算ゼロのバリデーションの不在、早期エッジケース検出の不在、体系的な戦略的推論支援の不在。各エージェントは、モデルがたまたま得意なことではなく、特定の構造的ギャップを中心に設計された。</p>
+
+    <p><strong>制約の中で仕事をしている。回避ではなく。</strong></p>
+
+    <p>エンタープライズのAI環境は、ほぼ例外なく制約されている——承認済みツールリスト、データガバナンス、セキュリティ要件。多くのコンサルタントはこれを障害として扱う。私の経験は逆だ。制約はデザインブリーフだ。ツールキットがGemini＋NotebookLMしかなければ、アーキテクチャを深く掘るしかない。プラットフォームを切り替える代わりに、多層的なナレッジシステムを構築する。承認済みインフラの上に構築されたシステムは、次のセキュリティ監査の後にシャットダウンされない。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>ほとんどの組織が問わない問い</h2>
+
+    <p>組織はほぼ決して問わない。<em>「私たちに本当に必要なAIインフラとは何か？」</em></p>
+
+    <p>代わりに問う。どのツールを導入すべきか？ どう人をトレーニングすべきか？ 導入率をどう測定すべきか？</p>
+
+    <p>インフラはツールとは別物だ。インフラとは、個々のツールを統一的にする基盤システムだ——エージェントにコンテキストを与えるナレッジアーキテクチャ、特定の役割を特定の障害ポイントに割り当てるエージェント設計、AIをオプションのアドオンではなく構造的参加者にするワークフロー統合。</p>
+
+    <p>組織がAIをツールとして扱えば、ツールレベルの成果を得る。インフラとして扱えば、組織的変革を得る。<strong>その成果の差はわずかではない。桁違いだ。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>実践ではこうなる</h2>
+
+    <p>制約のあるエンタープライズ環境向けに私が開発したパスは、5つのフェーズを通過する。</p>
+
+    <p>1. <strong>フリクション・マッピング</strong> — 構造的欠陥を見つけるための構造化インタビュー。ユースケースのリストではない。</p>
+
+    <p>2. <strong>ナレッジ・アーキテクチャ</strong> — エージェントを構築する前に、情報層を設計する。</p>
+
+    <p>3. <strong>エージェント設計</strong> — 各エージェントは特定の構造的役割にスコープされ、入力・プロセス・出力が定義される。</p>
+
+    <p>4. <strong>ワークフロー統合</strong> — エージェントを、構造的欠陥を置き換える正確なポイントに配置する。これが導入定着の成否を決める。</p>
+
+    <p>5. <strong>拡張</strong> — コアエージェントが検証されたら、システムを拡大する。Verizonではデザイナーから始め、PM、リサーチャー、コンテンツストラテジストへ拡張した。ナレッジアーキテクチャは、より多くの人がフィードするほど価値が上がる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>これが何でないかについて</h2>
+
+    <p>AI万能主義のピッチではない。全てのワークフローにエージェントが必要なわけではない。全ての摩擦点がAIで最も効果的に対処されるわけではない。</p>
+
+    <p>診断プロセスが時に明らかにするのは、正解がよりクリーンなブリーフのテンプレート、より良いキックオフの構造、より明確なRACIだということだ。ステップを自動化するのではなく削除したことで改善されたワークフローも構築してきた。</p>
+
+    <p>AIは特定の失敗モード——ナレッジへのアクセス、スケーラブルなバリデーション、エッジケース検出、構造化された推論——に対する正しいツールであり、それ以外には間違ったツールだ。これをうまくやる組織は、外科的にAIを使う。うまくやれない組織は、全てにコーティングのようにAIを塗り、変革がついてくることを期待する。</p>
+
+    <p><strong>ついてこない。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal closing-note">
+    <p><em>私は、制約されたエンタープライズ環境の中でAIトランスフォーメーションをナビゲートする組織と仕事をしている——ツールリストが固定され、ステークスが本物で、導入とインパクトの間のギャップを埋める必要がある場所。そこにいるなら、話しましょう。</em></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal closing-note">
+    <p><em>次回：エージェントを構築する前に、ナレッジ層が必要だ。組織知を時間の経過とともに本当に保持するMaster Brainシステムの設計方法。→</em></p>
+  </div>
+
+</article>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="article-nav reveal">
+  <a href="../05/index.html">&larr; 前の記事</a>
+  <a href="../index.html">一覧に戻る</a>
+  <a href="../07/index.html">次の記事 &rarr;</a>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     SUBSCRIBE
+     ═══════════════════════════════════════ -->
+<section class="subscribe-cta">
+  <div style="max-width: var(--max-w); margin: 0 auto;">
+    <h2 class="subscribe-title reveal">最新のエッセイを、<br>受信箱へ。</h2>
+    <p class="subscribe-sub reveal d1">Context Grammarは進化を続けています。その過程をお届けします。</p>
+    <a href="https://intentfirst.substack.com" target="_blank" class="subscribe-btn reveal d2">Substackで購読</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+
+</body>
+</html>

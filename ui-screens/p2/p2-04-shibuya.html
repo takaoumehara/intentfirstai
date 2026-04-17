@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-04 Shibuya Walking Notification</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8EAED;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 20px;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: #1A1A2E;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.status-bar {
+  height: 54px;
+  padding: 14px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.status-bar .time { font-size: 15px; font-weight: 600; color: #FFFFFF; }
+.status-bar .icons { display: flex; gap: 6px; align-items: center; }
+.status-bar .icons span { font-size: 17px; color: #FFFFFF; }
+
+/* Lock screen background */
+.lock-screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+}
+
+.lock-info {
+  position: absolute;
+  top: 70px;
+  left: 0; right: 0;
+  text-align: center;
+  color: #FFFFFF;
+}
+.lock-date { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+.lock-time-display { font-size: 64px; font-weight: 300; letter-spacing: -2px; }
+
+/* Notification card */
+.notification-card {
+  position: absolute;
+  top: 180px;
+  left: 16px;
+  right: 16px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-40px);
+  animation: notifSlide 350ms var(--ease-out-expo) 400ms forwards;
+  z-index: 5;
+}
+
+@keyframes notifSlide {
+  0% { opacity: 0; transform: translateY(-40px); }
+  70% { opacity: 1; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.notif-header {
+  padding: 14px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notif-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, #4285F4, #1A73E8);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 700;
+}
+.notif-app { font-size: 13px; color: #5F6368; font-weight: 500; }
+.notif-time-ago { font-size: 12px; color: #9AA0A6; margin-left: auto; }
+
+.notif-body {
+  padding: 0 16px 14px;
+}
+.notif-title {
+  font-size: 15px; font-weight: 500; color: #202124; margin-bottom: 4px;
+}
+.notif-text {
+  font-size: 14px; color: #5F6368; line-height: 1.45;
+}
+
+.notif-actions {
+  display: flex;
+  border-top: 1px solid #E8EAED;
+}
+.notif-action {
+  flex: 1;
+  padding: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A73E8;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms;
+}
+.notif-action:first-child { border-right: 1px solid #E8EAED; }
+.notif-action:active { background: rgba(26,115,232,0.08); transform: scale(0.97); }
+
+/* Expanded view */
+.expanded-view {
+  position: absolute;
+  top: 370px;
+  left: 0; right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  border-radius: 24px 24px 0 0;
+  overflow-y: auto;
+  padding: 20px;
+  z-index: 4;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: expandUp 400ms cubic-bezier(0.2, 0, 0, 1) 800ms forwards;
+}
+.expanded-view::-webkit-scrollbar { width: 0; }
+
+@keyframes expandUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Map snippet */
+.map-container {
+  width: 100%;
+  height: 200px;
+  background: #E8F0FE;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.map-grid {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(26,115,232,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,115,232,0.06) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+.map-road {
+  position: absolute;
+  background: rgba(255,255,255,0.8);
+}
+.map-road-h1 { top: 60px; left: 0; right: 0; height: 14px; }
+.map-road-h2 { top: 130px; left: 0; right: 0; height: 10px; }
+.map-road-v1 { top: 0; bottom: 0; left: 80px; width: 10px; }
+.map-road-v2 { top: 0; bottom: 0; left: 200px; width: 14px; }
+.map-road-v3 { top: 0; bottom: 0; left: 300px; width: 10px; }
+
+.map-block {
+  position: absolute;
+  background: rgba(26,115,232,0.08);
+  border-radius: 4px;
+}
+.block1 { top: 15px; left: 95px; width: 100px; height: 40px; }
+.block2 { top: 75px; left: 95px; width: 100px; height: 50px; }
+.block3 { top: 15px; left: 220px; width: 75px; height: 40px; }
+.block4 { top: 75px; left: 220px; width: 75px; height: 50px; }
+.block5 { top: 145px; left: 95px; width: 100px; height: 45px; }
+.block6 { top: 145px; left: 220px; width: 75px; height: 45px; }
+
+/* Walking route */
+.walking-route {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 2;
+}
+.walking-route svg {
+  width: 100%;
+  height: 100%;
+}
+.route-path {
+  fill: none;
+  stroke: #1A73E8;
+  stroke-width: 3;
+  stroke-dasharray: 8 6;
+  stroke-linecap: round;
+  stroke-dashoffset: 200;
+  animation: drawRoute 600ms cubic-bezier(0.2, 0, 0, 1) 1200ms forwards;
+}
+@keyframes drawRoute {
+  to { stroke-dashoffset: 0; }
+}
+.route-path-bg {
+  fill: none;
+  stroke: rgba(26,115,232,0.2);
+  stroke-width: 8;
+  stroke-linecap: round;
+  opacity: 0;
+  animation: fadeIn 300ms ease 1100ms forwards;
+}
+
+.current-dot {
+  position: absolute;
+  top: 150px; left: 118px;
+  width: 18px; height: 18px;
+  z-index: 3;
+}
+.current-dot-inner {
+  width: 14px; height: 14px;
+  background: #1A73E8;
+  border: 3px solid #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(26,115,232,0.4);
+  position: relative;
+}
+.current-dot-pulse {
+  position: absolute;
+  top: -6px; left: -6px;
+  width: 26px; height: 26px;
+  background: rgba(26,115,232,0.15);
+  border-radius: 50%;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.6); opacity: 0; }
+}
+
+.dest-pin {
+  position: absolute;
+  top: 42px; left: 270px;
+  z-index: 3;
+  opacity: 0;
+  animation: pinDrop 400ms cubic-bezier(0.2, 0, 0, 1) 1500ms forwards;
+}
+@keyframes pinDrop {
+  0% { opacity: 0; transform: translateY(-20px); }
+  60% { opacity: 1; transform: translateY(3px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.dest-pin-icon {
+  width: 28px; height: 36px;
+  position: relative;
+}
+.dest-pin-head {
+  width: 28px; height: 28px;
+  background: #D93025;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex; align-items: center; justify-content: center;
+}
+.dest-pin-head::after {
+  content: '';
+  width: 10px; height: 10px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  transform: rotate(45deg);
+}
+.dest-pin-shadow {
+  width: 14px; height: 4px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 50%;
+  margin: 2px auto 0;
+}
+
+.map-label {
+  position: absolute;
+  bottom: 10px; left: 12px;
+  font-size: 11px;
+  color: #5F6368;
+  background: rgba(255,255,255,0.9);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+.map-distance {
+  position: absolute;
+  top: 100px; left: 170px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1A73E8;
+  background: rgba(255,255,255,0.95);
+  padding: 4px 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  opacity: 0;
+  animation: fadeIn 300ms ease 1800ms forwards;
+  z-index: 3;
+}
+
+/* Cafe card */
+.cafe-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: fadeSlideIn 400ms cubic-bezier(0.2, 0, 0, 1) 1400ms forwards;
+}
+.cafe-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cafe-saved-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #F56040, #C13584, #833AB4);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.cafe-info h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  margin-bottom: 2px;
+}
+.cafe-location {
+  font-size: 13px;
+  color: #5F6368;
+}
+.cafe-saved-note {
+  font-size: 13px;
+  color: #833AB4;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.cafe-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.chip-open {
+  background: #E6F4EA;
+  color: #1E8E3E;
+}
+.chip-open .dot-pulse {
+  width: 8px; height: 8px;
+  background: #1E8E3E;
+  border-radius: 50%;
+  animation: openPulse 2s ease-in-out infinite;
+}
+@keyframes openPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.chip-walk {
+  background: #E8F0FE;
+  color: #1A73E8;
+}
+
+.cafe-seating {
+  font-size: 13px;
+  color: #5F6368;
+  line-height: 1.5;
+  padding: 8px 0;
+  border-top: 1px solid #E8EAED;
+}
+
+/* Instagram section */
+.ig-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #FAFAFA;
+  border: 1px solid #EFEFEF;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: igTilt 300ms cubic-bezier(0.2, 0, 0, 1) 1700ms forwards;
+}
+@keyframes igTilt {
+  0% { opacity: 0; transform: perspective(400px) rotateY(5deg); }
+  100% { opacity: 1; transform: perspective(400px) rotateY(0deg); }
+}
+.ig-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: #F1F3F4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+.ig-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ig-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 8px;
+  pointer-events: none;
+}
+.ig-details {
+  flex: 1;
+}
+.ig-label {
+  font-size: 12px;
+  color: #9AA0A6;
+  margin-bottom: 2px;
+}
+.ig-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #202124;
+}
+.ig-date {
+  font-size: 12px;
+  color: #833AB4;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 40px;
+  opacity: 0;
+  animation: fadeSlideIn 400ms cubic-bezier(0.2, 0, 0, 1) 1900ms forwards;
+}
+.btn-navigate {
+  width: 100%;
+  height: 56px;
+  background: #1A73E8;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 200ms, transform 100ms;
+}
+.btn-navigate:active { background: #1557B0; transform: scale(0.98); }
+.btn-navigate .material-symbols-outlined { font-size: 22px; }
+.btn-later {
+  width: 100%;
+  height: 48px;
+  background: none;
+  color: #5F6368;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 200ms;
+}
+.btn-later:active { color: #202124; transform: scale(0.97); }
+
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: #202124;
+  z-index: 20;
+}
+
+/* Walking dashed line animation */
+.route-walking {
+  animation: walkDash 1.5s linear infinite;
+}
+@keyframes walkDash {
+  to { stroke-dashoffset: -28; }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* No ungated hover states in this file */
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="lock-screen"></div>
+
+  <div class="status-bar">
+    <span class="time">14:23</span>
+    <div class="icons">
+      <span class="material-symbols-outlined" style="font-size:16px">signal_cellular_alt</span>
+      <span class="material-symbols-outlined" style="font-size:16px">wifi</span>
+      <span class="material-symbols-outlined" style="font-size:16px">battery_5_bar</span>
+    </div>
+  </div>
+
+  <div class="lock-info">
+    <div class="lock-date">Thursday, March 26</div>
+    <div class="lock-time-display">14:23</div>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification-card">
+    <div class="notif-header">
+      <div class="notif-icon">&#10022;</div>
+      <span class="notif-app">Gemini</span>
+      <span class="notif-time-ago">now</span>
+    </div>
+    <div class="notif-body">
+      <div class="notif-title">Recommendations nearby</div>
+      <div class="notif-text">Cafe you saved to Instagram in Mar, 5 min walk. Open now.</div>
+    </div>
+    <div class="notif-actions">
+      <button class="notif-action" id="viewMapBtn">View Map</button>
+      <button class="notif-action" style="color:#5F6368">Later</button>
+    </div>
+  </div>
+
+  <!-- Expanded view -->
+  <div class="expanded-view" id="expandedView">
+    <!-- Map -->
+    <div class="map-container">
+      <div class="map-grid"></div>
+      <div class="map-road map-road-h1"></div>
+      <div class="map-road map-road-h2"></div>
+      <div class="map-road map-road-v1"></div>
+      <div class="map-road map-road-v2"></div>
+      <div class="map-road map-road-v3"></div>
+      <div class="map-block block1"></div>
+      <div class="map-block block2"></div>
+      <div class="map-block block3"></div>
+      <div class="map-block block4"></div>
+      <div class="map-block block5"></div>
+      <div class="map-block block6"></div>
+
+      <div class="walking-route">
+        <svg viewBox="0 0 358 200" preserveAspectRatio="none">
+          <path class="route-path-bg" d="M 125 158 L 125 67 L 207 67 L 207 130 L 280 130 L 280 58"/>
+          <path class="route-path route-walking" d="M 125 158 L 125 67 L 207 67 L 207 130 L 280 130 L 280 58"/>
+        </svg>
+      </div>
+
+      <div class="current-dot">
+        <div class="current-dot-pulse"></div>
+        <div class="current-dot-inner"></div>
+      </div>
+
+      <div class="dest-pin">
+        <div class="dest-pin-icon">
+          <div class="dest-pin-head"></div>
+        </div>
+        <div class="dest-pin-shadow"></div>
+      </div>
+
+      <div class="map-distance">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px">directions_walk</span>
+        5 min
+      </div>
+
+      <div class="map-label">Shibuya, Jinnan</div>
+    </div>
+
+    <!-- Cafe Card -->
+    <div class="cafe-card">
+      <div class="cafe-card-header">
+        <div class="cafe-saved-icon">
+          <span class="material-symbols-outlined" style="font-size:20px">photo_camera</span>
+        </div>
+        <div class="cafe-info">
+          <h3>Cafe Madu Shibuya</h3>
+          <div class="cafe-location">Shibuya-ku Jinnan 1-chome</div>
+          <div class="cafe-saved-note">Saved to Instagram in March</div>
+        </div>
+      </div>
+      <div class="cafe-chips">
+        <span class="chip chip-open"><span class="dot-pulse"></span> Open</span>
+        <span class="chip chip-walk"><span class="material-symbols-outlined" style="font-size:16px">directions_walk</span> 5 min</span>
+      </div>
+      <div class="cafe-seating">Indoor seating busy, terrace seems to have space</div>
+    </div>
+
+    <!-- Instagram section -->
+    <div class="ig-section">
+      <div class="ig-thumb">
+        <img src="https://images.unsplash.com/photo-1504698059244-3a4c4efc4c80?w=200&h=200&fit=crop&q=80" alt="Cafe Madu saved photo">
+      </div>
+      <div class="ig-details">
+        <div class="ig-label">Instagram Saved</div>
+        <div class="ig-name">@cafemadu_shibuya</div>
+        <div class="ig-date">Saved on March 15</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-buttons">
+      <button class="btn-navigate" id="navBtn">
+        <span class="material-symbols-outlined">navigation</span>
+        Start Navigation
+      </button>
+      <button class="btn-later">Go Later</button>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const viewMapBtn = document.getElementById('viewMapBtn');
+  const navBtn = document.getElementById('navBtn');
+
+  viewMapBtn.addEventListener('click', () => {
+    const expanded = document.getElementById('expandedView');
+    expanded.style.animation = 'none';
+    expanded.offsetHeight;
+    expanded.style.opacity = '1';
+    expanded.style.transform = 'translateY(0)';
+  });
+
+  navBtn.addEventListener('click', () => {
+    navBtn.innerHTML = '<span class="material-symbols-outlined">check</span> Navigating...';
+    navBtn.style.background = '#1E8E3E';
+  });
+});
+</script>
+</body>
+</html>

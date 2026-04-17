@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1-03 — Substitution Mode Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary: #1A73E8;
+    --surface: #FFFFFF;
+    --surface-dim: #F8F9FA;
+    --container: #F1F3F4;
+    --text-primary: #202124;
+    --text-secondary: #5F6368;
+    --text-disabled: #9AA0A6;
+    --autonomy-green: #1E8E3E;
+    --warning-amber: #F9AB00;
+    --error-red: #D93025;
+    --connective-coral: #E8710A;
+    --disclosure-purple: #8E24AA;
+    --radius-xs: 8px;
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 9999px;
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+    --font-headline: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Google Sans Text', 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    --mode-exact: #D93025;
+    --mode-flexible: #1A73E8;
+    --mode-exploring: #F9AB00;
+    --mode-surprise: #E8710A;
+  }
+
+  body {
+    background: #E8EAED;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--text-primary);
+  }
+
+  .device-frame {
+    width: 390px;
+    height: 844px;
+    background: var(--surface-dim);
+    border-radius: 44px;
+    box-shadow: 0 0 0 2px #BDC1C6, 0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .status-bar {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px 0;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-headline);
+    color: var(--text-primary);
+    position: relative;
+    z-index: 10;
+    background: var(--surface);
+  }
+  .status-bar .time { font-weight: 600; }
+  .status-icons { display: flex; gap: 4px; align-items: center; }
+  .status-icons .material-symbols-outlined { font-size: 17px; }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: var(--text-primary);
+    border-radius: var(--radius-full);
+    opacity: 0.2;
+    z-index: 10;
+  }
+
+  /* Top Bar */
+  .top-bar {
+    background: var(--surface);
+    padding: 0 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #E8EAED;
+  }
+  .top-bar .material-symbols-outlined {
+    font-size: 24px;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background 0.15s;
+  }
+  /* top-bar hover gated below */
+  .top-bar-title {
+    font-family: var(--font-headline);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .screen-content {
+    height: calc(100% - 54px - 20px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .screen-content::-webkit-scrollbar { display: none; }
+
+  /* Description */
+  .page-desc {
+    padding: 16px 20px 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    background: var(--surface);
+  }
+
+  /* Member Chips */
+  .member-chips {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--surface);
+    border-bottom: 1px solid #E8EAED;
+  }
+  .member-chips::-webkit-scrollbar { display: none; }
+  .member-chip {
+    padding: 8px 18px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    border: 1.5px solid #DADCE0;
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.25s var(--ease), border-color 0.25s var(--ease), color 0.25s var(--ease), transform 0.15s var(--ease);
+    flex-shrink: 0;
+  }
+  .member-chip:active { transform: scale(0.97); }
+  .member-chip.active {
+    background: #E8F0FE;
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* Item Cards */
+  .items-container { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  .item-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+    animation: card-in 0.4s var(--ease) both;
+  }
+  .item-card:nth-child(2) { animation-delay: 0.1s; }
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .item-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 16px 12px;
+  }
+  .item-img {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+    background: var(--container);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 28px;
+  }
+  .item-details { flex: 1; }
+  .item-name {
+    font-family: var(--font-headline);
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .item-brand {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .item-member-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+  }
+
+  /* Mode Grid */
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 16px 12px;
+  }
+  .mode-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid #E8EAED;
+    background: var(--surface);
+    cursor: pointer;
+    transition: background 0.25s var(--ease), border-color 0.25s var(--ease), transform 0.15s var(--ease);
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-chip:active { transform: scale(0.97); }
+  .mode-chip::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 0 2px 2px 0;
+    opacity: 0;
+    transition: opacity 0.25s var(--ease);
+  }
+  .mode-chip.selected::before { opacity: 1; }
+  /* mode-chip:hover gated below */
+
+  .mode-chip[data-mode="exact"]::before { background: var(--mode-exact); }
+  .mode-chip[data-mode="flexible"]::before { background: var(--mode-flexible); }
+  .mode-chip[data-mode="exploring"]::before { background: var(--mode-exploring); }
+  .mode-chip[data-mode="surprise"]::before { background: var(--mode-surprise); }
+
+  .mode-chip.selected[data-mode="exact"] { border-color: var(--mode-exact); background: #FCE8E6; }
+  .mode-chip.selected[data-mode="flexible"] { border-color: var(--mode-flexible); background: #E8F0FE; }
+  .mode-chip.selected[data-mode="exploring"] { border-color: var(--mode-exploring); background: #FEF7E0; }
+  .mode-chip.selected[data-mode="surprise"] { border-color: var(--mode-surprise); background: #FCE8D5; }
+
+  .mode-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .mode-chip[data-mode="exact"] .mode-icon { background: #FCE8E6; color: var(--mode-exact); }
+  .mode-chip[data-mode="flexible"] .mode-icon { background: #E8F0FE; color: var(--mode-flexible); }
+  .mode-chip[data-mode="exploring"] .mode-icon { background: #FEF7E0; color: var(--mode-exploring); }
+  .mode-chip[data-mode="surprise"] .mode-icon { background: #FCE8D5; color: var(--mode-surprise); }
+
+  .mode-name {
+    font-family: var(--font-headline);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* Mode Description */
+  .mode-desc-area {
+    padding: 0 16px 14px;
+  }
+  .mode-desc-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding: 12px 14px;
+    background: var(--surface-dim);
+    border-radius: var(--radius-sm);
+    transition: opacity 0.2s var(--ease);
+  }
+
+  /* Exception Checkboxes */
+  .exceptions-area {
+    padding: 0 16px 16px;
+  }
+  .exception-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .exception-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  /* exception-item:hover gated below */
+  .ex-cb {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--text-disabled);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+    flex-shrink: 0;
+  }
+  .exception-item.checked .ex-cb {
+    background: var(--mode-exact);
+    border-color: var(--mode-exact);
+  }
+  .ex-cb .material-symbols-outlined { font-size: 14px; color: white; opacity: 0; transition: opacity 0.15s; }
+  .exception-item.checked .ex-cb .material-symbols-outlined { opacity: 1; }
+  .ex-label { font-size: 14px; }
+
+  /* Priority List (Flexible) */
+  .priority-area {
+    padding: 0 16px 16px;
+  }
+  .priority-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .priority-list { display: flex; flex-direction: column; gap: 4px; }
+  .priority-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-dim);
+    border-radius: var(--radius-xs);
+    cursor: grab;
+    transition: box-shadow 0.2s var(--ease);
+  }
+  /* priority-item:hover gated below */
+  .priority-item:active { cursor: grabbing; }
+  .priority-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .priority-text { font-size: 14px; flex: 1; }
+  .priority-drag {
+    color: var(--text-disabled);
+  }
+  .priority-drag .material-symbols-outlined { font-size: 20px; }
+
+  /* Checkbox/exception active feedback */
+  .exception-item:active { background: var(--container); transition: background 0.08s var(--ease); }
+
+  /* ─── Hover states — touch-safe ─── */
+  @media (hover: hover) and (pointer: fine) {
+    .top-bar .material-symbols-outlined:hover { background: var(--container); }
+    .member-chip:hover { background: var(--surface-dim); }
+    .mode-chip:hover { background: var(--surface-dim); }
+    .exception-item:hover { background: var(--surface-dim); }
+    .priority-item:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  }
+
+  /* ─── Reduced motion ─── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="device-frame">
+  <div class="status-bar">
+    <span class="time">10:24</span>
+    <div class="status-icons">
+      <span class="material-symbols-outlined">signal_cellular_alt</span>
+      <span class="material-symbols-outlined">wifi</span>
+      <span class="material-symbols-outlined">battery_4_bar</span>
+    </div>
+  </div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <span class="material-symbols-outlined">arrow_back</span>
+    <span class="top-bar-title">Family Preferences Settings</span>
+  </div>
+
+  <div class="screen-content">
+    <div class="page-desc">
+      Each family member can set how strictly Home Brain follows their food preferences when shopping or cooking.
+    </div>
+
+    <!-- Member Chips -->
+    <div class="member-chips">
+      <div class="member-chip" onclick="selectMember(this, 'all')">All</div>
+      <div class="member-chip" onclick="selectMember(this, 'takao')">Takao</div>
+      <div class="member-chip active" onclick="selectMember(this, 'wife')">Wife</div>
+      <div class="member-chip" onclick="selectMember(this, 'daughter')">Daughter</div>
+      <div class="member-chip" onclick="selectMember(this, 'son')">Son</div>
+    </div>
+
+    <div class="items-container">
+      <!-- Wife's Item Card -->
+      <div class="item-card" id="wifeCard">
+        <div class="item-header">
+          <div class="item-img" style="overflow:hidden;"><img src="../../projects/project-01/tradejoes/honeyyogurt.webp" style="width:56px; height:56px; object-fit:cover; border-radius:inherit;" alt="TJ Honey Yogurt"></div>
+          <div class="item-details">
+            <div class="item-name">TJ's Honey Yogurt 32oz</div>
+            <div class="item-brand">Trader Joe's · Dairy</div>
+          </div>
+          <span class="item-member-badge" style="background: #FCE8E6; color: var(--mode-exact);">Exact</span>
+        </div>
+
+        <div class="mode-grid" id="wifeModes">
+          <div class="mode-chip selected" data-mode="exact" onclick="selectMode(this, 'wife')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">block</span></div>
+            <span class="mode-name">Exact</span>
+          </div>
+          <div class="mode-chip" data-mode="flexible" onclick="selectMode(this, 'wife')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">swap_horiz</span></div>
+            <span class="mode-name">Flexible</span>
+          </div>
+          <div class="mode-chip" data-mode="exploring" onclick="selectMode(this, 'wife')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">explore</span></div>
+            <span class="mode-name">Exploring</span>
+          </div>
+          <div class="mode-chip" data-mode="surprise" onclick="selectMode(this, 'wife')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">auto_awesome</span></div>
+            <span class="mode-name">Surprise</span>
+          </div>
+        </div>
+
+        <div class="mode-desc-area">
+          <div class="mode-desc-text" id="wifeDesc">
+            This product only. Won't buy substitutes even if the item is out of stock.
+          </div>
+        </div>
+
+        <div class="exceptions-area" id="wifeExceptions">
+          <div class="exception-label">Exceptions</div>
+          <div class="exception-item checked" onclick="toggleException(this)">
+            <div class="ex-cb"><span class="material-symbols-outlined">check</span></div>
+            <span class="ex-label">Allow organic alternative</span>
+          </div>
+          <div class="exception-item" onclick="toggleException(this)">
+            <div class="ex-cb"><span class="material-symbols-outlined">check</span></div>
+            <span class="ex-label">Allow larger size if same brand</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Takao's Item Card -->
+      <div class="item-card" id="takaoCard">
+        <div class="item-header">
+          <div class="item-img" style="overflow:hidden;"><img src="../../projects/project-01/tradejoes/dad-usual-greek-non-fat-yogurt.webp" style="width:56px; height:56px; object-fit:cover; border-radius:inherit;" alt="Greek Yogurt"></div>
+          <div class="item-details">
+            <div class="item-name">Greek Yogurt</div>
+            <div class="item-brand">Any brand · Dairy</div>
+          </div>
+          <span class="item-member-badge" style="background: #E8F0FE; color: var(--primary);">Flexible</span>
+        </div>
+
+        <div class="mode-grid" id="takaoModes">
+          <div class="mode-chip" data-mode="exact" onclick="selectMode(this, 'takao')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">block</span></div>
+            <span class="mode-name">Exact</span>
+          </div>
+          <div class="mode-chip selected" data-mode="flexible" onclick="selectMode(this, 'takao')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">swap_horiz</span></div>
+            <span class="mode-name">Flexible</span>
+          </div>
+          <div class="mode-chip" data-mode="exploring" onclick="selectMode(this, 'takao')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">explore</span></div>
+            <span class="mode-name">Exploring</span>
+          </div>
+          <div class="mode-chip" data-mode="surprise" onclick="selectMode(this, 'takao')">
+            <div class="mode-icon"><span class="material-symbols-outlined" style="font-size: 16px;">auto_awesome</span></div>
+            <span class="mode-name">Surprise</span>
+          </div>
+        </div>
+
+        <div class="mode-desc-area">
+          <div class="mode-desc-text" id="takaoDesc">
+            Accept similar alternatives. Home Brain will substitute within your preference range.
+          </div>
+        </div>
+
+        <div class="priority-area" id="takaoPriority">
+          <div class="priority-label">Substitution Priority</div>
+          <div class="priority-list">
+            <div class="priority-item">
+              <span class="priority-num">1</span>
+              <span class="priority-text">Same protein content (15g+)</span>
+              <span class="priority-drag"><span class="material-symbols-outlined">drag_indicator</span></span>
+            </div>
+            <div class="priority-item">
+              <span class="priority-num">2</span>
+              <span class="priority-text">No added sugar</span>
+              <span class="priority-drag"><span class="material-symbols-outlined">drag_indicator</span></span>
+            </div>
+            <div class="priority-item">
+              <span class="priority-num">3</span>
+              <span class="priority-text">Price within $2 range</span>
+              <span class="priority-drag"><span class="material-symbols-outlined">drag_indicator</span></span>
+            </div>
+            <div class="priority-item">
+              <span class="priority-num">4</span>
+              <span class="priority-text">Brand preference (Fage, Chobani)</span>
+              <span class="priority-drag"><span class="material-symbols-outlined">drag_indicator</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+const modeDescs = {
+  exact: "This product only. Won't buy substitutes even if the item is out of stock.",
+  flexible: "Accept similar alternatives. Home Brain will substitute within your preference range.",
+  exploring: "Open to trying new products. Home Brain may suggest items you haven't tried before.",
+  surprise: "Full creative freedom. Home Brain picks based on what it thinks you'll enjoy."
+};
+
+function selectMember(el, member) {
+  document.querySelectorAll('.member-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function selectMode(el, person) {
+  const grid = el.closest('.mode-grid');
+  grid.querySelectorAll('.mode-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+
+  const mode = el.dataset.mode;
+  const descId = person + 'Desc';
+  const descEl = document.getElementById(descId);
+  descEl.style.opacity = '0';
+  setTimeout(() => {
+    descEl.textContent = modeDescs[mode];
+    descEl.style.opacity = '1';
+  }, 150);
+
+  // Update badge
+  const card = el.closest('.item-card');
+  const badge = card.querySelector('.item-member-badge');
+  const modeColors = {
+    exact: { bg: '#FCE8E6', color: 'var(--mode-exact)' },
+    flexible: { bg: '#E8F0FE', color: 'var(--primary)' },
+    exploring: { bg: '#FEF7E0', color: '#E37400' },
+    surprise: { bg: '#FCE8D5', color: 'var(--connective-coral)' }
+  };
+  badge.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+  badge.style.background = modeColors[mode].bg;
+  badge.style.color = modeColors[mode].color;
+}
+
+function toggleException(el) {
+  el.classList.toggle('checked');
+}
+</script>
+</body>
+</html>

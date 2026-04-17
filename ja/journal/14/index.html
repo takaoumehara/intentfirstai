@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>何を委ねるか、何を握るか。その境界線が動く理由 — intentfirst.ai</title>
+<meta name="description" content="自律マップと自律ダイアルは別物だ。どちらも、信頼の蓄積とともにシフトする。">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(253,252,250,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--color-grammar); }
+.nav-links a[href="../../journal/index.html"] { color: var(--color-grammar); }
+
+@media (max-width: 768px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+.lang-switch {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: rgba(253,252,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
+}
+.lang-switch a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 6px;
+  transition: color 0.3s var(--ease);
+  line-height: 1;
+}
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+.lang-switch-divider {
+  width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+@media (max-width: 768px) {
+  .lang-switch {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .lang-switch-divider {
+    width: 1px;
+    height: 14px;
+  }
+}
+
+/* ═══ ARTICLE HERO ═══ */
+.article-hero {
+  padding-top: 56px;
+}
+.article-hero-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-meta {
+  padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 48px) clamp(32px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.article-hero-meta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article-hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.15s forwards;
+}
+.article-hero-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.25s forwards;
+}
+.article-hero-subtitle {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.35s forwards;
+}
+.article-hero-date {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.8vw, 13px);
+  letter-spacing: 1px;
+  color: var(--text-3);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.45s forwards;
+}
+
+/* ═══ ARTICLE BODY ═══ */
+.article-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  font-size: clamp(16px, 1.1vw, 18px);
+  line-height: 1.8;
+  color: var(--text);
+}
+.article-body p {
+  margin-bottom: 1.6em;
+}
+.article-body h2 {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  margin-top: 2.8em;
+  margin-bottom: 1em;
+}
+.article-body h3 {
+  font-weight: 400;
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-top: 2.2em;
+  margin-bottom: 0.8em;
+}
+.article-body h4 {
+  font-weight: 500;
+  font-size: clamp(16px, 1.2vw, 20px);
+  line-height: 1.3;
+  color: var(--text);
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+}
+.article-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.article-body em {
+  font-style: italic;
+  color: var(--text-2);
+}
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.4em 0;
+}
+.article-body ul {
+  margin-bottom: 1.6em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+.article-body ul li {
+  position: relative;
+  padding-left: 1em;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grammar);
+}
+.article-body .structured-block {
+  background: var(--bg-2);
+  border-radius: 10px;
+  padding: 1.4em 1.6em;
+  margin: 1.6em 0;
+  font-family: var(--font-mono);
+  font-size: clamp(13px, 0.9vw, 15px);
+  line-height: 1.7;
+  color: var(--text-2);
+  white-space: pre-line;
+}
+.article-body .closing-note {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin-top: 2em;
+}
+.article-body .closing-note p {
+  margin-bottom: 0.8em;
+}
+.article-body .closing-note p:last-child {
+  margin-bottom: 0;
+}
+.article-body .ref-section {
+  margin-top: 2em;
+  font-size: clamp(13px, 0.9vw, 15px);
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.article-body .ref-section h2 {
+  font-size: clamp(18px, 1.4vw, 24px);
+}
+.article-body .ref-section a {
+  color: var(--color-grammar);
+  text-decoration: none;
+  word-break: break-all;
+}
+.article-body .ref-section a:hover {
+  text-decoration: underline;
+}
+
+/* ═══ ARTICLE NAV ═══ */
+.article-nav {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.article-nav a {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+.article-nav a:hover {
+  color: var(--color-grammar);
+  border-color: var(--color-grammar);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(104,137,180,0.15);
+}
+
+/* ═══ SUBSCRIBE CTA ═══ */
+.subscribe-cta {
+  background: var(--bg-inverse);
+  color: #fff;
+  text-align: center;
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+}
+.subscribe-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.subscribe-sub {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+.subscribe-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--color-grammar);
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s var(--ease);
+  box-shadow: 0 4px 24px rgba(104,137,180,0.25);
+}
+.subscribe-btn:hover {
+  filter: brightness(0.85);
+  box-shadow: 0 6px 32px rgba(104,137,180,0.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 580px) {
+  .article-hero-title {
+    letter-spacing: -0.8px;
+  }
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article-nav a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo"><img src="../../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../../context-grammar/index.html">Context Grammar</a>
+      <a href="../../../projects/index.html">Projects</a>
+      <a href="../../industry/index.html">Industry</a>
+      <a href="../../about/index.html">About</a>
+      <a href="../../about/index.html#contact" class="nav-cta">Contact</a>
+    </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../../context-grammar/index.html">Context Grammar</a>
+    <a href="../../../projects/index.html">Projects</a>
+    <a href="../../industry/index.html">Industry</a>
+    <a href="../../about/index.html">About</a>
+    <a href="../../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../../journal/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../../journal/index.html">EN</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE HERO
+     ═══════════════════════════════════════ -->
+<section class="article-hero">
+  <img src="../../../assets/img/journal/14.webp" alt="何をAIに任せ、何を自分で握るか。そしてその境界線が動く理由" class="article-hero-img">
+  <div class="article-hero-meta">
+    <div class="article-hero-meta-inner">
+      <p class="article-hero-label">エッセイ &mdash; 14</p>
+      <h1 class="article-hero-title">何を委ねるか、何を握るか。その境界線が動く理由</h1>
+      <p class="article-hero-subtitle">自律マップと自律ダイアルは別物だ。どちらも、信頼の蓄積とともにシフトする。</p>
+      <p class="article-hero-date">2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE BODY
+     ═══════════════════════════════════════ -->
+<article class="article-body">
+  <div class="reveal">
+    <h2>あなたはすでに体験している</h2>
+
+    <h3>Netflix</h3>
+
+    <p>あなたのNetflixのホーム画面は、友人のそれとまったく違う。</p>
+
+    <p>同じ映画。違う体験。あなたにはロマンスシーンのサムネイルが表示される。友人にはアクションシーン。Netflixは何十枚ものサムネイルを用意している。一枚ごとに、すでに判断を下している。「どの画像がこの人をクリックさせるか？」</p>
+
+    <p>あなたが視聴するコンテンツの80%はレコメンデーション経由だ。自分で選んでいるのは20%だけ。</p>
+
+    <p>あなたは自分で決めていると思っている。Netflixが決めている。</p>
+
+    <h3>Amazon</h3>
+
+    <p>いまAmazonを開いてみる。ホームページのすべての商品は、あなただけのために並んでいる。</p>
+
+    <p>「もう一度買う」を使ったことがあるだろう。先月、ドッグフードを注文した。ワンクリックで再注文。その前は：検索、スクロール、正しい商品を見つける、カートに入れる、確認。いまは：ワンクリック。</p>
+
+    <p>Amazonの売上の35%は、このレコメンデーションエンジンから生まれている。一日1,500億データポイントを処理する。あなたが次に何を買うかを予測するために。</p>
+
+    <h3>Spotify</h3>
+
+    <p>月曜の朝。Discover Weeklyを開く。30曲。聴いたことのない曲ばかり。なのに、どういうわけか、まさに聴きたかった曲ばかり。</p>
+
+    <p>最初の3曲を聴いて思う。「なぜ分かったのか？」</p>
+
+    <p>Spotifyはあなたのテイストプロファイルを一つだけ持っているのではない。複数持っている。ワークアウト中に聴く音楽と、日曜の朝コーヒーを飲みながら流す音楽は違う。だから複数のMixが届く。それぞれが、異なるバージョンのあなたに合わせてチューニングされている。</p>
+
+    <p>使えば使うほど、精度が上がる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>このパターンには名前がある</h2>
+
+    <p>この三つのサービスには共通点がある。</p>
+
+    <p><strong>AIに委譲されているもの：</strong></p>
+
+    <p>```</p>
+
+    <p>Netflix  → 何を観るかのレコメンド</p>
+
+    <p>Amazon   → 過去に購入したものの再注文</p>
+
+    <p>Spotify  → まだ知らない曲の選定</p>
+
+    <p>```</p>
+
+    <p><strong>あなたが依然として決めているもの：</strong></p>
+
+    <p>```</p>
+
+    <p>Netflix  → 実際に観るかどうか</p>
+
+    <p>Amazon   → 実際に買うかどうか</p>
+
+    <p>Spotify  → 聴き続けるかスキップするか</p>
+
+    <p>```</p>
+
+    <p><em>委譲</em>と<em>所有</em>の間の境界線。それが<strong>自律マップ（Autonomy Map）</strong>だ。</p>
+
+    <p>だが、委譲された側の中にも、レベルがある。</p>
+
+    <p>```</p>
+
+    <p>Netflix  → ホーム画面を自動で変更する（高い自律性）</p>
+
+    <p>Amazon   → 「もう一度買う」を表示するが、押すのはあなた（中程度）</p>
+
+    <p>Spotify  → 知らない曲を追加するが、スキップは自由（中程度）</p>
+
+    <p>```</p>
+
+    <p>このスペクトラム──どこまで委譲しているか──が<strong>自律ダイアル（Autonomy Dial）</strong>だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>マップとダイアルの正体</h2>
+
+    <p>```</p>
+
+    <p>委譲                        所有</p>
+
+    <p>情報収集                    最終判断</p>
+
+    <p>・検索と比較                ・価値観に基づく判断</p>
+
+    <p>・パターン学習              ・金額の確認</p>
+
+    <p>・送信／公開</p>
+
+    <p>← 自律マップ →</p>
+
+    <p>```</p>
+
+    <p><strong>自律マップ：</strong> 境界線をどこに引くか。何を委譲し、何を自分のものにするか。</p>
+
+    <p><strong>自律ダイアル：</strong> 委譲されたものに対して、どこまで自律的にするか。四つのポジション：</p>
+
+    <p>```</p>
+
+    <p>提案        →  確認        →  通知        →  自動</p>
+
+    <p>「これで      「これで       「やりまし     完了。システム</p>
+
+    <p>いきますか？」 進めて        た」           が完全に</p>
+
+    <p>いいですか？」 （取消可能）   処理</p>
+
+    <p>```</p>
+
+    <p>ツールを使う瞬間、委譲はすでに始まっている。Googleマップを開く？ ルート計算はすでに委譲している。だからこそ使う。<strong>マップなしのダイアルは無意味。</strong>ダイアルなしのマップは、ただ許可を求め続けるだけ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>名前をつけると見えてくるもの</h2>
+
+    <p>Netflix、Spotify、Amazon──すでにこれを大規模に実行している。Spotifyはあなたのテイストの複数バージョンを理解している。Netflixはサムネイルのレベルまでパーソナライズしている。Amazonは売上の35%をレコメンデーションエンジンから得ている。Bettermentのようなロボアドバイザーは、ポートフォリオ全体を「自動」で運用している。</p>
+
+    <p><strong>マップとダイアルは発明ではない。すでに存在するパターンのための「言語」だ。</strong></p>
+
+    <p>では、なぜ名前をつけることが重要なのか。<strong>言語を持つと、まだ存在しないものが見え始めるからだ。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>洞察1：ダイアルの天井は領域によって変わる</h3>
+
+    <p>2021年、Netflixは「Play Something」（後に「Surprise Me」に改名）をリリースした。AIが番組を選ぶ。再生が始まる。入力不要。</p>
+
+    <p><strong>利用率があまりにも急速に落ちたため、2年後に廃止された。</strong></p>
+
+    <p>なぜか。エンタメの領域では、「何を観るか選ぶこと」自体が体験の一部だからだ。選ぶことを委譲すると、その価値を壊す。</p>
+
+    <p>一方、Amazonのスマートリオーダーは機能している。洗剤が少なくなると、自動で再注文される。誰も文句を言わない。洗剤を選ぶことは体験ではない。雑用だ。</p>
+
+    <p>```</p>
+
+    <p>領域ごとのダイアル天井：</p>
+
+    <p>日用品の補充：          天井 = 自動</p>
+
+    <p>→ 選ぶことに意味がない。Amazonスマートリオーダーが機能する理由。</p>
+
+    <p>エンタメ：              天井 = より良い提案</p>
+
+    <p>→ 選ぶことが体験そのもの。Surprise Meが失敗した理由。</p>
+
+    <p>→ AIの仕事は選ぶことではない。正しい選択肢を最初に浮上させることだ。</p>
+
+    <p>金融（ルーティン）：    天井 = 自動</p>
+
+    <p>→ 自動積立、自動予算管理、支出の自動カテゴリ分類。</p>
+
+    <p>金融（高リスク）：      天井 = 確認</p>
+
+    <p>→ 新規投資、大口送金、ローン。</p>
+
+    <p>```</p>
+
+    <p>注目すべき点。金融には天井が一つではない。毎月の自動積立は「自動」で動く。でも10,000ドルを新しいファンドに入れる？ あなたが決める。<strong>同じカテゴリ、異なるタスク、異なるダイアル設定。</strong>これは先行エッセイの四つの次元──可逆性、親密度、賭けの大きさ、コンテクスト──に接続する。ダイアルの天井はそれらの組み合わせだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>洞察2：暗黙のダイアルと明示的なダイアルは同じではない</h3>
+
+    <p>Netflix、Spotify、Amazonのレコメンデーションは自動的に改善される。あなたは何も設定していない。ただ使っているだけ。これが<strong>暗黙のダイアル（Implicit Dial）</strong>──観察を通じて上昇する。</p>
+
+    <p>Amazon Auto Buy？ あなたが設定する。「この商品の価格が15ドルを下回ったら自動購入」。意識的。意図的。これが<strong>明示的なダイアル（Explicit Dial）</strong>──自分でダイアルを回す。</p>
+
+    <p>```</p>
+
+    <p>暗黙のダイアル（行動を通じて上昇）：</p>
+
+    <p>→ Netflix：視聴するほどレコメンデーション精度が向上</p>
+
+    <p>→ Spotify：Discover Weeklyが毎週良くなる</p>
+
+    <p>→ ロボアドバイザー：学習によりポートフォリオのリバランスが最適化</p>
+
+    <p>明示的なダイアル（意図的に設定）：</p>
+
+    <p>→ Amazon Auto Buy：「15ドル以下で自動購入」</p>
+
+    <p>→ Tesla FSD：SlothモードかMad Maxモードを選択</p>
+
+    <p>→ Google Personal Intelligence：アプリごとにGmailアクセスを許可/ブロック</p>
+
+    <p>```</p>
+
+    <p><strong>どちらが正しいか？ 両方必要だ。</strong> ルールはシンプル：</p>
+
+    <p>```</p>
+
+    <p>低リスク、容易に可逆 → 暗黙のダイアルで十分</p>
+
+    <p>→ レコメンデーション、プレイリスト、検索品質</p>
+
+    <p>→ 間違い？ スキップするか、戻るだけ。</p>
+
+    <p>高リスク、取り消し困難 → 明示的なダイアルが必須</p>
+
+    <p>→ 購入、送信、予約</p>
+
+    <p>→ 間違い？ もう遅い。</p>
+
+    <p>```</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>洞察3：サービス横断の学習はまだ存在しない</h3>
+
+    <p>Spotifyはあなたの音楽の好みを知っている。Amazonは買い物のパターンを知っている。Netflixはエンタメの好みを知っている。でも<strong>あなたを丸ごと知っているシステムは、一つもない。</strong></p>
+
+    <p>月曜の朝、Spotifyでジャズを聴く。Amazonでプレミアムコーヒー豆を注文する。Netflixで料理番組を観る。一本の糸──リラックスした朝のリチュアル。でもその糸を見ているシステムはない。各サービスは自分のサイロの中だけで最適化する。</p>
+
+    <p>ここで「家政婦」の例が示唆的になる。</p>
+
+    <p>本物の家政婦はあなたの<strong>生活全体</strong>を見ている。冷蔵庫。パントリー。家族の好み。来週のスケジュール。一つのカテゴリを孤立して最適化しない。家全体にわたって学習する。それはSpotifyではない。Amazonでもない。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>洞察4：開示ダイアル ── 委譲の前に、開示がある</h3>
+
+    <p>ここまで見てきたすべてのパターンの下に、前提条件が埋まっている。</p>
+
+    <p><strong>開示していないものは委譲できない。</strong></p>
+
+    <p>Netflixのレコメンデーションは視聴履歴があるから存在する。Spotifyのプレイリストはリスニングデータから構築される。Amazonの「もう一度買う」は購入履歴を必要とする。サービスを使うこと自体が、暗黙の開示行為だ。</p>
+
+    <p>だが、これを家庭に持ち込むと、より意図的になる。家族の食事制限、好み、アレルギー、特定の嗜好──これらは利用ログからは見えない。明示的に共有する必要がある。</p>
+
+    <p>これを私は<strong>開示ダイアル（Disclosure Dial）</strong>と呼ぶ。領域ごと、人ごとの、AIにどこまで自分を知らせるかのコントロール。</p>
+
+    <p>開示ダイアルは、自律ダイアルの前提条件だ。開示が低い領域では、AIがどれほど高性能でも、自律性には自然な天井がある。十分に開示した領域では、より高い自律性が可能になるだけでなく、あなた自身がそれを望み始める。</p>
+
+    <p>続く家政婦の例で、この開示プロセスが時間とともにどう展開するかを見てほしい。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>家政婦を雇ったと想像する</h2>
+
+    <p>初日。</p>
+
+    <p>「砂糖はどこ？ どの塩のブランド？ 娘さんは牛乳を飲む？」</p>
+
+    <p>すべて、あなたが教えなければならない。買い物は委譲した。それが雇った理由だ。でも「何を買うか」──それはまだ完全にあなたの判断。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>1ヶ月目：学習が始まる</h3>
+
+    <p>```</p>
+
+    <p>マップのシフト：</p>
+
+    <p>委譲：玉ねぎのブランド、ヨーグルトの種類、補充タイミング</p>
+
+    <p>所有：今週の献立、特別な食材</p>
+
+    <p>ダイアル：</p>
+
+    <p>玉ねぎ → 提案（「また甘い玉ねぎでいいですか？」）</p>
+
+    <p>ヨーグルト → 提案（「いつもの3種類ですか？」）</p>
+
+    <p>```</p>
+
+    <h3>3ヶ月目：家庭を学習し始める</h3>
+
+    <p>```</p>
+
+    <p>彼女が気づいたこと：</p>
+
+    <p>あなたの妻：Trader Joe'sのハニーヨーグルト（これだけ）</p>
+
+    <p>あなた：無脂肪ギリシャヨーグルト（ブランドは柔軟）</p>
+
+    <p>子供：乳製品フリーのヨーグルト（どのブランド、どの味でもOK）</p>
+
+    <p>リブアイステーキ：このスーパーにはリブアイが2〜3パックあるが、</p>
+
+    <p>あなたに合う特定のパッケージは一つだけ。</p>
+
+    <p>他は合わない。</p>
+
+    <p>玉ねぎ：甘い玉ねぎがベース。売り切れなら、</p>
+
+    <p>黄色か白でいい。</p>
+
+    <p>紫の玉ねぎ？ 絶対にダメ。</p>
+
+    <p>ダイアルが上昇中：</p>
+
+    <p>ヨーグルト（3種類）→ 確認（「いつもの3つ、いいですか？」）</p>
+
+    <p>リブアイ         → 確認（「見つけました。買いますか？」）</p>
+
+    <p>```</p>
+
+    <h3>6ヶ月目：代替モードが出現する</h3>
+
+    <p>ここから面白くなる。ダイアルが上昇するにつれて、新しいものが現れる。<strong>代替のルール</strong>だ。</p>
+
+    <p>レベルではない。モードだ。良い・悪いではない。異なる。アイテムごとに、AIは異なる指示を必要とする。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>#### モード：フレキシブル（Flexible）</p>
+
+    <p>```</p>
+
+    <p>玉ねぎ → 甘い玉ねぎが標準。</p>
+
+    <p>売り切れなら、黄色か白でいい。</p>
+
+    <p>紫？ ダメ。</p>
+
+    <p>あなたのヨーグルト → 無脂肪ギリシャ。</p>
+
+    <p>ブランドはあまり気にしない。</p>
+
+    <p>そのタイプのギリシャヨーグルトなら何でもいい。</p>
+
+    <p>→ AIが代替して通知する。</p>
+
+    <p>→ 「甘い玉ねぎが売り切れだったので、黄色にしました」</p>
+
+    <p>```</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>#### モード：エグザクト（Exact）</p>
+
+    <p>```</p>
+
+    <p>妻のヨーグルト → Trader Joe'sのハニーヨーグルト。</p>
+
+    <p>この商品だけ。他の味ではない。</p>
+
+    <p>他のブランドでもない。</p>
+
+    <p>ただし：大サイズが売り切れなら、小6個はOK。</p>
+
+    <p>リブアイ → この特定のパッケージ。</p>
+
+    <p>他のリブアイはダメ。一切。</p>
+
+    <p>なければ買わない。</p>
+
+    <p>ビタミン剤 → このブランドだけ。</p>
+
+    <p>→ AIは代替しない。入手不可なら、買わない。</p>
+
+    <p>→ 事前承認された代替（サイズなど）だけが実行される。</p>
+
+    <p>```</p>
+
+    <p>同じモード、異なる柔軟性のレベル。妻のヨーグルト：「ブランドと味は絶対、サイズは柔軟」。リブアイ：「妥協ゼロ」。AIはこれらの微差を時間とともに学習する。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>#### モード：エクスプローリング（Exploring）</p>
+
+    <p>```</p>
+
+    <p>プロテインパウダー → ホエイが標準。</p>
+
+    <p>でもいま積極的にテスト中。</p>
+
+    <p>先週：ダブルチョコレート。今週：バニラ。</p>
+
+    <p>来週：別のものを試す。</p>
+
+    <p>良い：バニラ（スムージーの味を邪魔しない）</p>
+
+    <p>悪い：ストロベリー、キャラメル（甘すぎる）</p>
+
+    <p>気になる：同タイプの別ブランド</p>
+
+    <p>→ AIがフィードバックを時系列で記録する。</p>
+
+    <p>→ 「前回バニラが好評でした。同じブランドの無味を試しますか？」</p>
+
+    <p>→ 一つに固定されない。選択肢をローテーションできる。</p>
+
+    <p>```</p>
+
+    <p>エクスプローリングモードは<strong>進行中のプロセス</strong>だ。積極的にテストし、フィードバックを与え、AIが学習する。最終的にフレキシブルになるかもしれない（「この3つをローテーション」）。エグザクトになるかもしれない（「これが勝者」）。<strong>モードは静的ではない。遷移する。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>#### モード：サプライズ（Surprise）</p>
+
+    <p>```</p>
+
+    <p>日本のスナック → このカテゴリが好きだから、知らないものを持ってきて。</p>
+
+    <p>カリカリ。甘すぎないもの。</p>
+
+    <p>その範囲内なら何でもいい。</p>
+
+    <p>→ AIが基準内で未知の選択肢を選ぶ。</p>
+
+    <p>→ あなたの反応を記録する：「これは当たり」「これは外れ」。</p>
+
+    <p>```</p>
+
+    <p>でも、すべてにサプライズが適用されるわけではない。</p>
+
+    <p>```</p>
+
+    <p>日本のスナック    → サプライズで ✓</p>
+
+    <p>ビタミン剤       → サプライズで ✗</p>
+
+    <p>プロテインパウダー → エクスプローリング（新しい味）、純粋なサプライズではない</p>
+
+    <p>```</p>
+
+    <p>サプライズはカテゴリごとのオプトインだ。サプライズが外れたとき、あなたはサプライズを減らしたくなるかもしれないし、増やしたくなるかもしれない。それは<strong>もう一つのダイアル</strong>──サプライズ自体の自律性だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><strong>モードは流動的だ：</strong></p>
+
+    <p>```</p>
+
+    <p>エクスプローリング → 勝者を発見 → エグザクト（「ついにこれだ」）</p>
+
+    <p>エクスプローリング → 複数の勝者を発見 → フレキシブル（「この3つ」）</p>
+
+    <p>エグザクト → 飽きた → エクスプローリング（「新しいものを試そう」）</p>
+
+    <p>サプライズ → お気に入りを発見 → エグザクト（「これをもっと」）</p>
+
+    <p>フレキシブル → 好みが変わった → エクスプローリング（「いま何が食べたい？」）</p>
+
+    <p>```</p>
+
+    <p>好みは固定されない。季節とともに、気分とともに、エネルギーとともに、成長とともに変わる。<strong>AIは現在の好みだけを学ぶのではない。好みがどう進化するかを学ぶ。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>1年後：完成したシステム</h3>
+
+    <p>```</p>
+
+    <p>冷蔵庫は常にストックされている。</p>
+
+    <p>あなたは何もしていない。</p>
+
+    <p>何かが切れたとき → AIがモードに従う</p>
+
+    <p>新商品／価格変動 → 一時的に確認モード</p>
+
+    <p>サプライズ → 月に数回、新しいものが現れる</p>
+
+    <p>ある月、酸っぱいものが無性に食べたくなる。</p>
+
+    <p>AIがこのシフトを検知する。</p>
+
+    <p>あなたが何も言わなくても、サプライズカテゴリが</p>
+
+    <p>酸味の方向に傾く。</p>
+
+    <p>気づかないかもしれない。どのみち棚は変わり続けている。</p>
+
+    <p>これが「育てる」ということだ。</p>
+
+    <p>```</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>ダイアルは自動で上がるのか、自分で上げるのか？</h2>
+
+    <p><strong>暗黙のダイアル（Implicit Dial）</strong> ── 自動で上がる：Netflix、Spotify、Amazonのレコメンデーションは使うほど改善される。何も設定しない。あなたの行動がダイアルを回す。</p>
+
+    <p><strong>明示的のダイアル（Explicit Dial）</strong> ── 自分で設定する：Amazon Auto Buy──「この商品を15ドル以下で自動購入」──意図的だ。Tesla FSDのモード、Google Personal Intelligenceの権限設定──<em>自分で設定を選ぶ</em>。</p>
+
+    <p><strong>真実：両方必要だ。</strong> リスクが決める：</p>
+
+    <p>```</p>
+
+    <p>低リスク、可逆 → 暗黙のダイアル</p>
+
+    <p>→ レコメンデーション、音楽、サムネイル</p>
+
+    <p>→ 間違い？ スキップして次へ。</p>
+
+    <p>高リスク、不可逆 → 明示的のダイアル</p>
+
+    <p>→ 購入、送信、確認</p>
+
+    <p>→ 間違い？ もう戻れない。</p>
+
+    <p>```</p>
+
+    <p>家政婦の場合：</p>
+
+    <p>```</p>
+
+    <p>暗黙：</p>
+
+    <p>→ 毎週あなたが甘い玉ねぎを選ぶのを見ている。</p>
+
+    <p>→ 翌週、聞かずに甘い玉ねぎを持ってくる。</p>
+
+    <p>明示的：</p>
+
+    <p>→ あなたが言う。「リブアイ。この特定のパッケージだけ。</p>
+
+    <p>他はダメ。いいね？」</p>
+
+    <p>→ それは明確な指示だ。</p>
+
+    <p>```</p>
+
+    <p><strong>両方が同時に起きている。</strong> 観察が一つの信頼を築く。直接の指示が別の信頼を築く。合わさって、関係性が深まる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>全体像</h2>
+
+    <p>```</p>
+
+    <p>① 自律マップ（境界線をどこに引くか）</p>
+
+    <p>「何を委譲し、何を自分のものにするか」</p>
+
+    <p>→ ツールを使う瞬間にベースラインが存在する</p>
+
+    <p>→ 時間とともに 所有 → 委譲 にシフト</p>
+
+    <p>② 自律ダイアル（委譲した中でどこまで）</p>
+
+    <p>範囲：提案 → 確認 → 通知 → 自動</p>
+
+    <p>→ 暗黙（使用を通じて上昇）</p>
+
+    <p>→ 明示的（自分で設定）</p>
+
+    <p>→ 例外時に一時的に下降</p>
+
+    <p>③ 代替モード（例外をどう処理するか）</p>
+
+    <p>委譲されたアイテムに対して、どんなパターンが支配するか？</p>
+
+    <p>→ フレキシブル／エグザクト／エクスプローリング／サプライズ</p>
+
+    <p>→ モードは時間とともにシフト</p>
+
+    <p>④ 開示ダイアル（AIにどこまで知らせるか）</p>
+
+    <p>「自分のどこまでをAIと共有するか？」</p>
+
+    <p>→ 領域ごと、人ごとに調整</p>
+
+    <p>→ 自律ダイアルの前提条件：開示していないものは委譲できない</p>
+
+    <p>→ 暗黙の開示（使用を通じてデータが蓄積）＋ 明示的な開示（あなたが伝える）</p>
+
+    <p>⑤ 信頼（四つすべてを時間とともに動かすもの）</p>
+
+    <p>→ 成功体験 → より広いマップ ＋ より高いダイアル</p>
+
+    <p>→ 失敗体験 → より狭いマップ ／ より低いダイアル</p>
+
+    <p>→ 想定外の事態 → 一時的なダイアル凍結</p>
+
+    <p>マップ = 何を</p>
+
+    <p>ダイアル = どこまで（自動か明示的か）</p>
+
+    <p>開示 = どこまで共有するか（ダイアルの前提条件）</p>
+
+    <p>モード = 各アイテムをどう扱うか</p>
+
+    <p>信頼 = いつ、どのくらいの速さで</p>
+
+    <p>```</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>巨大テック企業はいま、これをどう考えているか</h2>
+
+    <h3>Google ── マップとダイアルの両方を構築</h3>
+
+    <p><strong>Google Maps：</strong></p>
+
+    <p>500回の通勤の後、あなたが見ている地図アプリは初日とは別物だ。開くと予測する。「職場まで20分」。聞く前に（暗黙のダイアル）。渋滞を迂回する。だが500回の通勤を経ても、<em>まだ</em>職場に向かって自動発進はしない。提案する。あなたが確認する。ダイアルにはまだ上昇の余地がある。</p>
+
+    <p><strong>Gemini Personal Intelligence（2026年）：</strong></p>
+
+    <p>GoogleはGeminiをGmail、フォト、YouTube、検索履歴に接続している。設計原則は明確だ。<strong>デフォルトですべてオフ。ユーザーがアプリごとにオプトイン（明示的ダイアル）。</strong> Gmailは許可、フォトはブロック。あなたの選択。</p>
+
+    <p>GeminiのMemory機能は会話からあなたの好みを学習し、次回に適用する（暗黙のダイアル）。2026年2月、全ユーザーに無料公開された。</p>
+
+    <h3>Apple ── プライバシーでマップを拡張する</h3>
+
+    <p>Apple Intelligenceは約30億パラメータをデバイス上で直接実行する。処理のほとんどはオンデバイスに留まる。2026年1月、AppleはGeminiとの提携を発表。GoogleのモデルがAppleのPrivate Cloud Computeサーバー上で動く。「知能はGoogleから、データはAppleの境界の内側に」</p>
+
+    <p><strong>プライバシー設計が、マップを拡張するエンジンだ。</strong> データがデバイスから出ないなら、委譲への心理的抵抗が下がる。2026年後半、Agentic Siriがローンチ──メールからフライト情報を読み取り、Uberを自動予約する。そのとき、ダイアルが動く。</p>
+
+    <h3>Samsung ── コンテクストを感知する家電</h3>
+
+    <p>CES 2026：Bespoke AI Jet Bot Steam Ultra。ロボット掃除機がAI Object Recognitionを使う。人、猫、犬、ケーブルを認識する。AI Liquid Recognitionが液体のこぼれを検知する。<strong>そして判断する：掃除するか避けるか？ あなたのルールに基づいて（明示的ダイアル）。</strong> 自律的だが、ルールを書いたのはあなただ。</p>
+
+    <p>Kitchen AI Vision。Geminiが駆動し、冷蔵庫の中を見てレシピを提案する。「いま実際に作れるもの」のリアルな実装だ。</p>
+
+    <h3>Microsoft ── マップを引くのはユーザーではなく組織</h3>
+
+    <p>Copilot Control System。ここがひねりだ。<strong>自律マップを引くのは個人ユーザーではなく、組織のIT管理者だ。</strong> Copilotがアクセスできるデータは何か？ 実行できるアクションは何か？ テナント単位、ユーザーグループ単位で設定される。個人はその境界の中でダイアルを調整する。</p>
+
+    <p>二つのマップが重なっている。組織のマップ、そしてパーソナルのマップ。</p>
+
+    <h3>Amazon Alexa+ ── Auto Buyとコンテクストメモリ</h3>
+
+    <p><strong>Auto Buy：</strong> 明示的ダイアルの最も明確な実装。「Alexa、この商品の価格が100ドルを下回ったら買って」。意図的だ。アイテムごとに一つのリクエスト、最大200件アクティブ、24時間以内にキャンセル可能。</p>
+
+    <p>コンテクストメモリ：会話が積み重なる。月曜日に「今週はベジタリアンで」と言えば、木曜日のディナー提案が変わる。マップが拡張する（暗黙）。</p>
+
+    <h3>Tesla FSD ── シナリオと個人によるダイアル</h3>
+
+    <p>FSDはシナリオごとに調整する。低リスクの駐車場（ダイアル高め）、高リスクの横断歩道（ダイアル低め）。ドライビングスタイルを選べる（Slothモード vs. Mad Maxモード）──それは明示的ダイアル。</p>
+
+    <p>新しい点：Safety Score。急ブレーキの頻度、車間距離の維持、30日間のローリング平均で個人をスコアリング。まだFSDの自律性を直接変えるわけではない。だがインフラは整っている。実証された信頼に基づいてダイアルが上昇する基盤になりうる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>企業マッピング</h3>
+
+    <p>```</p>
+
+    <p>Google：   ユーザーがマップを設定（明示的）</p>
+
+    <p>Memoryが会話から学習（暗黙）</p>
+
+    <p>Apple：    プライバシーがマップを安全に拡張</p>
+
+    <p>Agentic Siriが2026年後半にダイアルを拡張</p>
+
+    <p>Samsung：  ユーザーがルールを設定（明示的）</p>
+
+    <p>Geminiがキッチン AI Visionを強化</p>
+
+    <p>Microsoft：組織がマップを設定</p>
+
+    <p>ユーザーがその境界内でダイアルを調整</p>
+
+    <p>Amazon：   Auto Buyがダイアルを明示的に設定（明示的）</p>
+
+    <p>コンテクストメモリがマップを拡張（暗黙）</p>
+
+    <p>Tesla：    リスクに応じてダイアルが調整（シナリオベース）</p>
+
+    <p>Safety Scoreが個人の信頼を追跡（基盤のみ）</p>
+
+    <p>```</p>
+
+    <p><strong>全社に共通するデザインの機会：</strong></p>
+
+    <p>1. <strong>段階的なマップ拡張</strong> ── ツールを使い込むほど、「所有」が「委譲」にシフトする</p>
+
+    <p>2. <strong>信頼に連動するダイアルの動き</strong> ── 成功した対話がダイアルを上げ、失敗が下げる</p>
+
+    <p>3. <strong>代替モード</strong> ── 例外はすべて同じ扱いではない。アイテムごとに独自のルールがある</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>AIプロダクトチームが見逃す三つのこと</h2>
+
+    <h3>1. マップなしにダイアルを設定する</h3>
+
+    <p>ほとんどのチームは「AIの自律性」を語るが、「何に対する自律性か？」とは問わない。ダイアルを見事に最適化しても、ユーザーが自分で握りたかった判断をAIに下させてしまう。マップがなければ、間違った瞬間に向けて設計することになる。</p>
+
+    <h3>2. 暗黙のダイアルと明示的のダイアルを混同する</h3>
+
+    <p>低リスクで可逆なもの（レコメンデーション）は暗黙で機能する。高リスクで不可逆なもの（購入、送信）は明示的が必要。区別がなければ、「聞かずにやった」か「どうでもいいことをいちいち聞いてくる」のどちらかになる。</p>
+
+    <h3>3. 例外時にダイアルがリセットされない</h3>
+
+    <p>在庫切れ、価格変動、想定外の事態。AIは一時的に確認モードに下がるべきだ。代替モードが設計されていなければ、例外が通常の瞬間と同じ自律性で処理される。信頼が壊れる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>AIプロダクトを設計しているなら</h2>
+
+    <p>チームに三つの問いを投げかけてほしい。</p>
+
+    <p><strong>問い1：「ユーザーが自分で握りたいものは何か？」</strong></p>
+
+    <p>→ それが「所有」列だ。AIをそこに置くな。</p>
+
+    <p><strong>問い2：「このダイアルは暗黙で上昇すべきか、ユーザーが明示的に設定すべきか？」</strong></p>
+
+    <p>→ リスクと可逆性で判断する。</p>
+
+    <p><strong>問い3：「信頼が蓄積されたとき、ダイアルはどう反応するか？」</strong></p>
+
+    <p>→ 成功→ダイアル上昇のメカニズムを設計する。同時に、失敗→ダイアル下降のメカニズムも設計する。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>一本の線</h2>
+
+    <p>```</p>
+
+    <p>自律マップ = 境界線をどこに引くか</p>
+
+    <p>自律ダイアル = 委譲の中でどこまで</p>
+
+    <p>→ 暗黙（観察された行動）</p>
+
+    <p>→ 明示的（ユーザーが設定）</p>
+
+    <p>開示ダイアル = AIにどこまで知らせるか</p>
+
+    <p>→ 自律ダイアルの前提条件</p>
+
+    <p>→ 領域ごと、人ごとに異なる</p>
+
+    <p>代替モード = アイテムごとの例外処理</p>
+
+    <p>信頼 = 四つすべてを時間とともに動かすエンジン</p>
+
+    <p>マップなしにダイアルを回すな。</p>
+
+    <p>暗黙と明示的を混同するな。</p>
+
+    <p>例外をフル自律で実行させるな。</p>
+
+    <p>獲得された信頼なしに何も動かすな。</p>
+
+    <p>そして忘れるな：好みは変わる。</p>
+
+    <p>```</p>
+
+    <p>1年後、冷蔵庫は常にストックされている。あなたは何もしていない。</p>
+
+    <p>でも、棚に見慣れないブランドがあったら──それはAIだ。気に入らなければ、そう言えばいい。ルールが賢くなる。</p>
+
+    <p><strong>それが人間とAIの関係だ。命令でも服従でもない。育てること。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>自律マップの詳細は記事 #13。自律ダイアルの四つのポジションは記事 #9。</em></p>
+
+    <p><em>この記事はその二つを接続し、新しい次元を追加する：暗黙 vs. 明示的ダイアル、領域別のダイアル天井、代替モード、そして開示ダイアル。</em></p>
+
+    <p>#AIDesign #UXDesign #AutonomyMap #AutonomyDial #AgenticUX #IntentFirst #HumanAI</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>ソース</h2>
+
+    <p><strong>Netflix:</strong></p>
+
+    <ul>
+      <li><a href="https://www.brainforge.ai/blog/how-netflix-uses-machine-learning-ml-to-create-perfect-recommendations" target="_blank">How Netflix Uses Machine Learning to Create Perfect Recommendations</a></li>
+      <li><a href="https://www.shaped.ai/blog/key-insights-from-the-netflix-personalization-search-recommendation-workshop-2025" target="_blank">Netflix Personalization, Recommendations & Search Workshop 2025</a></li>
+      <li><a href="https://netflixtechblog.com/foundation-model-for-personalized-recommendation-1a0bd8e02d39" target="_blank">Netflix Foundation Model for Personalized Recommendation</a></li>
+    </ul>
+
+    <p><strong>Amazon:</strong></p>
+
+    <ul>
+      <li><a href="https://amworldgroup.com/blog/amazon-hyper-personalization" target="_blank">Amazon Hyper Personalization: E-Commerce Revolution</a></li>
+      <li><a href="https://www.firney.com/news-and-insights/ai-product-recommendations-from-amazons-35-revenue-model-to-your-e-commerce-platform" target="_blank">AI Product Recommendations: From Amazon's 35% Revenue Model</a></li>
+      <li><a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=TsaUdPSIWqy1tZhF09" target="_blank">About Auto Buy — Amazon Customer Service</a></li>
+      <li><a href="https://markets.financialcontent.com/stocks/article/tokenring-2026-2-5-amazons-alexa-revolution-the-dawn-of-the-proactive-smart-home" target="_blank">Amazon's Alexa+ Revolution (Feb 2026)</a></li>
+    </ul>
+
+    <p><strong>Spotify:</strong></p>
+
+    <ul>
+      <li><a href="https://newsroom.spotify.com/2025-12-10/spotify-prompted-playlists-algorithm-gustav-soderstrom/" target="_blank">Spotify Lets You Steer the Algorithm (Dec 2025)</a></li>
+      <li><a href="https://blog.matchfy.io/how-does-the-spotify-algorithm-work-in-2025/" target="_blank">How the Spotify Algorithm Works in 2025</a></li>
+      <li><a href="https://www.chartlex.com/blog/streaming/how-spotify-algorithm-works-2026-complete-guide" target="_blank">How Does Spotify's Algorithm Work? Complete 2026 Breakdown</a></li>
+    </ul>
+
+    <p><strong>Google:</strong></p>
+
+    <ul>
+      <li><a href="https://blog.google/innovation-and-ai/products/gemini-app/personal-intelligence/" target="_blank">Google Personal Intelligence — connecting Gemini to Google apps</a></li>
+      <li><a href="https://www.androidheadlines.com/2026/03/googles-gemini-personal-intelligence-now-free-for-all-us-users.html" target="_blank">Gemini Personal Intelligence now free for all US users (March 2026)</a></li>
+      <li><a href="https://9to5google.com/2026/02/26/gemini-past-chats-free/" target="_blank">Gemini Memory — past chats personalization (Feb 2026)</a></li>
+      <li><a href="https://blog.google/products-and-platforms/products/maps/google-maps-101-how-ai-helps-predict-traffic-and-determine-routes/" target="_blank">Google Maps 101: How AI helps predict traffic and determine routes</a></li>
+    </ul>
+
+    <p><strong>Apple:</strong></p>
+
+    <ul>
+      <li><a href="https://www.apple.com/apple-intelligence/" target="_blank">Apple Intelligence</a></li>
+      <li><a href="https://9to5mac.com/2026/01/29/apple-confirms-gemini-powered-siri-will-use-private-cloud-compute/" target="_blank">Apple confirms Gemini-powered Siri will use Private Cloud Compute (Jan 2026)</a></li>
+    </ul>
+
+    <p><strong>Samsung:</strong></p>
+
+    <ul>
+      <li><a href="https://news.samsung.com/global/ces-2026-from-communication-to-understandingsamsung-to-unveil-the-next-stage-of-ai-appliances" target="_blank">CES 2026: Samsung to Unveil the Next Stage of AI Appliances</a></li>
+      <li><a href="https://news.samsung.com/global/samsung-to-unveil-ai-vision-built-with-google-gemini-at-ces-2026" target="_blank">Samsung AI Vision built with Google Gemini</a></li>
+    </ul>
+
+    <p><strong>Microsoft:</strong></p>
+
+    <ul>
+      <li><a href="https://learn.microsoft.com/en-us/copilot/microsoft-365/copilot-control-system/management-controls" target="_blank">Copilot Control System Management Controls</a></li>
+    </ul>
+
+    <p><strong>Tesla:</strong></p>
+
+    <ul>
+      <li><a href="https://www.tesla.com/fsd/safety" target="_blank">Tesla FSD Safety Report</a></li>
+      <li><a href="https://www.tparts.com/blogs/tesla-knowledge-blogs/understanding-tesla-safety-score-a-comprehensive-guide-2025-update" target="_blank">Tesla Safety Score Guide: 2025 Update</a></li>
+      <li><a href="https://www.basenor.com/blogs/news/tesla-update-v14" target="_blank">Tesla FSD v14: What's New</a></li>
+    </ul>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>関連記事</h2>
+
+    <ul>
+      <li><strong>記事 #9：</strong>「すべてのAIプロダクトは自律について隠れた判断を下している。意図的に下しているものは、ほぼない」── 自律ダイアルの四つのポジション（提案、確認、通知、自動）と、それを調整する四つの次元（可逆性、親密度、賭けの大きさ、コンテクスト）を定義。</li>
+      <li><strong>記事 #13：</strong>「AIはその仕事をこなせる。でも、こなすべきなのか？」── 自律マップを導入。委譲すべきジョブと自分で握るべき判断を分離する診断ツール。スキー場の例。マップがダイアルの前に来なければならない理由。</li>
+    </ul>
+
+    <p><em>この記事はその二つを接続し、四つの新しい次元を追加する：暗黙 vs. 明示的ダイアル、領域別のダイアル天井、代替モード、そして開示ダイアル。</em></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>（2026年3月追記：自律ダイアルと開示ダイアルは、Context Grammarフレームワークにおける8つのContext Tokenのうち、二つの「関係性ダイアル」として公式化された。6つのsituation tokenを含む全体像については、Issue #15: Brain + Grammarを参照。）</em></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>P.S. この記事を書き終えて、一つ思った。人間がAIに委ねるかどうかを決めるプロセスは、人間が人間を信頼するプロセスとほとんど同じだ。最初は慎重に。小さなことから任せる。成功が重なると、大きなことも任せる。失敗が起きると、一歩引く。でも一度も試さなければ、関係は永遠に始まらない。AIプロダクトの設計とは、その「最初の一歩」を正しく設計することだ。</p>
+  </div>
+
+</article>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="article-nav reveal">
+  <a href="../13/index.html">&larr; 前の記事</a>
+  <a href="../index.html">一覧に戻る</a>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     SUBSCRIBE
+     ═══════════════════════════════════════ -->
+<section class="subscribe-cta">
+  <div style="max-width: var(--max-w); margin: 0 auto;">
+    <h2 class="subscribe-title reveal">最新のエッセイを、<br>受信箱へ。</h2>
+    <p class="subscribe-sub reveal d1">Context Grammarは進化を続けています。その過程をお届けします。</p>
+    <a href="https://intentfirst.substack.com" target="_blank" class="subscribe-btn reveal d2">Substackで購読</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+
+</body>
+</html>

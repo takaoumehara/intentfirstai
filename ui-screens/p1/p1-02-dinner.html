@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1-02 — Dinner Suggestion Card</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary: #1A73E8;
+    --primary-hover: #1557B0;
+    --primary-bg: #E8F0FE;
+    --surface: #FFFFFF;
+    --surface-dim: #F8F9FA;
+    --container: #F1F3F4;
+    --border: #DADCE0;
+    --text-primary: #202124;
+    --text-secondary: #5F6368;
+    --text-disabled: #9AA0A6;
+    --autonomy-green: #1E8E3E;
+    --autonomy-green-bg: #E6F4EA;
+    --warning-amber: #F9AB00;
+    --warning-amber-bg: #FEF7E0;
+    --error-red: #D93025;
+    --connective-coral: #E8710A;
+    --radius-xs: 8px;
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 9999px;
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --ease-decel: cubic-bezier(0, 0, 0, 1);
+    --ease-accel: cubic-bezier(0.3, 0, 1, 1);
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+    --shadow-1: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    --shadow-2: 0 1px 2px 0 rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15);
+    --shadow-3: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+    --font-headline: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Google Sans Text', 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  }
+
+  body {
+    background: #E8EAED;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .device-frame {
+    width: 390px;
+    height: 844px;
+    background: var(--surface);
+    border-radius: 44px;
+    box-shadow: 0 0 0 2px #BDC1C6, 0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .status-bar {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px 0;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-headline);
+    color: var(--text-primary);
+    position: relative;
+    z-index: 10;
+  }
+  .status-bar .time { font-weight: 600; }
+  .status-icons { display: flex; gap: 4px; align-items: center; }
+  .status-icons .material-symbols-outlined { font-size: 17px; }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: var(--text-primary);
+    border-radius: var(--radius-full);
+    opacity: 0.2;
+    z-index: 10;
+  }
+
+  .screen-content {
+    height: calc(100% - 54px - 20px);
+    overflow-y: auto;
+    padding: 0;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+  .screen-content::-webkit-scrollbar { display: none; }
+
+  /* ─── Navigation Bar ─── */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    padding: 4px 16px 8px;
+    gap: 8px;
+  }
+  .nav-back {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.15s var(--ease);
+  }
+  /* nav-back:hover gated below */
+  .nav-back .material-symbols-outlined { font-size: 22px; }
+  .nav-title-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav-gemini {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-headline);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .nav-gemini .sparkle {
+    font-size: 18px;
+    background: linear-gradient(135deg, #4285F4, #8E24AA, #E8710A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nav-more {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+
+  /* ─── Notification Card ─── */
+  .lock-notification {
+    margin: 0 16px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-1);
+    animation: slideDown 0.35s var(--ease-decel);
+  }
+  @keyframes slideDown {
+    from { transform: translateY(-16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .notif-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4285F4, #8E24AA);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .notif-icon .material-symbols-outlined { font-size: 20px; color: white; }
+  .notif-content { flex: 1; }
+  .notif-app {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .notif-title {
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .notif-time {
+    font-size: 12px;
+    color: var(--text-disabled);
+    align-self: flex-start;
+    flex-shrink: 0;
+  }
+
+  /* ─── Section Header ─── */
+  .section-header-area {
+    padding: 4px 20px 12px;
+    animation: fadeUp 0.3s var(--ease-decel) 0.1s both;
+  }
+  @keyframes fadeUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .section-title {
+    font-family: var(--font-headline);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .section-subtitle {
+    font-size: 14px;
+    color: var(--text-disabled);
+    margin-bottom: 10px;
+  }
+  .context-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .context-tag {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-dim);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--border);
+  }
+  .context-tag .material-symbols-outlined { font-size: 14px; }
+
+  /* ─── Meal Cards ─── */
+  .cards-container {
+    padding: 4px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .meal-card {
+    background: var(--surface-dim);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), border-color 0.3s var(--ease), background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+    opacity: 0;
+    transform: translateY(24px);
+    cursor: pointer;
+    position: relative;
+  }
+  .meal-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .meal-card.selected {
+    border-color: var(--primary);
+    background: var(--primary-bg);
+    box-shadow: var(--shadow-2);
+  }
+  .meal-card.faded {
+    opacity: 0.4;
+    transform: scale(0.97);
+  }
+
+  /* Hero Image */
+  .card-image-wrap {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-image-wrap img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.5s var(--ease);
+  }
+  .meal-card.selected .card-image-wrap img {
+    transform: scale(1.03);
+  }
+  .card-image-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(32,33,36,0.5) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .meal-card.featured .card-image-wrap img { height: 200px; }
+  .meal-card:not(.featured) .card-image-wrap img { height: 160px; }
+
+  /* Badge on image */
+  .image-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    font-family: var(--font-headline);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+  .badge-recommended { color: var(--primary); }
+  .badge-delivery { color: var(--connective-coral); }
+  .badge-leftover { color: var(--text-secondary); }
+
+  /* Overlay info */
+  .image-overlay-info {
+    position: absolute;
+    bottom: 10px;
+    left: 14px;
+    right: 14px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .overlay-tag {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.95);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .overlay-tag .material-symbols-outlined { font-size: 15px; }
+  .overlay-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+  }
+
+  /* Card Body */
+  .card-body { padding: 14px 16px 16px; }
+  .card-name {
+    font-family: var(--font-headline);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .card-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .chip {
+    font-family: var(--font-headline);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .chip-green { background: var(--autonomy-green-bg); color: var(--autonomy-green); }
+  .chip-blue { background: var(--primary-bg); color: var(--primary); }
+  .chip-amber { background: var(--warning-amber-bg); color: #B06000; }
+  .chip-gray { background: var(--container); color: var(--text-secondary); }
+
+  .pulsing-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--autonomy-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.4); }
+  }
+
+  .card-reasoning {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .card-reasoning .material-symbols-outlined {
+    font-size: 14px;
+    margin-top: 1px;
+    flex-shrink: 0;
+    color: var(--text-disabled);
+  }
+
+  /* Choose Button — M3 Tonal */
+  .choose-btn {
+    width: 100%;
+    height: 40px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--primary-bg);
+    color: var(--primary);
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .choose-btn:active { transform: scale(0.97); }
+  .meal-card.selected .choose-btn {
+    background: var(--primary);
+    color: white;
+  }
+
+  .checkmark {
+    display: none;
+    width: 18px;
+    height: 18px;
+  }
+  .meal-card.selected .checkmark { display: block; }
+  .meal-card.selected .btn-label { display: none; }
+
+  /* Bottom link */
+  .bottom-link {
+    text-align: center;
+    padding: 0 0 28px;
+  }
+  .bottom-link a {
+    font-family: var(--font-headline);
+    font-size: 14px;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.2s;
+  }
+  /* bottom-link a:hover gated below */
+  .bottom-link a .material-symbols-outlined { font-size: 16px; }
+
+  /* ═══════════════════════════════════════════
+     POST-SELECTION: Cooking Flow
+     ═══════════════════════════════════════════ */
+  .cooking-flow {
+    display: none;
+    padding: 0;
+    animation: fadeUp 0.4s var(--ease-decel);
+  }
+  .cooking-flow.active { display: block; }
+
+  .cooking-hero {
+    position: relative;
+    overflow: hidden;
+  }
+  .cooking-hero img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    display: block;
+  }
+  .cooking-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(to top, rgba(32,33,36,0.6) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .cooking-hero-text {
+    position: absolute;
+    bottom: 16px;
+    left: 20px;
+    right: 20px;
+    z-index: 2;
+  }
+  .cooking-hero-title {
+    font-family: var(--font-headline);
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .cooking-hero-meta {
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cooking-hero-meta .material-symbols-outlined { font-size: 15px; }
+
+  .cooking-body {
+    padding: 16px 20px 24px;
+  }
+
+  /* Sync Banner */
+  .sync-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--primary-bg);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    animation: syncSlide 0.5s var(--ease-decel) 0.6s both;
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes syncSlide {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .sync-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-xs);
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .sync-icon .material-symbols-outlined { font-size: 18px; color: white; }
+  .sync-text {
+    flex: 1;
+  }
+  .sync-label {
+    font-family: var(--font-headline);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary);
+    margin-bottom: 1px;
+  }
+  .sync-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .sync-check {
+    color: var(--autonomy-green);
+    font-size: 20px;
+    animation: checkPop 0.3s var(--ease) 1.1s both;
+  }
+  @keyframes checkPop {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .sync-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 1px;
+    animation: syncProgress 1s var(--ease) 0.6s both;
+  }
+  @keyframes syncProgress {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  /* Recipe Section */
+  .recipe-section-label {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-disabled);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  .recipe-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 20px;
+  }
+  .recipe-step {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    opacity: 0;
+    transform: translateY(12px);
+    position: relative;
+  }
+  .recipe-step.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s var(--ease-decel), transform 0.3s var(--ease-decel);
+  }
+  .recipe-step + .recipe-step {
+    border-top: 1px solid #F1F3F4;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface-dim);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    transition: background 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease);
+  }
+  .recipe-step.active .step-num {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  .recipe-step.done .step-num {
+    background: var(--autonomy-green);
+    border-color: var(--autonomy-green);
+    color: white;
+  }
+  .step-content { flex: 1; }
+  .step-title {
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .step-detail {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .step-time {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-disabled);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 4px;
+  }
+  .step-time .material-symbols-outlined { font-size: 14px; }
+
+  /* Air Fryer visual */
+  .appliance-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--surface-dim);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+  .appliance-tag .material-symbols-outlined { font-size: 15px; }
+
+  /* Family Hub mini-preview */
+  .fridge-preview {
+    background: var(--surface-dim);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s var(--ease-decel) 1.4s both;
+  }
+  .fridge-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .fridge-device-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-xs);
+    background: #202124;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fridge-device-icon .material-symbols-outlined { font-size: 18px; color: #E8EAED; }
+  .fridge-device-name {
+    font-family: var(--font-headline);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .fridge-device-status {
+    font-size: 11px;
+    color: var(--autonomy-green);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .fridge-device-status .dot-live {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--autonomy-green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .fridge-screen {
+    background: #202124;
+    border-radius: var(--radius-xs);
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .fridge-recipe-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .fridge-recipe-info { flex: 1; }
+  .fridge-recipe-title {
+    font-family: var(--font-headline);
+    font-size: 12px;
+    font-weight: 500;
+    color: #E8EAED;
+    margin-bottom: 3px;
+  }
+  .fridge-recipe-items {
+    font-size: 11px;
+    color: #9AA0A6;
+    line-height: 1.4;
+  }
+  .fridge-recipe-check {
+    font-size: 18px;
+    color: var(--autonomy-green);
+  }
+
+  /* Bottom action */
+  .cooking-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .btn-tonal {
+    flex: 1;
+    height: 40px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--primary-bg);
+    color: var(--primary);
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s var(--ease), transform 0.15s var(--ease);
+  }
+  .btn-tonal:active { transform: scale(0.97); }
+  .btn-filled {
+    flex: 1;
+    height: 40px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-family: var(--font-headline);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+  }
+  .btn-filled:active { transform: scale(0.97); }
+
+  /* Transition states */
+  .selection-view { transition: opacity 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo); }
+  .selection-view.hidden {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+    position: absolute;
+  }
+
+  /* Meal card active press feedback */
+  .meal-card:active { transform: scale(0.98); }
+
+  /* ─── Hover states — touch-safe ─── */
+  @media (hover: hover) and (pointer: fine) {
+    .nav-back:hover { background: var(--container); }
+    .meal-card:hover .card-image-wrap img { transform: scale(1.03); }
+    .choose-btn:hover { background: #D2E3FC; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .bottom-link a:hover { opacity: 0.7; }
+    .btn-tonal:hover { background: #D2E3FC; }
+    .btn-filled:hover { background: var(--primary-hover); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  }
+
+  /* ─── Reduced motion ─── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="device-frame">
+  <div class="status-bar">
+    <span class="time">6:12</span>
+    <div class="status-icons">
+      <span class="material-symbols-outlined">signal_cellular_alt</span>
+      <span class="material-symbols-outlined">wifi</span>
+      <span class="material-symbols-outlined">battery_3_bar</span>
+    </div>
+  </div>
+
+  <div class="screen-content">
+
+    <!-- ═══ SELECTION VIEW ═══ -->
+    <div class="selection-view" id="selectionView">
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <button class="nav-back"><span class="material-symbols-outlined">arrow_back</span></button>
+        <div class="nav-title-area">
+          <span class="nav-gemini"><span class="sparkle">✦</span> Gemini</span>
+        </div>
+        <button class="nav-more"><span class="material-symbols-outlined">more_vert</span></button>
+      </div>
+
+      <!-- Notification -->
+      <div class="lock-notification">
+        <div class="notif-icon"><span class="material-symbols-outlined">restaurant</span></div>
+        <div class="notif-content">
+          <div class="notif-app">Gemini</div>
+          <div class="notif-title">Tonight's dinner — 3 ideas ready</div>
+        </div>
+        <span class="notif-time">now</span>
+      </div>
+
+      <!-- Section Header -->
+      <div class="section-header-area">
+        <h1 class="section-title">Tonight's Dinner</h1>
+        <p class="section-subtitle">Family of 4 · Based on inventory</p>
+        <div class="context-row">
+          <span class="context-tag"><span class="material-symbols-outlined">schedule</span> 45 min to bedtime</span>
+          <span class="context-tag"><span class="material-symbols-outlined">kitchen</span> Fridge scanned</span>
+          <span class="context-tag"><span class="material-symbols-outlined">group</span> 4 at home</span>
+        </div>
+      </div>
+
+      <!-- Meal Cards -->
+      <div class="cards-container">
+
+        <!-- Card 1: Salmon — Featured/Recommended -->
+        <div class="meal-card featured" id="card1" onclick="selectCard(1)">
+          <div class="card-image-wrap">
+            <span class="image-badge badge-recommended">
+              <span class="sparkle" style="font-size:12px; -webkit-text-fill-color: var(--primary);">✦</span>
+              Recommended
+            </span>
+            <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=250&fit=crop&q=80" alt="Honey-Garlic Salmon with broccoli and rice">
+            <div class="image-overlay-info">
+              <span class="overlay-tag"><span class="material-symbols-outlined">timer</span> 20 min</span>
+              <span class="overlay-dot"></span>
+              <span class="overlay-tag"><span class="material-symbols-outlined">payments</span> $15</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-name">Honey-Garlic Salmon</div>
+            <div class="card-chips">
+              <span class="chip chip-green"><span class="pulsing-dot"></span> In stock</span>
+              <span class="chip chip-blue">Popular #1</span>
+            </div>
+            <div class="card-reasoning">
+              <span class="material-symbols-outlined">auto_awesome</span>
+              Salmon in stock (estimated from last week's purchase)
+            </div>
+            <button class="choose-btn" onclick="event.stopPropagation(); selectCard(1);">
+              <span class="btn-label">Choose This</span>
+              <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Local Japanese -->
+        <div class="meal-card" id="card2" onclick="selectCard(2)">
+          <div class="card-image-wrap">
+            <span class="image-badge badge-delivery">
+              <span class="material-symbols-outlined" style="font-size:13px;">delivery_dining</span>
+              Delivery · 30 min
+            </span>
+            <img src="https://images.unsplash.com/photo-1590579670545-bfbb5b038f86?w=400&h=200&fit=crop&q=80" alt="Japanese ramen delivery">
+            <div class="image-overlay-info">
+              <span class="overlay-tag"><span class="material-symbols-outlined">payments</span> $28</span>
+              <span class="overlay-dot"></span>
+              <span class="overlay-tag"><span class="material-symbols-outlined">storefront</span> Local Japanese</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-name">Local Japanese</div>
+            <div class="card-chips">
+              <span class="chip chip-amber">Friday rate: 60% on-time</span>
+            </div>
+            <div class="card-reasoning">
+              <span class="material-symbols-outlined">auto_awesome</span>
+              Family ordered Japanese 3x this month
+            </div>
+            <button class="choose-btn" onclick="event.stopPropagation(); selectCard(2);">
+              <span class="btn-label">Choose This</span>
+              <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3: Chicken Salad -->
+        <div class="meal-card" id="card3" onclick="selectCard(3)">
+          <div class="card-image-wrap">
+            <span class="image-badge badge-leftover">
+              <span class="material-symbols-outlined" style="font-size:13px;">recycling</span>
+              Uses leftovers
+            </span>
+            <img src="https://images.unsplash.com/photo-1649531794752-5833ee051fb6?w=400&h=200&fit=crop&q=80" alt="Chicken salad">
+            <div class="image-overlay-info">
+              <span class="overlay-tag"><span class="material-symbols-outlined">timer</span> 10 min</span>
+              <span class="overlay-dot"></span>
+              <span class="overlay-tag"><span class="material-symbols-outlined">payments</span> $0</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-name">Chicken Salad</div>
+            <div class="card-chips">
+              <span class="chip chip-gray">Quick — saves bedtime buffer</span>
+            </div>
+            <div class="card-reasoning">
+              <span class="material-symbols-outlined">auto_awesome</span>
+              Quick option — saves time before bedtime routine
+            </div>
+            <button class="choose-btn" onclick="event.stopPropagation(); selectCard(3);">
+              <span class="btn-label">Choose This</span>
+              <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bottom-link">
+        <a href="#">Find other ideas <span class="material-symbols-outlined">arrow_forward</span></a>
+      </div>
+    </div>
+
+    <!-- ═══ COOKING FLOW (after Salmon selection) ═══ -->
+    <div class="cooking-flow" id="cookingFlow">
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <button class="nav-back" onclick="goBackToSelection()"><span class="material-symbols-outlined">arrow_back</span></button>
+        <div class="nav-title-area">
+          <span class="nav-gemini"><span class="sparkle">✦</span> Gemini</span>
+        </div>
+        <button class="nav-more"><span class="material-symbols-outlined">more_vert</span></button>
+      </div>
+
+      <!-- Cooking Hero -->
+      <div class="cooking-hero">
+        <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=280&fit=crop&q=80" alt="Honey-Garlic Salmon">
+        <div class="cooking-hero-text">
+          <div class="cooking-hero-title">Honey-Garlic Salmon</div>
+          <div class="cooking-hero-meta">
+            <span class="material-symbols-outlined">timer</span> 20 min total
+            <span style="margin: 0 2px;">·</span>
+            <span class="material-symbols-outlined">group</span> Serves 4
+          </div>
+        </div>
+      </div>
+
+      <div class="cooking-body">
+
+        <!-- Family Hub Sync Banner — automatic, no confirmation -->
+        <div class="sync-banner">
+          <div class="sync-icon"><span class="material-symbols-outlined">kitchen</span></div>
+          <div class="sync-text">
+            <div class="sync-label">Synced to Family Hub</div>
+            <div class="sync-desc">Recipe and ingredient checklist sent to kitchen display</div>
+          </div>
+          <span class="material-symbols-outlined sync-check">check_circle</span>
+          <div class="sync-progress"></div>
+        </div>
+
+        <!-- Family Hub Mini Preview -->
+        <div class="fridge-preview">
+          <div class="fridge-header">
+            <div class="fridge-device-icon"><span class="material-symbols-outlined">tv</span></div>
+            <div>
+              <div class="fridge-device-name">Samsung Family Hub</div>
+              <div class="fridge-device-status"><span class="dot-live"></span> Kitchen display</div>
+            </div>
+          </div>
+          <div class="fridge-screen">
+            <img class="fridge-recipe-thumb" src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=96&h=96&fit=crop&q=80" alt="Salmon">
+            <div class="fridge-recipe-info">
+              <div class="fridge-recipe-title">Honey-Garlic Salmon</div>
+              <div class="fridge-recipe-items">Salmon · Garlic · Honey · Broccoli<br>All ingredients confirmed in stock</div>
+            </div>
+            <span class="material-symbols-outlined fridge-recipe-check">check_circle</span>
+          </div>
+        </div>
+
+        <!-- Recipe Steps -->
+        <div class="recipe-section-label">Air Fryer Recipe</div>
+
+        <div class="recipe-steps">
+          <div class="recipe-step" id="rstep1">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-title">Preheat Air Fryer</div>
+              <div class="step-detail">Set to 400°F (200°C)</div>
+              <div class="step-time"><span class="material-symbols-outlined">timer</span> 3 min</div>
+              <div class="appliance-tag"><span class="material-symbols-outlined">air</span> Air Fryer</div>
+            </div>
+          </div>
+
+          <div class="recipe-step" id="rstep2">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-title">Prep the glaze</div>
+              <div class="step-detail">Mix 2 tbsp honey, 1 tbsp soy sauce, 2 cloves minced garlic, 1 tsp sesame oil</div>
+              <div class="step-time"><span class="material-symbols-outlined">timer</span> 2 min</div>
+            </div>
+          </div>
+
+          <div class="recipe-step" id="rstep3">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-title">Season & arrange</div>
+              <div class="step-detail">Pat salmon dry, brush with glaze. Place salmon and broccoli in basket — don't overlap.</div>
+              <div class="step-time"><span class="material-symbols-outlined">timer</span> 3 min</div>
+            </div>
+          </div>
+
+          <div class="recipe-step" id="rstep4">
+            <div class="step-num">4</div>
+            <div class="step-content">
+              <div class="step-title">Cook</div>
+              <div class="step-detail">Air fry at 400°F for 8-10 min. Brush more glaze halfway through.</div>
+              <div class="step-time"><span class="material-symbols-outlined">timer</span> 10 min</div>
+            </div>
+          </div>
+
+          <div class="recipe-step" id="rstep5">
+            <div class="step-num">5</div>
+            <div class="step-content">
+              <div class="step-title">Rest & serve</div>
+              <div class="step-detail">Let rest 2 minutes. Serve over rice with remaining glaze drizzled on top.</div>
+              <div class="step-time"><span class="material-symbols-outlined">timer</span> 2 min</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cooking-actions">
+          <button class="btn-tonal">
+            <span class="material-symbols-outlined" style="font-size:18px;">edit</span>
+            Adjust
+          </button>
+          <button class="btn-filled">
+            <span class="material-symbols-outlined" style="font-size:18px;">play_arrow</span>
+            Start Cooking
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+// Stagger-enter cards
+const cards = document.querySelectorAll('.meal-card');
+cards.forEach((card, i) => {
+  setTimeout(() => card.classList.add('visible'), 300 + i * 80);
+});
+
+// Card selection
+let selectedCard = null;
+
+function selectCard(n) {
+  if (selectedCard === n) {
+    // Deselect
+    selectedCard = null;
+    cards.forEach(card => card.classList.remove('selected', 'faded'));
+    return;
+  }
+
+  selectedCard = n;
+  cards.forEach((card, i) => {
+    const idx = i + 1;
+    if (idx === n) {
+      card.classList.add('selected');
+      card.classList.remove('faded');
+    } else {
+      card.classList.remove('selected');
+      card.classList.add('faded');
+    }
+  });
+
+  // If salmon (card 1) is selected, transition to cooking flow
+  if (n === 1) {
+    setTimeout(() => {
+      showCookingFlow();
+    }, 800);
+  }
+}
+
+function showCookingFlow() {
+  const selectionView = document.getElementById('selectionView');
+  const cookingFlow = document.getElementById('cookingFlow');
+
+  selectionView.classList.add('hidden');
+  setTimeout(() => {
+    selectionView.style.display = 'none';
+    cookingFlow.classList.add('active');
+
+    // Scroll to top
+    document.querySelector('.screen-content').scrollTop = 0;
+
+    // Stagger recipe steps
+    const steps = document.querySelectorAll('.recipe-step');
+    steps.forEach((step, i) => {
+      setTimeout(() => {
+        step.classList.add('visible');
+        if (i === 0) step.classList.add('active');
+      }, 400 + i * 100);
+    });
+  }, 400);
+}
+
+function goBackToSelection() {
+  const selectionView = document.getElementById('selectionView');
+  const cookingFlow = document.getElementById('cookingFlow');
+
+  cookingFlow.classList.remove('active');
+  selectionView.style.display = '';
+  selectionView.classList.remove('hidden');
+
+  // Reset selection state
+  selectedCard = null;
+  cards.forEach(card => card.classList.remove('selected', 'faded'));
+
+  // Reset recipe steps
+  document.querySelectorAll('.recipe-step').forEach(step => {
+    step.classList.remove('visible', 'active');
+  });
+
+  document.querySelector('.screen-content').scrollTop = 0;
+}
+</script>
+</body>
+</html>

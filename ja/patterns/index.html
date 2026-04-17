@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic UXパターン集 — Intent First</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* NAV */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; background: rgba(253,252,250,0.92); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.4s ease; }
+.nav-inner { width: var(--max-w); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(24px, 4vw, 48px); }
+.nav-logo { text-decoration: none; } .nav-logo-img { height: 22px; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a { font-size: 13px; font-weight: 400; color: var(--text-3); text-decoration: none; transition: color 0.3s; }
+.nav-links a:hover { color: var(--text); }
+.nav-links a.active { color: var(--text); font-weight: 500; }
+@media (max-width: 768px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+/* LANGUAGE SWITCHER */
+.lang-switch { position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 0; background: rgba(253,252,250,0.85); backdrop-filter: blur(12px); border: 1px solid var(--border); border-left: none; border-radius: 0 10px 10px 0; padding: 6px 8px; box-shadow: 2px 2px 16px rgba(0,0,0,0.06); }
+.lang-switch a { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; text-decoration: none; color: var(--text-3); padding: 8px 6px; transition: color 0.3s; line-height: 1; }
+.lang-switch a:hover { color: var(--text); }
+.lang-switch a.active { color: var(--text); font-weight: 700; }
+.lang-switch-divider { width: 16px; height: 1px; background: var(--border); }
+@media (max-width: 768px) { .lang-switch { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; border: 1px solid var(--border); border-radius: 10px; padding: 4px 10px; } .lang-switch-divider { width: 1px; height: 14px; } }
+
+/* HERO */
+.hero { padding: clamp(120px, 14vh, 180px) 0 clamp(60px, 8vh, 100px); text-align: center; position: relative; overflow: hidden; }
+.hero.sec-dark { background: var(--bg); color: var(--text); }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 40%, var(--glow), transparent); pointer-events: none; }
+.hero-inner { width: var(--max-w); margin: 0 auto; padding: 0 clamp(24px, 4vw, 48px); position: relative; z-index: 1; }
+.hero-label { font-family: var(--font-mono); font-size: clamp(11px, 0.9vw, 14px); letter-spacing: 3px; text-transform: uppercase; color: var(--color-label); margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+.hero-title { font-weight: 500; font-size: clamp(30px, 4vw, 58px); line-height: 1.2; letter-spacing: -1.5px; margin-bottom: 24px; opacity: 0; animation: fadeUp 0.8s 0.5s forwards; max-width: 800px; margin-left: auto; margin-right: auto; }
+.hero-title em { font-style: normal; color: var(--color-grammar); }
+.hero-sub { font-size: clamp(14px, 1.1vw, 18px); font-weight: 300; color: var(--text-2); max-width: 620px; line-height: 1.85; margin: 0 auto 40px; opacity: 0; animation: fadeUp 0.8s 0.7s forwards; }
+.hero-stats { display: flex; justify-content: center; gap: clamp(28px, 4vw, 48px); flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s 0.9s forwards; }
+.hero-stat { text-align: center; }
+.hero-stat-num { font-size: clamp(28px, 3vw, 40px); font-weight: 500; color: var(--color-grammar); letter-spacing: -1px; }
+.hero-stat-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+/* FILTER BAR */
+.filter-bar { position: sticky; top: 56px; z-index: 90; background: rgba(253,252,250,0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 24px; }
+.filter-inner { max-width: var(--max-w); margin: 0 auto; display: flex; align-items: center; gap: 6px; padding: 10px 0; overflow-x: auto; scrollbar-width: none; }
+.filter-inner::-webkit-scrollbar { display: none; }
+.filter-btn { padding: 7px 16px; border-radius: 100px; font-size: 12px; font-weight: 500; font-family: var(--font-sans); border: 1px solid var(--border); background: var(--bg); color: var(--text-3); cursor: pointer; white-space: nowrap; transition: all 0.25s var(--ease); }
+.filter-btn:hover { border-color: var(--text-2); color: var(--text-2); }
+.filter-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.filter-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+
+/* MAIN */
+.main { max-width: var(--max-w); margin: 0 auto; padding: clamp(32px, 4vw, 56px) clamp(16px, 3vw, 24px) clamp(80px, 10vh, 120px); }
+
+/* PATTERN SECTION */
+.pattern-section { margin-bottom: clamp(48px, 6vw, 72px); }
+.pattern-section.hidden { display: none; }
+.section-header { margin-bottom: clamp(20px, 2.5vw, 28px); }
+.section-num { font-family: var(--font-mono); font-size: clamp(11px, 0.85vw, 13px); letter-spacing: 2px; text-transform: uppercase; color: var(--color-label); margin-bottom: 6px; }
+.section-title { font-weight: 500; font-size: clamp(24px, 2.5vw, 36px); letter-spacing: -1px; line-height: 1.15; margin-bottom: 4px; }
+.section-title-ja { font-weight: 400; font-size: clamp(14px, 1.1vw, 17px); color: var(--text-2); margin-bottom: 6px; }
+.section-desc { font-size: clamp(14px, 1vw, 16px); font-weight: 300; color: var(--text-2); line-height: 1.75; max-width: 600px; margin-bottom: 12px; }
+.section-tokens { display: flex; flex-wrap: wrap; gap: 6px; }
+.token-badge { font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 4px 10px; border-radius: 100px; letter-spacing: 0.5px; }
+.token-badge.situation { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.token-badge.relationship { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.token-badge.brain { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+
+/* CARD GRID */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+@media (max-width: 640px) { .card-grid { grid-template-columns: 1fr; } }
+
+/* CARD */
+.card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: transform 250ms var(--ease), box-shadow 250ms var(--ease), border-color 250ms var(--ease); cursor: pointer; }
+@media (hover: hover) and (pointer: fine) {
+  .card:hover { border-color: var(--border-hover); box-shadow: 0 2px 8px rgba(26,24,22,0.06); transform: translateY(-2px); }
+}
+.card:active { transform: scale(0.98); }
+
+.card-preview { height: 200px; background: var(--bg-2); position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+.card-preview iframe { width: 390%; height: 390%; transform: scale(.2564); transform-origin: 0 0; border: none; pointer-events: none; }
+.card-preview.tv iframe { width: 200%; height: 200%; transform: scale(.5); transform-origin: 0 0; }
+.card-preview.diagram iframe { width: 250%; height: 250%; transform: scale(.4); transform-origin: 0 0; }
+.card-preview.dual iframe { width: 200%; height: 200%; transform: scale(.5); transform-origin: 0 0; }
+
+.card-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
+.card-id { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); margin-bottom: 3px; }
+.card-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; line-height: 1.3; }
+.card-desc { font-size: 12px; color: var(--text-2); line-height: 1.6; flex: 1; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.card-tag { font-family: var(--font-mono); font-size: 9px; font-weight: 500; padding: 2px 8px; border-radius: 100px; }
+.card-tag.phone { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.card-tag.tv { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.card-tag.diagram { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+.card-tag.dual { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+
+/* Stagger animation */
+@keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.card { animation: cardIn 450ms var(--ease) both; }
+
+/* MORE SECTION */
+.more-section { margin-top: clamp(48px, 6vw, 72px); padding-top: clamp(36px, 4vw, 56px); border-top: 1px solid var(--border); }
+.more-section.hidden { display: none; }
+
+/* FOOTER */
+.footer { background: var(--bg-inverse); padding: clamp(40px, 5vh, 60px) 0; text-align: center; }
+.footer-text { font-size: 14px; font-weight: 300; color: rgba(240,236,228,0.3); }
+.footer-text a { color: rgba(240,236,228,0.5); text-decoration: none; } .footer-text a:hover { color: var(--color-grammar); }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero { padding: clamp(100px, 12vh, 140px) 0 clamp(40px, 6vh, 60px); }
+  .hero-stats { gap: 20px; }
+  .filter-bar { top: 0; }
+  .card-grid { gap: 12px; }
+}
+
+/* HAMBURGER MENU */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--text); background: rgba(26,24,22,0.04); }
+.mobile-menu-nav a.mobile-active { color: var(--text); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--text); }
+.mobile-menu-lang a.active { color: var(--text); font-weight: 700; background: rgba(26,24,22,0.04); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+  <a href="../../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentfirst" class="nav-logo-img"></a>
+  <div class="nav-links">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="../industry/index.html">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact" class="nav-cta">Contact</a>
+  </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</div></nav>
+
+<!-- MOBILE MENU OVERLAY -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="../industry/index.html">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="../../patterns/index.html">EN</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="index.html" class="active">JA</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="../../patterns/index.html">EN</a>
+  <div class="lang-switch-divider"></div>
+  <a href="index.html" class="active">JA</a>
+</div>
+
+<!-- HERO -->
+<section class="hero sec-dark">
+  <div class="hero-inner">
+    <div class="hero-label">Interactive Prototypes</div>
+    <h1 class="hero-title"><em>Context Grammar</em>が<br>動いている姿を見る。</h1>
+    <p class="hero-sub">31のインタラクティブ・プロトタイプ。モックアップではない。8つのContext Tokenが「AIの見せ方」をどう変えるのか、実際に動くUIで体感できる。</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">31</div><div class="hero-stat-label">Screens</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">8</div><div class="hero-stat-label">Patterns</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">3</div><div class="hero-stat-label">Projects</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <div class="filter-sep"></div>
+    <button class="filter-btn" data-filter="confidence">確信度シグナル</button>
+    <button class="filter-btn" data-filter="formfactor">フォームファクター</button>
+    <button class="filter-btn" data-filter="social">ソーシャル露出</button>
+    <button class="filter-btn" data-filter="escalation">エスカレーション</button>
+    <button class="filter-btn" data-filter="multiperson">マルチパーソン</button>
+    <button class="filter-btn" data-filter="disposable">使い捨てUI</button>
+    <button class="filter-btn" data-filter="substitution">代替モード</button>
+    <button class="filter-btn" data-filter="autonomy">自律性の進化</button>
+    <div class="filter-sep"></div>
+    <button class="filter-btn" data-filter="p1">P1 Living Home</button>
+    <button class="filter-btn" data-filter="p2">P2 Family Trip</button>
+    <button class="filter-btn" data-filter="p3">P3 Fluid Handoff</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- PATTERN 1: Confidence Signal -->
+  <div class="pattern-section" data-pattern="confidence" data-projects="p3">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 01</div>
+      <h2 class="section-title">Confidence Signal</h2>
+      <div class="section-title-ja">確信度シグナル &mdash; AIは「わからない」を隠さない</div>
+      <p class="section-desc">不確実性をUIの第一級要素として表示する。94%の確信と42%の確信が同じ顔をしていたら、ユーザーはどちらも信じてしまう。</p>
+      <div class="section-tokens">
+        <span class="token-badge situation">Feasibility</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p3/p3-01-browse.html" target="_blank" data-project="p3">
+        <div class="card-preview"><iframe src="../../ui-screens/p3/p3-01-browse.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P3-01</div>
+          <div class="card-title">フルブラウズ &mdash; 駅のホーム</div>
+          <div class="card-desc">3つの候補に確信度バー付き。レビュー分析、配送予定日。42%の候補には警告が表示される。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p3/p3-05-repurchase.html" target="_blank" data-project="p3">
+        <div class="card-preview"><iframe src="../../ui-screens/p3/p3-05-repurchase.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P3-05</div>
+          <div class="card-title">6ヶ月後のリピート購入</div>
+          <div class="card-desc">Brainが前回の購入から学習済み。候補は減り、確信度は上がり、判断は速くなった。バーが高くなっている。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATTERN 2: Form Factor Transformation -->
+  <div class="pattern-section" data-pattern="formfactor" data-projects="p3">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 02</div>
+      <h2 class="section-title">Form Factor Transformation</h2>
+      <div class="section-title-ja">フォームファクター変換 &mdash; 同じデータが、デバイスで姿を変える</div>
+      <p class="section-desc">デバイスが変わったとき、ミラーリングするのではなく再構築する。各画面が「得意なこと」をやる。</p>
+      <div class="section-tokens">
+        <span class="token-badge situation">Form Factor</span>
+        <span class="token-badge situation">Physical State</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p3/p3-02-commute.html" target="_blank" data-project="p3">
+        <div class="card-preview"><iframe src="../../ui-screens/p3/p3-02-commute.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P3-02</div>
+          <div class="card-title">通勤モード &mdash; 片手操作</div>
+          <div class="card-desc">フルレイアウトが親指ゾーンのコンパクトカードに変形。56pxのタッチターゲット。モード切替アニメーション。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p3/p3-03-tv-cast.html" target="_blank" data-project="p3">
+        <div class="card-preview tv"><iframe src="../../ui-screens/p3/p3-03-tv-cast.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P3-03</div>
+          <div class="card-title">TVキャスト + リモコン化</div>
+          <div class="card-desc">TVが加わった瞬間、スマホはリモコンに変身。TVは子ども向けグリッド表示。スマホに価格と購入ボタン。</div>
+          <div class="card-tags"><span class="card-tag tv">TV</span><span class="card-tag dual">TV+Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/diagrams/c-05-form-factor.html" target="_blank" data-project="diagrams">
+        <div class="card-preview diagram"><iframe src="../../ui-screens/diagrams/c-05-form-factor.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">C-05</div>
+          <div class="card-title">フォームファクター変換ダイアグラム</div>
+          <div class="card-desc">Phone Full、片手モード、TV+リモコンの各構成で同じデータがどう変わるかの視覚マップ。</div>
+          <div class="card-tags"><span class="card-tag diagram">Diagram</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATTERN 3: Social Exposure Adaptation -->
+  <div class="pattern-section" data-pattern="social" data-projects="p3 p1">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 03</div>
+      <h2 class="section-title">Social Exposure Adaptation</h2>
+      <div class="section-title-ja">ソーシャル露出適応 &mdash; 「誰が見ているか」でUIが変わる</div>
+      <p class="section-desc">子どもがTVを見ていると価格が消える。来客でカレンダーが最小表示になる。問題は「これは機密か」ではなく「今、誰の目があるか」。</p>
+      <div class="section-tokens">
+        <span class="token-badge situation">Social Exposure</span>
+        <span class="token-badge relationship">Disclosure Dial</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p3/p3-03-tv-cast.html" target="_blank" data-project="p3">
+        <div class="card-preview tv"><iframe src="../../ui-screens/p3/p3-03-tv-cast.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P3-03</div>
+          <div class="card-title">TVキャスト &mdash; 価格非表示</div>
+          <div class="card-desc">子どもがTVを見ている。価格が消え、感情的なラベルに置き換わる。「防水!」であって「¥12,800」ではない。親のスマホにだけ価格が表示される。</div>
+          <div class="card-tags"><span class="card-tag tv">TV</span><span class="card-tag dual">TV+Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p1/p1-06-calendar-tv.html" target="_blank" data-project="p1">
+        <div class="card-preview tv"><iframe src="../../ui-screens/p1/p1-06-calendar-tv.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-06</div>
+          <div class="card-title">カレンダー・ゲストモード</div>
+          <div class="card-desc">TVの家族カレンダーが、玄関のチャイムと同時にミニマル表示に自動切替。詳細は隠れ、「予定あり」「空き」だけが残る。</div>
+          <div class="card-tags"><span class="card-tag tv">TV</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATTERN 4: Escalation Pathway -->
+  <div class="pattern-section" data-pattern="escalation" data-projects="p2">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 04</div>
+      <h2 class="section-title">Escalation Pathway</h2>
+      <div class="section-title-ja">エスカレーション経路 &mdash; AIが限界に達したとき、ごまかさない</div>
+      <p class="section-desc">Autonomy Dialが自動でConfirmに下がる。選択肢を構造化し、判断を人間に返す。偽りの確信より、正直な限界表示。</p>
+      <div class="section-tokens">
+        <span class="token-badge relationship">Autonomy Dial</span>
+        <span class="token-badge situation">Priority Weight</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p2/p2-05-health.html" target="_blank" data-project="p2">
+        <div class="card-preview"><iframe src="../../ui-screens/p2/p2-05-health.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-05</div>
+          <div class="card-title">子どもの発熱 &mdash; ヘルス・エスカレーション</div>
+          <div class="card-desc">旅行7日目、息子が37.8度。Autonomyが即座にConfirmへ。最寄り薬局、英語対応クリニック、キャンセル可能な予定。「医療判断は私の範囲外です。」</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATTERN 5: Multi-Person Orchestration -->
+  <div class="pattern-section" data-pattern="multiperson" data-projects="p1 p2">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 05</div>
+      <h2 class="section-title">Multi-Person Orchestration</h2>
+      <div class="section-title-ja">マルチパーソン・オーケストレーション &mdash; 同じ瞬間に、人ごとに違うUI</div>
+      <p class="section-desc">家族の各メンバーが異なるデバイスで、異なる役割と自律性レベルで、同時にシステムと関わる。</p>
+      <div class="section-tokens">
+        <span class="token-badge relationship">Disclosure Dial</span>
+        <span class="token-badge relationship">Autonomy Dial</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p1/p1-08-disclosure-map.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-08-disclosure-map.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-08</div>
+          <div class="card-title">Disclosure Map</div>
+          <div class="card-desc">メンバーごと、ドメインごとの開示レベルを可視化。各家族が「AIに何を知らせるか」をコントロール。Before/Afterトグル付き。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p1/p1-03-substitution.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-03-substitution.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-03</div>
+          <div class="card-title">メンバー別代替モード</div>
+          <div class="card-desc">同じ買い物リストでも、家族メンバーごとに異なる代替ルール。ママはExact。パパはFlexible。息子は乳製品フリー制約。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p2/p2-03-tomorrow-tv.html" target="_blank" data-project="p2">
+        <div class="card-preview tv"><iframe src="../../ui-screens/p2/p2-03-tomorrow-tv.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-03</div>
+          <div class="card-title">明日のおすすめ</div>
+          <div class="card-desc">TVは家族向けにパーソナライズされた提案とルートマップ。コンパニオンフォンにはプライベートな予算情報。2画面、2つの役割。</div>
+          <div class="card-tags"><span class="card-tag tv">TV</span><span class="card-tag dual">TV+Phone</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATTERN 6: Disposable UI Lifecycle -->
+  <div class="pattern-section" data-pattern="disposable" data-projects="p3 p2">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 06</div>
+      <h2 class="section-title">Disposable UI Lifecycle</h2>
+      <div class="section-title-ja">使い捨てUIライフサイクル &mdash; 生まれ、学び、死ぬUI</div>
+      <p class="section-desc">すべてのインターフェースが永続する必要はない。知識は残る。器は消える。</p>
+      <div class="section-tokens">
+        <span class="token-badge brain">Brain (Right Now)</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p3/p3-04-purchase.html" target="_blank" data-project="p3">
+        <div class="card-preview"><iframe src="../../ui-screens/p3/p3-04-purchase.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P3-04</div>
+          <div class="card-title">購入完了 + UI消滅</div>
+          <div class="card-desc">チェックマーク・アニメーション。カードがゴーストに溶け、やがてUI全体が消滅する。タスク完了。UIは死ぬ。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p2/p2-06-post-trip.html" target="_blank" data-project="p2">
+        <div class="card-preview"><iframe src="../../ui-screens/p2/p2-06-post-trip.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-06</div>
+          <div class="card-title">旅行後シンセシス</div>
+          <div class="card-desc">Trip Brainが動画、支出ドーナツチャート、嗜好アップデートを生成。Home Brainに知識を返却。そして消える。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/diagrams/c-03-trip-brain-lifecycle.html" target="_blank" data-project="diagrams">
+        <div class="card-preview diagram"><iframe src="../../ui-screens/diagrams/c-03-trip-brain-lifecycle.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">C-03</div>
+          <div class="card-title">Trip Brainライフサイクル</div>
+          <div class="card-desc">Home Brainから生まれ、旅の間に学び、知識を返却し、死ぬ。使い捨てBrainコンセプトの可視化。</div>
+          <div class="card-tags"><span class="card-tag diagram">Diagram</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/diagrams/c-04-disposable-ui.html" target="_blank" data-project="diagrams">
+        <div class="card-preview diagram"><iframe src="../../ui-screens/diagrams/c-04-disposable-ui.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">C-04</div>
+          <div class="card-title">使い捨てUIライフサイクル図</div>
+          <div class="card-desc">スクロールで語る物語:トリガー、誕生、変形、提供、死、遺産。完全なライフサイクルを一枚で。</div>
+          <div class="card-tags"><span class="card-tag diagram">Diagram</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATTERN 7: Substitution Modes -->
+  <div class="pattern-section" data-pattern="substitution" data-projects="p1 p2">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 07</div>
+      <h2 class="section-title">Substitution Modes</h2>
+      <div class="section-title-ja">代替モード &mdash; 4つの置き換え方: Exact / Flexible / Exploring / Surprise</div>
+      <p class="section-desc">「在庫切れ」の対応は、人によって違う。ママのヨーグルトとパパのプロテインでは、代替の意味がまるで異なる。</p>
+      <div class="section-tokens">
+        <span class="token-badge brain">Brain (Accumulated)</span>
+        <span class="token-badge relationship">Autonomy Dial</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p1/p1-03-substitution.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-03-substitution.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-03</div>
+          <div class="card-title">代替モード設定</div>
+          <div class="card-desc">メンバーごとの食品嗜好。ママ: Exact（TJのハニーだけ）。パパ: Flexible（ギリシャヨーグルトなら何でも）。息子: 乳製品フリーの範囲内でFlexible。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p1/p1-02-dinner.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-02-dinner.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-02</div>
+          <div class="card-title">ディナー提案 3択</div>
+          <div class="card-desc">ロック画面通知から、学習済み代替モードを反映した3つの食事カード。実行可能性チップで「実際にできること」を表示。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p2/p2-07-souvenir.html" target="_blank" data-project="p2">
+        <div class="card-preview"><iframe src="../../ui-screens/p2/p2-07-souvenir.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-07</div>
+          <div class="card-title">お土産インテリジェンス</div>
+          <div class="card-desc">去年のフィードバックが今年の提案を形作る。おばあちゃんにはExact。同僚にはFlexible。贈る相手ごとの戦略。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATTERN 8: Autonomy Progression -->
+  <div class="pattern-section" data-pattern="autonomy" data-projects="p1">
+    <div class="section-header reveal">
+      <div class="section-num">Pattern 08</div>
+      <h2 class="section-title">Autonomy Progression</h2>
+      <div class="section-title-ja">自律性の進化 &mdash; 時間をかけて信頼を獲得する</div>
+      <p class="section-desc">最初は全て提案。数ヶ月後、ルーティンは静かに処理される。でも異常値が出た瞬間、ダイヤルは確認モードに戻る。</p>
+      <div class="section-tokens">
+        <span class="token-badge relationship">Autonomy Dial</span>
+        <span class="token-badge brain">Brain (Accumulated)</span>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p1/p1-01-setup.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-01-setup.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-01</div>
+          <div class="card-title">Home Brainセットアップ</div>
+          <div class="card-desc">4ステップウィザード: データソース、家族メンバー、開示レベル、Autonomy Dial。信頼関係の起点。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p1/p1-10-autonomy.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-10-autonomy.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-10</div>
+          <div class="card-title">Autonomy Dialダッシュボード</div>
+          <div class="card-desc">SVG円形ダイヤルとカテゴリ別内訳: 食料品、処分、医療、ゲストモード。数ヶ月かけて獲得した信頼が一目でわかる。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/diagrams/c-02-disclosure-autonomy.html" target="_blank" data-project="diagrams">
+        <div class="card-preview diagram"><iframe src="../../ui-screens/diagrams/c-02-disclosure-autonomy.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">C-02</div>
+          <div class="card-title">Disclosure x Autonomy結合図</div>
+          <div class="card-desc">2x2マトリクス:「知らせない x 任せる」は論理的に不可能。Disclosureなくして自律性なし。</div>
+          <div class="card-tags"><span class="card-tag diagram">Diagram</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- MORE SCREENS -->
+  <div class="more-section" data-pattern="more">
+    <div class="section-header reveal">
+      <div class="section-num">More Screens</div>
+      <h2 class="section-title">その他のプロトタイプ</h2>
+      <p class="section-desc">8つのコアパターンの枠を超えた、個別のデザイン問題を解決するスクリーン群。</p>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="../../ui-screens/p1/p1-04-decision-debt.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-04-decision-debt.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-04</div>
+          <div class="card-title">決断の借金 + リセール</div>
+          <div class="card-desc">3段階フロー:提案、写真+AI出品文、SVGチェックマーク完了。先延ばしにした判断を清算する。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p1/p1-05-medical.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-05-medical.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-05</div>
+          <div class="card-title">メディカルログ・タイムライン</div>
+          <div class="card-desc">3ヶ月間の健康パターン。タイムライン、開示ステータス、検診サマリー。センシティブなデータを丁寧に扱う。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p1/p1-07-pronoun.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-07-pronoun.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-07</div>
+          <div class="card-title">代名詞変更の共有</div>
+          <div class="card-desc">ポートフォリオで最も繊細なUI。アイデンティティの変化を共有するためのゼロプレッシャー・デザイン。強制的な開示は一切ない。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p1/p1-09-connective.html" target="_blank" data-project="p1">
+        <div class="card-preview"><iframe src="../../ui-screens/p1/p1-09-connective.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P1-09</div>
+          <div class="card-title">Connective Disclosure</div>
+          <div class="card-desc">妻のダンスハイライト、息子のピアノ、娘の読書。開示が双方向になる家族共有フィード。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p2/p2-01-trip-brain.html" target="_blank" data-project="p2">
+        <div class="card-preview"><iframe src="../../ui-screens/p2/p2-01-trip-brain.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-01</div>
+          <div class="card-title">Trip Brain + 予約</div>
+          <div class="card-desc">Trip BrainがHome Brainから継承して誕生。コンサート、展覧会、ポケパークのカウントダウン。使い捨てBrainが生まれる瞬間。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p2/p2-02-info-map.html" target="_blank" data-project="p2">
+        <div class="card-preview"><iframe src="../../ui-screens/p2/p2-02-info-map.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-02</div>
+          <div class="card-title">散在情報マップ</div>
+          <div class="card-desc">12ヶ月間のInstagram、LINE、Googleマップの保存情報。ソースフィルター付き地図に統合。散らばった知識を一枚に。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p2/p2-04-shibuya.html" target="_blank" data-project="p2">
+        <div class="card-preview"><iframe src="../../ui-screens/p2/p2-04-shibuya.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-04</div>
+          <div class="card-title">渋谷ウォーキング通知</div>
+          <div class="card-desc">歩行コンテキスト:8ヶ月前にInstagramで保存したカフェが近くにある。ルートアニメーション。正しい情報、正しい瞬間。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/p2/p2-08-wine.html" target="_blank" data-project="p2">
+        <div class="card-preview"><iframe src="../../ui-screens/p2/p2-08-wine.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">P2-08</div>
+          <div class="card-title">ワイン輸送ガイド</div>
+          <div class="card-desc">免税枠、梱包方法、配布計画、チェックリスト。Feasibilityとロジスティクスの交差点。</div>
+          <div class="card-tags"><span class="card-tag phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="../../ui-screens/diagrams/c-01-disclosure-model.html" target="_blank" data-project="diagrams">
+        <div class="card-preview diagram"><iframe src="../../ui-screens/diagrams/c-01-disclosure-model.html" loading="lazy" sandbox="allow-scripts"></iframe></div>
+        <div class="card-body">
+          <div class="card-id">C-01</div>
+          <div class="card-title">Disclosure 2方向モデル</div>
+          <div class="card-desc">Protective（インディゴ）vs Connective（コーラル）。同じダイヤルの二つの面。基盤コンセプトの可視化。</div>
+          <div class="card-tags"><span class="card-tag diagram">Diagram</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p class="footer-text">&copy; 2026 Intent First &mdash; <a href="../about/index.html">Takao Umehara</a></p>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  // Reveal on scroll
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
+
+  // Filter logic
+  var filterBtns = document.querySelectorAll('.filter-btn');
+  var patternSections = document.querySelectorAll('.pattern-section');
+  var moreSection = document.querySelector('.more-section');
+  var allCards = document.querySelectorAll('.card');
+
+  filterBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var filter = btn.dataset.filter;
+
+      filterBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+
+      if (filter === 'all') {
+        patternSections.forEach(function(s) { s.classList.remove('hidden'); });
+        moreSection.classList.remove('hidden');
+        allCards.forEach(function(c) { c.style.display = ''; });
+      } else if (filter === 'p1' || filter === 'p2' || filter === 'p3') {
+        patternSections.forEach(function(s) {
+          var hasMatch = false;
+          s.querySelectorAll('.card').forEach(function(c) {
+            if (c.dataset.project === filter) {
+              c.style.display = '';
+              hasMatch = true;
+            } else {
+              c.style.display = 'none';
+            }
+          });
+          s.classList.toggle('hidden', !hasMatch);
+        });
+        var moreHasMatch = false;
+        moreSection.querySelectorAll('.card').forEach(function(c) {
+          if (c.dataset.project === filter) {
+            c.style.display = '';
+            moreHasMatch = true;
+          } else {
+            c.style.display = 'none';
+          }
+        });
+        moreSection.classList.toggle('hidden', !moreHasMatch);
+      } else {
+        patternSections.forEach(function(s) {
+          var match = s.dataset.pattern === filter;
+          s.classList.toggle('hidden', !match);
+          if (match) {
+            s.querySelectorAll('.card').forEach(function(c) { c.style.display = ''; });
+          }
+        });
+        moreSection.classList.add('hidden');
+      }
+
+      var visibleCards = document.querySelectorAll('.pattern-section:not(.hidden) .card, .more-section:not(.hidden) .card');
+      var idx = 0;
+      visibleCards.forEach(function(c) {
+        if (c.style.display !== 'none') {
+          c.style.animation = 'none';
+          c.offsetHeight;
+          c.style.animation = '';
+          c.style.animationDelay = (idx * 40) + 'ms';
+          idx++;
+        }
+      });
+
+      document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
+    });
+  });
+})();
+
+// Mobile Hamburger Menu
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -3,74 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>プロジェクト — Context Grammarの実践</title>
-<meta name="description" content="Context Grammarが機能することを実証する3つのプロトタイプ。8つのトークンを実際のシナリオに適用した設計事例。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@100;200;300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+<title>リファレンス実装 — Context Grammarの実践</title>
+<meta name="description" content="Context Grammarが実際の生活でAIの振る舞いをどう変えるか。モックアップではなく、8つのトークンを適用した完全なシナリオ。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root {
-  --bg: #ffffff;
-  --bg-cool: #f4f4f2;
-  --bg-dark: #08080a;
-  --text: #18181b;
-  --text-2: #52525b;
-  --text-3: #a1a1aa;
-  --border: #e4e4e7;
-  --accent: #2563eb;
-  --font: 'Google Sans', 'Google Sans Text', 'Noto Sans JP', -apple-system, sans-serif;
-  --mono: 'DM Mono', monospace;
-  --max-w: min(1200px, 88vw);
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-html {
-  scroll-behavior: smooth;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  font-size: clamp(15px, 1.05vw, 19px);
-}
-body { overflow-x: hidden; }
-
-/* ═══ ANIMATIONS ═══ */
-.reveal {
-  opacity: 0; transform: translateY(36px);
-  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
-}
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.d1 { transition-delay: 0.08s; }
-.d2 { transition-delay: 0.16s; }
-.d3 { transition-delay: 0.24s; }
-.d4 { transition-delay: 0.32s; }
-.d5 { transition-delay: 0.4s; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes bob {
-  0%,100% { transform: translateY(0); }
-  50%     { transform: translateY(6px); }
-}
-
-/* ═══ NAV ═══ */
+/* NAV */
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   height: 56px;
-  background: rgba(220,225,232,0.7);
+  background: rgba(253,252,250,0.7);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   transition: all 0.5s var(--ease);
 }
 .nav.scrolled {
-  background: rgba(255,255,255,0.92);
-  border-bottom-color: rgba(0,0,0,0.06);
+  background: rgba(253,252,250,0.92);
+  border-bottom-color: rgba(26,24,22,0.06);
 }
 .nav-inner {
   width: var(--max-w);
@@ -84,14 +36,13 @@ body { overflow-x: hidden; }
   font-size: 13px; font-weight: 400; color: var(--text-3);
   text-decoration: none; transition: color 0.3s var(--ease);
 }
-.nav-links a:hover { color: var(--accent); }
-.nav-links a[href="../applied/index.html"] { color: var(--accent); font-weight: 500; }
-.nav-links a[href="../context-grammar/index.html"] { color: var(--accent); font-weight: 500; }
+.nav-links a:hover { color: var(--text); }
+.nav-links a[href="index.html"] { color: var(--text); font-weight: 500; }
 @media (max-width: 768px) {
   .nav-links a:not(.nav-cta) { display: none; }
 }
 
-/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+/* LANGUAGE SWITCHER */
 .lang-switch {
   position: fixed;
   left: 0;
@@ -102,7 +53,7 @@ body { overflow-x: hidden; }
   flex-direction: column;
   align-items: center;
   gap: 0;
-  background: rgba(255,255,255,0.85);
+  background: rgba(253,252,250,0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
@@ -112,7 +63,7 @@ body { overflow-x: hidden; }
   box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
 }
 .lang-switch a {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 1px;
@@ -122,7 +73,7 @@ body { overflow-x: hidden; }
   transition: color 0.3s var(--ease);
   line-height: 1;
 }
-.lang-switch a:hover { color: var(--accent); }
+.lang-switch a:hover { color: var(--text); }
 .lang-switch a.active {
   color: var(--text);
   font-weight: 700;
@@ -150,185 +101,155 @@ body { overflow-x: hidden; }
   }
 }
 
-/* ═══ COMMON ═══ */
+/* COMMON */
 .sec { padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px); }
 .sec-inner { max-width: var(--max-w); margin: 0 auto; }
 .sec-label {
-  font-family: var(--mono);
-  font-size: clamp(12px, 1vw, 14px);
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--color-label);
   margin-bottom: 16px;
 }
 .sec-title {
-  font-weight: 200;
+  font-weight: 500;
   font-size: clamp(28px, 3.2vw, 52px);
   line-height: 1.1;
   letter-spacing: -1.5px;
   margin-bottom: 16px;
 }
 .sec-sub {
-  font-size: clamp(16px, 1.15vw, 18px);
-  color: var(--text);
-  font-weight: 350;
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 300;
   line-height: 1.7;
-  max-width: 540px;
+  max-width: 600px;
 }
 
-/* ═══ HERO ═══ */
+/* HERO */
 #hero {
   background: var(--bg);
   padding-top: 80px;
 }
 
-/* ═══════════════════════════════════════
-   PROJECT SECTIONS — DEEP DIVE CASE STUDIES
-   ═══════════════════════════════════════ */
-
-.project-section {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
+/* COMPACT PROJECT CARDS */
+.project-grid {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 4vw, 48px);
 }
-.project-section:nth-child(odd) { background: var(--bg-cool); }
-.project-section:nth-child(even) { background: var(--bg); }
 
-.project-header {
+.project-card {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(40px, 5vw, 80px);
-  align-items: start;
-  margin-bottom: clamp(60px, 8vw, 100px);
+  grid-template-columns: 420px 1fr;
+  gap: clamp(32px, 4vw, 56px);
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.4s var(--ease), transform 0.4s var(--ease);
 }
-@media (max-width: 800px) {
-  .project-header { grid-template-columns: 1fr; }
+.project-card:hover {
+  box-shadow: 0 12px 40px rgba(26,24,22,0.06);
+  transform: translateY(-2px);
+}
+@media (max-width: 900px) {
+  .project-card { grid-template-columns: 1fr; }
 }
 
-.project-num {
-  font-family: var(--mono);
-  font-size: clamp(32px, 4vw, 56px);
-  font-weight: 300;
+.project-card__img {
+  height: 320px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.project-card__num {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 5px 14px;
+  border-radius: 8px;
+}
+
+.project-card__body {
+  padding: 32px 40px 32px 0;
+}
+@media (max-width: 900px) {
+  .project-card__body { padding: 24px; }
+}
+
+.project-card__label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--color-label);
+  margin-bottom: 6px;
+}
+
+.project-card__subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
   color: var(--text-3);
-  letter-spacing: -1px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
-.project-name {
-  font-weight: 200;
-  font-size: clamp(28px, 2.8vw, 44px);
-  line-height: 1.15;
-  letter-spacing: -1px;
+.project-card__title {
+  font-weight: 500;
+  font-size: clamp(22px, 2vw, 32px);
+  line-height: 1.25;
+  letter-spacing: -0.5px;
   color: var(--text);
-  margin-bottom: 24px;
+  margin-bottom: 14px;
+}
+
+.project-card__desc {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--text-2);
+  margin-bottom: 20px;
 }
 
 .token-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 32px;
+  gap: 6px;
+  margin-bottom: 20px;
 }
-
 .token-badge {
-  font-family: var(--mono);
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  padding: 6px 14px;
-  background: rgba(37, 99, 235, 0.08);
-  color: var(--accent);
-  border: 1px solid rgba(37, 99, 235, 0.2);
-  border-radius: 8px;
+  padding: 4px 10px;
+  background: var(--chip-blue-bg);
+  color: var(--chip-blue-text);
+  border: 1px solid rgba(26,24,22,0.06);
+  border-radius: 6px;
 }
 
-.project-scenario {
-  font-size: clamp(16px, 1.1vw, 18px);
-  font-weight: 350;
-  line-height: 1.75;
-  color: var(--text);
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
+.project-card__cta {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-grammar);
+  letter-spacing: 0.5px;
 }
 
-.project-scenario-title {
-  font-family: var(--mono);
-  font-size: clamp(11px, 0.85vw, 13px);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 10px;
-}
-
-.project-content {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(40px, 5vw, 60px);
-}
-
-.project-insight {
-  background: rgba(37, 99, 235, 0.04);
-  border-left: 3px solid var(--accent);
-  padding: clamp(20px, 2.5vw, 32px);
-  border-radius: 8px;
-}
-
-.project-insight-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 12px;
-}
-
-.project-insight-text {
-  font-size: clamp(16px, 1.1vw, 18px);
-  font-weight: 350;
-  line-height: 1.75;
-  color: var(--text);
-}
-
-.project-happens {
-  padding: clamp(20px, 2.5vw, 32px);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.project-happens-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 14px;
-}
-
-.project-happens-text {
-  font-size: clamp(16px, 1.1vw, 18px);
-  font-weight: 350;
-  line-height: 1.75;
-  color: var(--text);
-}
-
-.project-screenshot {
-  width: 100%;
-  aspect-ratio: 16/10;
-  background: linear-gradient(135deg, var(--bg-cool) 0%, #e8e8e6 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-size: clamp(12px, 1vw, 14px);
-  color: var(--text-3);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  border: 1px solid var(--border);
-}
-
-/* ═══ CTA SECTION ═══ */
+/* CTA SECTION */
 #cta {
   background: var(--bg);
   border-top: 1px solid var(--border);
@@ -337,9 +258,9 @@ body { overflow-x: hidden; }
 }
 
 .cta-text {
-  font-size: clamp(17px, 1.25vw, 19px);
-  font-weight: 350;
-  color: var(--text);
+  font-size: clamp(16px, 1.2vw, 18px);
+  font-weight: 300;
+  color: var(--text-2);
   line-height: 1.75;
   max-width: 640px;
   margin: 0 auto;
@@ -353,211 +274,348 @@ body { overflow-x: hidden; }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 13px;
-  color: var(--accent);
+  color: var(--color-grammar);
   text-decoration: none;
   letter-spacing: 0.5px;
   padding: 12px 28px;
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  border: 1px solid var(--border);
   border-radius: 10px;
   transition: all 0.3s var(--ease);
 }
 
 .cta-subscribe a:hover {
-  background: rgba(37, 99, 235, 0.04);
-  border-color: var(--accent);
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12);
+  background: var(--bg-2);
+  border-color: var(--border-hover);
+  box-shadow: 0 4px 20px rgba(26,24,22,0.06);
 }
 
-/* ═══ FOOTER ═══ */
+/* FOOTER */
 .footer {
-  background: var(--bg-dark);
-  color: rgba(255,255,255,0.3);
+  background: var(--bg-inverse);
+  color: rgba(240,236,228,0.3);
   padding: 20px clamp(24px, 4vw, 48px);
-  border-top: 1px solid rgba(255,255,255,0.04);
+  border-top: 1px solid rgba(240,236,228,0.04);
 }
 .footer-inner {
   max-width: var(--max-w); margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 12px;
-  font-family: var(--mono); font-size: 11px;
+  font-family: var(--font-mono); font-size: 11px;
 }
 .footer-logo { height: 16px; width: auto; opacity: 0.3; }
 .footer a {
-  color: rgba(255,255,255,0.3); text-decoration: none;
+  color: rgba(240,236,228,0.3); text-decoration: none;
   transition: color 0.3s var(--ease);
 }
-.footer a:hover { color: var(--accent); }
+.footer a:hover { color: var(--color-grammar); }
 .footer-links { display: flex; gap: 16px; }
+
+/* HAMBURGER MENU */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--text); background: rgba(26,24,22,0.04); }
+.mobile-menu-nav a.mobile-active { color: var(--text); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--text); }
+.mobile-menu-lang a.active { color: var(--text); font-weight: 700; background: rgba(26,24,22,0.04); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
 </style>
 </head>
 <body>
 
-<!-- ═══ NAV ═══ -->
+<!-- NAV -->
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
     <div class="nav-links">
       <a href="../context-grammar/index.html">Context Grammar</a>
-      <a href="../applied/index.html">プロジェクト</a>
-      <a href="../journal/index.html">エッセイ</a>
+      <a href="../../projects/index.html">Projects</a>
+      <a href="../industry/index.html">Industry</a>
       <a href="../about/index.html">About</a>
+      <a href="../about/index.html#contact" class="nav-cta">Contact</a>
     </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
   </div>
 </nav>
 
-<div class="lang-switch">
-  <a href="index.html" class="active">JA</a>
-  <div class="lang-switch-divider"></div>
-  <a href="../../applied/index.html">EN</a>
+<!-- MOBILE MENU OVERLAY -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="../industry/index.html">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="../../applied/index.html">EN</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="index.html" class="active">JA</a>
+  </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     HERO — PAGE HEADER
-     ═══════════════════════════════════════ -->
+<div class="lang-switch">
+  <a href="../../applied/index.html">EN</a>
+  <div class="lang-switch-divider"></div>
+  <a href="index.html" class="active">JA</a>
+</div>
+
+<!-- HERO -->
 <section id="hero" class="sec">
   <div class="sec-inner">
-    <p class="sec-label reveal">プロジェクト</p>
-    <h1 class="sec-title reveal d1">Context Grammarを、<br>実証する。</h1>
-    <p class="sec-sub reveal d2">各プロジェクトは8つのトークンを実際のシナリオに適用しています。モックアップではなく、AIが人の状況を理解したとき何が起こるかを示すワーキングプロトタイプです。</p>
+    <p class="sec-label reveal">Reference Implementations</p>
+    <h1 class="sec-title reveal d1">AIが人の文脈を読んだとき、<br>何が変わるのか。</h1>
+    <p class="sec-sub reveal d2">モックアップではない。Context Grammarが実際の生活でAIの振る舞いをどう変えるかを示す、完全なシナリオ。それぞれ異なる領域、異なる家族、異なる制約の中で8つのトークンを適用している。</p>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════
-     PROJECT 01 — THE LIVING HOME
-     ═══════════════════════════════════════ -->
-<section id="project-01" class="project-section sec">
-  <div class="sec-inner reveal">
+<!-- PROJECT CARDS -->
+<section class="sec" style="padding-top: 0;">
+<div class="sec-inner">
+<div class="project-grid">
 
-    <div class="project-header">
-      <div>
-        <p class="project-num">01</p>
-        <h2 class="project-name">リビングホーム</h2>
-        <div class="token-badges">
-          <span class="token-badge">⑤ Priority Weight</span>
-          <span class="token-badge">⑥ Synchro Rate</span>
-          <span class="token-badge">⑧ Feasibility</span>
-        </div>
-      </div>
-      <div>
-        <p class="project-scenario-title">シナリオ</p>
-        <p class="project-scenario">出張中のビジネスパーソン。夜11時、フライトがキャンセル。疲労困憊。外気温28度、自宅まで2時間。深夜便を再予約するか、朝の電車を待つか、レンタカーを借りるか。頭は回らない。選択肢ではなく、答えが必要な瞬間。</p>
-      </div>
+  <!-- PROJECT 01 -->
+  <a href="../../projects/project-01/p1-growing-family.html" class="project-card reveal d2" id="project-01">
+    <div class="project-card__img" style="background-image: url('../../projects/project-01/image-set02/IP-01_hero-fridge-v2.jpg');">
+      <span class="project-card__num">01</span>
     </div>
-
-    <div class="project-content">
-      <div class="project-happens">
-        <p class="project-happens-title">何が起こるか</p>
-        <p class="project-happens-text">ロック画面が解決ダッシュボードに変わります。検索もアプリの切り替えも不要。システムはCognitive Load（パニック＋疲労）、Priority Weight（快適さではなく帰宅すること）、Feasibility（実際のフライト料金、電車時刻表、利用可能な車）を読み取ります。3つの選択肢すべてをコンテキストの中で評価し、移動時間だけでなく、今のあなたにとって最も実現可能な1つ、多くても2つを提示します。インターフェースは、答え以外のすべてを消し去ります。</p>
+    <div class="project-card__body">
+      <p class="project-card__label">The Living Home</p>
+      <p class="project-card__subtitle">意図の分解 &times; Context Grammar &times; 家族オーケストレーション</p>
+      <h2 class="project-card__title">家族の文脈を学ぶAI。誰が何を食べるかを理解し、やがて自律する。</h2>
+      <p class="project-card__desc">初日のオンボーディングから半年後の自律まで。「今夜何にする？」という同じ問いが、誰が・いつ・どんな状態で聞いたかによって、まったく違う答えになる。Autonomy Dialは信頼の蓄積とともにSuggestからAutoへと移行していく。</p>
+      <div class="token-badges">
+        <span class="token-badge">Intent</span>
+        <span class="token-badge">Priority Weight</span>
+        <span class="token-badge">Autonomy Dial</span>
+        <span class="token-badge">Feasibility</span>
+        <span class="token-badge">Cognitive Load</span>
+        <span class="token-badge">Disclosure Dial</span>
       </div>
-
-      <div class="project-insight">
-        <p class="project-insight-label">キーインサイト</p>
-        <p class="project-insight-text">Cognitive Load = パニック のとき、maxOptions = 1。インターフェースは精神状態に適応します。この瞬間に選択肢を増やせば、麻痺を深めるだけです。UIの原則が変わる。選択の自由を与えるのではなく、明確さを与える。</p>
-      </div>
-
-      <div class="project-screenshot">プロジェクト 01 — プロトタイプ</div>
+      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
     </div>
+  </a>
 
-  </div>
+  <!-- PROJECT 02 -->
+  <a href="../../projects/project-02/p2-family-trip.html" class="project-card reveal d3" id="project-02">
+    <div class="project-card__img" style="background-image: url('../../projects/project-02/image-set02/P2_FamilyTrip/P2-IP01_hero-rain-temple-v2.jpg');">
+      <span class="project-card__num">02</span>
+    </div>
+    <div class="project-card__body">
+      <p class="project-card__label">The Family Trip</p>
+      <p class="project-card__subtitle">意図の分解 &times; Context Grammar &times; 使い捨てインターフェース</p>
+      <h2 class="project-card__title">ひとつの宣言から生まれ、旅が終われば消える使い捨てインターフェース。</h2>
+      <p class="project-card__desc">5人家族の京都14日間。雨のリプランニング、発熱時の危機対応、テレビでの家族投票。Trip Brainが5つのフェーズを通じて適応し、家族それぞれに異なるオートノミーレベルを同時に運用する。旅が終われば、学んだことはHome Brainに還元される。</p>
+      <div class="token-badges">
+        <span class="token-badge">Intent</span>
+        <span class="token-badge">Feasibility</span>
+        <span class="token-badge">Cognitive Load</span>
+        <span class="token-badge">Form Factor</span>
+        <span class="token-badge">Priority Weight</span>
+        <span class="token-badge">Autonomy Dial</span>
+      </div>
+      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+    </div>
+  </a>
+
+  <!-- PROJECT 03 -->
+  <a href="../../projects/project-03/p3-fluid-handoff-v3.html" class="project-card reveal d4" id="project-03">
+    <div class="project-card__img" style="background-image: url('../../projects/project-03/image-set03/generated/IP-01_hero-train-swipe-v2.jpg');">
+      <span class="project-card__num">03</span>
+    </div>
+    <div class="project-card__body">
+      <p class="project-card__label">Fluid Handoff</p>
+      <p class="project-card__subtitle">意図の翻訳 &times; デバイス変形 &times; 共同意思決定</p>
+      <h2 class="project-card__title">スマホからテレビへ、そしてお店へ。子供が決め、親が支払う。</h2>
+      <p class="project-card__desc">847件の検索結果を電車の中で20件に絞り、帰宅後はテレビで娘がD-padで選ぶ。父のスマホには価格だけが見える。Social Exposureが同じ画面でも人ごとに見える情報を変える。意図は宣言ではなく、インタラクションを通じて進化する。</p>
+      <div class="token-badges">
+        <span class="token-badge">Intent</span>
+        <span class="token-badge">Physical State</span>
+        <span class="token-badge">Social Exposure</span>
+        <span class="token-badge">Form Factor</span>
+        <span class="token-badge">Disclosure Dial</span>
+      </div>
+      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+    </div>
+  </a>
+
+  <a href="../../projects/project-04/p4-sales-floor.html" class="project-card reveal d5" id="project-04">
+    <div class="project-card__img" style="background: linear-gradient(135deg, #1a1816 0%, #2a2520 50%, #3a3530 100%); display:flex; align-items:center; justify-content:center;">
+      <span class="project-card__num">04</span>
+    </div>
+    <div class="project-card__body">
+      <p class="project-card__label">The Sales Floor</p>
+      <p class="project-card__subtitle">Social-Aware Filtering &times; 時間的進化 &times; エンタープライズ文脈</p>
+      <h2 class="project-card__title">300件のリード、1つの画面。そして上司が近づいてくる。</h2>
+      <p class="project-card__desc">営業マネージャーのダッシュボード。上司が近づくとSocial Exposureが画面を即座に再構成する。AIは3ヶ月の実績を通じて自律権を獲得していく——提案から自動スケジューリングへ。Context Grammarが家庭からエンタープライズへ拡張される。</p>
+      <div class="token-badges">
+        <span class="token-badge">Social Exposure</span>
+        <span class="token-badge">Cognitive Load</span>
+        <span class="token-badge">Autonomy Dial</span>
+        <span class="token-badge">Priority Weight</span>
+      </div>
+      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+    </div>
+  </a>
+
+  <a href="../../projects/project-05/p5-control-tower.html" class="project-card reveal d6" id="project-05">
+    <div class="project-card__img" style="background-image: url('../../projects/project-05/images/p5-hero-control-tower.jpg');">
+      <span class="project-card__num">05</span>
+    </div>
+    <div class="project-card__body">
+      <p class="project-card__label">The Control Tower</p>
+      <p class="project-card__subtitle">マルチエージェント統制 &times; カスケード委任 &times; スケーラブルな信頼</p>
+      <h2 class="project-card__title">1人のマネージャー、3つのAIエージェント。誰が何を決めるのか。</h2>
+      <p class="project-card__desc">Yukiは物流・調達・スケジューリングの3つのAIエージェントを同時に監督する。エージェント間で衝突が起きればContext Grammarが調停し、緊急事態には自律権が即座に上方へカスケードする。設計言語が1人→Nエージェントへスケールする証明。</p>
+      <div class="token-badges">
+        <span class="token-badge">Autonomy Dial</span>
+        <span class="token-badge">Priority Weight</span>
+        <span class="token-badge">Disclosure Dial</span>
+        <span class="token-badge">Feasibility</span>
+      </div>
+      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+    </div>
+  </a>
+
+</div>
+</div>
 </section>
 
-<!-- ═══════════════════════════════════════
-     PROJECT 02 — CONSTRAINT-AWARE EXECUTION
-     ═══════════════════════════════════════ -->
-<section id="project-02" class="project-section sec">
-  <div class="sec-inner reveal">
-
-    <div class="project-header">
-      <div>
-        <p class="project-num">02</p>
-        <h2 class="project-name">ファミリートリップ</h2>
-        <div class="token-badges">
-          <span class="token-badge">① Intent</span>
-          <span class="token-badge">⑧ Feasibility</span>
-          <span class="token-badge">⑦ Form Factor</span>
-        </div>
-      </div>
-      <div>
-        <p class="project-scenario-title">シナリオ</p>
-        <p class="project-scenario">車で帰宅中、夕食まで28分。家族は空腹。冷蔵庫には鶏肉、ご飯、そして時間がある。しかしソースに必要なレモンがない。別の料理にするか、途中で買い物するか——それとも、システムだけが見える第三の方法があるか。</p>
-      </div>
-    </div>
-
-    <div class="project-content">
-      <div class="project-happens">
-        <p class="project-happens-title">何が起こるか</p>
-        <p class="project-happens-text">AIがスマート冷蔵庫の在庫をリアルタイムで照合し、12のレシピと突き合わせます。不足しているレモンはInstacart経由で自動注文（15分配達、$1.29）。キッチンに入る頃には通知が届き、レシピはキッチンディスプレイに表示済み。Intentトークン（素晴らしい夕食を作る）が満たされ、Feasibilityトークンが制約条件の中での実現可能性を保証します。提案されるのは理想ではなく、現実に実行できるものだけです。</p>
-      </div>
-
-      <div class="project-insight">
-        <p class="project-insight-label">キーインサイト</p>
-        <p class="project-insight-text">Feasibility TokenがAIを「理想の推薦者」から「現実の実行パートナー」に変えます。レシピの推薦は悪くない。しかし、夕食を実現するためにサプライチェーンを再構成するシステムは革命的です。インターフェースは判断しない——実行します。</p>
-      </div>
-
-      <div class="project-screenshot">プロジェクト 02 — プロトタイプ</div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     PROJECT 03 — FLUID HANDOFF & SHARED ARBITRATION
-     ═══════════════════════════════════════ -->
-<section id="project-03" class="project-section sec">
-  <div class="sec-inner reveal">
-
-    <div class="project-header">
-      <div>
-        <p class="project-num">03</p>
-        <h2 class="project-name">デバイスをまたぐ体験</h2>
-        <div class="token-badges">
-          <span class="token-badge">② Physical</span>
-          <span class="token-badge">④ Social Exposure</span>
-          <span class="token-badge">⑦ Form Factor</span>
-        </div>
-      </div>
-      <div>
-        <p class="project-scenario-title">シナリオ</p>
-        <p class="project-scenario">土曜の午後、パートナーと二人でソファに座り、テレビで靴を見ている。パートナーはスマホを持っている。そこに仕事の電話が入り、一人で電車に乗って帰ることに。体験は途切れるのではなく、変化する必要があります。</p>
-      </div>
-    </div>
-
-    <div class="project-content">
-      <div class="project-happens">
-        <p class="project-happens-title">何が起こるか</p>
-        <p class="project-happens-text">ソファでは、テレビが高解像度の商品画像を表示し、スマホはリモコンとして機能します。スワイプで閲覧、タップでズーム。価格とスペックはテレビに表示。電車に乗ると、スマホが状況の変化を認識します。Physical Stateの変化（座り→立ち＋移動中）、Social Exposureの変化（自宅のプライベート→混雑した公共空間）。片手モードが起動し、価格がぼかされ、グリッドが縦フィードに折りたたまれます。スマホが体験全体を引き継ぎます。設定メニューに一度も触れることなく、すべてが自動で適応します。</p>
-      </div>
-
-      <div class="project-insight">
-        <p class="project-insight-label">キーインサイト</p>
-        <p class="project-insight-text">Form Factor + Physical State + Social Exposureが連携し、コンテキストの変化に応じてインターフェース全体を再構成します。「モバイルビュー」と「テレビビュー」は不要です。必要なのは、利用可能なデバイス、身体の姿勢、周囲への露出度を理解し、UIをリアルタイムで描画すること。</p>
-      </div>
-
-      <div class="project-screenshot">プロジェクト 03 — プロトタイプ</div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     BOTTOM CTA
-     ═══════════════════════════════════════ -->
+<!-- BOTTOM CTA -->
 <section id="cta">
   <div class="sec-inner">
-    <p class="cta-text reveal">Context Grammarは進化を続けるフレームワークです。ここに紹介した3つは最初の応用例に過ぎません。Substackで最新の展開をお届けします。</p>
+    <p class="cta-text reveal">Context Grammarは進化を続けるフレームワークです。ここに紹介した5つの応用例を通じて、設計言語の可能性をお確かめください。</p>
     <div class="cta-subscribe reveal d1">
-      <a href="https://intentfirst.substack.com">Substackで購読 →</a>
+      <a href="https://intentfirst.substack.com">Substackで購読 &rarr;</a>
     </div>
   </div>
 </section>
 
-<!-- ═══ FOOTER ═══ -->
+<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-inner">
     <img src="../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
-    <span>&copy; 2025 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
     <div class="footer-links">
       <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
       <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
@@ -566,7 +624,7 @@ body { overflow-x: hidden; }
   </div>
 </footer>
 
-<!-- ═══ SCRIPTS ═══ -->
+<!-- SCRIPTS -->
 <script>
 // Scroll reveal
 const io = new IntersectionObserver((entries) => {
@@ -585,6 +643,32 @@ const hero = document.getElementById('hero');
 new IntersectionObserver(([e]) => {
   nav.classList.toggle('scrolled', !e.isIntersecting);
 }, { threshold: 0.05 }).observe(hero);
+
+// Mobile Hamburger Menu
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
 </script>
 
 </body>

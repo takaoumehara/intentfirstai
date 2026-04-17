@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Brain — 記憶の3レイヤー | intentfirst.ai</title>
+<meta name="description" content="Context BrainはAIに構造化された記憶を与える。更新速度の異なる3つのレイヤー — Identity、Accumulated Learning、Right Now。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../../assets/css/nav.css">
+<style>
+
+/* ═══ COMMON ═══ */
+.sec {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+}
+.sec-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* ═══ HERO — dark ═══ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: calc(56px + clamp(40px, 6vw, 80px)) clamp(24px, 4vw, 48px) clamp(60px, 8vw, 120px);
+  background: #08070b;
+  color: #f0ece4;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(106, 74, 144, 0.06), transparent);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 780px;
+  position: relative;
+  z-index: 1;
+}
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(240, 236, 228, 0.3);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.2s forwards;
+}
+.hero-title {
+  font-weight: 500;
+  font-size: clamp(36px, 5vw, 68px);
+  line-height: 1.15;
+  letter-spacing: -2.5px;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.4s forwards;
+}
+.hero-sub {
+  font-size: clamp(15px, 1.15vw, 19px);
+  font-weight: 300;
+  color: rgba(240, 236, 228, 0.45);
+  line-height: 1.85;
+  max-width: 620px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.6s forwards;
+}
+
+/* ═══ CONTENT SECTIONS ═══ */
+.content-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.2vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+.content-body {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.9;
+  max-width: 680px;
+}
+.content-body p {
+  margin-bottom: 1.2em;
+}
+.content-body p:last-child {
+  margin-bottom: 0;
+}
+.content-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ═══ LAYER CARDS ═══ */
+.layer-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 4vw, 64px);
+  align-items: start;
+  margin-top: clamp(40px, 5vw, 64px);
+}
+@media (max-width: 800px) {
+  .layer-card {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.layer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.layer-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.layer-meta-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.layer-meta-value {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.layer-metaphor {
+  background: var(--bg-2);
+  border-left: 3px solid var(--text-3);
+  border-radius: 0;
+  padding: clamp(20px, 2.5vw, 32px);
+}
+.layer-metaphor-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.layer-metaphor-text {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+.layer-insight {
+  margin-top: 24px;
+  padding: clamp(16px, 2vw, 24px);
+  background: var(--bg-2);
+  border-left: 3px solid var(--color-brain);
+  border-radius: 0;
+}
+.layer-insight-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-brain);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.layer-insight-text {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+/* Layer accent colors */
+.layer-l1 .layer-metaphor { border-left-color: var(--color-grammar); }
+.layer-l2 .layer-metaphor { border-left-color: var(--color-intent); }
+.layer-l3 .layer-metaphor { border-left-color: var(--color-success); }
+
+.layer-l1 .sec-label { color: var(--color-grammar); }
+.layer-l2 .sec-label { color: var(--color-intent); }
+.layer-l3 .sec-label { color: var(--color-success); }
+
+.layer-l1 .content-title span { color: var(--color-grammar); }
+.layer-l2 .content-title span { color: var(--color-intent); }
+.layer-l3 .content-title span { color: var(--color-success); }
+
+/* ═══ SPEED BADGE ═══ */
+.speed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  margin-bottom: 16px;
+}
+.layer-l1 .speed-badge { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.layer-l2 .speed-badge { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.layer-l3 .speed-badge { background: var(--chip-green-bg); color: var(--chip-green-text); }
+
+/* ═══ FORMULA SECTION ═══ */
+.formula-sec {
+  background: var(--bg-2);
+}
+.formula-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 24px);
+  margin-top: clamp(32px, 4vw, 56px);
+  flex-wrap: wrap;
+}
+.formula-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(20px, 2.5vw, 32px) clamp(24px, 3vw, 40px);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  min-width: 140px;
+}
+.formula-block-layer {
+  font-family: var(--font-mono);
+  font-size: clamp(24px, 3vw, 40px);
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+.formula-block-speed {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.formula-block-name {
+  font-size: clamp(13px, 1vw, 15px);
+  font-weight: 400;
+  color: var(--text-2);
+}
+.formula-block--l1 .formula-block-layer { color: var(--color-grammar); }
+.formula-block--l2 .formula-block-layer { color: var(--color-intent); }
+.formula-block--l3 .formula-block-layer { color: var(--color-success); }
+
+.formula-op {
+  font-family: var(--font-mono);
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 300;
+  color: var(--text-3);
+}
+.formula-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(20px, 2.5vw, 32px) clamp(24px, 3vw, 40px);
+  background: var(--bg);
+  border: 2px solid var(--color-brain);
+  border-radius: 0;
+  min-width: 160px;
+}
+.formula-result-label {
+  font-family: var(--font-mono);
+  font-size: clamp(16px, 2vw, 24px);
+  font-weight: 500;
+  color: var(--color-brain);
+  letter-spacing: -0.5px;
+}
+.formula-result-sub {
+  font-size: clamp(12px, 0.9vw, 14px);
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+/* ═══ DISPOSABLE SECTION ═══ */
+.lifecycle {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(12px, 1.5vw, 20px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+@media (max-width: 700px) {
+  .lifecycle {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.lifecycle-step {
+  text-align: center;
+  padding: clamp(20px, 2vw, 28px) clamp(12px, 1.5vw, 20px);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  position: relative;
+}
+.lifecycle-step-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+.lifecycle-step-icon {
+  font-size: clamp(24px, 2.5vw, 32px);
+  margin-bottom: 10px;
+}
+.lifecycle-step-title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.lifecycle-step-desc {
+  font-size: clamp(13px, 0.9vw, 15px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+.lifecycle-arrow {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-3);
+  z-index: 1;
+}
+@media (max-width: 700px) {
+  .lifecycle-step:nth-child(2) .lifecycle-arrow,
+  .lifecycle-step:nth-child(4) .lifecycle-arrow {
+    display: none;
+  }
+}
+
+.disposable-examples {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(24px, 3vw, 40px);
+}
+@media (max-width: 700px) {
+  .disposable-examples {
+    grid-template-columns: 1fr;
+  }
+}
+.disposable-example {
+  padding: clamp(20px, 2.5vw, 28px);
+  background: var(--bg-2);
+  border-left: 3px solid var(--color-brain);
+  border-radius: 0;
+}
+.disposable-example-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-brain);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.disposable-example-title {
+  font-weight: 500;
+  font-size: clamp(17px, 1.2vw, 20px);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.disposable-example-text {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+/* ═══ COMPARE TABLE ═══ */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: clamp(32px, 4vw, 48px);
+}
+.compare-table th,
+.compare-table td {
+  text-align: left;
+  padding: clamp(12px, 1.5vw, 18px) clamp(16px, 2vw, 24px);
+  border-bottom: 1px solid var(--border);
+  font-size: clamp(14px, 1vw, 16px);
+  vertical-align: top;
+}
+.compare-table th {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 500;
+  padding-bottom: 12px;
+}
+.compare-table td {
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.6;
+}
+.compare-table tr td:first-child {
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+}
+.compare-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ═══ CTA — dark ═══ */
+.cta {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+}
+.cta-inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.cta-text {
+  font-size: clamp(17px, 1.3vw, 22px);
+  font-weight: 300;
+  color: rgba(240, 236, 228, 0.6);
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cta-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 12px 28px;
+  border-radius: 6px;
+  transition: all 0.3s var(--ease);
+}
+.cta-btn--primary {
+  background: #f0ece4;
+  color: #08070b;
+}
+.cta-btn--primary:hover {
+  background: #fff;
+}
+.cta-btn--secondary {
+  background: transparent;
+  color: rgba(240, 236, 228, 0.6);
+  border: 1px solid rgba(240, 236, 228, 0.15);
+}
+.cta-btn--secondary:hover {
+  border-color: rgba(240, 236, 228, 0.4);
+  color: #f0ece4;
+}
+
+/* ═══ P.S. SECTION ═══ */
+.ps-sec {
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.ps-inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.ps-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.ps-text {
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.9;
+  font-style: italic;
+}
+
+/* ═══ DIVIDER ═══ */
+.sec-divider {
+  width: 48px;
+  height: 1px;
+  background: var(--border);
+  margin: 0 auto;
+}
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.d1 { transition-delay: 0.06s; }
+.d2 { transition-delay: 0.12s; }
+.d3 { transition-delay: 0.18s; }
+.d4 { transition-delay: 0.24s; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+    padding-top: calc(56px + 60px);
+    padding-bottom: 60px;
+  }
+  .hero-title {
+    letter-spacing: -1.5px;
+  }
+}
+
+</style>
+</head>
+
+<body data-dark-nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <p class="hero-label">Context Grammar / Brain</p>
+    <h1 class="hero-title">記憶の3レイヤー。<br>ひとつの的確な応答。</h1>
+    <p class="hero-sub">行きつけのレストランは、来るたびにアレルギーを聞き直さない。Context Brainは、AIに同じ深さの記憶を与える &mdash; 更新速度の異なる3つのレイヤーとして構造化する。</p>
+  </div>
+</section>
+
+
+<!-- ═══ 覚えているレストラン ═══ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label label-brain reveal">Context Brain</p>
+    <h2 class="content-title reveal d1">覚えているレストラン</h2>
+    <div class="content-body reveal d2">
+      <p>行きつけのレストランに入る。店長はもう名前を知っている。席の好みも。ナッツアレルギーも。これがLayer 1。</p>
+      <p>ウェイターは金曜はビール派だと覚えている。疲れた日は軽めを頼むことも。魚にはいつもレモンを追加することも。これがLayer 2。</p>
+      <p>そして今夜、上司と来ていることが見える。スーツを着ている。少し緊張している。これがLayer 3。</p>
+      <p>3つの異なる「知り方」。3つの異なる更新速度。ひとつのシームレスな体験。</p>
+      <p><strong>今のAIにはこの構造がない。</strong> Claude、Gemini、ChatGPTの記憶はフラットなメモ帳 &mdash; 階層も更新サイクルもアーキテクチャもない事実の羅列。Context Brainはそこに構造を与える。</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ LAYER 1 — IDENTITY ═══ -->
+<section class="sec layer-l1">
+  <div class="sec-inner">
+    <p class="sec-label reveal">Layer 1</p>
+    <div class="speed-badge reveal d1">Months to Years</div>
+    <h2 class="content-title reveal d2"><span>Identity</span> &mdash; あなたが誰か</h2>
+    <div class="content-body reveal d3">
+      <p>最も遅いレイヤー。基盤。人生が変わるときに変わる &mdash; 気分が変わるときではない。</p>
+      <p>家族構成。食事制限。言語設定。アクセシビリティ。人生の「形」を決めるもの。日々の「質感」ではない。</p>
+    </div>
+
+    <div class="layer-card reveal d4">
+      <div class="layer-meta">
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">What it holds</span>
+          <span class="layer-meta-value">家族構成、食事制限、言語設定、アクセシビリティ、属性情報</span>
+        </div>
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">Source</span>
+          <span class="layer-meta-value">ユーザーの明示的な入力 + オンボーディング</span>
+        </div>
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">Update speed</span>
+          <span class="layer-meta-value">月単位〜年単位</span>
+        </div>
+      </div>
+      <div>
+        <div class="layer-metaphor">
+          <p class="layer-metaphor-label">Restaurant Metaphor</p>
+          <p class="layer-metaphor-text">「梅原様：ナッツアレルギー、窓際席、お子さん2人、記念日は3月」</p>
+          <p class="layer-metaphor-text" style="margin-top: 8px; font-style: normal; font-weight: 400; color: var(--text-3); font-size: clamp(13px, 0.9vw, 15px);">予約台帳。一度書いて、めったに更新しない。毎回参照する。</p>
+        </div>
+        <div class="layer-insight">
+          <p class="layer-insight-label">Key Insight</p>
+          <p class="layer-insight-text">このレイヤーの厚みは<strong>Disclosure Dial</strong>が制御する。フル開示ならシステムは完全なIdentityを得る。非開示モードなら名前だけ。AIにどこまで知らせるかはユーザーが決める。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ LAYER 2 — ACCUMULATED LEARNING ═══ -->
+<section class="sec layer-l2" style="background: var(--bg-2);">
+  <div class="sec-inner">
+    <p class="sec-label reveal">Layer 2</p>
+    <div class="speed-badge reveal d1">Days to Weeks</div>
+    <h2 class="content-title reveal d2"><span>Accumulated Learning</span> &mdash; あなたが何をするか</h2>
+    <div class="content-body reveal d3">
+      <p>信頼を獲得するレイヤー。あるいは失うレイヤー。</p>
+      <p>パターン記憶。生の事実から始まり、文脈的理解へと成長する。システムは観察し、相関を見つけ、行動モデルを構築する &mdash; インタラクションのたびに精度が上がる。</p>
+    </div>
+
+    <div class="layer-card reveal d4">
+      <div class="layer-meta">
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">What it holds</span>
+          <span class="layer-meta-value">食の好み、買い物パターン、スケジュール傾向、コミュニケーションスタイル、意思決定の癖</span>
+        </div>
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">Source</span>
+          <span class="layer-meta-value">行動からの暗黙的学習 + ユーザーの修正フィードバック</span>
+        </div>
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">How it evolves</span>
+          <span class="layer-meta-value">
+            1回目：サーモンを注文（事実）<br>
+            3回目：たぶんサーモンが好き（パターン）<br>
+            10回目：金曜は疲れている、軽め＋ビール（文脈パターン）<br>
+            20回目：妻がいるとワイン、一人ならビール（関係パターン）
+          </span>
+        </div>
+      </div>
+      <div>
+        <div class="layer-metaphor">
+          <p class="layer-metaphor-label">Restaurant Metaphor</p>
+          <p class="layer-metaphor-text">ウェイターの記憶。書き留めていない。反復から築かれる。修正で磨かれる。間違うこともある &mdash; でも良くなっていく。</p>
+        </div>
+        <div class="layer-insight">
+          <p class="layer-insight-label">Key Insight</p>
+          <p class="layer-insight-text">L2は<strong>間違ったパターン</strong>を学習しうる。サーモンを3回頼んだのはゲスト用であって、自分が好きだからではない。修正フィードバックが軌道を修正する。誤学習が続くと<strong>Autonomy Dialが降格</strong> &mdash; システムは確信度を下げ、より多く確認し、より少なく推定する。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ LAYER 3 — RIGHT NOW ═══ -->
+<section class="sec layer-l3">
+  <div class="sec-inner">
+    <p class="sec-label reveal">Layer 3</p>
+    <div class="speed-badge reveal d1">Seconds to Minutes</div>
+    <h2 class="content-title reveal d2"><span>Right Now</span> &mdash; 今何が起きているか</h2>
+    <div class="content-body reveal d3">
+      <p>最も速いレイヤー。呼吸するレイヤー。</p>
+      <p>リアルタイムフィード。現在のToken値、アクティブなIntent、デバイスの状態。コンテキストが切り替わるたび、センサーが読み取るたび、新しい情報がフレームに入るたびに変わる。</p>
+    </div>
+
+    <div class="layer-card reveal d4">
+      <div class="layer-meta">
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">What it holds</span>
+          <span class="layer-meta-value">現在のToken値（Physical State、Cognitive Load、Social Exposureなど）、アクティブなIntent、デバイス状態</span>
+        </div>
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">Source</span>
+          <span class="layer-meta-value">センサーデータ + アクティブセッションのコンテキスト</span>
+        </div>
+        <div class="layer-meta-row">
+          <span class="layer-meta-label">Update speed</span>
+          <span class="layer-meta-value">秒単位〜分単位</span>
+        </div>
+      </div>
+      <div>
+        <div class="layer-metaphor">
+          <p class="layer-metaphor-label">Restaurant Metaphor</p>
+          <p class="layer-metaphor-text">「今日は急いでいる」「子供を連れている」「少し疲れている」</p>
+          <p class="layer-metaphor-text" style="margin-top: 8px; font-style: normal; font-weight: 400; color: var(--text-3); font-size: clamp(13px, 0.9vw, 15px);">ウェイターの観察。履歴は不要。ただ目を開けているだけ。</p>
+        </div>
+        <div class="layer-insight">
+          <p class="layer-insight-label">Key Insight</p>
+          <p class="layer-insight-text">L3は<strong>8 Context Tokens</strong>が住む場所。Physical State、Cognitive Load、Social Exposure、Priority Weight、Form Factor、Feasibility、Autonomy Dial、Disclosure Dial &mdash; すべてが現在の値をこのレイヤーに送り込む。リアルタイムの脈拍。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ THE FORMULA ═══ -->
+<section class="sec formula-sec">
+  <div class="sec-inner" style="text-align: center;">
+    <p class="sec-label label-brain reveal" style="text-align: center;">How It Connects</p>
+    <h2 class="content-title reveal d1" style="text-align: center;">公式</h2>
+    <div class="content-body reveal d2" style="text-align: center; margin: 0 auto 0;">
+      <p>3つのレイヤー、3つの時間軸、ひとつの出力。Rule Engineは3つを同時に読み、「今この瞬間」に正しい応答を生成する。</p>
+    </div>
+
+    <div class="formula-visual reveal d3">
+      <div class="formula-block formula-block--l1">
+        <span class="formula-block-layer">L1</span>
+        <span class="formula-block-speed">Years</span>
+        <span class="formula-block-name">Identity</span>
+      </div>
+      <span class="formula-op">&times;</span>
+      <div class="formula-block formula-block--l2">
+        <span class="formula-block-layer">L2</span>
+        <span class="formula-block-speed">Weeks</span>
+        <span class="formula-block-name">Learning</span>
+      </div>
+      <span class="formula-op">&times;</span>
+      <div class="formula-block formula-block--l3">
+        <span class="formula-block-layer">L3</span>
+        <span class="formula-block-speed">Seconds</span>
+        <span class="formula-block-name">Right Now</span>
+      </div>
+      <span class="formula-op">=</span>
+      <div class="formula-result">
+        <span class="formula-result-label">Rule Engine</span>
+        <span class="formula-result-sub">デザイン判断の出力</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ DISPOSABLE BRAIN ═══ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label label-brain reveal">Special Pattern</p>
+    <h2 class="content-title reveal d1">Disposable Brain &mdash; 生まれて、学んで、返して、消える</h2>
+    <div class="content-body reveal d2">
+      <p>すべてが永続する必要はない。京都への家族旅行に、AIの記憶の永久スペースは要らない。でもその旅行から得た学び &mdash; それは残すべきだ。</p>
+      <p>Disposable Brainは一時的な記憶インスタンス。ライフサイクルがある。</p>
+    </div>
+
+    <div class="lifecycle reveal d3">
+      <div class="lifecycle-step">
+        <span class="lifecycle-arrow">&rarr;</span>
+        <p class="lifecycle-step-num">Step 1</p>
+        <p class="lifecycle-step-title">生まれる</p>
+        <p class="lifecycle-step-desc">特定のコンテキストのために生成 &mdash; 旅行、プロジェクト、イベント。</p>
+      </div>
+      <div class="lifecycle-step">
+        <span class="lifecycle-arrow">&rarr;</span>
+        <p class="lifecycle-step-num">Step 2</p>
+        <p class="lifecycle-step-title">学ぶ</p>
+        <p class="lifecycle-step-desc">一時的なスコープ内でローカルパターンを蓄積する。</p>
+      </div>
+      <div class="lifecycle-step">
+        <span class="lifecycle-arrow">&rarr;</span>
+        <p class="lifecycle-step-num">Step 3</p>
+        <p class="lifecycle-step-title">返す</p>
+        <p class="lifecycle-step-desc">価値ある学びを永続的なHome Brainに送り返す。</p>
+      </div>
+      <div class="lifecycle-step">
+        <p class="lifecycle-step-num">Step 4</p>
+        <p class="lifecycle-step-title">消える</p>
+        <p class="lifecycle-step-desc">一時インスタンスは削除される。学びは残る。</p>
+      </div>
+    </div>
+
+    <div class="disposable-examples reveal d4">
+      <div class="disposable-example">
+        <p class="disposable-example-label">Trip Brain (Project 2)</p>
+        <p class="disposable-example-title">京都 家族旅行</p>
+        <p class="disposable-example-text">旅行のために生まれる。「カイがラーメンにハマった」「ミアは15時に電池切れ」を学ぶ。それらをHome Brainに返す。帰宅したら消える。次に京都へ行くとき、Home Brainはもうカイがラーメンを欲しがることを知っている。</p>
+      </div>
+      <div class="disposable-example">
+        <p class="disposable-example-label">Project Brain (Project 4)</p>
+        <p class="disposable-example-title">ハリケーン保険対応</p>
+        <p class="disposable-example-text">危機対応のために生まれる。トリアージパターンと判断ショートカットを学ぶ。判断パターンをElenaの永続Brainに返す。プロジェクト終了で消える。次の緊急事態では、彼女はもっと鋭い状態から始められる。</p>
+      </div>
+    </div>
+
+    <div class="layer-insight reveal" style="margin-top: 32px;">
+      <p class="layer-insight-label">Design Principle</p>
+      <p class="layer-insight-text">一時的なコンテキストには一時的な記憶を。ただし<strong>学びは必ず生き残る</strong>。Brainは消える。知恵は消えない。</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ BRAIN ≠ JUST MEMORY ═══ -->
+<section class="sec" style="background: var(--bg-2);">
+  <div class="sec-inner">
+    <p class="sec-label label-brain reveal">Why It Matters</p>
+    <h2 class="content-title reveal d1">Brainは「記憶」ではない</h2>
+    <div class="content-body reveal d2">
+      <p>Claudeにも記憶がある。Geminiにもある。ChatGPTにもある。どれもあなたについての事実を覚えている。</p>
+      <p>しかし事実はアーキテクチャではない。</p>
+      <p>フラットな記憶は<strong>「サーモンが好き」</strong>を覚える。</p>
+      <p>Context Brainは<strong>「リラックスした夜にサーモン、ストレス時は魚を避ける、デートで印象を良くしたいときにサーモンを頼む」</strong>を知っている。</p>
+      <p>違いはデータ量ではない。構造化されたデータ &mdash; 更新速度の異なるレイヤー、ドメイン別の軸、開示コントロール、時間的な認識。</p>
+    </div>
+
+    <table class="compare-table reveal d3">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Flat Memory（現状）</th>
+          <th>Context Brain</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>構造</td>
+          <td>事実の単一リスト</td>
+          <td>更新速度の異なる3レイヤー</td>
+        </tr>
+        <tr>
+          <td>文脈</td>
+          <td>「サーモンが好き」</td>
+          <td>「リラックスした金曜にサーモン、ストレス時は回避」</td>
+        </tr>
+        <tr>
+          <td>プライバシー</td>
+          <td>全か無か</td>
+          <td>ドメイン別Disclosure Dial</td>
+        </tr>
+        <tr>
+          <td>一時記憶</td>
+          <td>すべて永続</td>
+          <td>Disposable Brainインスタンス</td>
+        </tr>
+        <tr>
+          <td>複数人対応</td>
+          <td>単一ユーザープロファイル</td>
+          <td>メンバー別Brainと共有コンテキスト</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ═══ CTA — dark ═══ -->
+<section class="cta">
+  <div class="cta-inner">
+    <p class="sec-label" style="color: rgba(240,236,228,0.3); text-align: center;">Next</p>
+    <p class="cta-text">記憶に信頼の制御がなければ、それは監視。<br>次は、ユーザーがその関係をどう制御するか。</p>
+    <div class="cta-buttons">
+      <a href="../trust-design/index.html" class="cta-btn cta-btn--primary">Trust Design &rarr;</a>
+      <a href="../index.html" class="cta-btn cta-btn--secondary">Overview &rarr;</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ P.S. ═══ -->
+<section class="ps-sec">
+  <div class="ps-inner">
+    <p class="ps-label">P.S.</p>
+    <p class="ps-text">このフレームワークを作ったのは、ずっと同じ疑問を抱えていたからだ。なぜスマホは夕食中に電話が嫌いなことを忘れるのか。子供の学校からの電話。妻のカレンダーの衝突。自分の締め切り。スマホはすべての割り込みを平等に扱う。記憶のアーキテクチャがないから。通知のフラットなリストと祈りだけ。Context Brainは、5年前に誰かが出荷してほしかった答えだ。</p>
+  </div>
+</section>
+
+
+<!-- ═══ NAV + SCROLL REVEAL ═══ -->
+<script src="../../../assets/js/nav.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Init nav
+  initNav({ basePath: '../../../', activePage: 'brain', lang: 'ja' });
+
+  // Scroll reveal
+  var reveals = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  reveals.forEach(function(el) {
+    observer.observe(el);
+  });
+});
+</script>
+
+</body>
+</html>

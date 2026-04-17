@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3-04 Purchase Complete + Disposable UI Dissolution</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  html { overflow: hidden; height: 100%; }
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ── Phone Frame (iPhone 15 Pro) ── */
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px;
+    padding: 11px;
+    position: relative;
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.14),
+      0 24px 48px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  /* Side button — power */
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 130px;
+    width: 3px;
+    height: 52px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 0 2px 2px 0;
+  }
+  /* Side buttons — volume + mute */
+  .phone-frame::after {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 110px;
+    width: 3px;
+    height: 30px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 42px 0 #2a2a2c, 0 72px 0 #2a2a2c;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Dynamic Island ── */
+  .notch {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
+  }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    height: 54px;
+    padding: 14px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #202124;
+    background: #FFFFFF;
+    position: relative;
+    z-index: 50;
+  }
+  .status-bar-right { display: flex; gap: 5px; align-items: center; }
+  .status-bar-right .material-symbols-outlined { font-size: 17px; }
+
+  /* phone-screen inner height = 844 - 22 (padding) = 822px */
+  .content-area {
+    height: calc(822px - 54px - 34px);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Home Indicator ── */
+  .home-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    z-index: 52;
+    pointer-events: none;
+  }
+  .home-indicator-bar { width: 134px; height: 5px; background: #202124; border-radius: 100px; }
+
+  /* ==================== Purchase Complete Screen ==================== */
+  .purchase-screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    transition: opacity 400ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .check-circle {
+    width: 96px;
+    height: 96px;
+    margin-bottom: 24px;
+  }
+  .check-circle svg {
+    width: 96px;
+    height: 96px;
+  }
+  .check-bg {
+    fill: #E6F4EA;
+  }
+  .check-stroke {
+    stroke: #1E8E3E;
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+  }
+  .animate-check .check-stroke {
+    animation: drawCheck 500ms 200ms cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+
+  @keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .purchase-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #202124;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .purchase-detail {
+    font-size: 15px;
+    color: #5F6368;
+    text-align: center;
+    margin-bottom: 24px;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  /* Shipping tracker */
+  .tracker {
+    width: 100%;
+    margin-bottom: 24px;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .tracker-bar {
+    height: 4px;
+    background: #E8EAED;
+    border-radius: 2px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .tracker-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    width: 25%;
+    background: #1E8E3E;
+    border-radius: 2px;
+    transition: width 600ms 800ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .tracker-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #9AA0A6;
+  }
+  .tracker-labels span:first-child {
+    color: #1E8E3E;
+    font-weight: 500;
+  }
+
+  .auto-delete-note {
+    font-size: 13px;
+    color: #9AA0A6;
+    text-align: center;
+    margin-bottom: 32px;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  .ok-btn {
+    padding: 14px 48px;
+    border-radius: 9999px;
+    background: #1A73E8;
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background 150ms ease-out, transform 100ms ease-out;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .ok-btn:active { transform: scale(0.97); }
+
+  .fade-in {
+    animation: fadeInUp 400ms cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+  @keyframes fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ==================== Dissolution Screen ==================== */
+  .dissolution-screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #F8F9FA;
+    padding: 24px 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms;
+  }
+
+  .dissolution-header {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1A73E8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .dissolve-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1), transform 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .dissolve-card.peeling {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+
+  .dissolve-img {
+    width: 48px; height: 48px; border-radius: 8px; background: #F1F3F4;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .dissolve-name { font-size: 14px; font-weight: 500; color: #202124; }
+  .dissolve-meta { font-size: 12px; color: #5F6368; }
+
+  .dissolve-dpad {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #F1F3F4;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 300ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .dissolve-dpad.shrinking {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  .dissolve-dpad-inner {
+    width: 32px; height: 32px; border-radius: 50%; background: #1A73E8;
+  }
+
+  /* Ghost outline */
+  .ghost-outline {
+    border: 2px dashed #E8EAED;
+    border-radius: 12px;
+    height: 72px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transition: opacity 300ms;
+  }
+  .ghost-outline.visible { opacity: 0.4; }
+  .ghost-outline.fading { opacity: 0; transition: opacity 500ms; }
+
+  /* ==================== Home Screen ==================== */
+  .home-screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 600ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .home-gemini {
+    font-size: 48px;
+    color: #1A73E8;
+    margin-bottom: 12px;
+  }
+  .home-greeting {
+    font-size: 20px;
+    font-weight: 500;
+    color: #202124;
+    margin-bottom: 4px;
+  }
+  .home-sub {
+    font-size: 14px;
+    color: #9AA0A6;
+  }
+  .home-search {
+    width: 280px;
+    height: 48px;
+    background: #F1F3F4;
+    border-radius: 9999px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+  }
+  .home-search .material-symbols-outlined { font-size: 20px; color: #9AA0A6; }
+  .home-search span:last-child { font-size: 14px; color: #9AA0A6; }
+
+  .disposable-label {
+    position: absolute;
+    bottom: 60px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 12px;
+    color: #BDC1C6;
+    opacity: 0;
+    transition: opacity 600ms 400ms;
+  }
+  .home-screen.active .disposable-label { opacity: 1; }
+
+  /* Replay button */
+  .replay-btn {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 20px;
+    border-radius: 9999px;
+    background: rgba(0,0,0,0.06);
+    color: #5F6368;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 400ms;
+    z-index: 20;
+  }
+  .replay-btn:active { transform: translateX(-50%) scale(0.97); }
+  .replay-btn.visible { opacity: 1; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ok-btn:hover { background: #1557B0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+<div class="phone-screen">
+  <div class="notch"></div>
+
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-bar-right">
+      <span class="material-symbols-outlined">signal_cellular_alt</span>
+      <span class="material-symbols-outlined">wifi</span>
+      <span class="material-symbols-outlined">battery_full</span>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- Screen 1: Purchase Complete -->
+    <div class="purchase-screen" id="purchaseScreen">
+      <div class="check-circle" id="checkCircle">
+        <svg viewBox="0 0 96 96">
+          <circle class="check-bg" cx="48" cy="48" r="44"/>
+          <polyline class="check-stroke" points="30,50 42,62 66,38"/>
+        </svg>
+      </div>
+      <div class="purchase-title" id="pTitle">Purchase Complete</div>
+      <div class="purchase-detail" id="pDetail">Adidas Terrex — Size 3<br>Arriving Friday</div>
+      <div class="tracker" id="pTracker">
+        <div class="tracker-bar">
+          <div class="tracker-fill" id="trackerFill"></div>
+        </div>
+        <div class="tracker-labels">
+          <span>Order Confirmed</span>
+          <span>Processing</span>
+          <span>Shipped</span>
+          <span>Delivered</span>
+        </div>
+      </div>
+      <div class="auto-delete-note" id="pNote">Comparison board will auto-delete</div>
+      <button class="ok-btn" id="okBtn" onclick="startDissolution()">OK</button>
+    </div>
+
+    <!-- Screen 2: Dissolution -->
+    <div class="dissolution-screen" id="dissolutionScreen">
+      <div class="dissolution-header">
+        <span>✦</span> Gemini &middot; Cleaning up...
+      </div>
+      <div class="dissolve-card" id="dc1">
+        <div class="dissolve-img" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop&q=80" alt="Nike Flex Runner" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div>
+          <div class="dissolve-name">Nike Flex Runner</div>
+          <div class="dissolve-meta">$65 &middot; 94%</div>
+        </div>
+      </div>
+      <div class="dissolve-card" id="dc2">
+        <div class="dissolve-img" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=200&h=200&fit=crop&q=80" alt="Adidas Terrex" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div>
+          <div class="dissolve-name">Adidas Terrex</div>
+          <div class="dissolve-meta">$58 &middot; 88% &middot; Purchased ✓</div>
+        </div>
+      </div>
+      <div class="dissolve-card" id="dc3">
+        <div class="dissolve-img" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=200&h=200&fit=crop&q=80" alt="New Balance 680" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div>
+          <div class="dissolve-name">New Balance 680</div>
+          <div class="dissolve-meta">$52 &middot; 71%</div>
+        </div>
+      </div>
+      <div class="dissolve-dpad" id="dissolveDpad">
+        <div class="dissolve-dpad-inner"></div>
+      </div>
+      <div class="ghost-outline" id="ghost1"></div>
+      <div class="ghost-outline" id="ghost2"></div>
+      <div class="ghost-outline" id="ghost3"></div>
+    </div>
+
+    <!-- Screen 3: Home -->
+    <div class="home-screen" id="homeScreen">
+      <div class="home-gemini">✦</div>
+      <div class="home-greeting">Good afternoon</div>
+      <div class="home-sub">What can I help with?</div>
+      <div class="home-search">
+        <span class="material-symbols-outlined">search</span>
+        <span>Ask Gemini...</span>
+      </div>
+      <div class="disposable-label">Disposable UI — born for a purpose, gone when done</div>
+    </div>
+  </div>
+
+  <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+
+  <button class="replay-btn" id="replayBtn" onclick="replay()">Replay animation</button>
+</div>
+</div>
+
+<script>
+  let animating = false;
+
+  // Initial entrance animation
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('checkCircle').classList.add('animate-check');
+    }, 300);
+    setTimeout(() => {
+      document.getElementById('pTitle').classList.add('fade-in');
+    }, 600);
+    setTimeout(() => {
+      document.getElementById('pDetail').classList.add('fade-in');
+    }, 750);
+    setTimeout(() => {
+      document.getElementById('pTracker').classList.add('fade-in');
+    }, 900);
+    setTimeout(() => {
+      document.getElementById('pNote').classList.add('fade-in');
+    }, 1050);
+    setTimeout(() => {
+      document.getElementById('okBtn').classList.add('fade-in');
+    }, 1200);
+  });
+
+  function startDissolution() {
+    if (animating) return;
+    animating = true;
+
+    // Fade out purchase screen
+    const ps = document.getElementById('purchaseScreen');
+    ps.style.opacity = '0';
+
+    // Show dissolution screen
+    setTimeout(() => {
+      const ds = document.getElementById('dissolutionScreen');
+      ds.style.opacity = '1';
+      ds.style.pointerEvents = 'auto';
+    }, 400);
+
+    // Peel cards away staggered
+    setTimeout(() => document.getElementById('dc1').classList.add('peeling'), 800);
+    setTimeout(() => document.getElementById('dc2').classList.add('peeling'), 900);
+    setTimeout(() => document.getElementById('dc3').classList.add('peeling'), 1000);
+
+    // Shrink D-pad
+    setTimeout(() => document.getElementById('dissolveDpad').classList.add('shrinking'), 1100);
+
+    // Show ghost outlines
+    setTimeout(() => {
+      document.getElementById('ghost1').classList.add('visible');
+      document.getElementById('ghost2').classList.add('visible');
+      document.getElementById('ghost3').classList.add('visible');
+    }, 1300);
+
+    // Fade ghost outlines
+    setTimeout(() => {
+      document.getElementById('ghost1').classList.add('fading');
+      document.getElementById('ghost2').classList.add('fading');
+      document.getElementById('ghost3').classList.add('fading');
+    }, 1800);
+
+    // Show home screen
+    setTimeout(() => {
+      document.getElementById('dissolutionScreen').style.opacity = '0';
+      const hs = document.getElementById('homeScreen');
+      hs.style.opacity = '1';
+      hs.classList.add('active');
+    }, 2300);
+
+    // Show replay
+    setTimeout(() => {
+      document.getElementById('replayBtn').classList.add('visible');
+      animating = false;
+    }, 3000);
+  }
+
+  function replay() {
+    // Reset everything
+    document.getElementById('replayBtn').classList.remove('visible');
+    document.getElementById('homeScreen').style.opacity = '0';
+    document.getElementById('homeScreen').classList.remove('active');
+    document.getElementById('dissolutionScreen').style.opacity = '0';
+    document.getElementById('dissolutionScreen').style.pointerEvents = 'none';
+    ['dc1','dc2','dc3'].forEach(id => document.getElementById(id).classList.remove('peeling'));
+    document.getElementById('dissolveDpad').classList.remove('shrinking');
+    ['ghost1','ghost2','ghost3'].forEach(id => {
+      document.getElementById(id).classList.remove('visible','fading');
+    });
+
+    // Reset purchase screen
+    const ps = document.getElementById('purchaseScreen');
+    ps.style.opacity = '1';
+    document.getElementById('checkCircle').classList.remove('animate-check');
+    ['pTitle','pDetail','pTracker','pNote','okBtn'].forEach(id => {
+      document.getElementById(id).classList.remove('fade-in');
+      document.getElementById(id).style.opacity = '0';
+      document.getElementById(id).style.transform = 'translateY(8px)';
+    });
+
+    // Re-trigger entrance
+    setTimeout(() => {
+      ['pTitle','pDetail','pTracker','pNote','okBtn'].forEach(id => {
+        document.getElementById(id).style.opacity = '';
+        document.getElementById(id).style.transform = '';
+      });
+      document.getElementById('checkCircle').classList.add('animate-check');
+      setTimeout(() => document.getElementById('pTitle').classList.add('fade-in'), 300);
+      setTimeout(() => document.getElementById('pDetail').classList.add('fade-in'), 450);
+      setTimeout(() => document.getElementById('pTracker').classList.add('fade-in'), 600);
+      setTimeout(() => document.getElementById('pNote').classList.add('fade-in'), 750);
+      setTimeout(() => document.getElementById('okBtn').classList.add('fade-in'), 900);
+    }, 100);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>業界ガイドライン比較 — Context Grammar vs 10のAI設計フレームワーク</title>
+<meta name="description" content="Context Grammarを10の主要AI設計フレームワークと16の設計次元で体系比較。どこが先行し、どこに穴があるか。">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* NAV */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; background: rgba(253,252,250,0.92); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.4s ease; }
+.nav-inner { width: var(--max-w); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(24px, 4vw, 48px); }
+.nav-logo { text-decoration: none; } .nav-logo-img { height: 22px; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a { font-size: 13px; font-weight: 400; color: var(--text-3); text-decoration: none; transition: color 0.4s ease; }
+.nav-links a:hover { color: var(--text); }
+.nav-links a.active { color: var(--text); font-weight: 500; }
+@media (max-width: 768px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+/* LANGUAGE SWITCHER */
+.lang-switch { position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 0; background: rgba(253,252,250,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-left: none; border-radius: 0 10px 10px 0; padding: 6px 8px; box-shadow: 2px 2px 16px rgba(0,0,0,0.06); }
+.lang-switch a { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; text-decoration: none; color: var(--text-3); padding: 8px 6px; transition: color 0.3s var(--ease); line-height: 1; }
+.lang-switch a:hover { color: var(--text); }
+.lang-switch a.active { color: var(--text); font-weight: 700; }
+.lang-switch-divider { width: 16px; height: 1px; background: var(--border); }
+@media (max-width: 768px) { .lang-switch { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; border: 1px solid var(--border); border-radius: 10px; padding: 4px 10px; } .lang-switch-divider { width: 1px; height: 14px; } }
+
+/* COMMON */
+.sec-label { font-family: var(--font-mono); font-size: clamp(10px, 0.8vw, 12px); letter-spacing: 3px; text-transform: uppercase; color: var(--color-grammar); margin-bottom: 14px; }
+.sec-title { font-weight: 500; font-size: clamp(28px, 3.2vw, 48px); line-height: 1.15; letter-spacing: -1.5px; margin-bottom: 14px; }
+.sec-title em { font-style: normal; color: var(--color-grammar); }
+.sec-desc { font-size: clamp(15px, 1.15vw, 18px); font-weight: 300; color: var(--text-2); line-height: 1.85; max-width: 680px; }
+
+/* HERO */
+.hero { background: var(--bg-inverse); color: var(--bg); padding: clamp(100px, 12vh, 160px) clamp(24px, 4vw, 48px) clamp(60px, 8vh, 100px); text-align: center; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(104,137,180,0.08), transparent); pointer-events: none; }
+.hero-label { font-family: var(--font-mono); font-size: clamp(11px, 0.9vw, 14px); letter-spacing: 3px; text-transform: uppercase; color: rgba(240,236,228,0.3); margin-bottom: 24px; }
+.hero-title { font-weight: 500; font-size: clamp(28px, 4vw, 56px); line-height: 1.2; letter-spacing: -1.5px; margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+.hero-title em { font-style: normal; color: var(--color-grammar); }
+.hero-sub { font-size: clamp(15px, 1.15vw, 19px); font-weight: 300; color: rgba(240,236,228,0.45); max-width: 600px; line-height: 1.85; margin: 0 auto; }
+.hero-meta { font-family: var(--font-mono); font-size: 12px; color: rgba(240,236,228,0.2); margin-top: 32px; letter-spacing: 1px; }
+
+/* SECTION WRAPPER */
+.section { max-width: var(--max-w); margin: 0 auto; padding: clamp(48px, 6vh, 80px) clamp(24px, 4vw, 48px); }
+.section-header { margin-bottom: clamp(32px, 4vh, 48px); }
+
+/* FRAMEWORK CARDS */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(480px, 100%), 1fr)); gap: 16px; }
+.fw-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: clamp(18px, 2vw, 24px); display: flex; flex-direction: column; gap: 10px; transition: box-shadow 0.3s var(--ease), border-color 0.3s var(--ease); }
+.fw-card:hover { border-color: var(--border-hover); box-shadow: 0 4px 24px rgba(26,24,22,0.06); }
+.fw-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.fw-card-name { font-size: 1.05rem; font-weight: 600; line-height: 1.3; }
+.fw-card-org { font-size: 0.8rem; color: var(--text-2); font-family: var(--font-mono); margin-top: 2px; }
+.fw-card-date { font-size: 0.78rem; color: var(--text-3); }
+.fw-card-scope { font-size: 0.85rem; color: var(--text); line-height: 1.55; }
+.fw-card-url { font-size: 0.78rem; font-family: var(--font-mono); color: var(--color-grammar); text-decoration: none; word-break: break-all; }
+.fw-card-url:hover { text-decoration: underline; }
+
+/* Badge */
+.badge { display: inline-block; font-size: 0.75rem; font-weight: 600; font-family: var(--font-mono); padding: 0.25em 0.7em; border-radius: 6px; white-space: nowrap; }
+.badge--principles { background: var(--chip-blue-bg); color: var(--color-grammar); }
+.badge--patterns { background: var(--chip-amber-bg); color: var(--color-intent); }
+.badge--components { background: var(--chip-green-bg); color: var(--color-success); }
+
+/* Chips */
+.chip-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font-size: 0.75rem; font-weight: 400; padding: 0.25em 0.65em; border-radius: 100px; background: var(--bg-2); color: var(--text-2); border: 1px solid var(--border); white-space: nowrap; }
+
+/* MATRIX TABLE */
+.matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); }
+.matrix-table { width: 100%; min-width: 1000px; border-collapse: collapse; font-size: 0.82rem; }
+.matrix-table th, .matrix-table td { padding: 0.65rem 0.75rem; text-align: center; border-bottom: 1px solid var(--border); }
+.matrix-table th { font-weight: 600; font-family: var(--font-mono); font-size: 0.75rem; background: var(--bg-2); position: sticky; top: 0; z-index: 2; white-space: nowrap; color: var(--text-2); }
+.matrix-table td:first-child, .matrix-table th:first-child { text-align: left; font-weight: 500; position: sticky; left: 0; background: var(--bg); z-index: 1; min-width: 180px; border-right: 1px solid var(--border); color: var(--text); }
+.matrix-table th:first-child { background: var(--bg-2); z-index: 3; }
+/* CG column highlight */
+.matrix-table td:last-child { background: rgba(104,137,180,0.06); font-weight: 600; }
+.matrix-table th:last-child { background: rgba(104,137,180,0.12); color: var(--color-grammar); font-weight: 700; }
+.matrix-table tbody tr:hover td { background: rgba(104,137,180,0.02); }
+.matrix-table tbody tr:hover td:first-child { background: var(--bg-2); }
+.matrix-table tbody tr:hover td:last-child { background: rgba(104,137,180,0.08); }
+.matrix-table tbody tr:last-child td { border-bottom: none; }
+
+/* Status markers with strong contrast */
+.s-yes { color: var(--color-success); font-weight: 700; font-size: 1rem; }
+.s-partial { color: var(--color-intent); font-weight: 700; font-size: 1rem; }
+.s-no { color: var(--illust-red); font-weight: 700; font-size: 0.95rem; }
+
+.matrix-legend { margin-top: 16px; font-size: 0.82rem; color: var(--text-2); display: flex; gap: 24px; flex-wrap: wrap; }
+.matrix-legend span { display: flex; align-items: center; gap: 6px; }
+
+/* UNIQUE CARDS */
+.unique-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); gap: 16px; }
+.unique-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: clamp(18px, 2vw, 24px); border-left: 4px solid var(--color-grammar); }
+.unique-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+.unique-card p { font-size: 0.88rem; color: var(--text-2); line-height: 1.7; }
+.unique-tag { display: inline-block; font-size: 0.72rem; font-family: var(--font-mono); color: var(--color-grammar); margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; }
+
+/* GAP CARDS */
+.gaps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); gap: 16px; }
+.gap-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: clamp(18px, 2vw, 24px); border-left: 4px solid var(--color-intent); }
+.gap-card h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+.gap-card p { font-size: 0.85rem; color: var(--text-2); line-height: 1.7; }
+.gap-priority { display: inline-block; font-size: 0.75rem; font-family: var(--font-mono); font-weight: 600; padding: 0.2em 0.6em; border-radius: 6px; margin-top: 10px; }
+.gap-priority--high { background: var(--chip-red-bg); color: var(--illust-red); }
+.gap-priority--mid { background: var(--chip-amber-bg); color: var(--color-intent); }
+.gap-priority--low { background: var(--chip-green-bg); color: var(--color-success); }
+
+/* CTA FOOTER */
+.cta-section { background: var(--bg-2); border-top: 1px solid var(--border); }
+.cta-inner { max-width: var(--max-w); margin: 0 auto; padding: clamp(48px, 6vh, 72px) clamp(24px, 4vw, 48px); text-align: center; }
+.cta-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+.cta-link { font-family: var(--font-mono); font-size: 13px; font-weight: 500; padding: 10px 20px; border-radius: 100px; text-decoration: none; transition: all 0.3s var(--ease); letter-spacing: 0.5px; }
+.cta-link--primary { background: var(--accent); color: var(--bg); }
+.cta-link--primary:hover { opacity: 0.85; }
+.cta-link--secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.cta-link--secondary:hover { border-color: var(--border-hover); color: var(--text); }
+
+/* FOOTER */
+.site-footer { background: var(--bg-inverse); padding: 32px; text-align: center; }
+.site-footer p { font-size: 13px; font-weight: 300; color: rgba(240,236,228,0.3); }
+.site-footer a { color: rgba(240,236,228,0.5); text-decoration: none; }
+.site-footer a:hover { color: var(--color-grammar); }
+
+/* SEPARATOR */
+.section-sep { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+@media (max-width: 768px) {
+  .card-grid { grid-template-columns: 1fr; }
+  .unique-grid { grid-template-columns: 1fr; }
+  .gaps-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--text); background: rgba(26,24,22,0.04); }
+.mobile-menu-nav a.mobile-active { color: var(--text); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--text); }
+.mobile-menu-lang a.active { color: var(--text); font-weight: 700; background: rgba(26,24,22,0.06); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav"><div class="nav-inner">
+  <a href="../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentfirst" class="nav-logo-img"></a>
+  <div class="nav-links">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="index.html" class="active">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact" class="nav-cta">Contact</a>
+  </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</div></nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="index.html" class="mobile-active">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../industry/index.html">EN</a>
+  </div>
+</div>
+
+<!-- LANGUAGE SWITCHER -->
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../industry/index.html">EN</a>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-label reveal">Industry Reference</div>
+  <h1 class="hero-title reveal d1">10のフレームワークが<br>AIの<em>振る舞い</em>を定義した。<br>だが「<em>あなた</em>」を定義したものはない。</h1>
+  <p class="hero-sub reveal d2">Context Grammarを、AI設計の最前線にある10のフレームワークと体系的に比較する。何が先行し、何が足りないか。</p>
+  <p class="hero-meta reveal d3">10 frameworks &middot; 16 dimensions &middot; 最終更新 2026年4月</p>
+</header>
+
+<!-- SECTION 1: FRAMEWORK CARDS -->
+<section class="section" id="frameworks">
+  <div class="section-header">
+    <div class="sec-label reveal">The Landscape</div>
+    <h2 class="sec-title reveal d1">AI設計の<em>ルール</em>を作っているのは誰か</h2>
+    <p class="sec-desc reveal d2">この10のフレームワークが、世界中のデザイナーとエンジニアの思考を形作っている。研究原則から法的義務、SDKレベルのコンポーネントまで。射程はそれぞれ異なる。</p>
+  </div>
+
+  <div class="card-grid">
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">Google PAIR Guidebook (v3)</div>
+          <div class="fw-card-org">Google People + AI Research</div>
+        </div>
+        <span class="badge badge--patterns">Principles + Patterns</span>
+      </div>
+      <div class="fw-card-date">2019年5月(v1) &rarr; 2023年11月(v3 GenAI対応) &rarr; 2025年4月更新</div>
+      <div class="fw-card-scope">AIプロダクト全般のUX設計。ユーザーニーズ定義からエラー処理まで網羅。ワークショップツール付き。</div>
+      <a class="fw-card-url" href="https://pair.withgoogle.com/guidebook/" target="_blank" rel="noopener">pair.withgoogle.com/guidebook/</a>
+      <div class="chip-list">
+        <span class="chip">信頼キャリブレーション</span>
+        <span class="chip">説明可能性7類型</span>
+        <span class="chip">メンタルモデル構築</span>
+        <span class="chip">自動化 vs 拡張</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">Microsoft HAX (18 Guidelines)</div>
+          <div class="fw-card-org">Microsoft Research</div>
+        </div>
+        <span class="badge badge--patterns">Heuristics + Patterns</span>
+      </div>
+      <div class="fw-card-date">2019年 CHI Best Paper &rarr; デザインライブラリ・Playbook順次追加</div>
+      <div class="fw-card-scope">あらゆるAIシステムのインタラクション設計。時間軸4フェーズで整理。</div>
+      <a class="fw-card-url" href="https://www.microsoft.com/en-us/haxtoolkit/" target="_blank" rel="noopener">microsoft.com/haxtoolkit/</a>
+      <div class="chip-list">
+        <span class="chip">時間軸4フェーズ</span>
+        <span class="chip">コンテキスト判断</span>
+        <span class="chip">スコープ縮小</span>
+        <span class="chip">グローバルコントロール</span>
+        <span class="chip">失敗シナリオ生成</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">IBM Design for AI + Carbon for AI</div>
+          <div class="fw-card-org">IBM Design</div>
+        </div>
+        <span class="badge badge--components">Principles + Components</span>
+      </div>
+      <div class="fw-card-date">2019年頃～ / Carbon for AI 継続更新 / CHI 2024 GenAI 6原則</div>
+      <div class="fw-card-scope">エンタープライズAIの設計原則・倫理・会話設計。Carbon for AIはUIコンポーネントレベルの実装を提供。</div>
+      <a class="fw-card-url" href="https://www.ibm.com/design/ai/" target="_blank" rel="noopener">ibm.com/design/ai/</a>
+      <div class="chip-list">
+        <span class="chip">人間の知能拡張</span>
+        <span class="chip">AIラベル</span>
+        <span class="chip">Design for Imperfection</span>
+        <span class="chip">Generative Variability</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">Apple HIG for ML + Apple Intelligence</div>
+          <div class="fw-card-org">Apple</div>
+        </div>
+        <span class="badge badge--components">Patterns + HIG Components</span>
+      </div>
+      <div class="fw-card-date">WWDC19～ / Apple Intelligence 2024-2026年</div>
+      <div class="fw-card-scope">アプリ内ML機能の入出力設計。Apple IntelligenceはOS統合型AI。</div>
+      <a class="fw-card-url" href="https://developer.apple.com/design/human-interface-guidelines/machine-learning" target="_blank" rel="noopener">developer.apple.com/.../machine-learning</a>
+      <div class="chip-list">
+        <span class="chip">確信度を行動で示す</span>
+        <span class="chip">プライバシー・ファースト</span>
+        <span class="chip">暗黙的フィードバック</span>
+        <span class="chip">Liquid Glass</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">Anthropic Guidelines</div>
+          <div class="fw-card-org">Anthropic</div>
+        </div>
+        <span class="badge badge--principles">Principles + Protocol</span>
+      </div>
+      <div class="fw-card-date">Constitutional AI 2023年～ / RSP v3.0 2025年 / MCP 2024-2025年</div>
+      <div class="fw-card-scope">モデル振る舞い規範、安全スケーリング方針、エージェント間通信プロトコル。</div>
+      <a class="fw-card-url" href="https://www.anthropic.com/news/claudes-constitution" target="_blank" rel="noopener">anthropic.com/.../claudes-constitution</a>
+      <div class="chip-list">
+        <span class="chip">Constitutional AI (HHH)</span>
+        <span class="chip">MCP</span>
+        <span class="chip">Responsible Scaling</span>
+        <span class="chip">AI Safety Levels</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">OpenAI Model Spec + Apps SDK</div>
+          <div class="fw-card-org">OpenAI</div>
+        </div>
+        <span class="badge badge--components">Spec + SDK + UI Guidelines</span>
+      </div>
+      <div class="fw-card-date">Model Spec 2025年12月 / Apps SDK 2025-2026年</div>
+      <div class="fw-card-scope">モデル振る舞い仕様（ルール階層）。ChatGPTアプリエコシステムのUX/UIガイドライン。</div>
+      <a class="fw-card-url" href="https://model-spec.openai.com/2025-12-18.html" target="_blank" rel="noopener">model-spec.openai.com</a>
+      <div class="chip-list">
+        <span class="chip">デフォルトはオーバーライド可能</span>
+        <span class="chip">ルール階層</span>
+        <span class="chip">プラットフォーム一貫性</span>
+        <span class="chip">自律性と害の同時管理</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">NNGroup AI UX Research</div>
+          <div class="fw-card-org">Nielsen Norman Group</div>
+        </div>
+        <span class="badge badge--principles">Research + Heuristics</span>
+      </div>
+      <div class="fw-card-date">継続的リサーチ発表（2024-2026年 AI関連記事多数）</div>
+      <div class="fw-card-scope">AI UXの実証研究、ユーザビリティ評価、トレンド分析。</div>
+      <a class="fw-card-url" href="https://www.nngroup.com/" target="_blank" rel="noopener">nngroup.com</a>
+      <div class="chip-list">
+        <span class="chip">10ヒューリスティクス適用</span>
+        <span class="chip">チャットボット懐疑論</span>
+        <span class="chip">エージェント定義</span>
+        <span class="chip">深いUXスキル開発</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">Stanford HAI</div>
+          <div class="fw-card-org">Stanford University</div>
+        </div>
+        <span class="badge badge--principles">Research + Policy</span>
+      </div>
+      <div class="fw-card-date">2019年設立～ 継続的にリサーチ・政策提言を発表</div>
+      <div class="fw-card-scope">AI研究・教育・政策・社会的影響。学際的研究機関。</div>
+      <a class="fw-card-url" href="https://hai.stanford.edu/" target="_blank" rel="noopener">hai.stanford.edu</a>
+      <div class="chip-list">
+        <span class="chip">人間中心AI</span>
+        <span class="chip">実用性 vs 投機的約束</span>
+        <span class="chip">学際的研究</span>
+        <span class="chip">AIガバナンス</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">EU AI Act（設計関連部分）</div>
+          <div class="fw-card-org">European Union</div>
+        </div>
+        <span class="badge badge--principles">Legal Requirements</span>
+      </div>
+      <div class="fw-card-date">2024年8月発効 &rarr; 2026年8月完全適用（高リスクAI）</div>
+      <div class="fw-card-scope">AI規制。リスク分類、透明性義務、人間による監督。法的拘束力を持つ義務。</div>
+      <a class="fw-card-url" href="https://artificialintelligenceact.eu/" target="_blank" rel="noopener">artificialintelligenceact.eu</a>
+      <div class="chip-list">
+        <span class="chip">4段階リスク分類</span>
+        <span class="chip">人間による監督</span>
+        <span class="chip">透明性義務</span>
+        <span class="chip">GPAI規制</span>
+      </div>
+    </div>
+
+    <div class="fw-card reveal">
+      <div class="fw-card-header">
+        <div>
+          <div class="fw-card-name">Agentic AI Foundation (AAIF)</div>
+          <div class="fw-card-org">Linux Foundation (OpenAI, Anthropic, Block)</div>
+        </div>
+        <span class="badge badge--components">Protocol + Framework</span>
+      </div>
+      <div class="fw-card-date">2025年12月設立</div>
+      <div class="fw-card-scope">エージェントAIのインフラ標準化。プロトコル・フレームワーク・指示形式。</div>
+      <a class="fw-card-url" href="https://www.linuxfoundation.org/" target="_blank" rel="noopener">Linux Foundation initiative</a>
+      <div class="chip-list">
+        <span class="chip">MCP</span>
+        <span class="chip">Goose</span>
+        <span class="chip">AGENTS.md</span>
+        <span class="chip">3社共同標準化</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-sep">
+
+<!-- SECTION 2: FEATURE MATRIX -->
+<section class="section" id="matrix">
+  <div class="section-header">
+    <div class="sec-label reveal">Feature Matrix</div>
+    <h2 class="sec-title reveal d1">16の設計次元。11のフレームワーク。<em>1枚の地図。</em></h2>
+    <p class="sec-desc reveal d2">&#10003;は専用の章・コンポーネント・プロトコルがあることを意味する。&#9888;は言及はあるが原則レベルにとどまる。右端のCG列がContext Grammar。</p>
+  </div>
+
+  <div class="matrix-wrap reveal d3">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>次元</th>
+          <th>PAIR</th>
+          <th>HAX</th>
+          <th>IBM</th>
+          <th>Apple</th>
+          <th>Anthropic</th>
+          <th>OpenAI</th>
+          <th>NNGroup</th>
+          <th>Stanford</th>
+          <th>EU AI Act</th>
+          <th>AAIF</th>
+          <th>CG</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>信頼キャリブレーション</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>説明可能性</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+        </tr>
+        <tr>
+          <td>ユーザーコントロール / オーバーライド</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>エラーハンドリング</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+        </tr>
+        <tr>
+          <td>メンタルモデル</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+        </tr>
+        <tr>
+          <td>確信度 / 不確実性表示</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+        </tr>
+        <tr>
+          <td>自律レベル（段階的）</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>プライバシー / 開示制御</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>マルチパーソン / マルチユーザー</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>マルチエージェント連携</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+        </tr>
+        <tr>
+          <td>コンテキスト適応UI</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>時間的進化（時間ベース）</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>クロスデバイス連続性</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>OSレベル統合</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+        </tr>
+        <tr>
+          <td>コンポーネントレベルパターン</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+        </tr>
+        <tr>
+          <td>エージェント的振る舞い設計</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-no">&#10005;</td>
+          <td class="s-partial">&#9888;</td>
+          <td class="s-yes">&#10003;</td>
+          <td class="s-partial">&#9888;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="matrix-legend reveal d4">
+    <span><span class="s-yes">&#10003;</span> 明確にカバー（専用章・コンポーネントあり）</span>
+    <span><span class="s-partial">&#9888;</span> 部分的にカバー（言及はあるが原則レベル）</span>
+    <span><span class="s-no">&#10005;</span> カバーなし</span>
+  </div>
+</section>
+
+<hr class="section-sep">
+
+<!-- SECTION 3: UNIQUE CONTRIBUTIONS -->
+<section class="section" id="unique">
+  <div class="section-header">
+    <div class="sec-label reveal">Unique Contributions</div>
+    <h2 class="sec-title reveal d1">Context Grammarだけが持つ<em>6つの構造</em></h2>
+    <p class="sec-desc reveal d2">改良ではない。10のフレームワークのどこにも存在しない、構造的に新しい概念である。</p>
+  </div>
+
+  <div class="unique-grid">
+
+    <div class="unique-card reveal">
+      <span class="unique-tag">UNIQUE-01</span>
+      <h3>Multi-Person Orchestration</h3>
+      <p>10フレームワーク全てが単一ユーザーを前提とする。Context Grammarは異なる。父親にはAutonomy: Auto、娘にはAutonomy: Suggest、ゲストにはDisclosure: 最小限。同じ空間で、異なるUIが同時に動く。この設計は業界に前例がない。</p>
+    </div>
+
+    <div class="unique-card reveal">
+      <span class="unique-tag">UNIQUE-02</span>
+      <h3>Disclosure Dial &mdash; 自律の前提条件</h3>
+      <p>「知らせない × 任せる」は論理的に破綻する。Disclosure Dialが設定した上限を、Autonomy Dialが超えることはできない。この双方向の制約関係を明示的に定式化しているのはContext Grammarだけである。</p>
+    </div>
+
+    <div class="unique-card reveal">
+      <span class="unique-tag">UNIQUE-03</span>
+      <h3>Disposable Brain</h3>
+      <p>旅行を計画するとTrip Brainが生まれる。学習し、調整する。旅行が終わると有用な知見はHome Brainに還元され、Trip Brainは消滅する。目的ごとに生まれ、完了後に消える一時的記憶ユニット。既存フレームワークにこの概念はない。</p>
+    </div>
+
+    <div class="unique-card reveal">
+      <span class="unique-tag">UNIQUE-04</span>
+      <h3>Context Tokens &mdash; 組み合わせ可能な語彙</h3>
+      <p>他のフレームワークは「状況に応じて」と書く。Context Grammarは「状況」を8つの具体的Tokenに分解し、その組み合わせから設計ルールを導出する。曖昧な指針が、組み合わせ可能な変数になった。</p>
+    </div>
+
+    <div class="unique-card reveal">
+      <span class="unique-tag">UNIQUE-05</span>
+      <h3>3-Force Autonomy Model</h3>
+      <p>Autonomy Dialはユーザーだけが動かすものではない。3つの力が相互作用する。サービスデフォルト、AI調整、ユーザー能動変更。OpenAIの階層モデルが最も近いが、静的である。Context Grammarの3力は動的に作用する。</p>
+    </div>
+
+    <div class="unique-card reveal">
+      <span class="unique-tag">UNIQUE-06</span>
+      <h3>OS横断の設計言語</h3>
+      <p>Apple HIGはOS統合型だが自社専用。Context Grammarは特定OSに縛られない。Samsung OneUI、Google Android、その他のOS。同じGrammarが、あらゆるサーフェスで機能する。</p>
+    </div>
+
+  </div>
+</section>
+
+<hr class="section-sep">
+
+<!-- SECTION 4: GAPS -->
+<section class="section" id="gaps">
+  <div class="section-header">
+    <div class="sec-label reveal">Honest Gaps</div>
+    <h2 class="sec-title reveal d1">Context Grammarが<em>学ぶべきこと</em></h2>
+    <p class="sec-desc reveal d2">知的誠実さは譲れない。この7つの領域では、既存フレームワークが答えを持ち、Context Grammarはまだ持っていない。</p>
+  </div>
+
+  <div class="gaps-grid">
+
+    <div class="gap-card reveal">
+      <h4>説明可能性の体系</h4>
+      <p>PAIRは7類型を持つ。HAXにはG11がある。IBMは原則を定め、EU AI Actは義務化した。Context Grammarには、AIが「何をしたか」「なぜそうしたか」をユーザーに伝える設計が欠けている。Token推定値、Brain判断根拠のUI開示が未定義。</p>
+      <span class="gap-priority gap-priority--high">優先度: 高</span>
+    </div>
+
+    <div class="gap-card reveal">
+      <h4>エラーハンドリングの設計</h4>
+      <p>Tokenの推定が間違っていたら。Brainの記憶が腐敗していたら。Autonomy Dialが過剰に進行していたら。Context Grammarはハッピーパスしか設計していない。失敗パスが未定義である。</p>
+      <span class="gap-priority gap-priority--high">優先度: 高</span>
+    </div>
+
+    <div class="gap-card reveal">
+      <h4>メンタルモデルのオンボーディング</h4>
+      <p>8 Token + Brain + 2つのDial。複雑な体系である。ユーザーが正しいメンタルモデルを形成するための段階的設計が不足している。PAIRのメッセージングテンプレートや段階的開示が参考になる。</p>
+      <span class="gap-priority gap-priority--mid">優先度: 中</span>
+    </div>
+
+    <div class="gap-card reveal">
+      <h4>コンポーネントレベルのパターンライブラリ</h4>
+      <p>IBM Carbon for AI、Apple HIG、HAX Design Library。いずれもコンポーネント実装を提供する。Context Grammarには28のプロトタイプがあるが、再利用可能なパターンライブラリとしては未整理である。</p>
+      <span class="gap-priority gap-priority--mid">優先度: 中</span>
+    </div>
+
+    <div class="gap-card reveal">
+      <h4>公平性・バイアスの設計</h4>
+      <p>8つのTokenはアルゴリズムで推定される。アルゴリズムにはバイアスが宿る。Cognitive Loadが年齢層に偏るリスク。Social Exposureにジェンダーバイアスが入り込むリスク。バイアス軽減のガイドラインが明示されていない。</p>
+      <span class="gap-priority gap-priority--mid">優先度: 中</span>
+    </div>
+
+    <div class="gap-card reveal">
+      <h4>マルチエージェント連携の設計</h4>
+      <p>AAIF（MCP, Goose）とAnthropic（MCP）がインフラ層で先行する。Context Grammarの「AI対AI」方向はP5以降の課題である。家庭内の複数AIエージェントが連携する設計言語は未定義。</p>
+      <span class="gap-priority gap-priority--low">優先度: 低（P5以降）</span>
+    </div>
+
+    <div class="gap-card reveal">
+      <h4>データ収集・ラベリングの設計倫理</h4>
+      <p>Context Grammarは「設計言語」であり「データパイプライン」ではない。しかし8 Tokenのデータ収集と潜在的バイアスについて、採用組織への推奨事項を持つべきである。参照リンクとガードレール。</p>
+      <span class="gap-priority gap-priority--low">優先度: 低（範囲外）</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-inner">
+    <p class="sec-desc reveal" style="margin: 0 auto 8px; text-align: center;">このリファレンスは定期的に更新されます。最終更新: 2026年4月</p>
+    <div class="cta-links reveal d1">
+      <a href="../spec/index.html" class="cta-link cta-link--primary">Specを読む</a>
+      <a href="../patterns/index.html" class="cta-link cta-link--secondary">Patterns</a>
+      <a href="../context-grammar/index.html" class="cta-link cta-link--secondary">Context Grammar</a>
+      <a href="../applied/index.html" class="cta-link cta-link--secondary">Projects</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <p>&copy; 2026 <a href="../index.html">intentfirst.ai</a></p>
+</footer>
+
+<script>
+// Reveal on scroll
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.15 });
+revealEls.forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+</body>
+</html>

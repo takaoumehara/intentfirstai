@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Brain Lifecycle — Disposable Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#1A73E8;
+  --primary-light:rgba(26,115,232,.08);
+  --primary-glow:rgba(26,115,232,.25);
+  --surface:#FFFFFF;
+  --surface-dim:#F8F9FA;
+  --surface-container:#F1F3F4;
+  --text-primary:#202124;
+  --text-secondary:#5F6368;
+  --text-tertiary:#9AA0A6;
+  --outline:#DADCE0;
+  --coral:#E8710A;
+  --coral-light:rgba(232,113,10,.08);
+  --coral-glow:rgba(232,113,10,.25);
+  --autonomy:#1E8E3E;
+  --autonomy-light:rgba(30,142,62,.08);
+  --autonomy-glow:rgba(30,142,62,.25);
+  --warning:#F9AB00;
+  --warning-light:rgba(249,171,0,.08);
+  --fade:#9AA0A6;
+  --fade-light:rgba(154,160,166,.08);
+  --fade-glow:rgba(154,160,166,.25);
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:24px;
+  --radius-xl:32px;
+  --ease:cubic-bezier(0.2,0,0,1);
+  --ease-out-expo:cubic-bezier(0.23,1,0.32,1);
+  --ease-in-out-expo:cubic-bezier(0.77,0,0.175,1);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.1);
+}
+
+body{
+  font-family:'Google Sans','Google Sans Text','Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--surface);
+  color:var(--text-primary);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Grid background */
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,0,0,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,.018) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+
+.page{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:80px 32px 120px;
+  max-width:1400px;margin:0 auto;
+}
+
+/* Header */
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface-dim);border:1px solid var(--outline);
+  border-radius:100px;padding:8px 20px;
+  font-size:13px;font-weight:500;
+  color:var(--text-secondary);letter-spacing:.4px;
+  margin-bottom:28px;
+  opacity:0;animation:fadeUp .8s var(--ease) .2s forwards;
+}
+.badge svg{width:16px;height:16px;flex-shrink:0}
+
+h1{
+  font-size:clamp(32px,5vw,56px);font-weight:600;
+  text-align:center;letter-spacing:-.5px;line-height:1.15;
+  max-width:740px;margin-bottom:16px;
+  opacity:0;animation:fadeUp .8s var(--ease) .3s forwards;
+}
+h1 span{
+  background:linear-gradient(135deg,var(--primary),var(--coral));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.subtitle{
+  font-size:clamp(16px,2vw,20px);
+  color:var(--text-secondary);font-weight:400;
+  text-align:center;max-width:600px;
+  margin-bottom:80px;line-height:1.55;
+  opacity:0;animation:fadeUp .8s var(--ease) .5s forwards;
+}
+
+/* ===== TIMELINE ===== */
+.timeline{
+  width:100%;position:relative;
+  opacity:0;animation:fadeUp 1s var(--ease) .7s forwards;
+}
+
+/* Connector line with particles */
+.connector-wrap{
+  position:absolute;
+  top:200px;
+  left:calc(12.5% + 30px);
+  right:calc(12.5% + 30px);
+  height:4px;
+  z-index:0;
+}
+.connector-line{
+  position:absolute;inset:0;
+  background:var(--outline);
+  border-radius:2px;
+  overflow:hidden;
+}
+.connector-fill{
+  position:absolute;top:0;left:0;height:100%;width:0%;
+  background:linear-gradient(90deg,var(--primary),var(--autonomy),var(--coral),var(--fade));
+  border-radius:2px;
+  transition:width 1.8s var(--ease);
+}
+
+/* Flowing particles on connector */
+.particle-track{
+  position:absolute;top:-3px;left:0;right:0;height:10px;
+  overflow:hidden;
+}
+.flow-particle{
+  position:absolute;top:3px;
+  width:6px;height:6px;border-radius:50%;
+  opacity:0;
+}
+.flow-particle.p1{background:var(--primary);animation:flowRight 4s linear infinite 0s}
+.flow-particle.p2{background:var(--autonomy);animation:flowRight 4s linear infinite 1.3s}
+.flow-particle.p3{background:var(--coral);animation:flowRight 4s linear infinite 2.6s}
+
+@keyframes flowRight{
+  0%{left:-2%;opacity:0}
+  5%{opacity:.8}
+  90%{opacity:.8}
+  100%{left:100%;opacity:0}
+}
+
+/* Stage labels on connector */
+.connector-labels{
+  position:absolute;top:212px;
+  left:calc(12.5% + 30px);
+  right:calc(12.5% + 30px);
+  display:flex;justify-content:space-around;
+  z-index:2;pointer-events:none;
+}
+.connector-label{
+  font-size:11px;font-weight:500;
+  color:var(--text-tertiary);letter-spacing:.3px;
+  background:var(--surface);padding:4px 12px;
+  border-radius:100px;border:1px solid var(--outline);
+  white-space:nowrap;
+  opacity:0;transition:opacity .6s var(--ease-out-expo);
+}
+.connector-label.visible{opacity:1}
+
+/* Stages grid */
+.stages{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:28px;
+  position:relative;z-index:1;
+}
+
+/* Stage card */
+.stage-card{
+  display:flex;flex-direction:column;
+  align-items:center;text-align:center;
+  background:var(--surface);
+  border:1px solid var(--outline);
+  border-radius:var(--radius-xl);
+  padding:36px 24px 32px;
+  position:relative;
+  opacity:0;transform:translateY(30px);
+  transition:opacity .7s var(--ease-out-expo),transform .7s var(--ease-out-expo);
+  will-change:transform,opacity;
+}
+.stage-card.visible{
+  opacity:1;transform:translateY(0);
+}
+.stage-card::before{
+  content:'';position:absolute;inset:-1px;
+  border-radius:var(--radius-xl);
+  opacity:0;transition:opacity .5s var(--ease-out-expo);
+  z-index:-1;
+}
+.stage-card.visible::before{opacity:1}
+
+.stage-born::before{
+  background:linear-gradient(180deg,rgba(26,115,232,.06),transparent 60%);
+  border:1px solid rgba(26,115,232,.15);border-radius:var(--radius-xl);
+}
+.stage-learns::before{
+  background:linear-gradient(180deg,rgba(30,142,62,.06),transparent 60%);
+  border:1px solid rgba(30,142,62,.15);border-radius:var(--radius-xl);
+}
+.stage-returns::before{
+  background:linear-gradient(180deg,rgba(232,113,10,.06),transparent 60%);
+  border:1px solid rgba(232,113,10,.15);border-radius:var(--radius-xl);
+}
+.stage-dies::before{
+  background:linear-gradient(180deg,rgba(154,160,166,.06),transparent 60%);
+  border:1px solid rgba(154,160,166,.15);border-radius:var(--radius-xl);
+}
+
+/* Stage node dot */
+.stage-node{
+  width:20px;height:20px;border-radius:50%;
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  z-index:3;
+}
+.stage-born .stage-node{background:var(--primary);box-shadow:0 0 0 5px var(--primary-glow),0 0 12px var(--primary-glow)}
+.stage-learns .stage-node{background:var(--autonomy);box-shadow:0 0 0 5px var(--autonomy-glow),0 0 12px var(--autonomy-glow)}
+.stage-returns .stage-node{background:var(--coral);box-shadow:0 0 0 5px var(--coral-glow),0 0 12px var(--coral-glow)}
+.stage-dies .stage-node{background:var(--fade);box-shadow:0 0 0 5px var(--fade-glow),0 0 12px var(--fade-glow)}
+
+/* Brain visual area */
+.brain-visual{
+  width:160px;height:140px;position:relative;
+  margin:8px 0 20px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Phase label */
+.phase-tag{
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:1.8px;
+  margin-bottom:6px;
+}
+.stage-born .phase-tag{color:var(--primary)}
+.stage-learns .phase-tag{color:var(--autonomy)}
+.stage-returns .phase-tag{color:var(--coral)}
+.stage-dies .phase-tag{color:var(--fade)}
+
+.stage-title{
+  font-size:24px;font-weight:600;letter-spacing:-.2px;
+  margin-bottom:6px;
+}
+.stage-born .stage-title{color:var(--primary)}
+.stage-learns .stage-title{color:var(--autonomy)}
+.stage-returns .stage-title{color:var(--coral)}
+.stage-dies .stage-title{color:var(--fade)}
+
+.stage-time{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:500;color:var(--text-tertiary);
+  background:var(--surface-dim);border:1px solid var(--outline);
+  padding:5px 14px;border-radius:100px;margin-bottom:16px;
+}
+
+.stage-desc{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.6;margin-bottom:20px;
+  max-width:260px;
+}
+
+/* Data items */
+.data-list{display:flex;flex-direction:column;gap:6px;width:100%}
+.data-chip{
+  font-size:12px;font-weight:500;
+  color:var(--text-secondary);
+  background:var(--surface-dim);
+  border:1px solid var(--outline);
+  border-radius:10px;padding:10px 14px;
+  display:flex;align-items:center;gap:8px;
+  text-align:left;
+  transition:opacity .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease);
+}
+.data-chip-icon{
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.stage-born .data-chip-icon{background:var(--primary-light)}
+.stage-learns .data-chip-icon{background:var(--autonomy-light)}
+.stage-returns .data-chip-icon{background:var(--coral-light)}
+.stage-dies .data-chip-icon{background:var(--fade-light)}
+
+.data-chip.deleted{
+  opacity:.45;text-decoration:line-through;
+  text-decoration-color:var(--text-tertiary);
+}
+.data-chip.persists{
+  border-color:var(--primary);
+  background:var(--primary-light);
+  opacity:1 !important;text-decoration:none !important;
+}
+.data-chip.persists .data-chip-icon{background:rgba(26,115,232,.15)}
+
+/* ===== BRAIN SVG Styles ===== */
+.hex-layer{
+  transition:opacity .8s var(--ease),transform .8s var(--ease);
+}
+
+/* Breathing animation for Stage 2 */
+@keyframes breathe{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.03)}
+}
+.brain-breathe{
+  animation:breathe 3s ease-in-out infinite;
+  transform-origin:center center;
+}
+
+/* Data inflow dots for Stage 2 */
+@keyframes inflowLeft{
+  0%{transform:translateX(-30px);opacity:0}
+  30%{opacity:.8}
+  100%{transform:translateX(0);opacity:0}
+}
+@keyframes inflowRight{
+  0%{transform:translateX(30px);opacity:0}
+  30%{opacity:.8}
+  100%{transform:translateX(0);opacity:0}
+}
+@keyframes inflowTop{
+  0%{transform:translateY(-30px);opacity:0}
+  30%{opacity:.8}
+  100%{transform:translateY(0);opacity:0}
+}
+
+/* Transfer dots for Stage 3 */
+@keyframes transferDot{
+  0%{transform:translateX(0);opacity:.8}
+  100%{transform:translateX(35px);opacity:0}
+}
+
+/* Dissolve for Stage 4 */
+@keyframes dissolveUp{
+  0%{transform:translateY(0) scale(1);opacity:.6}
+  100%{transform:translateY(-25px) scale(.3);opacity:0}
+}
+@keyframes fadeOutBrain{
+  0%{opacity:.5}
+  50%{opacity:.25}
+  100%{opacity:.5}
+}
+
+/* ===== INSIGHT SECTION ===== */
+.insight-section{
+  width:100%;max-width:840px;
+  margin-top:96px;
+  opacity:0;transform:translateY(30px);
+  transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo);
+  will-change:transform,opacity;
+}
+.insight-section.visible{
+  opacity:1;transform:translateY(0);
+}
+
+.insight-card{
+  background:linear-gradient(135deg,rgba(26,115,232,.04),rgba(232,113,10,.04));
+  border:1px solid var(--outline);
+  border-radius:var(--radius-xl);
+  padding:56px 48px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.insight-card::before{
+  content:'';position:absolute;top:-80px;right:-80px;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(26,115,232,.06),transparent 70%);
+}
+.insight-card::after{
+  content:'';position:absolute;bottom:-60px;left:-60px;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,113,10,.06),transparent 70%);
+}
+
+.insight-label{
+  font-size:12px;font-weight:600;text-transform:uppercase;
+  letter-spacing:2px;color:var(--text-tertiary);
+  margin-bottom:20px;position:relative;z-index:1;
+}
+.insight-quote{
+  font-size:clamp(20px,2.8vw,28px);font-weight:400;
+  color:var(--text-primary);line-height:1.5;
+  max-width:600px;margin:0 auto 12px;
+  position:relative;z-index:1;
+}
+.insight-quote strong{font-weight:600}
+.insight-accent{
+  display:inline-block;margin-top:8px;
+  font-size:clamp(18px,2.4vw,24px);font-weight:600;
+  background:linear-gradient(135deg,var(--primary),var(--coral));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  position:relative;z-index:1;
+}
+
+/* ===== BRAIN HIERARCHY ===== */
+.hierarchy-section{
+  width:100%;max-width:840px;margin-top:48px;
+  opacity:0;transform:translateY(30px);
+  transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo);
+  will-change:transform,opacity;
+}
+.hierarchy-section.visible{
+  opacity:1;transform:translateY(0);
+}
+
+.hierarchy-card{
+  background:var(--surface);
+  border:1px solid var(--outline);
+  border-radius:var(--radius-xl);
+  padding:40px 48px;
+  display:flex;align-items:center;gap:48px;
+}
+
+.hierarchy-visual{
+  flex:0 0 280px;display:flex;flex-direction:column;align-items:center;
+}
+
+.home-brain-icon{
+  width:80px;height:80px;position:relative;
+  margin-bottom:16px;
+}
+
+.hierarchy-branches{
+  display:flex;gap:24px;position:relative;
+}
+.hierarchy-branches::before{
+  content:'';position:absolute;top:-16px;left:50%;
+  width:calc(100% - 60px);height:1px;
+  background:var(--outline);
+  transform:translateX(-50%);
+}
+
+.branch{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  position:relative;
+}
+.branch::before{
+  content:'';position:absolute;top:-16px;
+  width:1px;height:16px;background:var(--outline);
+}
+.branch-brain{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;
+}
+.branch-label{font-size:11px;color:var(--text-tertiary);font-weight:500}
+.branch-tag{
+  font-size:9px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.8px;padding:2px 8px;border-radius:100px;
+  margin-top:2px;
+}
+
+.hierarchy-text{flex:1}
+.hierarchy-text h3{
+  font-size:18px;font-weight:600;margin-bottom:8px;
+  color:var(--text-primary);
+}
+.hierarchy-text p{
+  font-size:14px;color:var(--text-secondary);line-height:1.6;
+}
+
+/* Legend */
+.legend{
+  display:flex;gap:28px;justify-content:center;
+  margin-top:40px;flex-wrap:wrap;
+  opacity:0;transform:translateY(20px);
+  transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo);
+}
+.legend.visible{opacity:1;transform:translateY(0)}
+.legend-item{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:500;color:var(--text-secondary);
+}
+.legend-swatch{
+  width:14px;height:14px;border-radius:4px;
+}
+
+/* Animations */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+  }
+}
+
+/* Responsive */
+@media(max-width:1100px){
+  .stages{gap:20px}
+  .stage-card{padding:28px 18px 24px}
+  .brain-visual{width:130px;height:120px}
+  .hierarchy-card{flex-direction:column;gap:32px;align-items:stretch}
+  .hierarchy-visual{flex:none}
+}
+@media(max-width:900px){
+  .stages{grid-template-columns:1fr 1fr;gap:28px}
+  .connector-wrap,.connector-labels{display:none}
+  .page{padding:60px 24px 100px}
+  .hierarchy-card{padding:32px 28px}
+}
+@media(max-width:560px){
+  .stages{grid-template-columns:1fr;gap:24px;max-width:400px;margin:0 auto}
+  .page{padding:48px 16px 80px}
+  .insight-card{padding:40px 28px}
+  .hierarchy-card{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<section class="page">
+
+  <!-- Header -->
+  <div class="badge">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>
+    Disposable Brain Concept
+  </div>
+  <h1>Born to learn. <span>Dies when done.</span></h1>
+  <p class="subtitle">Trip Brain is a temporary intelligence — spawned for one purpose, shaped by experience, then dissolved. Its memory persists forever.</p>
+
+  <!-- Timeline -->
+  <div class="timeline">
+
+    <!-- Connector -->
+    <div class="connector-wrap" id="connectorWrap">
+      <div class="connector-line">
+        <div class="connector-fill" id="connectorFill"></div>
+      </div>
+      <div class="particle-track" id="particleTrack">
+        <div class="flow-particle p1"></div>
+        <div class="flow-particle p2"></div>
+        <div class="flow-particle p3"></div>
+      </div>
+    </div>
+
+    <!-- Connector labels -->
+    <div class="connector-labels">
+      <span class="connector-label" data-observe-label data-delay="400">inherits identity</span>
+      <span class="connector-label" data-observe-label data-delay="800">absorbs experience</span>
+      <span class="connector-label" data-observe-label data-delay="1200">returns learnings</span>
+    </div>
+
+    <!-- Stage Cards -->
+    <div class="stages">
+
+      <!-- STAGE 1: BORN -->
+      <div class="stage-card stage-born" data-observe data-delay="0">
+        <div class="stage-node"></div>
+        <div class="brain-visual">
+          <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Home Brain (large, background) -->
+            <g opacity=".3">
+              <path d="M80 12 L120 35 L120 80 L80 103 L40 80 L40 35Z" stroke="#9AA0A6" stroke-width="1.2" stroke-dasharray="4 3" fill="none"/>
+              <path d="M80 22 L110 40 L110 75 L80 93 L50 75 L50 40Z" stroke="#9AA0A6" stroke-width=".8" stroke-dasharray="3 3" fill="none"/>
+              <path d="M80 32 L100 45 L100 70 L80 83 L60 70 L60 45Z" stroke="#9AA0A6" stroke-width=".6" fill="none"/>
+            </g>
+            <text x="80" y="118" text-anchor="middle" font-size="10" fill="#9AA0A6" font-weight="500">Home Brain</text>
+            <!-- Trip Brain emerging — only Layer 1 (Identity) colored -->
+            <g>
+              <path d="M80 42 L104 56 L104 83 L80 97 L56 83 L56 56Z" fill="rgba(26,115,232,.06)" stroke="var(--primary)" stroke-width="1.5">
+                <animate attributeName="opacity" values=".5;1;1" dur="2s" fill="freeze"/>
+              </path>
+              <!-- Layer 1 - Identity (filled) -->
+              <path d="M80 52 L95 60 L95 75 L80 83 L65 75 L65 60Z" fill="rgba(26,115,232,.15)" stroke="var(--primary)" stroke-width="1"/>
+              <!-- Arrow from Home to Trip -->
+              <animateTransform attributeName="transform" type="translate" values="0 -8;0 0" dur="1.5s" fill="freeze"/>
+            </g>
+            <!-- Small arrow -->
+            <line x1="80" y1="20" x2="80" y2="38" stroke="var(--primary)" stroke-width="1.2" stroke-dasharray="3 2" opacity=".5">
+              <animate attributeName="stroke-dashoffset" values="0;-10" dur="1.5s" repeatCount="indefinite"/>
+            </line>
+          </svg>
+        </div>
+        <div class="phase-tag">Phase 1</div>
+        <div class="stage-title">Born</div>
+        <div class="stage-time">3 months before trip</div>
+        <p class="stage-desc">Trip Brain spawns from Home Brain, inheriting only Layer 1 — Identity. Family DNA without the noise.</p>
+        <div class="data-list">
+          <div class="data-chip"><div class="data-chip-icon">👤</div>Family of 4 profile</div>
+          <div class="data-chip"><div class="data-chip-icon">🥜</div>Daughter: nut allergy</div>
+          <div class="data-chip"><div class="data-chip-icon">🍜</div>Son: ramen obsession</div>
+          <div class="data-chip"><div class="data-chip-icon">🧭</div>Value: explore &gt; efficiency</div>
+        </div>
+      </div>
+
+      <!-- STAGE 2: LEARNS -->
+      <div class="stage-card stage-learns" data-observe data-delay="200">
+        <div class="stage-node"></div>
+        <div class="brain-visual">
+          <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g class="brain-breathe">
+              <!-- Full 3-layer hexagon brain -->
+              <!-- Layer 3 - Right Now (outermost) -->
+              <path d="M80 10 L128 37 L128 92 L80 119 L32 92 L32 37Z" fill="rgba(30,142,62,.04)" stroke="var(--autonomy)" stroke-width="1" opacity=".5"/>
+              <!-- Layer 2 - Accumulated Learning -->
+              <path d="M80 22 L118 44 L118 85 L80 107 L42 85 L42 44Z" fill="rgba(30,142,62,.08)" stroke="var(--autonomy)" stroke-width="1.2" opacity=".7"/>
+              <!-- Layer 1 - Identity (innermost) -->
+              <path d="M80 38 L105 52 L105 78 L80 92 L55 78 L55 52Z" fill="rgba(30,142,62,.15)" stroke="var(--autonomy)" stroke-width="1.5"/>
+              <!-- Glow center -->
+              <circle cx="80" cy="65" r="8" fill="rgba(30,142,62,.2)">
+                <animate attributeName="r" values="6;10;6" dur="3s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values=".15;.3;.15" dur="3s" repeatCount="indefinite"/>
+              </circle>
+            </g>
+            <!-- Data points flowing in -->
+            <circle cx="8" cy="50" r="4" fill="var(--autonomy)">
+              <animate attributeName="cx" values="4;32" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0;.7;0" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="152" cy="70" r="4" fill="var(--autonomy)">
+              <animate attributeName="cx" values="156;128" dur="2.3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0;.7;0" dur="2.3s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="80" cy="2" r="3.5" fill="var(--autonomy)">
+              <animate attributeName="cy" values="-2;10" dur="1.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0;.6;0" dur="1.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="30" cy="110" r="3" fill="var(--autonomy)">
+              <animate attributeName="cy" values="125;92" dur="2.5s" repeatCount="indefinite"/>
+              <animate attributeName="cx" values="25;32" dur="2.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0;.5;0" dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="140" cy="110" r="3" fill="var(--autonomy)">
+              <animate attributeName="cy" values="125;92" dur="2.2s" repeatCount="indefinite"/>
+              <animate attributeName="cx" values="140;128" dur="2.2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0;.5;0" dur="2.2s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        <div class="phase-tag">Phase 2</div>
+        <div class="stage-title">Learns</div>
+        <div class="stage-time">During trip — 2 weeks</div>
+        <p class="stage-desc">Brain grows rapidly. All 3 layers fill as real-time experience streams in from every interaction.</p>
+        <div class="data-list">
+          <div class="data-chip"><div class="data-chip-icon">🍜</div>Son loves ramen shops</div>
+          <div class="data-chip"><div class="data-chip-icon">🎨</div>Daughter: 3hrs at teamLab</div>
+          <div class="data-chip"><div class="data-chip-icon">🥐</div>Itabashi bakery = Exact mode</div>
+          <div class="data-chip"><div class="data-chip-icon">📸</div>Instagram saves synced</div>
+          <div class="data-chip"><div class="data-chip-icon">👫</div>Friend rec: hidden izakaya</div>
+        </div>
+      </div>
+
+      <!-- STAGE 3: RETURNS -->
+      <div class="stage-card stage-returns" data-observe data-delay="400">
+        <div class="stage-node"></div>
+        <div class="brain-visual">
+          <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Trip Brain (left, shrinking) -->
+            <g>
+              <path d="M48 35 L68 46 L68 68 L48 79 L28 68 L28 46Z" fill="rgba(232,113,10,.06)" stroke="var(--coral)" stroke-width="1.2" opacity=".7"/>
+              <path d="M48 42 L60 49 L60 64 L48 71 L36 64 L36 49Z" fill="rgba(232,113,10,.12)" stroke="var(--coral)" stroke-width=".8"/>
+              <text x="48" y="96" text-anchor="middle" font-size="9" fill="var(--coral)" font-weight="500">Trip</text>
+            </g>
+            <!-- Home Brain (right, growing) -->
+            <g>
+              <path d="M118 25 L145 40 L145 72 L118 87 L91 72 L91 40Z" fill="rgba(26,115,232,.04)" stroke="var(--primary)" stroke-width="1.2"/>
+              <path d="M118 32 L138 44 L138 67 L118 79 L98 67 L98 44Z" fill="rgba(26,115,232,.08)" stroke="var(--primary)" stroke-width="1"/>
+              <path d="M118 40 L130 47 L130 62 L118 69 L106 62 L106 47Z" fill="rgba(26,115,232,.15)" stroke="var(--primary)" stroke-width=".8"/>
+              <!-- Growth glow -->
+              <circle cx="118" cy="56" r="6" fill="rgba(26,115,232,.1)">
+                <animate attributeName="r" values="4;8;4" dur="2.5s" repeatCount="indefinite"/>
+              </circle>
+              <text x="118" y="105" text-anchor="middle" font-size="9" fill="var(--primary)" font-weight="500">Home</text>
+            </g>
+            <!-- Transfer particles -->
+            <circle cx="70" cy="52" r="3.5" fill="var(--coral)">
+              <animate attributeName="cx" values="70;91" dur="1.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".8;.2" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="70" cy="60" r="3" fill="var(--coral)">
+              <animate attributeName="cx" values="68;91" dur="1.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".7;.15" dur="1.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="70" cy="44" r="2.5" fill="var(--coral)">
+              <animate attributeName="cx" values="72;91" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".6;.1" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <!-- Dashed arrow -->
+            <line x1="72" y1="56" x2="88" y2="56" stroke="var(--coral)" stroke-width="1.2" stroke-dasharray="3 2" opacity=".4">
+              <animate attributeName="stroke-dashoffset" values="0;-10" dur="1s" repeatCount="indefinite"/>
+            </line>
+          </svg>
+        </div>
+        <div class="phase-tag">Phase 3</div>
+        <div class="stage-title">Returns</div>
+        <div class="stage-time">After trip</div>
+        <p class="stage-desc">Learned preferences flow back to Home Brain. Trip-specific discoveries enrich the permanent identity.</p>
+        <div class="data-list">
+          <div class="data-chip"><div class="data-chip-icon">🍜</div>Son: ramen preference confirmed</div>
+          <div class="data-chip"><div class="data-chip-icon">🎨</div>Daughter: immersive art lover</div>
+          <div class="data-chip"><div class="data-chip-icon">🏃</div>Family walks 12k steps/day</div>
+          <div class="data-chip"><div class="data-chip-icon">⭐</div>Restaurant rating patterns</div>
+        </div>
+      </div>
+
+      <!-- STAGE 4: DIES -->
+      <div class="stage-card stage-dies" data-observe data-delay="600">
+        <div class="stage-node"></div>
+        <div class="brain-visual">
+          <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Fading/dissolving brain outline -->
+            <g>
+              <path d="M80 30 L110 47 L110 82 L80 99 L50 82 L50 47Z" fill="none" stroke="var(--fade)" stroke-width="1.2" stroke-dasharray="4 4" opacity=".3">
+                <animate attributeName="opacity" values=".35;.15;.35" dur="4s" repeatCount="indefinite"/>
+              </path>
+              <path d="M80 40 L100 52 L100 75 L80 87 L60 75 L60 52Z" fill="none" stroke="var(--fade)" stroke-width=".8" stroke-dasharray="3 3" opacity=".2">
+                <animate attributeName="opacity" values=".25;.1;.25" dur="4s" repeatCount="indefinite"/>
+              </path>
+            </g>
+            <!-- Dissolving particles floating up -->
+            <circle cx="68" cy="65" r="4" fill="var(--fade)">
+              <animate attributeName="cy" values="65;35;15" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".5;.2;0" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="4;3;1.5" dur="3s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="80" cy="72" r="4.5" fill="var(--fade)">
+              <animate attributeName="cy" values="72;42;12" dur="2.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".55;.2;0" dur="2.8s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="4.5;3;1" dur="2.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="92" cy="68" r="3.5" fill="var(--fade)">
+              <animate attributeName="cy" values="68;38;10" dur="3.4s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".45;.15;0" dur="3.4s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="3.5;2.5;1" dur="3.4s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="75" cy="78" r="3" fill="var(--fade)">
+              <animate attributeName="cy" values="78;50;22" dur="3.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".4;.12;0" dur="3.8s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="3;2;.8" dur="3.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="87" cy="75" r="2.5" fill="var(--fade)">
+              <animate attributeName="cy" values="75;45;18" dur="3.1s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".35;.1;0" dur="3.1s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2.5;1.5;.5" dur="3.1s" repeatCount="indefinite"/>
+            </circle>
+            <!-- "Memory lives on" connection -->
+            <g opacity=".6">
+              <line x1="80" y1="100" x2="80" y2="118" stroke="var(--primary)" stroke-width="1" stroke-dasharray="2 2"/>
+              <circle cx="80" cy="124" r="6" fill="rgba(26,115,232,.1)" stroke="var(--primary)" stroke-width="1"/>
+              <circle cx="80" cy="124" r="2.5" fill="var(--primary)" opacity=".5"/>
+            </g>
+            <text x="80" y="137" text-anchor="middle" font-size="8" fill="var(--primary)" font-weight="500" opacity=".6">in Home Brain</text>
+          </svg>
+        </div>
+        <div class="phase-tag">Phase 4</div>
+        <div class="stage-title">Dies</div>
+        <div class="stage-time">7 days after return</div>
+        <p class="stage-desc">Trip Brain auto-deletes. The container dissolves, but everything it learned persists in Home Brain forever.</p>
+        <div class="data-list">
+          <div class="data-chip deleted"><div class="data-chip-icon">🗑</div>Trip itinerary deleted</div>
+          <div class="data-chip deleted"><div class="data-chip-icon">🗑</div>Booking details purged</div>
+          <div class="data-chip deleted"><div class="data-chip-icon">🗑</div>Location logs removed</div>
+          <div class="data-chip persists"><div class="data-chip-icon">💎</div>Preferences live on in Home Brain</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Insight -->
+  <div class="insight-section" data-observe data-delay="200">
+    <div class="insight-card">
+      <div class="insight-label">Key Insight</div>
+      <p class="insight-quote">Memory outlives the container.<br>Trip Brain dies, but its learnings persist forever in Home Brain.</p>
+      <span class="insight-accent">Born for a purpose. Dies when done.</span>
+    </div>
+  </div>
+
+  <!-- Brain Hierarchy -->
+  <div class="hierarchy-section" data-observe data-delay="300">
+    <div class="hierarchy-card">
+      <div class="hierarchy-visual">
+        <!-- Home Brain icon -->
+        <div class="home-brain-icon">
+          <svg viewBox="0 0 80 80" fill="none">
+            <path d="M40 6 L70 23 L70 57 L40 74 L10 57 L10 23Z" fill="rgba(26,115,232,.06)" stroke="var(--primary)" stroke-width="1.5"/>
+            <path d="M40 14 L62 28 L62 52 L40 66 L18 52 L18 28Z" fill="rgba(26,115,232,.1)" stroke="var(--primary)" stroke-width="1"/>
+            <path d="M40 22 L54 31 L54 47 L40 56 L26 47 L26 31Z" fill="rgba(26,115,232,.18)" stroke="var(--primary)" stroke-width="1"/>
+            <circle cx="40" cy="40" r="5" fill="var(--primary)" opacity=".25"/>
+          </svg>
+        </div>
+        <div style="font-size:14px;font-weight:600;color:var(--primary);margin-bottom:20px">Home Brain</div>
+        <!-- Branches -->
+        <div class="hierarchy-branches">
+          <div class="branch">
+            <div class="branch-brain" style="background:var(--coral-light);border:1.5px solid var(--coral);color:var(--coral)">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2 L17 6 L17 14 L10 18 L3 14 L3 6Z" fill="currentColor" opacity=".2" stroke="currentColor" stroke-width="1"/></svg>
+            </div>
+            <span class="branch-label">Trip Brain</span>
+            <span class="branch-tag" style="background:var(--coral-light);color:var(--coral)">disposable</span>
+          </div>
+          <div class="branch">
+            <div class="branch-brain" style="background:var(--autonomy-light);border:1.5px solid var(--autonomy);color:var(--autonomy)">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2 L17 6 L17 14 L10 18 L3 14 L3 6Z" fill="currentColor" opacity=".2" stroke="currentColor" stroke-width="1"/></svg>
+            </div>
+            <span class="branch-label">Shopping Brain</span>
+            <span class="branch-tag" style="background:var(--autonomy-light);color:var(--autonomy)">disposable</span>
+          </div>
+          <div class="branch">
+            <div class="branch-brain" style="background:var(--warning-light);border:1.5px solid var(--warning);color:var(--warning)">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2 L17 6 L17 14 L10 18 L3 14 L3 6Z" fill="currentColor" opacity=".2" stroke="currentColor" stroke-width="1"/></svg>
+            </div>
+            <span class="branch-label">Event Brain</span>
+            <span class="branch-tag" style="background:var(--warning-light);color:var(--warning)">disposable</span>
+          </div>
+        </div>
+      </div>
+      <div class="hierarchy-text">
+        <h3>Brain Hierarchy</h3>
+        <p>Home Brain is permanent. It spawns disposable sub-brains for specific contexts — trips, shopping lists, events. Each one inherits identity, learns independently, returns its knowledge, then dissolves. The pattern scales to any temporary context.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend" data-observe data-delay="100">
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--primary)"></div>Layer 1 — Identity</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--autonomy)"></div>Layer 2 — Accumulated Learning</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--coral)"></div>Layer 3 — Right Now</div>
+  </div>
+
+</section>
+
+<script>
+// Scroll-driven IntersectionObserver for stage cards and sections
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const delay = parseInt(entry.target.dataset.delay || 0);
+      setTimeout(() => entry.target.classList.add('visible'), delay);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('[data-observe]').forEach(el => observer.observe(el));
+
+// Label observer
+const labelObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const delay = parseInt(entry.target.dataset.delay || 0);
+      setTimeout(() => entry.target.classList.add('visible'), delay);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-observe-label]').forEach(el => labelObserver.observe(el));
+
+// Connector fill on scroll
+const connectorFill = document.getElementById('connectorFill');
+const timeline = document.querySelector('.timeline');
+
+function updateConnector() {
+  const rect = timeline.getBoundingClientRect();
+  const vh = window.innerHeight;
+  const progress = Math.min(1, Math.max(0, (vh - rect.top) / (rect.height + vh * 0.5)));
+  connectorFill.style.width = (progress * 100) + '%';
+}
+
+// Particle track visibility
+const particleTrack = document.getElementById('particleTrack');
+const particleObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    particleTrack.style.opacity = entry.isIntersecting ? '1' : '0';
+  });
+}, { threshold: 0.1 });
+particleObserver.observe(document.getElementById('connectorWrap'));
+
+window.addEventListener('scroll', updateConnector, { passive: true });
+updateConnector();
+</script>
+
+</body>
+</html>

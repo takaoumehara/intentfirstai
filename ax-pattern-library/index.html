@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX Pattern Library — Interaction Patterns for Agentic AI</title>
+<meta name="description" content="21 reusable interaction patterns for designing agentic AI experiences. Built on Context Grammar's Output Grammar — Delegation, Escalation, and Adaptation.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/nav.css">
+<style>
+
+/* ═══════════════════════════════════════
+   COMMON LAYOUT
+   ═══════════════════════════════════════ */
+.sec {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 5vw, 80px);
+}
+.sec-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--color-label);
+  margin-bottom: 16px;
+}
+.sec-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.2vw, 52px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+.sec-sub {
+  font-size: clamp(15px, 1.1vw, 18px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.75;
+  max-width: 640px;
+}
+
+/* reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+.d1 { transition-delay: 0.1s; }
+.d2 { transition-delay: 0.2s; }
+.d3 { transition-delay: 0.3s; }
+.d4 { transition-delay: 0.4s; }
+.d5 { transition-delay: 0.5s; }
+.d6 { transition-delay: 0.6s; }
+
+/* ═══════════════════════════════════════
+   HERO — DARK
+   ═══════════════════════════════════════ */
+#hero {
+  background: #08070b;
+  color: #f0ece4;
+  padding: clamp(100px, 12vw, 160px) clamp(24px, 5vw, 80px) clamp(80px, 10vw, 120px);
+  position: relative;
+  overflow: hidden;
+}
+#hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 38%, rgba(74,106,144,0.06), transparent 70%),
+    radial-gradient(ellipse 40% 35% at 20% 70%, rgba(106,74,144,0.03), transparent 60%);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  position: relative;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(240,236,228,0.3);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.1s forwards;
+}
+.hero h1 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: clamp(36px, 4.5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -2px;
+  color: #f0ece4;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.3s forwards;
+}
+.hero-sub {
+  font-family: var(--font-sans);
+  font-size: clamp(15px, 1.1vw, 19px);
+  font-weight: 400;
+  color: rgba(240,236,228,0.5);
+  line-height: 1.7;
+  max-width: 560px;
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.5s forwards;
+}
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.7s forwards;
+}
+.hero-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(240,236,228,0.12);
+  color: rgba(240,236,228,0.5);
+}
+.hero-badge--del { color: #6889b4; border-color: rgba(104,137,180,0.25); background: rgba(104,137,180,0.07); }
+.hero-badge--esc { color: #8a6ab0; border-color: rgba(138,106,176,0.25); background: rgba(138,106,176,0.07); }
+.hero-badge--ada { color: #a07040; border-color: rgba(160,112,64,0.25); background: rgba(160,112,64,0.07); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════
+   WHAT IS AX PATTERNS
+   ═══════════════════════════════════════ */
+#what {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.what-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: clamp(24px, 3vw, 48px);
+  margin-top: 56px;
+}
+@media (max-width: 768px) {
+  .what-grid { grid-template-columns: 1fr; }
+}
+.what-card {
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+.what-card__icon {
+  font-size: 28px;
+  margin-bottom: 14px;
+  display: block;
+}
+.what-card__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.what-card--del .what-card__label { color: #6889b4; }
+.what-card--esc .what-card__label { color: #8a6ab0; }
+.what-card--ada .what-card__label { color: #a07040; }
+.what-card h3 {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.what-card p {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+/* ═══════════════════════════════════════
+   PATTERN GRID
+   ═══════════════════════════════════════ */
+#patterns {
+  background: var(--bg);
+}
+.patterns-header {
+  margin-bottom: 48px;
+}
+.patterns-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+}
+@media (max-width: 960px) {
+  .patterns-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .patterns-grid { grid-template-columns: 1fr; }
+}
+.pattern-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  padding: clamp(20px, 2vw, 28px);
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pattern-card:hover {
+  box-shadow: 0 8px 32px rgba(26,24,22,0.06);
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+}
+.pattern-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pattern-card__icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.principle-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+.principle-chip--del { color: #6889b4; background: rgba(104,137,180,0.08); border-color: rgba(104,137,180,0.2); }
+.principle-chip--esc { color: #8a6ab0; background: rgba(138,106,176,0.08); border-color: rgba(138,106,176,0.2); }
+.principle-chip--ada { color: #a07040; background: rgba(160,112,64,0.08); border-color: rgba(160,112,64,0.2); }
+.pattern-card__id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.pattern-card h3 {
+  font-weight: 500;
+  font-size: clamp(16px, 1.2vw, 20px);
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+  color: var(--text);
+}
+.pattern-card__desc {
+  font-size: clamp(14px, 0.95vw, 15px);
+  color: var(--text-2);
+  line-height: 1.65;
+  flex: 1;
+}
+.pattern-card__tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+.token-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background: var(--bg-2);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════
+   HOW TO USE
+   ═══════════════════════════════════════ */
+#how {
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2vw, 32px);
+  margin-top: 48px;
+  flex-wrap: wrap;
+}
+.flow-step {
+  flex: 1;
+  min-width: 180px;
+  padding: 24px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.flow-step__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--color-label);
+  margin-bottom: 10px;
+}
+.flow-step h4 {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 17px);
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.flow-step p {
+  font-size: clamp(13px, 0.9vw, 14px);
+  color: var(--text-2);
+  line-height: 1.65;
+}
+.flow-arrow {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  color: var(--border-hover);
+  flex-shrink: 0;
+}
+@media (max-width: 680px) {
+  .flow-arrow { display: none; }
+  .flow-row { flex-direction: column; }
+  .flow-step { min-width: 100%; }
+}
+
+/* ═══════════════════════════════════════
+   CTA
+   ═══════════════════════════════════════ */
+#cta {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: clamp(80px, 10vw, 120px) clamp(24px, 4vw, 48px);
+}
+.cta-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.5vw, 36px);
+  letter-spacing: -1px;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.cta-sub {
+  font-size: clamp(15px, 1.05vw, 17px);
+  color: var(--text-2);
+  line-height: 1.75;
+  max-width: 560px;
+  margin: 0 auto 32px;
+}
+.cta-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--bg);
+  background: var(--text);
+  text-decoration: none;
+  padding: 13px 28px;
+  border-radius: 10px;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: var(--color-grammar);
+  text-decoration: none;
+  padding: 12px 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+.btn-secondary:hover {
+  background: var(--bg-2);
+  border-color: var(--border-hover);
+}
+
+/* ═══════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(240,236,228,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(240,236,228,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer a {
+  color: rgba(240,236,228,0.3);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-links { display: flex; gap: 16px; }
+
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">Context Grammar — Output Grammar</p>
+    <h1>AX Pattern Library</h1>
+    <p class="hero-sub">エージェントAIのためのインタラクションパターン集</p>
+    <div class="hero-meta">
+      <span class="hero-badge hero-badge--del">Delegation</span>
+      <span class="hero-badge hero-badge--esc">Escalation</span>
+      <span class="hero-badge hero-badge--ada">Adaptation</span>
+      <span class="hero-badge">21 Patterns</span>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT IS AX PATTERNS -->
+<section id="what" class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal">What is AX Pattern Library</p>
+    <h2 class="sec-title reveal d1">AIが読んだ文脈を、<br>どう返すかの設計言語。</h2>
+    <p class="sec-sub reveal d2">Context Grammar の Input Grammar（8 Context Tokens + Brain）は「状況を理解する」語彙を与える。AX Pattern Library はその続き — 理解した状況に対して、AIがどう応答すべきかを体系化した21のインタラクションパターン集。Output Grammar の実装基盤。</p>
+
+    <div class="what-grid">
+      <div class="what-card what-card--del reveal d2">
+        <span class="what-card__icon">→</span>
+        <p class="what-card__label">Delegation</p>
+        <h3>人間からAIへ、信頼を移す</h3>
+        <p>成功体験の蓄積に応じてAIへの権限委譲を段階的に進める。委譲は遅いが、信頼崩壊は一瞬。Autonomy Dialの4段階（Suggest → Auto）で設計する。</p>
+      </div>
+      <div class="what-card what-card--esc reveal d3">
+        <span class="what-card__icon">←</span>
+        <p class="what-card__label">Escalation</p>
+        <h3>AIから人間へ、判断を返す</h3>
+        <p>AIが自らの限界・不確実性を認識し、即座に判断を人間に返す。返しすぎると「使えないAI」、返さなさすぎると「暴走するAI」。閾値設計が核心。</p>
+      </div>
+      <div class="what-card what-card--ada reveal d4">
+        <span class="what-card__icon">⇄</span>
+        <p class="what-card__label">Adaptation</p>
+        <h3>文脈が変わり、UIが変形する</h3>
+        <p>Token状態の変化にリアルタイムで応答し、UIの形態・密度・表示内容を変形させる。スマホからTVへ、1人から家族へ、昼から夜へ — 同じ情報でも器が変わる。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PATTERN CARDS GRID -->
+<section id="patterns" class="sec" style="padding-top: 0;">
+  <div class="sec-inner">
+    <div class="patterns-header">
+      <p class="sec-label reveal">Pattern Catalog</p>
+      <h2 class="sec-title reveal d1">8つのキーパターン</h2>
+      <p class="sec-sub reveal d2">P1–P3の全プロジェクトから抽出・検証済みの21パターンのうち、設計判断に最も影響する8つを紹介。</p>
+    </div>
+
+    <div class="patterns-grid">
+
+      <!-- D1: Approval Gate -->
+      <div class="pattern-card reveal d1">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">🚦</div>
+          <span class="principle-chip principle-chip--del">Delegation</span>
+        </div>
+        <p class="pattern-card__id">D1</p>
+        <h3>Approval Gate</h3>
+        <p class="pattern-card__desc">AI提案に対してユーザーが承認・修正・却下する関門。リスクと文脈に応じて摩擦の重さを動的に調整する。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Autonomy Dial</span>
+          <span class="token-chip">Priority Weight</span>
+          <span class="token-chip">Cognitive Load</span>
+        </div>
+      </div>
+
+      <!-- D2: Progressive Trust -->
+      <div class="pattern-card reveal d2">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">📈</div>
+          <span class="principle-chip principle-chip--del">Delegation</span>
+        </div>
+        <p class="pattern-card__id">D2</p>
+        <h3>Progressive Trust</h3>
+        <p class="pattern-card__desc">成功体験の蓄積に応じて承認頻度を段階的に減らす。Week 1の提案承認からMonth 6の完全委任まで、信頼の時間軸を設計する。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Autonomy Dial</span>
+          <span class="token-chip">Brain</span>
+        </div>
+      </div>
+
+      <!-- D4: Omakase Mode -->
+      <div class="pattern-card reveal d3">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">🍱</div>
+          <span class="principle-chip principle-chip--del">Delegation</span>
+        </div>
+        <p class="pattern-card__id">D4</p>
+        <h3>Omakase Mode</h3>
+        <p class="pattern-card__desc">十分な信頼が成熟した領域でAIに完全委任する状態。Autonomy Dial = Auto。ユーザーは承認を求められない — AIが判断し、実行する。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Autonomy Dial</span>
+          <span class="token-chip">Disclosure Dial</span>
+        </div>
+      </div>
+
+      <!-- E2: Limitation Disclosure -->
+      <div class="pattern-card reveal d4">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">⚠️</div>
+          <span class="principle-chip principle-chip--esc">Escalation</span>
+        </div>
+        <p class="pattern-card__id">E2</p>
+        <h3>Limitation Disclosure</h3>
+        <p class="pattern-card__desc">AIの能力境界を正直に開示し、適切なリソースに誘導する。Autonomy Dialの段階に関わらず発動。健康・安全に関わる判断では常に返却する。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Feasibility</span>
+          <span class="token-chip">Priority Weight</span>
+        </div>
+      </div>
+
+      <!-- E5: Trust Breach Recovery -->
+      <div class="pattern-card reveal d5">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">🔄</div>
+          <span class="principle-chip principle-chip--esc">Escalation</span>
+        </div>
+        <p class="pattern-card__id">E5</p>
+        <h3>Trust Breach Recovery</h3>
+        <p class="pattern-card__desc">AIの誤判断後にAutonomy Dialを1–2段階降格し、信頼を再構築するプロセスを設計する。委譲は遅いが、剥奪は一瞬という非対称性を扱う。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Autonomy Dial</span>
+          <span class="token-chip">Brain</span>
+        </div>
+      </div>
+
+      <!-- A2: Cognitive Scaling -->
+      <div class="pattern-card reveal d2">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">🧠</div>
+          <span class="principle-chip principle-chip--ada">Adaptation</span>
+        </div>
+        <p class="pattern-card__id">A2</p>
+        <h3>Cognitive Scaling</h3>
+        <p class="pattern-card__desc">Cognitive Loadに応じて情報密度・選択肢数を動的に増減する。高負荷時は3択に絞り、低負荷時はフル情報を展開。同じコンテンツ、変わる器。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Cognitive Load</span>
+        </div>
+      </div>
+
+      <!-- A3: Social-Aware Filtering -->
+      <div class="pattern-card reveal d3">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">👥</div>
+          <span class="principle-chip principle-chip--ada">Adaptation</span>
+        </div>
+        <p class="pattern-card__id">A3</p>
+        <h3>Social-Aware Filtering</h3>
+        <p class="pattern-card__desc">同席者や公開度に応じて表示内容をフィルタリングする。1人→家族→ゲスト在室とSocial Exposureが変化するたびに、誰が何を見るかが再計算される。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Social Exposure</span>
+          <span class="token-chip">Disclosure Dial</span>
+        </div>
+      </div>
+
+      <!-- A1: Form Factor Transform -->
+      <div class="pattern-card reveal d4">
+        <div class="pattern-card__top">
+          <div class="pattern-card__icon">📺</div>
+          <span class="principle-chip principle-chip--ada">Adaptation</span>
+        </div>
+        <p class="pattern-card__id">A1</p>
+        <h3>Form Factor Transform</h3>
+        <p class="pattern-card__desc">デバイス切替時にUIの構造そのものを変形させる。スマホで選んだ商品をTVにキャストすると、レイアウト・操作方式・表示情報がすべて再設計される。</p>
+        <div class="pattern-card__tokens">
+          <span class="token-chip">Form Factor</span>
+          <span class="token-chip">Social Exposure</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO USE -->
+<section id="how" class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal">How to Use</p>
+    <h2 class="sec-title reveal d1">8 Context Tokens がパターンを起動する</h2>
+    <p class="sec-sub reveal d2">パターンは単独では発動しない。Context Tokenの状態変化がRule Engineを介してパターンのトリガー条件と照合され、UIの振る舞いが決まる。</p>
+
+    <div class="flow-row reveal d3">
+      <div class="flow-step">
+        <p class="flow-step__num">STEP 01</p>
+        <h4>Token状態を読む</h4>
+        <p>Intent + 8 Context Tokens が現在の状況スナップショットを生成する。例：Cognitive Load = 高 × Autonomy Dial = Confirm。</p>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <p class="flow-step__num">STEP 02</p>
+        <h4>Rule Engineが照合する</h4>
+        <p>Token条件がパターンの発動条件と照合される。上の例では Cognitive Scaling が発動し、選択肢が3つに絞られる。</p>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <p class="flow-step__num">STEP 03</p>
+        <h4>パターンがUIを変える</h4>
+        <p>発動したパターンがUIの振る舞いを決定する。Approval Gateなら摩擦の重さが調整され、Form Factor Transformならレイアウトが再構成される。</p>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <p class="flow-step__num">STEP 04</p>
+        <h4>Brainが学習する</h4>
+        <p>結果はBrain（Identity / Accumulated Learning / Right Now）に記録され、次回の判断を更新する。成功体験が積み重なるほどAutonomy Dialが進む。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="sec-inner">
+    <p class="sec-label reveal">Full Pattern Library</p>
+    <h2 class="cta-title reveal d1">21パターン、すべて見る</h2>
+    <p class="cta-sub reveal d2">各パターンのトリガー条件・振る舞い仕様・コンシューマー例・エンタープライズ例・アンチパターンを完全定義した深掘りページ。</p>
+    <div class="cta-actions reveal d3">
+      <a href="../context-grammar/ax-patterns/" class="btn-primary">Full AX Pattern Library &rarr;</a>
+      <a href="../context-grammar/" class="btn-secondary">Context Grammar 全体像 &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+<script src="../assets/js/nav.js"></script>
+<script>initNav({ basePath: '../', activePage: 'ax-patterns', lang: 'en' });</script>
+
+</body>
+</html>

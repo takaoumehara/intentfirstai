@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-12 TV Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    padding: 40px 20px;
+  }
+
+  /* TV Frame */
+  .tv-frame {
+    width: 960px;
+    height: 540px;
+    background: #0a0a0a;
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 2px #2a2a2a,
+      0 30px 80px rgba(0,0,0,0.5),
+      0 10px 30px rgba(0,0,0,0.3),
+      inset 0 0 0 1px rgba(255,255,255,0.03);
+    position: relative;
+  }
+
+  .tv-screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(160deg, #0f1724 0%, #162033 40%, #1a1f3a 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .tv-content {
+    width: 100%;
+    height: 100%;
+    padding: 36px 48px 28px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Ambient background decoration */
+  .tv-content::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(26,115,232,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .tv-content::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(234,67,53,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Header */
+  .tv-header {
+    text-align: center;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeDown 600ms var(--ease-out-expo) 200ms forwards;
+    position: relative;
+    z-index: 1;
+  }
+  .tv-title {
+    font-size: 36px;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .tv-title .flag { font-size: 32px; margin-right: 6px; }
+  .tv-subtitle {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 400;
+  }
+
+  /* Highlight Cards */
+  .highlight-scroll {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 12px 0 16px;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+  .highlight-scroll::-webkit-scrollbar { display: none; }
+
+  .highlight-card {
+    flex: 0 0 auto;
+    width: 155px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 16px 14px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: transform 300ms var(--ease-out-expo), background 200ms;
+  }
+  .highlight-card:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateY(-2px) !important;
+  }
+
+  .card-emoji {
+    font-size: 32px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .card-day {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .card-activity {
+    font-size: 14px;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+  .card-desc {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.4;
+  }
+
+  /* Surprise card */
+  .highlight-card.surprise {
+    background: linear-gradient(135deg, rgba(234,67,53,0.15) 0%, rgba(251,188,4,0.1) 100%);
+    border-color: rgba(234,67,53,0.2);
+  }
+  .highlight-card.surprise .card-desc {
+    color: rgba(251,188,4,0.7);
+  }
+
+  /* Reactions */
+  .reactions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 8px 0 12px;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(12px);
+    flex-shrink: 0;
+  }
+
+  .reaction {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 16px;
+  }
+
+  .reaction-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #FFFFFF;
+    flex-shrink: 0;
+  }
+  .reaction-avatar.kai { background: #1A73E8; }
+  .reaction-avatar.mia { background: #E8710A; }
+
+  .reaction-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.4;
+  }
+  .reaction-name {
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-right: 4px;
+  }
+
+  /* Countdown Bar */
+  .countdown-section {
+    margin-top: auto;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(12px);
+    flex-shrink: 0;
+  }
+  .countdown-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .countdown-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .countdown-text .days {
+    color: #FBBC04;
+    font-size: 28px;
+    font-weight: 900;
+  }
+  .countdown-until {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .countdown-bar-track {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .countdown-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #1A73E8, #4285F4, #FBBC04);
+    border-radius: 9999px;
+    animation: fillBar 1.5s var(--ease-out-expo) 1.2s forwards;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fillBar {
+    to { width: 82%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .screen-label {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: #9AA0A6;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="tv-frame">
+    <div class="tv-screen">
+      <div class="tv-content">
+
+        <!-- Header -->
+        <div class="tv-header">
+          <div class="tv-title"><span class="flag">&#x1F1EF;&#x1F1F5;</span> OUR JAPAN ADVENTURE!</div>
+          <div class="tv-subtitle">14日間の大冒険が始まるよ！</div>
+        </div>
+
+        <!-- Highlight Cards -->
+        <div class="highlight-scroll">
+
+          <div class="highlight-card" data-delay="400">
+            <span class="card-emoji">&#x1F977;</span>
+            <div class="card-day">Day 3</div>
+            <div class="card-activity">忍者体験！</div>
+            <div class="card-desc">手裏剣投げるよ！</div>
+          </div>
+
+          <div class="highlight-card" data-delay="480">
+            <span class="card-emoji">&#9876;&#65039;</span>
+            <div class="card-day">Day 4</div>
+            <div class="card-activity">刀を作る！</div>
+            <div class="card-desc">本物の鍛冶場で！</div>
+          </div>
+
+          <div class="highlight-card" data-delay="560">
+            <span class="card-emoji">&#x1F458;</span>
+            <div class="card-day">Day 5</div>
+            <div class="card-activity">着物で京都散歩！</div>
+            <div class="card-desc">みんなで着るよ</div>
+          </div>
+
+          <div class="highlight-card" data-delay="640">
+            <span class="card-emoji">&#x1F38B;</span>
+            <div class="card-day">Day 6</div>
+            <div class="card-activity">嵐山の竹林探検！</div>
+            <div class="card-desc">めっちゃ高い竹！</div>
+          </div>
+
+          <div class="highlight-card" data-delay="720">
+            <span class="card-emoji">&#9832;&#65039;</span>
+            <div class="card-day">Day 8</div>
+            <div class="card-activity">おじいちゃんおばあちゃんと温泉！</div>
+            <div class="card-desc">みんなでのんびり</div>
+          </div>
+
+          <div class="highlight-card surprise" data-delay="800">
+            <span class="card-emoji">&#x1F3A2;</span>
+            <div class="card-day">Day 10-12</div>
+            <div class="card-activity">大阪！</div>
+            <div class="card-desc">何があるかはお楽しみ！</div>
+          </div>
+
+        </div>
+
+        <!-- Family Reactions -->
+        <div class="reactions">
+          <div class="reaction">
+            <div class="reaction-avatar kai">K</div>
+            <div class="reaction-text">
+              <span class="reaction-name">Kai:</span>「忍者！刀！最高！」
+            </div>
+          </div>
+          <div class="reaction">
+            <div class="reaction-avatar mia">M</div>
+            <div class="reaction-text">
+              <span class="reaction-name">Mia:</span>「着物～！あと陶芸！楽しみ！」
+            </div>
+          </div>
+        </div>
+
+        <!-- Countdown -->
+        <div class="countdown-section">
+          <div class="countdown-label">
+            <div class="countdown-text">あと <span class="days">12</span> 日！</div>
+            <div class="countdown-until">2026年8月1日出発</div>
+          </div>
+          <div class="countdown-bar-track">
+            <div class="countdown-bar-fill"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-label">P2-12 TV Countdown &mdash; Kid-Friendly Family View</div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Stagger highlight cards
+    const cards = document.querySelectorAll('.highlight-card');
+    cards.forEach(card => {
+      const delay = parseInt(card.dataset.delay) || 400;
+      setTimeout(() => {
+        card.style.animation = 'fadeUp 500ms cubic-bezier(0.23, 1, 0.32, 1) forwards';
+      }, delay);
+    });
+
+    // Reactions
+    const reactions = document.querySelector('.reactions');
+    setTimeout(() => {
+      reactions.style.animation = 'fadeUp 500ms cubic-bezier(0.23, 1, 0.32, 1) forwards';
+    }, 900);
+
+    // Countdown
+    const countdown = document.querySelector('.countdown-section');
+    setTimeout(() => {
+      countdown.style.animation = 'fadeUp 500ms cubic-bezier(0.23, 1, 0.32, 1) forwards';
+    }, 1050);
+  });
+</script>
+</body>
+</html>

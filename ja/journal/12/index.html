@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デザイナーの仕事は消えていない。上流に移動した。 — intentfirst.ai</title>
+<meta name="description" content="インターフェース制作から人間-AIシステムの設計へ。この転換が実際に要求するものと、ほとんどのデザイナーが間違った未来に備えている理由。">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(253,252,250,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--color-grammar); }
+.nav-links a[href="../../journal/index.html"] { color: var(--color-grammar); }
+
+@media (max-width: 768px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+.lang-switch {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: rgba(253,252,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
+}
+.lang-switch a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 6px;
+  transition: color 0.3s var(--ease);
+  line-height: 1;
+}
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+.lang-switch-divider {
+  width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+@media (max-width: 768px) {
+  .lang-switch {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .lang-switch-divider {
+    width: 1px;
+    height: 14px;
+  }
+}
+
+/* ═══ ARTICLE HERO ═══ */
+.article-hero {
+  padding-top: 56px;
+}
+.article-hero-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-meta {
+  padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 48px) clamp(32px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.article-hero-meta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article-hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.15s forwards;
+}
+.article-hero-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.25s forwards;
+}
+.article-hero-subtitle {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.35s forwards;
+}
+.article-hero-date {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.8vw, 13px);
+  letter-spacing: 1px;
+  color: var(--text-3);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.45s forwards;
+}
+
+/* ═══ ARTICLE BODY ═══ */
+.article-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  font-size: clamp(16px, 1.1vw, 18px);
+  line-height: 1.8;
+  color: var(--text);
+}
+.article-body p {
+  margin-bottom: 1.6em;
+}
+.article-body h2 {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  margin-top: 2.8em;
+  margin-bottom: 1em;
+}
+.article-body h3 {
+  font-weight: 400;
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-top: 2.2em;
+  margin-bottom: 0.8em;
+}
+.article-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.article-body em {
+  font-style: italic;
+  color: var(--text-2);
+}
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.4em 0;
+}
+.article-body ul {
+  margin-bottom: 1.6em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+.article-body ul li {
+  position: relative;
+  padding-left: 1em;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grammar);
+}
+.article-body .closing-note {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin-top: 2em;
+}
+.article-body .closing-note p {
+  margin-bottom: 0.8em;
+}
+.article-body .closing-note p:last-child {
+  margin-bottom: 0;
+}
+
+/* ═══ ARTICLE NAV ═══ */
+.article-nav {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.article-nav a {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+.article-nav a:hover {
+  color: var(--color-grammar);
+  border-color: var(--color-grammar);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(104,137,180,0.15);
+}
+
+/* ═══ SUBSCRIBE CTA ═══ */
+.subscribe-cta {
+  background: var(--bg-inverse);
+  color: #fff;
+  text-align: center;
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+}
+.subscribe-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.subscribe-sub {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+.subscribe-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--color-grammar);
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s var(--ease);
+  box-shadow: 0 4px 24px rgba(104,137,180,0.25);
+}
+.subscribe-btn:hover {
+  filter: brightness(0.85);
+  box-shadow: 0 6px 32px rgba(104,137,180,0.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 580px) {
+  .article-hero-title {
+    letter-spacing: -0.8px;
+  }
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article-nav a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo"><img src="../../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../../context-grammar/index.html">Context Grammar</a>
+      <a href="../../../projects/index.html">Projects</a>
+      <a href="../../industry/index.html">Industry</a>
+      <a href="../../about/index.html">About</a>
+      <a href="../../about/index.html#contact" class="nav-cta">Contact</a>
+    </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../../context-grammar/index.html">Context Grammar</a>
+    <a href="../../../projects/index.html">Projects</a>
+    <a href="../../industry/index.html">Industry</a>
+    <a href="../../about/index.html">About</a>
+    <a href="../../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../../journal/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../../journal/index.html">EN</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE HERO
+     ═══════════════════════════════════════ -->
+<section class="article-hero">
+  <div style="width:100%;max-height:480px;height:280px;background:var(--bg-2);display:flex;align-items:center;justify-content:center;">
+    <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--text-3);">intentfirst</span>
+  </div>
+  <div class="article-hero-meta">
+    <div class="article-hero-meta-inner">
+      <p class="article-hero-label">エッセイ &mdash; 12</p>
+      <h1 class="article-hero-title">デザイナーの仕事は消えていない。上流に移動した。</h1>
+      <p class="article-hero-subtitle">インターフェース制作から人間-AIシステムの設計へ。この転換が実際に要求するものと、ほとんどのデザイナーが間違った未来に備えている理由。</p>
+      <p class="article-hero-date">2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE BODY
+     ═══════════════════════════════════════ -->
+<article class="article-body">
+  <div class="reveal">
+    <p>朝、Figmaを開く。ボタンの角丸を調整する。カラーをブランドガイドに合わせる。夕方、AIが同じ作業を3秒で終わらせたデモを見る。胃の底が冷たくなる。</p>
+
+    <p>「AIがデザイナーを置き換えるか」という議論には、する価値のあるバージョンと、ないバージョンがある。</p>
+
+    <p><strong>する価値のないバージョン：</strong> AIはUIを人間より速く生成するか？ する。AIはプロダクション対応のコンポーネントコードを書くか？ 書く。AIはリサーチを統合し、コピーを起草し、人間が太刀打ちできないスケールでデザインバリエーションを生成するか？ する。これらは事実だ。反論は時間の無駄だ。</p>
+
+    <p><strong>する価値のあるバージョン：</strong> そのすべてが真実である世界で、「良いデザイン」とは何を意味するのか？</p>
+
+    <p>この問いの中に、ここ数年間住んできた。Verizonで42人のデザイン組織のためにAIシステムを構築し、そして次に何が来るかを考えてきた。AIがデザイナーの「使うツール」から、デザイナーと「並んで設計するレイヤー」に変わる中で。</p>
+
+    <p>たどり着いた結論はこうだ。デザイナーの仕事は消えていない。上流に移動した。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>「上流」とは何か</h2>
+
+    <p>川を思い浮かべてほしい。下流では水が形になる。岩にぶつかり、地形に沿って、目に見える形で流れる。これが今までのデザインだ。ブリーフを受け取り、成果物を作り、引き渡す。価値はクラフトにあった。要件をインターフェースに翻訳する能力――使いやすく、一貫性があり、視覚的に解決されたインターフェースに。</p>
+
+    <p>これが完全になくなるわけではない。クラフトは依然として重要だ。しかしクラフトはもはや主要な希少性ではない。</p>
+
+    <p>今、希少で、ますます希少になっているのは――誰もが何かを作り始める前に、問題を定義する能力だ。ある特定のインタラクションにどの程度のAI関与が適切かを判断する能力。何を自動化し、何を人間の手に残し、その間の引き継ぎをどこに置くかを決める能力。単一のインターフェースが構築される前に、AIシステムの振る舞いを支配するルールを設計する能力。</p>
+
+    <p>これが上流の仕事だ。Figmaが開かれる前に起きる。その後のすべての質を決定する。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>目撃した3つの転換</h2>
+
+    <p>この変化を組織の内側から観察してきた。外からではなく。現場で実際にどう見えるかを記す。</p>
+
+    <h3>転換1：コンポーネント制作から、制約の設計へ</h3>
+
+    <p>生成UIの世界では、デザイナーの成果物は、スクリーンのセットではなく、ルールのセットになりつつある。AIが生成できるものは何か。できないものは何か。どのコンポーネントがスコープ内か。どの組み合わせが禁止か。「ブランドと一致する」とは、機械が読める言葉で何を意味するか。</p>
+
+    <p>これはデザインシステムの仕事だ。ただし、異なる抽象度で。ボタンライブラリを構築するのではない。インターフェースがどう組み立てられるかを支配する「憲法」を書くのだ。</p>
+
+    <p>憲法を起草する者と、憲法に従って建物を建てる者。AIが実行レイヤーを引き受けるとき、関連性を保つデザイナーは前者だ。</p>
+
+    <h3>転換2：ユーザー問題の解決から、人間-AI問題の解決へ</h3>
+
+    <p>今最も重要なインタラクションデザインの問題は、「ユーザーがこのタスクをどう完了するか？」ではない。</p>
+
+    <p>「AIはどこまで自律的に動くべきで、いつ尋ねるべきか？」</p>
+
+    <p>「AIがこれからやることを、実行前にユーザーはどう理解するか？」</p>
+
+    <p>「AIが間違えたとき何が起きるか？」</p>
+
+    <p>これらは新しい問いだ。新しいフレームワークが必要だ。自律性ダイヤル、意図プレビュー、説明可能な根拠、確信度シグナル、行動履歴、エスカレーション経路――このシリーズで詳述したパターンだ。既存のインタラクションパターンの上に塗る仕上げではない。5年前には存在せず、今はほぼすべてのプロダクト構築の中心にある、真に新しい設計課題だ。</p>
+
+    <p>これらの問題に対するボキャブラリーを持つデザイナー――プロダクトレビューに入り、「このインタラクションにはエスカレーション経路が欠けている。それが欠けるとユーザーの信頼に何が起きるかを説明する」と言えるデザイナー――はAIが複製できないレベルで活動している。なぜなら必要な判断力は、人間心理、組織コンテキスト、プロダクト戦略の同時理解から来るからだ。</p>
+
+    <h3>転換3：個人の実行者から、システムアーキテクトへ</h3>
+
+    <p>最も重大な転換は、デザイナーが何を作るかではない。どう働くかだ。</p>
+
+    <p>旧モデルは直列だった。一人のデザイナー、一つのプロジェクト、フェーズを順に進む。新興のモデルは並列だ。複数のAIエージェントをオーケストレーションし、それらの出力を統合し、重要な判断ポイントで判断を適用し、以前なら5人のチームを必要としたスケールで仕事を生み出すデザイナー。</p>
+
+    <p>これが<strong>コンダクターモデル</strong>だ。デザイナーはすべての楽器を演奏しているのではない。アンサンブルを指揮している。これには実行のクラフトとは異なるスキルが必要だ。問題を委任可能なコンポーネントに分解する能力。返ってきたものの質を評価する能力。AIの出力に人間の修正が必要な場面と、そのまま使える場面を見極める能力。</p>
+
+    <p>これが、Renを構築した理由でもある。成果物を生産するだけでなく、思考そのものに参加するデザイン思考パートナー。チームの会話をファシリテートし、参加のダイナミクスを管理し、誰かがFigmaを開く前に仮定に異議を唱える。Renが存在するのは、コンダクターモデルが成果物を生産するAIエージェントの指揮だけではないからだ。方向が定められるレベルにAIが参加することでもある。</p>
+
+    <p>このモデルで活躍するデザイナーは、AIに抵抗する人でも、すべてをAIに渡す人でもない。判断力が何のためにあるかの明確な感覚を育てた人だ。どの判断に人間が必要で、なぜか。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>デザイナーのためにAIシステムを構築して学んだこと</h2>
+
+    <p>Verizonでインタビューを行ったとき――16人のデザイナー、各1時間、摩擦ポイントのマッピング――ツールへの不満を見つけると予想していた。実際に見つけたのは、はるかに興味深い問題だった。</p>
+
+    <p>摩擦は実行レイヤーにはなかった。デザイナーはモノを作る能力があった。摩擦は、制作を取り巻くすべてにあった。アクセスできるはずのコンテキストを探す作業。もっと早く見えているべきだったエッジケースを捕まえる作業。より速く成果物を出すプレッシャーに押し出されていた戦略的思考。</p>
+
+    <p>構築したAIシステム――ナレッジ用のMaster Brain、バリデーション用のSally、エッジケース用のJustin、戦略的な足場用のWDS――は、デザイナーの既存の仕事を速くするツールではなかった。デザインの仕事から体系的に押し出されていた部分を回復するための、構造的介入だった。</p>
+
+    <p>結果は、デザイナーが同じ仕事をより速くすることではなかった。異なる仕事をすることだった。より戦略的で、より熟慮され、より根拠のある仕事。実行は副次的に速くなった。本当の変化は、実行が何のために行われるかにあった。</p>
+
+    <p>これが「上流に移動する」の実際の姿だ。クラフトを捨てるのではない。クラフトが表現すべき思考を取り戻すのだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>今重要なスキル</h2>
+
+    <p>仕事が上流に移動するなら、重要なスキルも上流のスキルだ。</p>
+
+    <p><strong>システム思考。</strong> コンポーネントがどう相互作用するか、変更がどう伝播するか、デザインシステムの一つのレベルで行われた判断がその上に構築されるすべてにどう影響するか。常に価値があった。今は不可欠だ。</p>
+
+    <p><strong>摩擦診断。</strong> ワークフロー――人間の、組織の、人間-AIの――を見て、構造的な失敗がどこにあるかを特定する能力。表面的な症状ではなく、根本原因を。Verizonで使ったインタビュー手法は複雑ではないが、ほとんどのデザイナーは体系的にそれを行うことを教わっていない。</p>
+
+    <p><strong>エージェント設計。</strong> AIエージェントに対して、確実に実行できる十分な具体性で仕事を定義する能力。入力形式、プロセス、出力形式。これらは技術スキルではない。新しい種類のアーティファクトに適用されるデザインスキルだ。正しくやるのは見た目より難しい。間違うと、誰も使わないエージェントが生まれる。</p>
+
+    <p><strong>判断力のキャリブレーション。</strong> おそらく最も重要で、最も議論されていないスキル。何を委任し、何を手元に留めるかを知ること。AIが得意なこと、苦手なこと、失敗が予測可能な場所、予測不可能な場所の明確なメンタルモデルが必要だ。境界がどこにあるかを知るのに十分な失敗経験が必要だ。</p>
+
+    <p><strong>分野横断のコミュニケーション。</strong> デザインが上流に移動するにつれ、デザイナーはデザインの部屋ではない部屋で活動する必要が増す。プロダクト戦略、エンジニアリングアーキテクチャ、組織リーダーシップ。デザイン思考を、これらのオーディエンスにとって重要な言葉に翻訳する能力は、他のすべてを掛け算するマルチプライヤーだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>ポートフォリオの変化</h2>
+
+    <p>この転換がもたらす最も困難な実践的示唆は、ポートフォリオの問題だ。</p>
+
+    <p>仕事が上流に移動するなら、ポートフォリオは上流の思考を見せなければならない。完成したスクリーンだけではなく。</p>
+
+    <p>具体的にどういうことか。デザインに先行した診断をドキュメントにすること。インターフェースが構築される前に定義した制約を示すこと。設計したエージェントアーキテクチャと、なぜその構造的選択をしたかを記述すること。何を構築したかだけでなく、何を構築するかを決めるためにどんなフレームワークを使ったかを説明できること。</p>
+
+    <p>これは美しいスクリーンのギャラリーよりも、作るのが難しいポートフォリオだ。書くことが必要だ。通常は暗黙にとどまる推論を、言語化することが必要だ。きれいな結果に至った混沌としたプロセスを見せる覚悟が必要だ。</p>
+
+    <p>しかし、偽造するのもはるかに難しいポートフォリオだ。美しいUIは誰でも見せられる。それを「正しいUI」にしたシステム思考を説明できる人は、全員ではない。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>意味のある肩書きの変化</h2>
+
+    <p>ここ数年、自分の仕事の説明を変えてきた。</p>
+
+    <p>「UXデザイナー」ではない。「プロダクトデザイナー」でもない。最も正確だと感じる肩書きは、<strong>人間-AIコラボレーションのシステムアーキテクト</strong>だ。</p>
+
+    <p>実践では何を意味するか。人間とAIが効果的に協働する構造を設計する。既存のワークフローの摩擦をマッピングする。AIシステムに有用なコンテキストを与えるナレッジインフラを構築する。構造的な役割を果たすエージェントを設計する。人間の判断とAIの実行の間の引き継ぎがどうあるべきかを考える。</p>
+
+    <p>これはデザインの仕事だ。しかし、旧来の肩書きでは完全に捉えられない抽象度のデザインだ。</p>
+
+    <p>全員がこの肩書きを使う必要はないと思う。しかし、この肩書きが暗示する問い――「自分は実際にどんなシステムを設計しているのか？」――は、すべてのデザイナーが問うべきだ。</p>
+
+    <p>なぜなら、その問いの答えが変わったからだ。インターフェースはもはやシステムではない。インターフェースは、AIエージェント、ナレッジインフラ、信頼のアーキテクチャ、エスカレーション経路、そして重要な意思決定ポイントにおける人間の判断力を含むシステムの、目に見える表面だ。</p>
+
+    <p>そのシステムを上手く設計すること。それが仕事だ。ピクセルを押すのは、仕事が生み出すものに過ぎない。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>キャリアの初期にいるデザイナーへ</h2>
+
+    <p>直接伝えたいことがある。未来はデザイナーに敵意的ではない。特定の種類のデザイナーに敵意的なのだ。</p>
+
+    <p>実行スピードで主に価値を提供するデザイナー――Figmaで速く動き、大量のUIを生産する――は、最もプレッシャーを感じるだろう。実行が重要でないからではない。実行レイヤーこそが、AIが最も明確なレバレッジを持つ場所だからだ。</p>
+
+    <p>判断力で主に価値を提供するデザイナー――何を、なぜ、誰のために構築するかを知っている――は、この瞬間が自分にできることを縮小するのではなく、拡大することに気づくだろう。以前は一週間かかっていた実行が、一日で終わる。以前は押し出されていた思考に、呼吸する余裕が生まれる。</p>
+
+    <p>一方のデザイナーからもう一方のデザイナーへの道は、神秘的ではない。常にそうだった道と同じだ。人間、システム、そして解く価値のある問題への、より深い理解。ツールは変わる。根本的な規律は変わらない。</p>
+
+    <p>上流に行け。仕事はそこにある。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>P.S. この記事を書きながら、「上流」という比喩が持つ一つの危うさに気づいた。川の上流は、一人で静かに立つ場所に聞こえるかもしれない。しかし実際のところ、上流は最も激しい合流地点だ。プロダクト戦略、エンジニアリング制約、ビジネス目標、ユーザーの現実。すべてがそこで出会い、ぶつかる。上流に移動するとは、孤高の思索者になることではない。交差点の中心に立つことだ。</em></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>このシリーズの前回は、ユーザーの信頼を構築する6つのエージェント型UXパターン、ナレッジアーキテクチャの課題、そしてAI思考パートナーがチームの意思決定をどう変えるかを扱った。次回：自律性マップ――委任すべき仕事と、保持すべき判断を分離する診断法。</em></p>
+
+    <p>#UXDesign #AIDesign #DesignLeadership #FutureOfDesign #ProductDesign #SystemsThinking #CareerDevelopment</p>
+  </div>
+
+</article>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="article-nav reveal">
+  <a href="../11/index.html">&larr; 前の記事</a>
+  <a href="../index.html">一覧に戻る</a>
+  <a href="../13/index.html">次の記事 &rarr;</a>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     SUBSCRIBE
+     ═══════════════════════════════════════ -->
+<section class="subscribe-cta">
+  <div style="max-width: var(--max-w); margin: 0 auto;">
+    <h2 class="subscribe-title reveal">最新のエッセイを、<br>受信箱へ。</h2>
+    <p class="subscribe-sub reveal d1">Context Grammarは進化を続けています。その過程をお届けします。</p>
+    <a href="https://intentfirst.substack.com" target="_blank" class="subscribe-btn reveal d2">Substackで購読</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+
+</body>
+</html>

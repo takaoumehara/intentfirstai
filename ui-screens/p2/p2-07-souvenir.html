@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-07 Souvenir Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8EAED;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 20px;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: #FFFFFF;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.status-bar {
+  height: 54px;
+  padding: 14px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFFFFF;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.status-bar .time { font-size: 15px; font-weight: 600; color: #202124; }
+.status-bar .icons { display: flex; gap: 6px; align-items: center; }
+.status-bar .icons span { font-size: 17px; color: #202124; }
+
+.header {
+  padding: 8px 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  position: sticky;
+  top: 54px;
+  z-index: 10;
+}
+.header .material-symbols-outlined { font-size: 24px; color: #202124; cursor: pointer; }
+.header h1 { font-size: 18px; font-weight: 500; color: #202124; }
+.header .gemini { color: #1A73E8; font-size: 14px; font-weight: 700; }
+.header .brain-badge {
+  margin-left: auto;
+  font-size: 12px;
+  color: #8E24AA;
+  background: #F3E8FD;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+.scroll-content {
+  height: calc(844px - 54px - 48px - 20px);
+  overflow-y: auto;
+  padding: 0 16px 40px;
+  scroll-behavior: smooth;
+}
+.scroll-content::-webkit-scrollbar { width: 0; }
+
+.section-label {
+  font-size: 13px; font-weight: 500; color: #9AA0A6; letter-spacing: 0.5px;
+  text-transform: uppercase; margin-bottom: 12px; margin-top: 24px;
+}
+.section-label:first-child { margin-top: 8px; }
+
+/* Souvenir Card */
+.souv-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(12px);
+}
+.souv-card.visible {
+  animation: cardIn 400ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.souv-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.souv-icon { font-size: 24px; }
+.souv-recipient {
+  font-size: 15px;
+  font-weight: 500;
+  color: #202124;
+}
+
+.souv-last-year {
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.souv-last-label {
+  font-size: 12px;
+  color: #9AA0A6;
+  margin-bottom: 4px;
+}
+.souv-last-item {
+  font-size: 14px;
+  color: #202124;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.souv-item-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.souv-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.candidate-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.candidate-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.rating-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  transform: scale(0.8);
+  opacity: 0;
+}
+.rating-chip.pop {
+  animation: chipPop 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes chipPop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.chip-good { background: #E6F4EA; color: #1E8E3E; }
+.chip-avg { background: #FCE8E6; color: #E8710A; }
+
+.souv-suggestion {
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.souv-suggestion-label {
+  font-size: 12px;
+  color: #9AA0A6;
+  margin-bottom: 6px;
+}
+.souv-suggestion-text {
+  font-size: 14px;
+  color: #202124;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.mode-badge {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #E8F0FE;
+  color: #1A73E8;
+  margin-bottom: 8px;
+}
+.trending-badge {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #FEF7E0;
+  color: #E37400;
+}
+.location-hint {
+  font-size: 12px;
+  color: #5F6368;
+  margin-top: 4px;
+}
+
+.souv-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.btn-choose {
+  flex: 1;
+  min-height: 44px;
+  background: #1A73E8;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 200ms cubic-bezier(0.2, 0, 0, 1), transform 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.btn-choose:active { transform: scale(0.97); }
+.btn-choose.chosen {
+  background: #1E8E3E;
+}
+.btn-choose .material-symbols-outlined { font-size: 18px; }
+
+.btn-alt {
+  flex: 1;
+  min-height: 44px;
+  background: #FFFFFF;
+  color: #1A73E8;
+  border: 1px solid #DADCE0;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 200ms, transform 200ms;
+}
+.btn-alt:active { background: #F1F3F4; transform: scale(0.97); }
+
+.btn-other {
+  min-height: 44px;
+  min-width: 60px;
+  background: none;
+  color: #5F6368;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Candidate list */
+.candidate-list {
+  margin-top: 8px;
+}
+.candidate-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F1F3F4;
+}
+.candidate-item:last-child { border-bottom: none; }
+.candidate-num {
+  width: 20px; height: 20px;
+  background: #E8EAED;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #5F6368;
+  flex-shrink: 0;
+}
+.candidate-info { flex: 1; }
+.candidate-name { font-size: 14px; color: #202124; font-weight: 500; }
+.candidate-sub { font-size: 12px; color: #5F6368; margin-top: 2px; }
+
+/* My parents special */
+.special-note {
+  font-size: 13px;
+  color: #5F6368;
+  font-style: italic;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.item-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+  color: #202124;
+}
+.item-check .material-symbols-outlined {
+  font-size: 20px;
+  color: #1E8E3E;
+}
+
+/* Budget Summary */
+.budget-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: fadeSlideIn 400ms cubic-bezier(0.2, 0, 0, 1) 1200ms forwards;
+}
+.budget-amounts {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.budget-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #202124;
+  font-variant-numeric: tabular-nums;
+}
+.budget-amount .curr { font-size: 16px; font-weight: 400; color: #5F6368; }
+.budget-plus {
+  font-size: 28px;
+  font-weight: 300;
+  color: #9AA0A6;
+  line-height: 1;
+}
+.budget-saving {
+  font-size: 14px;
+  color: #1E8E3E;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.btn-locations {
+  width: 100%;
+  min-height: 44px;
+  background: #FFFFFF;
+  color: #1A73E8;
+  border: 1px solid #DADCE0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: #202124;
+}
+
+.btn-other:active { transform: scale(0.97); }
+.btn-locations:active { transform: scale(0.97); }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="status-bar">
+    <span class="time">15:42</span>
+    <div class="icons">
+      <span class="material-symbols-outlined" style="font-size:16px">signal_cellular_alt</span>
+      <span class="material-symbols-outlined" style="font-size:16px">wifi</span>
+      <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+    </div>
+  </div>
+
+  <div class="header">
+    <span class="material-symbols-outlined">arrow_back</span>
+    <h1>Souvenir Planner</h1>
+    <span class="gemini">&#10022;</span>
+    <span class="brain-badge">Trip Brain</span>
+  </div>
+
+  <div class="scroll-content">
+    <div class="section-label" style="margin-top:8px">Last Year's Records</div>
+
+    <!-- Card 1: Wife's Parents -->
+    <div class="souv-card" data-delay="0">
+      <div class="souv-header">
+        <span class="souv-icon">👨‍👩‍👦</span>
+        <span class="souv-recipient">Wife's Parents</span>
+      </div>
+      <div class="souv-last-year">
+        <div class="souv-last-label">Last year</div>
+        <div class="souv-last-item"><div class="souv-item-thumb"><img src="https://images.unsplash.com/photo-1627308593413-3a3e02108920?w=200&h=200&fit=crop&q=80" alt="Toraya Yokan"></div>Toraya Yokan</div>
+        <span class="rating-chip chip-good" data-delay="400">✓ Well-received</span>
+      </div>
+      <div class="souv-suggestion">
+        <div class="souv-suggestion-label">Suggestion</div>
+        <div class="souv-suggestion-text">Same choice — proven to please</div>
+        <span class="mode-badge">Exact Mode</span>
+      </div>
+      <div class="souv-actions">
+        <button class="btn-choose" id="choose1">
+          <span class="material-symbols-outlined">check</span>
+          Choose This
+        </button>
+        <button class="btn-alt">Find Another</button>
+      </div>
+    </div>
+
+    <!-- Card 2: Wife's Sister -->
+    <div class="souv-card" data-delay="100">
+      <div class="souv-header">
+        <span class="souv-icon">👩</span>
+        <span class="souv-recipient">Wife's Sister</span>
+      </div>
+      <div class="souv-last-year">
+        <div class="souv-last-label">Last year</div>
+        <div class="souv-last-item"><div class="souv-item-thumb"><img src="https://images.unsplash.com/photo-1771760635898-db2eb96a3294?w=200&h=200&fit=crop&q=80" alt="Tokyo Banana"></div>Tokyo Banana</div>
+        <span class="rating-chip chip-avg" data-delay="500">△ Average Response</span>
+      </div>
+      <div class="souv-suggestion">
+        <div class="souv-suggestion-label">Candidates</div>
+        <div class="candidate-list">
+          <div class="candidate-item">
+            <span class="candidate-num">1</span>
+            <div class="candidate-thumb"><img src="https://images.unsplash.com/photo-1771760635898-db2eb96a3294?w=200&h=200&fit=crop&crop=top&q=80" alt="N.Y. Caramel Sandwich"></div>
+            <div class="candidate-info">
+              <div class="candidate-name">N.Y. Caramel Sandwich</div>
+              <div class="candidate-sub"><span class="trending-badge">Trending</span></div>
+            </div>
+          </div>
+          <div class="candidate-item">
+            <span class="candidate-num">2</span>
+            <div class="candidate-thumb"><img src="https://images.unsplash.com/photo-1627308593413-3a3e02108920?w=200&h=200&fit=crop&crop=top&q=80" alt="Press Butter Sand"></div>
+            <div class="candidate-info">
+              <div class="candidate-name">Press Butter Sand</div>
+              <div class="candidate-sub location-hint">Available in Ikebukuro. Near Itabashi</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="souv-actions">
+        <button class="btn-choose" id="choose2a">Choose 1</button>
+        <button class="btn-choose" id="choose2b">Choose 2</button>
+        <button class="btn-other">Other</button>
+      </div>
+    </div>
+
+    <!-- Card 3: My Parents -->
+    <div class="souv-card" data-delay="200">
+      <div class="souv-header">
+        <span class="souv-icon">👴👵</span>
+        <span class="souv-recipient">My Parents</span>
+      </div>
+      <div class="special-note">"American souvenirs might be more appreciated"</div>
+      <div class="item-check">
+        <span class="material-symbols-outlined">check_circle</span>
+        Homemade wine (bringing)
+      </div>
+      <div class="souv-suggestion">
+        <div class="souv-suggestion-label">Additional ideas</div>
+        <div class="candidate-list">
+          <div class="candidate-item">
+            <span class="candidate-num">1</span>
+            <div class="candidate-info">
+              <div class="candidate-name">Trader Joe's Chocolate</div>
+            </div>
+          </div>
+          <div class="candidate-item">
+            <span class="candidate-num">2</span>
+            <div class="candidate-info">
+              <div class="candidate-name">See's Candies</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="souv-actions">
+        <button class="btn-choose" id="finalize3">Finalize List</button>
+        <button class="btn-alt">Add More</button>
+      </div>
+    </div>
+
+    <!-- Budget Summary -->
+    <div class="section-label">Budget</div>
+    <div class="budget-card" id="budgetCard">
+      <div class="budget-amounts">
+        <div class="budget-amount"><span class="curr">¥</span><span id="budgetJpy">0</span></div>
+        <div class="budget-plus">+</div>
+        <div class="budget-amount"><span class="curr">$</span><span id="budgetUsd">0</span></div>
+      </div>
+      <div class="budget-saving">Saving ¥3,000 vs. last year</div>
+      <button class="btn-locations">
+        View Purchase Locations
+        <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Stagger cards
+  const cards = document.querySelectorAll('.souv-card');
+  cards.forEach((card, i) => {
+    const delay = parseInt(card.dataset.delay) || 0;
+    setTimeout(() => {
+      card.classList.add('visible');
+    }, 300 + delay);
+  });
+
+  // Rating chip pop-in
+  const chips = document.querySelectorAll('.rating-chip');
+  chips.forEach(chip => {
+    const delay = parseInt(chip.dataset.delay) || 400;
+    setTimeout(() => {
+      chip.classList.add('pop');
+    }, 600 + delay);
+  });
+
+  // Budget count-up
+  setTimeout(() => {
+    const jpyEl = document.getElementById('budgetJpy');
+    const usdEl = document.getElementById('budgetUsd');
+    const dur = 800;
+    let start = null;
+    function tick(ts) {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / dur, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      jpyEl.textContent = Math.round(e * 12000).toLocaleString();
+      usdEl.textContent = Math.round(e * 40);
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }, 1400);
+
+  // Choose button interactions
+  function makeChooseHandler(btn) {
+    btn.addEventListener('click', function() {
+      this.classList.add('chosen');
+      this.innerHTML = '<span class="material-symbols-outlined">check</span> Chosen';
+    });
+  }
+  makeChooseHandler(document.getElementById('choose1'));
+  makeChooseHandler(document.getElementById('choose2a'));
+  makeChooseHandler(document.getElementById('choose2b'));
+  makeChooseHandler(document.getElementById('finalize3'));
+});
+</script>
+</body>
+</html>

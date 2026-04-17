@@ -10,7 +10,7 @@
 
    Options:
      basePath   — relative path to site root ('', '../', '../../')
-     activePage — 'home'|'introduction'|'grammar'|'brain'|'trust'|'specs'|'projects'|'about'
+     activePage — 'home'|'introduction'|'grammar'|'brain'|'trust'|'specs'|'axpatterns'|'projects'|'about'
      lang       — 'en' or 'ja'
    ============================================================= */
 
@@ -34,20 +34,21 @@ function initNav(opts) {
 
   // Page paths (relative to basePath)
   var pages = {
-    home:     bp + 'index.html',
+    home:        bp + 'index.html',
     introduction: bp + 'context-grammar/index.html',
-    grammar:  bp + 'context-grammar/grammar/index.html',
-    brain:    bp + 'context-grammar/brain/index.html',
-    trust:    bp + 'context-grammar/trust-design/index.html',
-    specs:    bp + 'context-grammar/specs/index.html',
-    projects: bp + 'applied/index.html',
-    industry: bp + 'industry/index.html',
-    about:    bp + 'about/index.html',
-    contact:  bp + 'contact/index.html'
+    grammar:     bp + 'context-grammar/grammar/index.html',
+    brain:       bp + 'context-grammar/brain/index.html',
+    trust:       bp + 'context-grammar/trust-design/index.html',
+    specs:       bp + 'context-grammar/specs/index.html',
+    axpatterns:  bp + 'context-grammar/ax-patterns/index.html',
+    projects:    bp + 'applied/index.html',
+    industry:    bp + 'industry/index.html',
+    about:       bp + 'about/index.html',
+    contact:     bp + 'contact/index.html'
   };
 
-  // CG sub-pages for dropdown trigger active state
-  var cgPages = ['introduction', 'grammar', 'brain', 'trust', 'specs'];
+  // CG sub-pages for dropdown trigger active state + subnav
+  var cgPages = ['introduction', 'grammar', 'brain', 'trust', 'specs', 'axpatterns'];
   var isCGActive = cgPages.indexOf(active) !== -1;
 
   // ── Helper: active class ──
@@ -81,15 +82,16 @@ function initNav(opts) {
     + '    </a>'
     + '    <div class="nav-links">'
     + '      <div class="nav-dropdown" id="nav-dropdown">'
-    + '        <button class="nav-dropdown-trigger' + (isCGActive ? ' nav-active' : '') + '" aria-expanded="false" aria-haspopup="true">'
+    + '        <a href="' + pages.introduction + '" class="nav-dropdown-trigger' + (isCGActive ? ' nav-active' : '') + '" aria-haspopup="true">'
     + '          Context Grammar'
-    + '        </button>'
+    + '        </a>'
     + '        <div class="nav-dropdown-menu" role="menu">'
     + '          <a href="' + pages.introduction + '" role="menuitem" class="' + ac('introduction') + '">Introduction</a>'
     + '          <a href="' + pages.grammar + '" role="menuitem" class="' + ac('grammar') + '">Grammar</a>'
     + '          <a href="' + pages.brain + '" role="menuitem" class="' + ac('brain') + '">Brain</a>'
     + '          <a href="' + pages.trust + '" role="menuitem" class="' + ac('trust') + '">Trust Design</a>'
     + '          <a href="' + pages.specs + '" role="menuitem" class="' + ac('specs') + '">Specs</a>'
+    + '          <a href="' + pages.axpatterns + '" role="menuitem" class="' + ac('axpatterns') + '">AX Patterns</a>'
     + '        </div>'
     + '      </div>'
     + '      <a href="' + pages.projects + '" class="' + ac('projects') + '">Projects</a>'
@@ -102,6 +104,23 @@ function initNav(opts) {
     + '  </div>'
     + '</nav>';
 
+  // ── Secondary subnav (Context Grammar pages only) ──
+  if (isCGActive) {
+    html += ''
+      + '<nav class="nav-subnav" id="nav-subnav" aria-label="Context Grammar">'
+      + '  <div class="nav-subnav-inner">'
+      + '    <span class="nav-subnav-prefix">Context Grammar</span>'
+      + '    <span class="nav-subnav-sep"></span>'
+      + '    <a href="' + pages.introduction + '"' + (active === 'introduction' ? ' class="nav-subnav-active"' : '') + '>Introduction</a>'
+      + '    <a href="' + pages.grammar + '"' + (active === 'grammar' ? ' class="nav-subnav-active"' : '') + '>Grammar</a>'
+      + '    <a href="' + pages.brain + '"' + (active === 'brain' ? ' class="nav-subnav-active"' : '') + '>Brain</a>'
+      + '    <a href="' + pages.trust + '"' + (active === 'trust' ? ' class="nav-subnav-active"' : '') + '>Trust Design</a>'
+      + '    <a href="' + pages.specs + '"' + (active === 'specs' ? ' class="nav-subnav-active"' : '') + '>Specs</a>'
+      + '    <a href="' + pages.axpatterns + '"' + (active === 'axpatterns' ? ' class="nav-subnav-active"' : '') + '>AX Patterns</a>'
+      + '  </div>'
+      + '</nav>';
+  }
+
   // ── Mobile overlay ──
   html += ''
     + '<div class="nav-mobile-overlay" id="nav-mobile-overlay">'
@@ -112,6 +131,7 @@ function initNav(opts) {
     + '  <a href="' + pages.brain + '" class="mobile-sub-link' + ac('brain') + '">Brain</a>'
     + '  <a href="' + pages.trust + '" class="mobile-sub-link' + ac('trust') + '">Trust Design</a>'
     + '  <a href="' + pages.specs + '" class="mobile-sub-link' + ac('specs') + '">Specs</a>'
+    + '  <a href="' + pages.axpatterns + '" class="mobile-sub-link' + ac('axpatterns') + '">AX Patterns</a>'
     + '  <a href="' + pages.projects + '" class="' + ac('projects') + '">Projects</a>'
     + '  <a href="' + pages.about + '" class="' + ac('about') + '">About</a>'
     + '  <a href="' + pages.contact + '" class="nav-cta">Contact</a>'
@@ -132,6 +152,11 @@ function initNav(opts) {
   // ── Inject into page ──
   // Insert at the very start of <body>
   document.body.insertAdjacentHTML('afterbegin', html);
+
+  // Add body class when subnav is present
+  if (isCGActive) {
+    document.body.classList.add('nav-has-subnav');
+  }
 
   // ── Cache elements ──
   var nav = document.getElementById('nav');
@@ -171,12 +196,10 @@ function initNav(opts) {
   function openDropdown() {
     clearTimeout(closeTimeout);
     dropdown.classList.add('open');
-    trigger.setAttribute('aria-expanded', 'true');
   }
 
   function closeDropdown() {
     dropdown.classList.remove('open');
-    trigger.setAttribute('aria-expanded', 'false');
   }
 
   function scheduleClose() {
@@ -192,17 +215,6 @@ function initNav(opts) {
   dropdown.addEventListener('mouseleave', function() {
     clearTimeout(hoverTimeout);
     scheduleClose();
-  });
-
-  // Click / touch (works on both desktop and mobile)
-  trigger.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (dropdown.classList.contains('open')) {
-      closeDropdown();
-    } else {
-      openDropdown();
-    }
   });
 
   // Close dropdown when clicking outside

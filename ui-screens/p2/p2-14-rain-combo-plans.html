@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-14 Rain Combo Plans — 2-Day Combinations</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --blue: #1A73E8;
+    --red: #D93025;
+    --green: #1E8E3E;
+    --orange: #E37400;
+    --text-primary: #202124;
+    --text-secondary: #5F6368;
+    --text-tertiary: #9AA0A6;
+    --surface: #FFFFFF;
+    --surface-dim: #F8F9FA;
+    --border: #E8EAED;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    padding: 40px 20px;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #1a1a1a,
+      0 20px 60px rgba(0,0,0,0.3),
+      0 8px 24px rgba(0,0,0,0.2),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--surface);
+    border-radius: 34px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-content {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 5;
+  }
+  .status-bar-right {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .status-bar-right .material-symbols-outlined { font-size: 16px; }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px 12px;
+    background: var(--surface);
+    position: sticky;
+    top: 34px;
+    z-index: 5;
+  }
+  .header .back {
+    font-size: 24px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .header .title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* Plan Card */
+  .plan-card {
+    margin: 0 16px 14px;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 0;
+    border: 2px solid var(--border);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+    cursor: pointer;
+    transition: border-color 200ms;
+  }
+  .plan-card.active {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(26,115,232,0.15);
+  }
+
+  .plan-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--surface-dim);
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .plan-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+    background: #E8F0FE;
+    padding: 3px 10px;
+    border-radius: 9999px;
+  }
+
+  .plan-body {
+    padding: 14px 16px;
+  }
+
+  .day-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+  .day-label:not(:first-child) {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .timeline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .timeline-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-dim);
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .timeline-item .emoji {
+    font-size: 14px;
+  }
+  .timeline-item.booked {
+    background: #E6F4EA;
+    color: var(--green);
+  }
+  .timeline-arrow {
+    color: var(--text-tertiary);
+    font-size: 14px;
+  }
+
+  .plan-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  .plan-note.warning {
+    background: #FEF7E0;
+    color: #5D4037;
+  }
+  .plan-note.tip {
+    background: #E8F0FE;
+    color: #1A56C4;
+  }
+
+  /* Radio */
+  .plan-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 200ms;
+  }
+  .plan-card.active .plan-radio {
+    border-color: var(--blue);
+    background: var(--blue);
+  }
+  .plan-radio::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: 0;
+    transition: opacity 200ms;
+  }
+  .plan-card.active .plan-radio::after {
+    opacity: 1;
+  }
+
+  /* Reschedule Section */
+  .reschedule-section {
+    margin: 8px 16px 16px;
+    background: #E6F4EA;
+    border-radius: 12px;
+    padding: 14px 16px;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .reschedule-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+  .reschedule-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 4px 0;
+  }
+  .reschedule-item .arrow {
+    color: var(--text-tertiary);
+  }
+  .reschedule-day {
+    font-weight: 500;
+    color: var(--green);
+  }
+
+  /* Bottom Actions */
+  .bottom-actions {
+    position: sticky;
+    bottom: 0;
+    padding: 8px 16px 28px;
+    background: linear-gradient(transparent, var(--surface) 20%);
+    z-index: 5;
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 12px 16px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 200ms, transform 200ms;
+    flex: 1;
+    text-align: center;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+  }
+  .btn-secondary {
+    background: #F1F3F4;
+    color: var(--text-primary);
+  }
+
+  .bottom-space { height: 90px; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover { background: #1765CC; }
+    .btn-secondary:hover { background: #E8EAED; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .screen-label {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: #5F6368;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="phone-frame">
+    <div class="phone-screen">
+      <div class="phone-content">
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span>14:38</span>
+          <div class="status-bar-right">
+            <span class="material-symbols-outlined">signal_cellular_alt</span>
+            <span class="material-symbols-outlined">wifi</span>
+            <span class="material-symbols-outlined">battery_4_bar</span>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+          <span class="material-symbols-outlined back">arrow_back</span>
+          <span class="title">☔ Day 3-4 組み合わせプラン</span>
+        </div>
+
+        <!-- Plan A -->
+        <div class="plan-card active" data-delay="250" onclick="selectPlan(this)">
+          <div class="plan-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="plan-radio"></div>
+              <span class="plan-label">Plan A — ゆったり2日</span>
+            </div>
+            <span class="plan-price">+¥13,120</span>
+          </div>
+          <div class="plan-body">
+            <div class="day-label">Day 3</div>
+            <div class="timeline">
+              <span class="timeline-item"><span class="emoji">🏛</span>三十三間堂<span style="color:var(--text-tertiary);font-size:10px;">90分</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🏪</span>錦市場ランチ<span style="color:var(--text-tertiary);font-size:10px;">2h</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item booked"><span class="emoji">🥷</span>忍者<span style="color:var(--text-tertiary);font-size:10px;">予約済</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🛏</span>休憩</span>
+            </div>
+
+            <div class="day-label">Day 4</div>
+            <div class="timeline">
+              <span class="timeline-item"><span class="emoji">📚</span>マンガ<span style="color:var(--text-tertiary);font-size:10px;">2-3h</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🍜</span>ランチ</span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🚂</span>トロッコ<span style="color:var(--text-tertiary);font-size:10px;">25分</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🛏</span>休憩</span>
+            </div>
+
+            <div class="plan-note warning">
+              ⚠️ 食品サンプルはDay 4に入らない
+            </div>
+          </div>
+        </div>
+
+        <!-- Plan C -->
+        <div class="plan-card" data-delay="450" onclick="selectPlan(this)">
+          <div class="plan-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="plan-radio"></div>
+              <span class="plan-label">Plan C — マンガを別日にキープ</span>
+            </div>
+            <span class="plan-price">+¥23,520</span>
+          </div>
+          <div class="plan-body">
+            <div class="day-label">Day 3</div>
+            <div class="timeline">
+              <span class="timeline-item"><span class="emoji">🏛</span>三十三間堂<span style="color:var(--text-tertiary);font-size:10px;">90分</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🏪</span>錦市場ランチ</span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item booked"><span class="emoji">🥷</span>忍者<span style="color:var(--text-tertiary);font-size:10px;">予約済</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🛏</span>休憩</span>
+            </div>
+
+            <div class="day-label">Day 4</div>
+            <div class="timeline">
+              <span class="timeline-item"><span class="emoji">🍳</span>食品サンプル<span style="color:var(--text-tertiary);font-size:10px;">90分</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🍜</span>ランチ</span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🚂</span>トロッコ<span style="color:var(--text-tertiary);font-size:10px;">25分</span></span>
+              <span class="timeline-arrow">→</span>
+              <span class="timeline-item"><span class="emoji">🛏</span>休憩</span>
+            </div>
+
+            <div class="plan-note tip">
+              💡 マンガは次の雨の日用にキープ
+            </div>
+          </div>
+        </div>
+
+        <!-- Reschedule Info -->
+        <div class="reschedule-section" data-delay="650">
+          <div class="reschedule-title">☀️ リスケジュール</div>
+          <div class="reschedule-item">
+            <span>⛩ 伏見稲荷</span>
+            <span class="arrow">→</span>
+            <span class="reschedule-day">Day 5（晴れ ☀️）</span>
+          </div>
+          <div class="reschedule-item">
+            <span>👘 着物散歩</span>
+            <span class="arrow">→</span>
+            <span class="reschedule-day">Day 5 午後（晴れ ☀️）</span>
+          </div>
+        </div>
+
+        <div class="bottom-space"></div>
+      </div>
+
+      <!-- Bottom Actions -->
+      <div class="bottom-actions">
+        <button class="btn btn-primary">子供に見せる案を選ぶ</button>
+        <button class="btn btn-secondary">もっと調整</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-label">P2-14 Rain Combo Plans — Takeshi's Phone</div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.plan-card');
+    cards.forEach((card) => {
+      const delay = parseInt(card.dataset.delay) || 300;
+      setTimeout(() => {
+        card.style.animation = `fadeUp 400ms cubic-bezier(0.23, 1, 0.32, 1) forwards`;
+      }, delay);
+    });
+
+    const reschedule = document.querySelector('.reschedule-section');
+    setTimeout(() => {
+      reschedule.style.animation = `fadeUp 400ms cubic-bezier(0.23, 1, 0.32, 1) forwards`;
+    }, 650);
+  });
+
+  function selectPlan(selected) {
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
+    selected.classList.add('active');
+  }
+</script>
+</body>
+</html>

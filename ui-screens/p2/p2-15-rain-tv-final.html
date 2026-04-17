@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-15 Rainy Day Adventure — TV Final Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --blue: #1A73E8;
+    --green: #1E8E3E;
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255,255,255,0.75);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #2D2D2D;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    padding: 40px 20px;
+  }
+
+  /* TV Frame */
+  .tv-frame {
+    width: 960px;
+    height: 540px;
+    background: #0D1117;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 3px #1a1a1a,
+      0 20px 80px rgba(0,0,0,0.5),
+      0 8px 32px rgba(0,0,0,0.3);
+    position: relative;
+  }
+
+  /* Rain Animation */
+  .rain-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .rain-drop {
+    position: absolute;
+    width: 1px;
+    height: 20px;
+    background: linear-gradient(transparent, rgba(255,255,255,0.12));
+    animation: rainFall linear infinite;
+  }
+
+  @keyframes rainFall {
+    0% { transform: translateY(-30px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(560px); opacity: 0; }
+  }
+
+  /* Background Gradient */
+  .tv-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1f36 0%, #0d1117 30%, #162447 60%, #1f3c88 100%);
+    z-index: 0;
+  }
+
+  .tv-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    padding: 32px 40px 28px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .tv-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 600ms var(--ease-out-expo) 200ms forwards;
+  }
+  .tv-title {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+  }
+  .tv-title .rain { opacity: 0.9; }
+  .fairness-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(30,142,62,0.25);
+    border: 1px solid rgba(30,142,62,0.5);
+    color: #81C995;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 9999px;
+  }
+
+  /* Day Cards */
+  .days-row {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .day-card {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .day-card-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .activity-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    padding: 10px 14px;
+    border-radius: 12px;
+    transition: background 300ms;
+  }
+  .activity-item:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  .activity-item .emoji {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .activity-item .name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .flow-arrow {
+    text-align: center;
+    color: rgba(255,255,255,0.25);
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* Bottom Section */
+  .bottom-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 16px;
+    opacity: 0;
+    animation: fadeUp 600ms var(--ease-out-expo) 800ms forwards;
+  }
+
+  /* Fairness Display */
+  .fairness-row {
+    display: flex;
+    gap: 24px;
+  }
+  .person-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 8px 16px;
+    border-radius: 12px;
+  }
+  .person-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .person-items {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .person-emoji {
+    font-size: 20px;
+  }
+
+  /* Quotes */
+  .quotes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+  }
+  .quote {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    font-style: italic;
+  }
+  .quote .name {
+    font-weight: 700;
+    color: rgba(255,255,255,0.8);
+    font-style: normal;
+  }
+
+  /* Reschedule Note */
+  .reschedule-note {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    opacity: 0;
+    animation: fadeUp 600ms var(--ease-out-expo) 1000ms forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .screen-label {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: #9AA0A6;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="tv-frame">
+    <div class="tv-bg"></div>
+    <div class="rain-container" id="rain"></div>
+
+    <div class="tv-content">
+      <!-- Header -->
+      <div class="tv-header">
+        <div class="tv-title">
+          <span class="rain">☔</span> RAINY DAY ADVENTURE <span style="opacity:0.6;">— FINAL PLAN!</span>
+        </div>
+        <div class="fairness-badge">
+          <span class="material-symbols-outlined" style="font-size:18px;">balance</span>
+          公平性 ✓
+        </div>
+      </div>
+
+      <!-- Day Cards -->
+      <div class="days-row">
+        <!-- Day 3 -->
+        <div class="day-card" id="day3">
+          <div class="day-card-header">Day 3</div>
+          <div class="activity-flow">
+            <div class="activity-item">
+              <span class="emoji">🏛</span>
+              <span class="name">仏像</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="activity-item">
+              <span class="emoji">🥷</span>
+              <span class="name">忍者</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="activity-item">
+              <span class="emoji">🏪</span>
+              <span class="name">錦市場</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="activity-item">
+              <span class="emoji">📚</span>
+              <span class="name">マンガ！</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Day 4 -->
+        <div class="day-card" id="day4">
+          <div class="day-card-header">Day 4</div>
+          <div class="activity-flow">
+            <div class="activity-item">
+              <span class="emoji">🍳</span>
+              <span class="name">食品サンプル</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="activity-item">
+              <span class="emoji">🎨</span>
+              <span class="name">タイルアート</span>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="activity-item">
+              <span class="emoji">🚂</span>
+              <span class="name">トロッコ！</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Section -->
+      <div class="bottom-section">
+        <!-- Fairness Display -->
+        <div class="fairness-row">
+          <div class="person-card">
+            <div>
+              <div class="person-name">Kai</div>
+              <div class="person-items">📚マンガ + 🥷忍者</div>
+            </div>
+            <span class="person-emoji">😊</span>
+          </div>
+          <div class="person-card">
+            <div>
+              <div class="person-name">Mia</div>
+              <div class="person-items">🍳食品 + 🎨タイル</div>
+            </div>
+            <span class="person-emoji">😊</span>
+          </div>
+        </div>
+
+        <!-- Quotes -->
+        <div class="quotes-section">
+          <div class="quote"><span class="name">Kai:</span>「最高！マンガも入った！」</div>
+          <div class="quote"><span class="name">Mia:</span>「食品サンプルもタイルも！やった～！」</div>
+        </div>
+      </div>
+
+      <!-- Reschedule Note -->
+      <div class="reschedule-note">
+        ⛩ 伏見稲荷 + 👘 着物 → Day 5（晴れ ☀️）！
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-label">P2-15 Rainy Day Adventure — TV Final Plan (Kid View)</div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Generate rain drops
+    const rainContainer = document.getElementById('rain');
+    for (let i = 0; i < 60; i++) {
+      const drop = document.createElement('div');
+      drop.classList.add('rain-drop');
+      drop.style.left = Math.random() * 100 + '%';
+      drop.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+      drop.style.animationDelay = Math.random() * 3 + 's';
+      drop.style.height = (12 + Math.random() * 16) + 'px';
+      drop.style.opacity = 0.15 + Math.random() * 0.2;
+      rainContainer.appendChild(drop);
+    }
+
+    // Stagger day card animations
+    const day3 = document.getElementById('day3');
+    const day4 = document.getElementById('day4');
+    setTimeout(() => {
+      day3.style.animation = 'fadeUp 600ms cubic-bezier(0.23, 1, 0.32, 1) forwards';
+    }, 400);
+    setTimeout(() => {
+      day4.style.animation = 'fadeUp 600ms cubic-bezier(0.23, 1, 0.32, 1) forwards';
+    }, 550);
+  });
+</script>
+</body>
+</html>

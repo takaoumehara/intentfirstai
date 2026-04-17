@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3-03 TV Cast + Remote Transformation</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined:opsz,wght,FILL@20..48,100..700,0..1" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+  --blue: #1A73E8;
+  --blue-light: #E8F0FE;
+  --blue-dim: #D2E3FC;
+  --green: #1E8E3E;
+  --green-light: #E6F4EA;
+  --amber: #E37400;
+  --amber-light: #FEF7E0;
+  --surface: #FFFFFF;
+  --surface-dim: #F8F9FA;
+  --surface-container: #F1F3F4;
+  --text: #202124;
+  --text-2: #5F6368;
+  --text-3: #9AA0A6;
+  --text-4: #BDC1C6;
+  --border: #DADCE0;
+  --border-light: #E8EAED;
+}
+body {
+  background: #35363a;
+  font-family: 'Google Sans', 'Google Sans Text', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--text);
+}
+/* Subtle centered glow behind the stage */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 70% at 42% 50%, rgba(255,255,255,0.04) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* ═══ STAGE ═══ */
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 20px 32px;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ═══ TV ═══ */
+.tv-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  opacity: 0;
+  transform: scale(0.94) translateY(16px);
+  pointer-events: none;
+  transition: opacity 500ms var(--ease-out-expo), transform 600ms var(--ease-out-expo);
+}
+.tv-wrapper.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+.tv-frame {
+  width: min(1100px, calc(100vw - 360px - 32px - 32px));
+  height: calc(min(1100px, calc(100vw - 360px - 32px - 32px)) * 9 / 16);
+  background: var(--surface);
+  border-radius: 10px;
+  overflow: visible;
+  position: relative;
+  border: 12px solid #111113;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.5),
+    0 0 0 2px #4a4b50,
+    0 0 0 4px #2a2b30;
+}
+.tv-bezel { width: 200px; height: 20px; background: #111113; border-radius: 0 0 8px 8px; margin: 0 auto; }
+.tv-stand { width: 300px; height: 4px; background: #222328; border-radius: 2px; margin: -1px auto 0; }
+/* Subtle TV screen ambient glow */
+.tv-frame::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ═══ TV CONTENT — CARD GRID ═══ */
+.tv-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 14px;
+  background: var(--surface-dim);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.tv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.tv-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tv-gemini-star {
+  font-size: 16px;
+  color: var(--blue);
+  line-height: 1;
+  animation: geminPulse 2.4s ease-in-out infinite;
+}
+@keyframes geminPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(0.88); }
+}
+.tv-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.tv-subtitle {
+  font-size: 14px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tv-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+  padding: 4px;
+  margin: -4px;
+}
+.tv-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 3.5px solid transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  transition: border-color 200ms var(--ease), box-shadow 220ms var(--ease), transform 220ms var(--ease);
+  cursor: pointer;
+  position: relative;
+  will-change: transform;
+  overflow: hidden;
+  min-height: 0;
+}
+.tv-card:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .tv-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); transform: translateY(-2px); }
+}
+.tv-card.focused {
+  border-color: var(--blue);
+  box-shadow: 0 6px 32px rgba(26,115,232,.22);
+  transform: translateY(-3px);
+}
+
+/* Hero image — fixed height so info bar is always visible */
+.tv-card-img {
+  width: 100%;
+  height: 0;
+  flex: 1;
+  min-height: 0;
+  background: var(--surface-dim);
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tv-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+/* Bottom bar — fixed height, always visible */
+.tv-card-bar {
+  flex-shrink: 0;
+  padding: 8px 10px 9px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 68px;
+}
+.tv-card-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.tv-card-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.tv-card-brand {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.tv-tag {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface-dim);
+  color: var(--text-2);
+  border: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+.tv-tag--blue { background: var(--blue-light); color: var(--blue); border-color: var(--blue-dim); }
+.tv-tag--amber { background: var(--amber-light); color: var(--amber); border-color: #FDE68A; }
+
+.tv-card-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+}
+.tv-card-warning .material-symbols-outlined { font-size: 15px; }
+
+.tv-nav-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-size: 13px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tv-nav-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* Detail nav hint bar */
+.detail-nav-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 13px;
+  color: var(--text-3);
+  pointer-events: none;
+  z-index: 5;
+}
+.detail-nav-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.detail-nav-hint-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Back to All focused state (when navigated via remote) */
+.td-back.remote-focused {
+  background: var(--blue-light);
+  color: var(--blue);
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-bottom: 8px;
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+/* ═══ TV DETAIL OVERLAY ═══ */
+.tv-detail {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: 46% 54%;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
+  transition: opacity 280ms var(--ease-out-expo), transform 320ms var(--ease-out-expo);
+  z-index: 10;
+}
+.tv-detail.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+/* Detail — left: image gallery */
+.td-gallery {
+  background: var(--surface-dim);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 8px;
+  overflow: hidden;
+}
+.td-main-img {
+  flex: 1;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.td-main-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  padding: 6px;
+  transition: opacity 300ms var(--ease);
+}
+.td-thumbs {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 60px;
+}
+.td-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 2px solid transparent;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 200ms var(--ease);
+  padding: 3px;
+}
+.td-thumb.active { border-color: var(--blue); }
+.td-thumb img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Detail — right: info */
+.td-info {
+  padding: 16px 24px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-light) transparent;
+  display: flex;
+  flex-direction: column;
+}
+.td-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 150ms ease-out, background 150ms ease-out;
+  margin-bottom: 12px;
+  align-self: flex-start;
+  padding: 4px 10px 4px 4px;
+  border-radius: 8px;
+  margin-left: -4px;
+}
+.td-back .material-symbols-outlined { font-size: 18px; }
+
+.td-brand {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.td-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.6px;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+
+.td-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.td-match.g { background: var(--green-light); color: var(--green); }
+.td-match.b { background: var(--blue-light); color: var(--blue); }
+.td-match.a { background: var(--amber-light); color: var(--amber); }
+.td-match .material-symbols-outlined { font-size: 16px; }
+
+/* Spec grid */
+.td-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  margin-top: 6px;
+}
+.td-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.td-spec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--surface-dim);
+  border-radius: 8px;
+}
+.td-spec .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+.td-spec-text {
+  display: flex;
+  flex-direction: column;
+}
+.td-spec-label {
+  font-size: 11px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.td-spec-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Review summary */
+.td-reviews {
+  margin-bottom: 16px;
+}
+.td-review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.td-stars {
+  display: flex;
+  gap: 1px;
+}
+.td-stars .material-symbols-outlined {
+  font-size: 16px;
+  color: #FBBC04;
+  font-variation-settings: 'FILL' 1;
+}
+.td-stars .material-symbols-outlined.dim {
+  color: var(--border);
+  font-variation-settings: 'FILL' 0;
+}
+.td-review-score {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.td-review-count {
+  font-size: 15px;
+  color: var(--text-3);
+}
+.td-review-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.td-review-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.td-review-bar-label {
+  font-size: 10px;
+  color: var(--text-3);
+  width: 10px;
+  text-align: right;
+  font-weight: 500;
+}
+.td-review-bar-track {
+  flex: 1;
+  height: 4px;
+  background: var(--surface-container);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.td-review-bar-fill {
+  height: 100%;
+  background: #FBBC04;
+  border-radius: 2px;
+}
+
+/* Highlights */
+.td-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.td-highlight {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 16px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+.td-highlight .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--green);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.td-highlight.warn .material-symbols-outlined { color: var(--amber); }
+
+/* Size info */
+.td-size-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--green-light);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--green);
+  margin-bottom: 14px;
+}
+.td-size-info .material-symbols-outlined { font-size: 22px; }
+
+/* Price note */
+.td-price-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface-dim);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text-3);
+  margin-top: auto;
+}
+.td-price-note .material-symbols-outlined { font-size: 18px; }
+
+/* ═══ TV CELEBRATION OVERLAY ═══ */
+.tv-celebrate {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.97);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms var(--ease-out-expo);
+}
+.tv-celebrate.visible { opacity: 1; pointer-events: auto; }
+.celebrate-emoji {
+  font-size: 56px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: none;
+}
+.tv-celebrate.visible .celebrate-emoji {
+  animation: celebrateBounce 0.55s var(--ease-out-expo) forwards;
+}
+@keyframes celebrateBounce {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.celebrate-product-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  background: var(--surface-dim);
+  overflow: hidden;
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 400ms 200ms var(--ease-out-expo), transform 400ms 200ms var(--ease-out-expo);
+}
+.tv-celebrate.visible .celebrate-product-img { opacity: 1; transform: translateY(0); }
+.celebrate-product-img img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.celebrate-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 400ms 300ms var(--ease-out-expo), transform 400ms 300ms var(--ease-out-expo);
+}
+.tv-celebrate.visible .celebrate-title { opacity: 1; transform: translateY(0); }
+.celebrate-subtitle {
+  font-size: 18px;
+  color: var(--text-2);
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 400ms 400ms var(--ease-out-expo), transform 400ms 400ms var(--ease-out-expo);
+}
+.tv-celebrate.visible .celebrate-subtitle { opacity: 1; transform: translateY(0); }
+.celebrate-delivery {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--green-light);
+  color: var(--green);
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 400ms 500ms var(--ease-out-expo), transform 400ms 500ms var(--ease-out-expo);
+}
+.tv-celebrate.visible .celebrate-delivery { opacity: 1; transform: translateY(0); }
+.celebrate-delivery .material-symbols-outlined { font-size: 18px; }
+
+/* Confetti */
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+}
+
+/* ═══ PHONE ═══ */
+.phone-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  transition: transform 500ms var(--ease), opacity 500ms var(--ease);
+}
+.phone-frame {
+  width: 320px;
+  height: 680px;
+  background: #1a1a1c;
+  border-radius: 48px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.45),
+    0 0 0 1px rgba(255,255,255,.14);
+  transition: width 500ms var(--ease), height 500ms var(--ease);
+}
+.phone-frame::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 28px;
+  background: #111;
+  border-radius: 18px;
+  z-index: 10;
+}
+.phone-status-bar {
+  height: 52px;
+  padding: 30px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  position: relative;
+  z-index: 5;
+}
+.phone-status-icons {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.phone-status-icons .material-symbols-outlined { font-size: 15px; }
+
+.phone-body {
+  height: calc(100% - 52px - 30px);
+  overflow: hidden;
+  position: relative;
+  background: var(--surface);
+}
+.phone-home {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-dim);
+}
+.phone-home-bar {
+  width: 110px;
+  height: 4px;
+  background: var(--text);
+  border-radius: 9999px;
+  opacity: .2;
+}
+
+/* ═══ Phone Browse ═══ */
+.phone-browse {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--surface);
+  padding: 16px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  transition: opacity 400ms var(--ease), transform 400ms var(--ease);
+}
+.phone-browse::-webkit-scrollbar { display: none; }
+
+.browse-gemini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--blue);
+  margin-bottom: 14px;
+}
+.browse-gemini .material-symbols-outlined { font-size: 18px; }
+.browse-label { font-size: 12px; color: var(--text-3); margin-bottom: 12px; }
+
+.browse-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 10px;
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: border-color 150ms ease-out, transform 100ms ease-out, box-shadow 150ms ease-out;
+}
+.browse-card:active { transform: scale(0.98); box-shadow: 0 0 0 2px var(--blue-dim); }
+.browse-card-img {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  background: var(--surface-dim);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.browse-card-img img { width: 100%; height: 100%; object-fit: contain; }
+.browse-card-info { flex: 1; min-width: 0; }
+.browse-card-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.browse-card-price { font-size: 17px; font-weight: 700; color: var(--text); margin: 1px 0; }
+.browse-card-meta {
+  font-size: 11px;
+  color: var(--text-2);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.browse-conf { font-weight: 600; }
+.browse-conf.g { color: var(--green); }
+.browse-conf.b { color: var(--blue); }
+.browse-conf.a { color: var(--amber); }
+.browse-bar { width: 40px; height: 3px; background: var(--surface-container); border-radius: 2px; overflow: hidden; }
+.browse-bar-fill { height: 100%; border-radius: 2px; }
+.browse-delivery {
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.browse-delivery .material-symbols-outlined { font-size: 13px; }
+
+.cast-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  padding: 14px;
+  border-radius: 9999px;
+  background: var(--blue);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out;
+  box-shadow: 0 2px 8px rgba(26,115,232,.3);
+  /* Fixed at bottom of phone screen, above home bar */
+  position: absolute;
+  bottom: 44px;
+  left: 16px;
+  z-index: 10;
+}
+.cast-btn:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .cast-btn:hover { background: #1765CC; box-shadow: 0 4px 16px rgba(26,115,232,.4); }
+}
+.cast-btn .material-symbols-outlined { font-size: 20px; }
+/* Fade gradient above cast-btn so scroll content blends */
+.cast-btn-fade {
+  position: absolute;
+  bottom: 96px;
+  left: 0; right: 0;
+  height: 48px;
+  background: linear-gradient(to bottom, transparent, var(--surface));
+  pointer-events: none;
+  z-index: 9;
+}
+
+/* ═══ Phone Remote ═══ */
+.phone-remote {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--surface-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms var(--ease);
+}
+
+.connected-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--blue-light);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--blue);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms 500ms var(--ease), transform 300ms 500ms var(--ease);
+}
+.connected-badge .material-symbols-outlined { font-size: 16px; }
+.close-x {
+  cursor: pointer;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  transition: background 150ms;
+}
+
+.dpad-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.95); opacity: 0;
+  transition: transform 500ms 200ms var(--ease), opacity 500ms 200ms var(--ease);
+}
+.dpad {
+  width: 200px; height: 200px;
+  background: #ECEDEF;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,.06);
+}
+.dpad-btn {
+  position: absolute;
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  transition: background 120ms, box-shadow 120ms, transform 120ms;
+  -webkit-tap-highlight-color: transparent;
+}
+.dpad-btn:active { background: var(--blue-light); }
+.dpad-btn svg { width: 18px; height: 18px; fill: var(--text-2); }
+.dpad-up    { top: 10px; left: 50%; transform: translateX(-50%); }
+.dpad-down  { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.dpad-left  { left: 10px; top: 50%; transform: translateY(-50%); }
+.dpad-right { right: 10px; top: 50%; transform: translateY(-50%); }
+/* Combine centering + press scale to prevent jump */
+.dpad-up:active    { transform: translateX(-50%) scale(.93); }
+.dpad-down:active  { transform: translateX(-50%) scale(.93); }
+.dpad-left:active  { transform: translateY(-50%) scale(.93); }
+.dpad-right:active { transform: translateY(-50%) scale(.93); }
+
+.dpad-ok {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--blue);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(26,115,232,.35);
+  transition: background 120ms, transform 120ms;
+}
+.dpad-ok:active { transform: scale(.93); }
+@media (hover: hover) and (pointer: fine) {
+  .dpad-ok:hover { background: #1765CC; box-shadow: 0 6px 20px rgba(26,115,232,.45); }
+}
+
+.remote-panel {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 20px 12px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+  transform: translateY(100%);
+  transition: transform 500ms 350ms var(--ease);
+  position: relative;
+}
+.remote-panel::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+}
+.remote-product { font-size: 15px; font-weight: 600; color: var(--text); }
+.remote-price { font-size: 22px; font-weight: 700; color: var(--text); margin: 2px 0; }
+.remote-meta {
+  font-size: 12px;
+  color: var(--text-2);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.remote-meta .conf { font-weight: 600; }
+.remote-meta .conf.g { color: var(--green); }
+.remote-meta .conf.b { color: var(--blue); }
+.remote-meta .conf.a { color: var(--amber); }
+
+.buy-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9999px;
+  background: var(--blue);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease-out, transform 100ms ease-out;
+}
+.buy-btn:active { transform: scale(0.97); }
+.buy-btn.success { background: var(--green); }
+
+.disclosure-note {
+  font-size: 11px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.disclosure-note .material-symbols-outlined { font-size: 14px; }
+
+/* ═══ Phase transitions ═══ */
+.phone-frame.cast .phone-browse { opacity: 0; transform: scale(.92); pointer-events: none; }
+.phone-frame.cast .cast-btn { opacity: 0; pointer-events: none; transition: opacity 300ms ease; }
+.phone-frame.cast .cast-btn-fade { opacity: 0; }
+.phone-frame.cast .phone-remote { opacity: 1; pointer-events: auto; }
+.phone-frame.cast .connected-badge { opacity: 1; transform: translateY(0); }
+.phone-frame.cast .dpad-area { transform: scale(1); opacity: 1; }
+.phone-frame.cast .remote-panel { transform: translateY(0); }
+.phone-frame.cast .phone-home { background: var(--surface-dim); }
+
+/* ═══ Labels ═══ */
+.frame-label {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,.3);
+  letter-spacing: 0.3px;
+}
+
+/* ═══ Step indicator ═══ */
+.steps {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(24,24,24,.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 10px 18px;
+  border-radius: 9999px;
+  z-index: 100;
+}
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  transition: background 300ms var(--ease), width 300ms var(--ease), border-radius 300ms var(--ease);
+}
+.step-dot.active {
+  background: var(--blue);
+  width: 22px;
+  border-radius: 4px;
+}
+.step-label {
+  font-size: 12px;
+  color: rgba(255,255,255,.55);
+  margin-left: 2px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255,255,255,.15);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .td-back:hover { color: var(--blue); background: var(--blue-light); }
+  .td-thumb:hover { border-color: var(--blue-dim); }
+  .browse-card:hover { border-color: var(--blue); box-shadow: 0 2px 8px rgba(26,115,232,.08); }
+  /* cast-btn hover defined in cast-btn block above — not duplicated here */
+  .dpad-btn:hover { background: #F8F9FA; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+  .dpad-ok:hover { background: #1765CC; }
+  .buy-btn:hover { background: #1765CC; }
+  .close-x:hover { background: rgba(0,0,0,.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Scene Badge — hidden ── */
+.scene-badge { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- ═══ TV ═══ -->
+  <div class="tv-wrapper" id="tvWrapper">
+    <div class="tv-frame" id="tvFrame">
+      <div class="tv-content" id="tvContent">
+        <div class="tv-header">
+          <div class="tv-header-left">
+            <div class="tv-gemini-star">✦</div>
+            <div class="tv-title">Which one do you like?</div>
+          </div>
+          <div class="tv-subtitle">
+            <span class="material-symbols-outlined" style="font-size:14px">gamepad</span>
+            Use remote to browse
+          </div>
+        </div>
+        <div class="tv-cards" id="tvCards">
+
+          <div class="tv-card focused" data-i="0">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack Hiker Mid WP"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">Fastpack Hiker Mid WP</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">The North Face</span>
+                <span class="tv-tag tv-tag--blue">Waterproof! 🌧</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-card" data-i="1">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB 6 NSW Leather"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">SFB 6" NSW Leather</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Nike</span>
+                <span class="tv-tag tv-tag--blue">Tough! 💪</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-card" data-i="2">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif" alt="On Cloudrock Mid WP"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">Cloudrock Mid WP</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">On</span>
+                <span class="tv-tag tv-tag--blue">Super comfy! ☁</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-card" data-i="3">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif" alt="Adidas Terrex Anylander Mid"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">Terrex Anylander Mid</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Adidas</span>
+                <span class="tv-tag tv-tag--amber"><span class="tv-card-warning"><span class="material-symbols-outlined">warning</span>Stiff sole</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-card" data-i="4">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp" alt="Salomon XA Pro V8 Mid"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">XA Pro V8 Mid</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Salomon</span>
+                <span class="tv-tag tv-tag--blue">Lightweight! 🪶</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-card" data-i="5">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png" alt="Puma RS-X Mid"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">RS-X Mid Black Ice</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Puma</span>
+                <span class="tv-tag tv-tag--blue">Athletic! 🏃</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-card" data-i="6">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif" alt="Vans Sk8-Hi GORE-TEX"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">Sk8-Hi GORE-TEX</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Vans</span>
+                <span class="tv-tag tv-tag--amber"><span class="tv-card-warning"><span class="material-symbols-outlined">warning</span>Heavy for PE</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-card" data-i="7">
+            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif" alt="Ecco Mid Boot GTX"></div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">Mid Boot GTX</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Ecco</span>
+                <span class="tv-tag tv-tag--amber"><span class="tv-card-warning"><span class="material-symbols-outlined">warning</span>Few reviews</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tv-nav-hint">
+          <kbd>↑↓←→</kbd> Browse &nbsp;
+          <kbd>OK</kbd> Details
+        </div>
+      </div>
+
+      <!-- ═══ TV Celebration ═══ -->
+      <div class="tv-celebrate" id="tvCelebrate">
+        <div class="confetti-container" id="confettiContainer"></div>
+        <div class="celebrate-emoji">🎉</div>
+        <div class="celebrate-product-img" id="celebrateImg"><img id="celebrateImgSrc" src="" alt=""></div>
+        <div class="celebrate-title" id="celebrateTitle">Great choice!</div>
+        <div class="celebrate-subtitle" id="celebrateSubtitle">Order placed for Marcus</div>
+        <div class="celebrate-delivery">
+          <span class="material-symbols-outlined">local_shipping</span>
+          <span id="celebrateShip">Arriving Friday</span>
+        </div>
+      </div>
+
+      <!-- ═══ Detail Overlay ═══ -->
+      <div class="tv-detail" id="tvDetail">
+        <div class="td-gallery">
+          <div class="td-main-img"><img id="tdMainImg" src="" alt=""></div>
+          <div class="td-thumbs" id="tdThumbs"></div>
+        </div>
+        <div class="td-info">
+          <div class="td-back" id="tdBack">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back to all
+          </div>
+          <div class="td-brand" id="tdBrand"></div>
+          <div class="td-name" id="tdName"></div>
+          <div class="td-match" id="tdMatch"></div>
+
+          <div class="td-section-title">Specifications</div>
+          <div class="td-specs" id="tdSpecs"></div>
+
+          <div class="td-section-title">Customer Reviews</div>
+          <div class="td-reviews" id="tdReviews"></div>
+
+          <div class="td-section-title">Key Features</div>
+          <div class="td-highlights" id="tdHighlights"></div>
+
+          <div id="tdSizeInfo"></div>
+
+          <div class="td-price-note">
+            <span class="material-symbols-outlined">visibility_off</span>
+            Pricing and purchase available on parent's device only
+          </div>
+        </div>
+        <div class="detail-nav-hint" id="detailNavHint">
+          <div class="detail-nav-hint-item"><kbd>← →</kbd> Photos</div>
+          <div class="detail-nav-hint-item"><kbd>↑ ↓</kbd> Scroll</div>
+          <div class="detail-nav-hint-item"><kbd>↑↑</kbd> Back to grid</div>
+          <div class="detail-nav-hint-item"><kbd>OK</kbd> Close</div>
+        </div>
+      </div>
+    </div>
+    <div class="tv-bezel"></div>
+    <div class="tv-stand"></div>
+    <div class="frame-label">Chromecast — Living Room TV</div>
+  </div>
+
+  <!-- ═══ Phone ═══ -->
+  <div class="phone-wrapper" id="phoneWrapper">
+    <div class="phone-frame" id="phone">
+      <div class="scene-badge scene-badge--03">
+        <span class="material-symbols-outlined" style="font-size:12px">tv</span>
+        Scene 3 · Living Room
+      </div>
+      <div class="phone-status-bar">
+        <span>9:41</span>
+        <div class="phone-status-icons">
+          <span class="material-symbols-outlined">signal_cellular_alt</span>
+          <span class="material-symbols-outlined">wifi</span>
+          <span class="material-symbols-outlined">battery_full</span>
+        </div>
+      </div>
+
+      <div class="phone-body">
+        <!-- Browse -->
+        <div class="phone-browse" id="phoneBrowse">
+          <div class="browse-gemini">
+            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">auto_awesome</span>
+            Gemini · Marcus's Winter Shoes
+          </div>
+          <div class="browse-label">8 kept from your commute · ready to cast</div>
+
+          <div class="browse-card" data-i="0">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack Hiker Mid WP"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">TNF Fastpack Hiker Mid WP</div>
+              <div class="browse-card-price">$69</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf g">94%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:94%;background:var(--green)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="browse-card" data-i="1">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB 6 NSW Leather"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">Nike SFB 6" NSW Leather</div>
+              <div class="browse-card-price">$120</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf g">91%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:91%;background:var(--green)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="browse-card" data-i="2">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif" alt="On Cloudrock Mid WP"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">On Cloudrock Mid WP</div>
+              <div class="browse-card-price">$190</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf b">88%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:88%;background:var(--blue)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="browse-card" data-i="3">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif" alt="Adidas Terrex Anylander Mid"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">Adidas Terrex Anylander Mid</div>
+              <div class="browse-card-price">$85</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf b">80%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:80%;background:var(--blue)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Sat</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="browse-card" data-i="4">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp" alt="Salomon XA Pro V8 Mid"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">Salomon XA Pro V8 Mid</div>
+              <div class="browse-card-price">$75</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf b">82%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:82%;background:var(--blue)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Sat</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="browse-card" data-i="5">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png" alt="Puma RS-X Mid"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">Puma RS-X Mid Black Ice</div>
+              <div class="browse-card-price">$100</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf b">85%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:85%;background:var(--blue)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
+              </div>
+            </div>
+          </div>
+          <div class="browse-card" data-i="6">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif" alt="Vans Sk8-Hi GORE-TEX"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">Vans Sk8-Hi GORE-TEX</div>
+              <div class="browse-card-price">$140</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf a">79%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:79%;background:var(--amber)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Sat</span>
+              </div>
+            </div>
+          </div>
+          <div class="browse-card" data-i="7">
+            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif" alt="Ecco Mid Boot GTX"></div>
+            <div class="browse-card-info">
+              <div class="browse-card-name">Ecco Mid Boot GTX</div>
+              <div class="browse-card-price">$125</div>
+              <div class="browse-card-meta">
+                <span class="browse-conf a">71%</span>
+                <div class="browse-bar"><div class="browse-bar-fill" style="width:71%;background:var(--amber)"></div></div>
+                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Mon</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Cast button — fixed above home bar, always visible -->
+        <div class="cast-btn-fade"></div>
+        <button class="cast-btn" id="castBtn" onclick="castToTV()">
+          <span class="material-symbols-outlined">cast</span>
+          Cast to TV
+        </button>
+
+        <!-- Remote -->
+        <div class="phone-remote" id="phoneRemote">
+          <div class="connected-badge">
+            <span style="display:flex;align-items:center;gap:4px;">
+              <span class="material-symbols-outlined" style="font-size:16px">tv</span>
+              Connected to Living Room TV
+            </span>
+            <span class="close-x" onclick="disconnect()">
+              <span class="material-symbols-outlined" style="font-size:16px">close</span>
+            </span>
+          </div>
+
+          <div class="dpad-area">
+            <div class="dpad">
+              <button class="dpad-btn dpad-up" onclick="tvNav('up')"><svg viewBox="0 0 24 24"><path d="M12 8l-5 5h10z"/></svg></button>
+              <button class="dpad-btn dpad-down" onclick="tvNav('down')"><svg viewBox="0 0 24 24"><path d="M12 16l5-5H7z"/></svg></button>
+              <button class="dpad-btn dpad-left" onclick="tvNav('left')"><svg viewBox="0 0 24 24"><path d="M8 12l5-5v10z"/></svg></button>
+              <button class="dpad-btn dpad-right" onclick="tvNav('right')"><svg viewBox="0 0 24 24"><path d="M16 12l-5 5V7z"/></svg></button>
+              <button class="dpad-ok" id="okBtn" onclick="tvOK()">OK</button>
+            </div>
+          </div>
+
+          <div class="remote-panel" id="remotePanel">
+            <div class="remote-product" id="rName">The North Face Fastpack Hiker Mid WP</div>
+            <div class="remote-price" id="rPrice">$69</div>
+            <div class="remote-meta">
+              <span class="conf g" id="rConf">94% match</span>
+              <span id="rShip" style="display:flex;align-items:center;gap:3px"><span class="material-symbols-outlined" style="font-size:14px">local_shipping</span> Arrives Friday</span>
+            </div>
+            <button class="buy-btn" id="buyBtn" onclick="buyProduct()">Buy Now</button>
+            <div class="disclosure-note">
+              <span class="material-symbols-outlined">visibility_off</span>
+              Price visible only on parent's phone
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="frame-label" id="phoneLabel">Pixel 9 Pro — Phone Browse</div>
+  </div>
+</div>
+
+<!-- Steps -->
+<div class="steps" id="steps">
+  <div class="step-dot active" data-s="0"></div>
+  <div class="step-dot" data-s="1"></div>
+  <div class="step-dot" data-s="2"></div>
+  <span class="step-label" id="stepLabel">Phone Browse</span>
+</div>
+
+<script>
+const IMG = '../../projects/project-03/image-set03/product';
+const products = [
+  {
+    brand: 'The North Face',
+    name: 'Fastpack Hiker Mid WP',
+    fullName: 'TNF Fastpack Hiker Mid Waterproof',
+    price: '$69',
+    conf: 94, cc: 'g',
+    ship: 'Arrives Friday',
+    imgs: [
+      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp`,
+      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.33.webp`,
+      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.40.webp`,
+      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.47.webp`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '268g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'DryVent membrane' },
+      { icon: 'layers', label: 'Upper', value: 'Synthetic mesh' },
+      { icon: 'height', label: 'Height', value: 'Mid-cut' },
+      { icon: 'timeline', label: 'Sole', value: 'TNF rubber outsole' },
+    ],
+    review: { score: 4.3, count: 132, bars: [62, 22, 10, 4, 2] },
+    highlights: [
+      { text: 'DryVent waterproof membrane keeps feet dry in rain and puddles', warn: false },
+      { text: 'Lightweight at 268g — great for PE and outdoor play', warn: false },
+      { text: 'OrthoLite footbed for all-day cushioning', warn: false },
+      { text: 'Mid-cut collar supports ankles during running', warn: false },
+      { text: 'Runs slightly large — consider ordering half size down', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — based on Marcus\'s last purchase (2Y), half size up recommended',
+  },
+  {
+    brand: 'Nike',
+    name: 'SFB 6" NSW Leather',
+    fullName: 'Nike SFB 6" NSW Leather Boot',
+    price: '$120',
+    conf: 91, cc: 'g',
+    ship: 'Arrives Friday',
+    imgs: [
+      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER.avif`,
+      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (1).avif`,
+      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (2).avif`,
+      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (3).avif`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '312g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'Water-resistant leather' },
+      { icon: 'layers', label: 'Upper', value: 'Full-grain leather' },
+      { icon: 'height', label: 'Height', value: '6" mid-cut' },
+      { icon: 'timeline', label: 'Sole', value: 'Rubber lug outsole' },
+    ],
+    review: { score: 4.5, count: 187, bars: [72, 18, 6, 2, 2] },
+    highlights: [
+      { text: 'Full-grain leather upper — tough and durable for daily wear', warn: false },
+      { text: 'Foam midsole provides all-day cushioning for active kids', warn: false },
+      { text: 'Rubber lug outsole with aggressive traction pattern', warn: false },
+      { text: 'Mid-cut collar supports ankles during running and climbing', warn: false },
+      { text: 'Reviewers note: runs slightly narrow — consider half size up for wide feet', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — based on Marcus\'s last purchase (2Y), half size up recommended',
+  },
+  {
+    brand: 'On',
+    name: 'Cloudrock Mid WP',
+    fullName: 'On Cloudrock Mid Waterproof',
+    price: '$190',
+    conf: 88, cc: 'b',
+    ship: 'Arrives Friday',
+    imgs: [
+      `${IMG}/On/3944a9b878177e6590b74b7172c353449604e1a1.avif`,
+      `${IMG}/On/b5652b88f1cadc149d06c9d6c92dc46cf6d97628.avif`,
+      `${IMG}/On/9aa81d7ded3195099e914df434dd5336436ea7a8.avif`,
+      `${IMG}/On/aa899f8ed483ea162dd509db3758e0da8a3cf068.avif`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '310g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'Waterproof membrane' },
+      { icon: 'layers', label: 'Upper', value: 'Textile + synthetic' },
+      { icon: 'height', label: 'Height', value: 'Mid-cut' },
+      { icon: 'timeline', label: 'Sole', value: 'CloudTec cushion' },
+    ],
+    review: { score: 4.4, count: 203, bars: [66, 22, 7, 3, 2] },
+    highlights: [
+      { text: 'CloudTec sole provides cloud-like cushioning — super comfortable', warn: false },
+      { text: 'Full waterproof membrane keeps feet completely dry', warn: false },
+      { text: 'Premium build quality — durable for active kids', warn: false },
+      { text: 'Speed-lacing system for easy on/off', warn: false },
+      { text: 'Higher price point — premium comfort comes at a cost', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — On runs narrow, consider sizing up for wide feet',
+  },
+  {
+    brand: 'Adidas',
+    name: 'Terrex Anylander Mid',
+    fullName: 'Adidas Terrex Anylander Leather Mid Climaproof',
+    price: '$85',
+    conf: 80, cc: 'b',
+    ship: 'Arrives Saturday',
+    imgs: [
+      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif`,
+      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_02_standard.avif`,
+      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_03_standard.avif`,
+      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_09_standard.avif`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '330g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'Climaproof membrane' },
+      { icon: 'layers', label: 'Upper', value: 'Leather + synthetic' },
+      { icon: 'height', label: 'Height', value: 'Mid-cut' },
+      { icon: 'timeline', label: 'Sole', value: 'Traxion rubber' },
+    ],
+    review: { score: 4.1, count: 98, bars: [52, 28, 12, 5, 3] },
+    highlights: [
+      { text: 'Leather upper is sturdy and durable for rough terrain', warn: false },
+      { text: 'Climaproof membrane provides reliable waterproofing', warn: false },
+      { text: 'Traxion outsole grips well on wet and loose surfaces', warn: false },
+      { text: 'Mid-cut design supports ankles during hikes', warn: false },
+      { text: 'Sole might be stiff for PE — less flexibility than running shoes', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — Adidas runs true to size for this model',
+  },
+  {
+    brand: 'Salomon',
+    name: 'XA Pro V8 Mid',
+    fullName: 'Salomon XA Pro V8 Mid GTX',
+    price: '$75',
+    conf: 82, cc: 'b',
+    ship: 'Arrives Saturday',
+    imgs: [
+      `${IMG}/NG-Salmon/PNG-2000px-max-72dpi.webp`,
+      `${IMG}/NG-Salmon/Salmon-2000px-max-72dpi.webp`,
+      `${IMG}/NG-Salmon/PNG-2000px-max-72dpi-side.webp`,
+      `${IMG}/NG-Salmon/PNG-2000px-max-72dpi-sole.webp`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '240g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'Gore-Tex lining' },
+      { icon: 'layers', label: 'Upper', value: 'Synthetic mesh' },
+      { icon: 'height', label: 'Height', value: 'Mid-cut' },
+      { icon: 'timeline', label: 'Sole', value: 'Contagrip MA' },
+    ],
+    review: { score: 4.3, count: 145, bars: [60, 25, 9, 4, 2] },
+    highlights: [
+      { text: 'Lightweight at 240g — one of the lightest waterproof mid-cuts', warn: false },
+      { text: 'Gore-Tex lining for reliable waterproofing', warn: false },
+      { text: 'Contagrip MA outsole for all-terrain traction', warn: false },
+      { text: 'Quick-lace system — easy for kids to tighten themselves', warn: false },
+      { text: 'Narrow fit — may not suit wide feet without sizing up', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — Salomon runs narrow, consider half size up for wide feet',
+  },
+  {
+    brand: 'Puma',
+    name: 'RS-X Mid Black Ice',
+    fullName: 'Puma RS-X Mid Black Ice',
+    price: '$100',
+    conf: 85, cc: 'b',
+    ship: 'Arrives Friday',
+    imgs: [
+      `${IMG}/Puma/Screenshot 2026-03-27 at 22.16.34.png`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '295g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'Water-resistant coating' },
+      { icon: 'layers', label: 'Upper', value: 'Synthetic + mesh' },
+      { icon: 'height', label: 'Height', value: 'Mid-cut' },
+      { icon: 'timeline', label: 'Sole', value: 'Athletic rubber' },
+    ],
+    review: { score: 4.2, count: 96, bars: [58, 24, 12, 4, 2] },
+    highlights: [
+      { text: 'Athletic sole designed for sport and school', warn: false },
+      { text: 'Lightweight synthetic upper — great for active kids', warn: false },
+      { text: 'Water-resistant coating handles light rain', warn: false },
+      { text: 'RS cushioning for comfort during PE', warn: false },
+      { text: 'Not fully waterproof — avoid heavy rain', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — Puma runs true to size',
+  },
+  {
+    brand: 'Vans',
+    name: 'Sk8-Hi GORE-TEX',
+    fullName: 'Vans Sk8-Hi GORE-TEX',
+    price: '$140',
+    conf: 79, cc: 'a',
+    ship: 'Arrives Saturday',
+    imgs: [
+      `${IMG}/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '420g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'GORE-TEX membrane' },
+      { icon: 'layers', label: 'Upper', value: 'Canvas + suede' },
+      { icon: 'height', label: 'Height', value: 'High-top' },
+      { icon: 'timeline', label: 'Sole', value: 'Waffle rubber' },
+    ],
+    review: { score: 4.0, count: 67, bars: [50, 28, 14, 5, 3] },
+    highlights: [
+      { text: 'GORE-TEX membrane — fully waterproof', warn: false },
+      { text: 'Classic Sk8-Hi style — Marcus loves the look', warn: false },
+      { text: 'Waffle sole provides good traction', warn: false },
+      { text: 'Heavy at 420g — may slow down PE activities', warn: true },
+      { text: 'High-top limits ankle mobility for running', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — Vans runs true to size',
+  },
+  {
+    brand: 'Ecco',
+    name: 'Mid Boot GTX',
+    fullName: 'Ecco Mid Boot GORE-TEX',
+    price: '$125',
+    conf: 71, cc: 'a',
+    ship: 'Arrives Monday',
+    imgs: [
+      `${IMG}/Ecco/824314-51094-front_pair_eCom.avif`,
+    ],
+    specs: [
+      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
+      { icon: 'weight', label: 'Weight', value: '390g / shoe' },
+      { icon: 'water_drop', label: 'Waterproof', value: 'GORE-TEX lining' },
+      { icon: 'layers', label: 'Upper', value: 'Full leather' },
+      { icon: 'height', label: 'Height', value: 'Mid boot' },
+      { icon: 'timeline', label: 'Sole', value: 'Rubber' },
+    ],
+    review: { score: 3.9, count: 34, bars: [44, 30, 16, 6, 4] },
+    highlights: [
+      { text: 'Full leather upper — premium quality and durability', warn: false },
+      { text: 'GORE-TEX lining provides reliable waterproofing', warn: false },
+      { text: 'Premium Ecco quality — built to last', warn: false },
+      { text: 'Limited reviews — only 34 available', warn: true },
+      { text: 'Arrives Monday — latest delivery of all options', warn: true },
+    ],
+    sizeNote: 'Size 3Y in stock — Ecco runs slightly narrow',
+  },
+];
+
+let focusIdx = 0;
+let thumbIdx = 0;
+let phase = 0;
+const stepLabels = ['Phone Browse', 'TV + Remote', 'Product Detail'];
+
+function setStep(n) {
+  document.querySelectorAll('.step-dot').forEach((d, i) => d.classList.toggle('active', i === n));
+  document.getElementById('stepLabel').textContent = stepLabels[n];
+}
+
+function updateRemote() {
+  const p = products[focusIdx];
+  document.getElementById('rName').textContent = p.brand + ' ' + p.name;
+  document.getElementById('rPrice').textContent = p.price;
+  const c = document.getElementById('rConf');
+  c.textContent = p.conf + '% match';
+  c.className = 'conf ' + p.cc;
+  document.getElementById('rShip').innerHTML =
+    '<span class="material-symbols-outlined" style="font-size:14px">local_shipping</span> ' + p.ship;
+}
+
+function updateTVFocus() {
+  const cards = document.querySelectorAll('.tv-card');
+  cards.forEach((c, i) => c.classList.toggle('focused', i === focusIdx));
+  // Update subtitle position indicator
+  const sub = document.querySelector('.tv-subtitle');
+  if (sub) sub.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">gamepad</span> ${focusIdx + 1} / ${products.length} &nbsp;·&nbsp; Use remote to browse`;
+}
+
+/* ═══ Detail Overlay ═══ */
+function showDetail() {
+  thumbIdx = 0;
+  const p = products[focusIdx];
+
+  document.getElementById('tdMainImg').src = p.imgs[0];
+  document.getElementById('tdMainImg').alt = p.fullName;
+
+  // Thumbnails
+  const thumbsEl = document.getElementById('tdThumbs');
+  thumbsEl.innerHTML = p.imgs.map((src, i) =>
+    `<div class="td-thumb ${i === 0 ? 'active' : ''}" onclick="switchThumb(${i})">
+      <img src="${src}" alt="View ${i + 1}">
+    </div>`
+  ).join('');
+
+  document.getElementById('tdBrand').textContent = p.brand;
+  document.getElementById('tdName').textContent = p.name;
+
+  const matchEl = document.getElementById('tdMatch');
+  matchEl.className = 'td-match ' + p.cc;
+  matchEl.innerHTML =
+    `<span class="material-symbols-outlined">${p.cc === 'g' ? 'verified' : p.cc === 'b' ? 'thumb_up' : 'info'}</span>
+     ${p.conf}% match for Marcus`;
+
+  // Specs
+  document.getElementById('tdSpecs').innerHTML = p.specs.map(s =>
+    `<div class="td-spec">
+      <span class="material-symbols-outlined">${s.icon}</span>
+      <div class="td-spec-text">
+        <span class="td-spec-label">${s.label}</span>
+        <span class="td-spec-value">${s.value}</span>
+      </div>
+    </div>`
+  ).join('');
+
+  // Reviews
+  const r = p.review;
+  const fullStars = Math.floor(r.score);
+  const halfStar = r.score % 1 >= 0.3;
+  let starsHTML = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < fullStars) starsHTML += '<span class="material-symbols-outlined">star</span>';
+    else if (i === fullStars && halfStar) starsHTML += '<span class="material-symbols-outlined">star_half</span>';
+    else starsHTML += '<span class="material-symbols-outlined dim">star</span>';
+  }
+  document.getElementById('tdReviews').innerHTML =
+    `<div class="td-review-header">
+      <div class="td-stars">${starsHTML}</div>
+      <span class="td-review-score">${r.score}</span>
+      <span class="td-review-count">${r.count} reviews</span>
+    </div>
+    <div class="td-review-bars">
+      ${r.bars.map((pct, i) =>
+        `<div class="td-review-bar">
+          <span class="td-review-bar-label">${5 - i}</span>
+          <div class="td-review-bar-track"><div class="td-review-bar-fill" style="width:${pct}%"></div></div>
+        </div>`
+      ).join('')}
+    </div>`;
+
+  // Highlights
+  document.getElementById('tdHighlights').innerHTML = p.highlights.map(h =>
+    `<div class="td-highlight ${h.warn ? 'warn' : ''}">
+      <span class="material-symbols-outlined">${h.warn ? 'info' : 'check_circle'}</span>
+      ${h.text}
+    </div>`
+  ).join('');
+
+  // Size info
+  document.getElementById('tdSizeInfo').innerHTML =
+    `<div class="td-size-info">
+      <span class="material-symbols-outlined">checkroom</span>
+      ${p.sizeNote}
+    </div>`;
+
+  document.getElementById('tvDetail').classList.add('visible');
+}
+
+function switchThumb(idx) {
+  const p = products[focusIdx];
+  document.getElementById('tdMainImg').src = p.imgs[idx];
+  document.querySelectorAll('.td-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
+}
+
+function closeDetail() {
+  phase = 1;
+  document.getElementById('tvDetail').classList.remove('visible');
+  setStep(1);
+}
+
+/* ═══ Actions ═══ */
+function castToTV() {
+  phase = 1;
+  document.getElementById('tvWrapper').classList.add('visible');
+  setTimeout(() => {
+    document.getElementById('phone').classList.add('cast');
+    document.getElementById('phoneLabel').textContent = 'Pixel 9 Pro — Remote';
+  }, 400);
+  setStep(1);
+}
+
+function disconnect() {
+  if (phase === 2) closeDetail();
+  phase = 0;
+  document.getElementById('phone').classList.remove('cast');
+  document.getElementById('phoneLabel').textContent = 'Pixel 9 Pro — Phone Browse';
+  setTimeout(() => {
+    document.getElementById('tvWrapper').classList.remove('visible');
+  }, 300);
+  const btn = document.getElementById('buyBtn');
+  btn.textContent = 'Buy Now';
+  btn.classList.remove('success');
+  setStep(0);
+}
+
+function tvNav(dir) {
+  if (phase === 2) {
+    // Detail view: left/right swap photos, up/down scroll info
+    // Up twice or pressing Up when at photo 0 → focus Back to All
+    const p = products[focusIdx];
+    if (dir === 'left' || dir === 'right') {
+      if (dir === 'left') thumbIdx = Math.max(0, thumbIdx - 1);
+      if (dir === 'right') thumbIdx = Math.min(p.imgs.length - 1, thumbIdx + 1);
+      switchThumb(thumbIdx);
+      updateThumbFocus();
+    }
+    if (dir === 'up') {
+      const infoEl = document.querySelector('.td-info');
+      const scrollTop = infoEl ? infoEl.scrollTop : 0;
+      if (scrollTop <= 0) {
+        // Focus "Back to All"
+        const backEl = document.getElementById('tdBack');
+        backEl.classList.add('remote-focused');
+        backEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        infoEl && infoEl.scrollBy({ top: -120, behavior: 'smooth' });
+      }
+    }
+    if (dir === 'down') {
+      // Remove back focus if present
+      document.getElementById('tdBack').classList.remove('remote-focused');
+      const infoEl = document.querySelector('.td-info');
+      infoEl && infoEl.scrollBy({ top: 120, behavior: 'smooth' });
+    }
+    return;
+  }
+  // Grid view: 2D navigation (4 per row)
+  const len = products.length;
+  const COLS = 4;
+  const row = Math.floor(focusIdx / COLS);
+  const col = focusIdx % COLS;
+  if (dir === 'left') {
+    focusIdx = row * COLS + Math.max(0, col - 1);
+  } else if (dir === 'right') {
+    focusIdx = row * COLS + Math.min(COLS - 1, col + 1, len - 1 - row * COLS);
+  } else if (dir === 'up') {
+    if (row > 0) focusIdx = (row - 1) * COLS + col;
+  } else if (dir === 'down') {
+    const newIdx = (row + 1) * COLS + col;
+    if (newIdx < len) focusIdx = newIdx;
+  }
+  updateTVFocus();
+  updateRemote();
+}
+
+function tvOK() {
+  if (phase === 2) {
+    // If Back to All is focused, go back to grid
+    const backEl = document.getElementById('tdBack');
+    if (backEl.classList.contains('remote-focused')) {
+      backEl.classList.remove('remote-focused');
+      closeDetail();
+      return;
+    }
+    closeDetail();
+    return;
+  }
+  phase = 2;
+  showDetail();
+  const ok = document.getElementById('okBtn');
+  ok.style.background = 'var(--green)';
+  ok.textContent = '\u2713';
+  setTimeout(() => { ok.style.background = ''; ok.textContent = 'OK'; }, 500);
+  setStep(2);
+}
+
+function updateThumbFocus() {
+  document.querySelectorAll('.td-thumb').forEach((t, i) => {
+    t.classList.toggle('active', i === thumbIdx);
+  });
+}
+
+function buyProduct() {
+  const btn = document.getElementById('buyBtn');
+  btn.textContent = 'Purchasing...';
+  btn.style.opacity = '.7';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    btn.textContent = '\u2713 Purchase Complete';
+    btn.classList.add('success');
+    btn.style.opacity = '';
+
+    // Show TV celebration
+    const p = products[focusIdx];
+    document.getElementById('celebrateImgSrc').src = p.imgs[0];
+    document.getElementById('celebrateImgSrc').alt = p.fullName;
+    document.getElementById('celebrateTitle').textContent = p.name + ' — it\'s yours! 🎉';
+    document.getElementById('celebrateSubtitle').textContent = 'Order placed for Marcus · Size 3Y';
+    document.getElementById('celebrateShip').textContent = p.ship;
+
+    const cel = document.getElementById('tvCelebrate');
+    cel.classList.add('visible');
+
+    // Confetti
+    spawnConfetti();
+
+    // Auto-dismiss TV celebration after 4 seconds
+    setTimeout(() => {
+      cel.classList.remove('visible');
+      setTimeout(() => closeDetail(), 400);
+    }, 4000);
+
+    btn.disabled = false;
+  }, 1200);
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('confettiContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  const colors = ['#1A73E8','#1E8E3E','#F9AB00','#E94235','#E91E8C','#6C82FE'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + '%';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (6 + Math.random() * 6) + 'px';
+    el.style.height = (6 + Math.random() * 6) + 'px';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    el.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    el.style.animationDelay = (Math.random() * 0.8) + 's';
+    container.appendChild(el);
+  }
+}
+
+document.getElementById('tdBack').addEventListener('click', closeDetail);
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (phase === 0 && e.key === 'Enter') { castToTV(); return; }
+  if (phase >= 1) {
+    if (e.key === 'ArrowLeft') tvNav('left');
+    if (e.key === 'ArrowRight') tvNav('right');
+    if (e.key === 'ArrowUp') { e.preventDefault(); tvNav('up'); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); tvNav('down'); }
+    if (e.key === 'Enter') tvOK();
+    if (e.key === 'Escape') { phase === 2 ? closeDetail() : disconnect(); }
+  }
+});
+</script>
+</body>
+</html>

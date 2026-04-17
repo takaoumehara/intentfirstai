@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 03 — Fluid Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #18181b;
+  background: #ffffff;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+.mono {
+  font-family: 'DM Mono', 'SF Mono', monospace;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #18181b;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.section-body {
+  font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+  line-height: 1.8;
+  color: #3f3f46;
+  max-width: 680px;
+}
+
+.section-body.centered {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.container--narrow {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.content-section {
+  padding: 7rem 0;
+}
+
+.content-section--compact {
+  padding: 4rem 0;
+}
+
+/* ============================================
+   SCROLL REVEAL
+   ============================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+
+/* ============================================
+   HERO
+   ============================================ */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.55) 50%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  z-index: 1;
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #ffffff;
+  padding: 0 2rem;
+  max-width: 900px;
+}
+
+.hero__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1.5rem;
+}
+
+.hero__title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+
+.hero__subtitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2.5rem;
+  letter-spacing: 0.01em;
+}
+
+.hero__hook {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.8;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero__scroll-cue {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: float 2.5s ease-in-out infinite;
+}
+
+.hero__scroll-cue svg {
+  width: 20px;
+  height: 20px;
+  stroke: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* ============================================
+   FULL-BLEED IMAGE
+   ============================================ */
+.full-bleed {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.full-bleed img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.full-bleed--viewport {
+  height: 70vh;
+  min-height: 400px;
+}
+
+.full-bleed--viewport img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.full-bleed--half {
+  height: 50vh;
+  min-height: 320px;
+}
+
+.full-bleed--half img {
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ============================================
+   ATMOSPHERIC IMAGE (within content)
+   ============================================ */
+.atmo-image {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 2.5rem 0;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+}
+
+.atmo-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.atmo-image--large {
+  margin: 3rem -2rem;
+  width: calc(100% + 4rem);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ============================================
+   ILLUSTRATION (full-width within container)
+   ============================================ */
+.illustration {
+  width: 100%;
+  margin: 3rem 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.illustration img {
+  width: 100%;
+  height: auto;
+}
+
+.illustration--no-border {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+/* ============================================
+   CARD GRID
+   ============================================ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin: 3rem 0;
+}
+
+.card-grid--3col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.card-grid--2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.card-grid--4col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .card-grid--4col {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.card {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 14px;
+  padding: 1.75rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.card__number {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #2563eb;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.card__title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.card__text {
+  font-size: 0.9rem;
+  color: #71717a;
+  line-height: 1.6;
+}
+
+/* ============================================
+   LAYER CARDS (3 layers)
+   ============================================ */
+.layer-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 2rem;
+  border: 1px solid #e4e4e7;
+  position: relative;
+  overflow: hidden;
+}
+
+.layer-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.layer-card--1::before { background: #2563eb; }
+.layer-card--2::before { background: #16a34a; }
+.layer-card--3::before { background: #d97706; }
+
+.layer-card__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.layer-card--1 .layer-card__label { color: #2563eb; }
+.layer-card--2 .layer-card__label { color: #16a34a; }
+.layer-card--3 .layer-card__label { color: #d97706; }
+
+.layer-card__title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.75rem;
+}
+
+.layer-card__text {
+  font-size: 0.9rem;
+  color: #71717a;
+  line-height: 1.7;
+}
+
+/* ============================================
+   QUOTE
+   ============================================ */
+.quote-block {
+  border-left: 3px solid #2563eb;
+  padding: 1.75rem 2rem;
+  margin: 3rem 0;
+  background: #f8faff;
+  border-radius: 0 12px 12px 0;
+}
+
+.quote-block__text {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  font-weight: 400;
+  font-style: italic;
+  color: #3f3f46;
+  line-height: 1.8;
+  margin-bottom: 0.75rem;
+}
+
+.quote-block__source {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   DIAL / TRUST INDICATOR
+   ============================================ */
+.dial {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 100px;
+  background: #18181b;
+  color: #ffffff;
+  margin: 2rem 0;
+}
+
+.dial__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dial__dot--suggest { background: #ef4444; }
+.dial__dot--confirm { background: #d97706; }
+.dial__dot--notify { background: #2563eb; }
+.dial__dot--auto { background: #16a34a; }
+
+.dial__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dial__desc {
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ============================================
+   TIMELINE (Month 6 cinematic sequence)
+   ============================================ */
+.cinema-sequence {
+  margin: 0;
+  padding: 0;
+}
+
+.cinema-frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cinema-frame img {
+  width: 100%;
+  display: block;
+}
+
+.cinema-frame--full {
+  height: 75vh;
+  min-height: 450px;
+}
+
+.cinema-frame--full img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.cinema-caption {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+}
+
+.cinema-caption__time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: #2563eb;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.cinema-caption__text {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 400;
+  color: #3f3f46;
+  line-height: 1.7;
+}
+
+/* cinema with overlay text */
+.cinema-frame--overlay {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.cinema-frame--overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
+  z-index: 1;
+}
+
+.cinema-frame__overlay-text {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  right: 2rem;
+  z-index: 2;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 300;
+  max-width: 600px;
+}
+
+/* ============================================
+   STAT CARDS
+   ============================================ */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: #fafafa;
+  border-radius: 14px;
+  border: 1px solid #f0f0f0;
+}
+
+.stat-card__value {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #2563eb;
+  line-height: 1.2;
+}
+
+.stat-card__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #a1a1aa;
+  letter-spacing: 0.08em;
+  margin-top: 0.35rem;
+}
+
+/* ============================================
+   DEVICE CARDS
+   ============================================ */
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin: 2.5rem 0;
+}
+
+.device-card {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  padding: 1.75rem;
+  position: relative;
+}
+
+.device-card__icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.device-card__name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.device-card__role {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.5rem;
+}
+
+.device-card__desc {
+  font-size: 0.88rem;
+  color: #71717a;
+  line-height: 1.6;
+}
+
+/* ============================================
+   TIMELINE BAR
+   ============================================ */
+.timeline-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  position: relative;
+}
+
+.timeline-bar::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e4e4e7;
+  transform: translateY(-50%);
+}
+
+.timeline-point {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  z-index: 1;
+}
+
+.timeline-point__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2563eb;
+  margin: 0 auto 0.5rem;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+.timeline-point__time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #2563eb;
+  letter-spacing: 0.05em;
+}
+
+.timeline-point__label {
+  font-size: 0.78rem;
+  color: #71717a;
+  margin-top: 0.2rem;
+}
+
+/* ============================================
+   COMPARISON
+   ============================================ */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: center;
+  margin: 3rem 0;
+}
+
+.comparison__side {
+  text-align: center;
+}
+
+.comparison__side img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.comparison__side-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  margin-bottom: 0.35rem;
+}
+
+.comparison__side-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.comparison__arrow {
+  font-size: 1.5rem;
+  color: #d4d4d8;
+}
+
+/* ============================================
+   FRAMEWORK GRID
+   ============================================ */
+.framework-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+
+.framework-item {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.framework-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+.framework-item img {
+  width: 100%;
+  display: block;
+}
+
+.framework-item__caption {
+  padding: 1.25rem 1.5rem;
+}
+
+.framework-item__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.3rem;
+}
+
+.framework-item__desc {
+  font-size: 0.82rem;
+  color: #71717a;
+  line-height: 1.6;
+}
+
+/* ============================================
+   CLOSING / FOOTER
+   ============================================ */
+.closing {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  min-height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.closing__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.closing__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.closing__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+.closing__text {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #ffffff;
+  padding: 0 2rem;
+  max-width: 750px;
+}
+
+.closing__text h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.footer {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.footer__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  margin-bottom: 1rem;
+}
+
+.footer__articles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.footer__tag {
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: #71717a;
+  letter-spacing: 0.03em;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.footer__tag:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.footer__copy {
+  font-size: 0.78rem;
+  color: #a1a1aa;
+  margin-top: 1.5rem;
+}
+
+/* ============================================
+   MODE CARDS (Substitution)
+   ============================================ */
+.mode-card {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.mode-card--exact::before { background: #ef4444; }
+.mode-card--flexible::before { background: #2563eb; }
+.mode-card--exploring::before { background: #d97706; }
+.mode-card--surprise::before { background: #a855f7; }
+
+.mode-card__name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.mode-card--exact .mode-card__name { color: #ef4444; }
+.mode-card--flexible .mode-card__name { color: #2563eb; }
+.mode-card--exploring .mode-card__name { color: #d97706; }
+.mode-card--surprise .mode-card__name { color: #a855f7; }
+
+.mode-card__quote {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #18181b;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ============================================
+   SECTION DIVIDER
+   ============================================ */
+.divider {
+  width: 60px;
+  height: 2px;
+  background: #e4e4e7;
+  margin: 0 auto;
+}
+
+.spacer { height: 2rem; }
+.spacer--lg { height: 4rem; }
+
+/* ============================================
+   INSIGHT BOX
+   ============================================ */
+.insight-box {
+  background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 1.75rem 2rem;
+  margin: 2.5rem 0;
+}
+
+.insight-box__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.insight-box__text {
+  font-size: 1rem;
+  color: #3f3f46;
+  line-height: 1.7;
+}
+
+/* ============================================
+   P3-SPECIFIC: CONTEXT PILLS
+   ============================================ */
+.context-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.context-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  color: #3f3f46;
+}
+
+.context-pill__key {
+  color: #a1a1aa;
+  font-weight: 400;
+}
+
+.context-pill__value {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* ============================================
+   P3-SPECIFIC: TRANSFORM LIST
+   ============================================ */
+.transform-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.transform-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  font-size: 0.88rem;
+}
+
+.transform-item__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #a1a1aa;
+  min-width: 90px;
+  letter-spacing: 0.05em;
+}
+
+.transform-item__arrow {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.transform-item__value {
+  color: #18181b;
+  font-weight: 500;
+}
+
+/* ============================================
+   P3-SPECIFIC: CONTRIBUTION BAR
+   ============================================ */
+.contribution-bar {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 32px;
+  margin: 1.5rem 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+
+.contribution-bar__ai {
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contribution-bar__human {
+  background: #18181b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 900px) {
+  .card-grid--3col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .framework-grid {
+    grid-template-columns: 1fr;
+  }
+  .comparison {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .comparison__arrow {
+    transform: rotate(90deg);
+  }
+  .stat-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .card-grid--3col,
+  .card-grid--2col {
+    grid-template-columns: 1fr;
+  }
+  .device-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-row {
+    grid-template-columns: 1fr;
+  }
+  .content-section {
+    padding: 4.5rem 0;
+  }
+  .cinema-frame--full {
+    height: 55vh;
+    min-height: 300px;
+  }
+  .hero__title {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+  .atmo-image--large {
+    margin: 2rem 0;
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     1. HERO
+     ============================================ -->
+<section class="hero">
+  <div class="hero__bg">
+    <img src="image-set03/P3_FluidHandoff/P3-image01_station-photo.png" alt="Station platform — morning commute">
+  </div>
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    <p class="hero__label reveal">Project 03 &mdash; Context Grammar</p>
+    <h1 class="hero__title reveal reveal-delay-1">Fluid Handoff</h1>
+    <p class="hero__subtitle reveal reveal-delay-2">Intent Translation &amp; Form Factor Transformation</p>
+    <p class="hero__hook reveal reveal-delay-3">
+      &laquo;&#12501;&#12527;&#12501;&#12527;&#12375;&#12390;&#12394;&#12356;&#12420;&#12388;&raquo;&mdash;&mdash;&#12371;&#12398;&#21046;&#32004;&#12434;&#12289;&#26082;&#23384;&#12398;&#12393;&#12398;&#12501;&#12451;&#12523;&#12479;&#12540;&#12418;&#20966;&#29702;&#12391;&#12365;&#12394;&#12356;&#12290;
+    </p>
+  </div>
+  <div class="hero__scroll-cue">
+    <span>Scroll</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================================
+     2. BEFORE — THE FRICTION
+     ============================================ -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label reveal">Before &mdash; The Friction</p>
+    <h2 class="section-title reveal">2 Hours, 30 Tabs, Wrong Size</h2>
+    <p class="section-body reveal">
+      A real shoe-shopping story. 847 Amazon results for "boys winter PE shoes." 12 tabs open. A comparison table built in Google Docs. 3 different sites cross-referenced. Called your son over to look at the tiny phone screen. Ordered. Wrong size. Return.
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image07_before-after.png" alt="Before/After friction comparison" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid reveal">
+      <div class="card reveal reveal-delay-1">
+        <p class="card__number">01</p>
+        <h3 class="card__title">Qualitative Constraints Can't Filter</h3>
+        <p class="card__text">"Not fluffy" doesn't exist in product specs. It lives only in reviews &mdash; buried in natural language, never structured as a filterable attribute.</p>
+      </div>
+      <div class="card reveal reveal-delay-2">
+        <p class="card__number">02</p>
+        <h3 class="card__title">Cross-Site Comparison is Manual Labor</h3>
+        <p class="card__text">Amazon, Zappos, Nike &mdash; pasted into a Google Docs table. The user becomes their own comparison agent, building disposable infrastructure.</p>
+      </div>
+      <div class="card reveal reveal-delay-3">
+        <p class="card__number">03</p>
+        <h3 class="card__title">Size Varies Between Brands</h3>
+        <p class="card__text">"Size 3" means different things at Nike vs Adidas vs New Balance. No system normalizes this. Every purchase is a gamble.</p>
+      </div>
+      <div class="card reveal reveal-delay-4">
+        <p class="card__number">04</p>
+        <h3 class="card__title">Phone Screen Breaks Family Decisions</h3>
+        <p class="card__text">Tiny screen, show one product at a time, can't compare side-by-side. The child can't meaningfully participate in the choice.</p>
+      </div>
+      <div class="card reveal reveal-delay-5">
+        <p class="card__number">05</p>
+        <h3 class="card__title">Decision Dynamics Get Distorted</h3>
+        <p class="card__text">Child sees prices &rarr; picks the most expensive one &rarr; parent feels guilt. The information architecture itself creates friction.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 3rem;">
+    <div class="quote-block reveal">
+      <p class="quote-block__text">"Behind every workaround is a friction point. Building a comparison table in Google Docs reveals a structural role the system is missing."</p>
+      <p class="quote-block__source">&mdash; Article #05, Friction Discovery</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     3. TRANSLATION LAYER
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container">
+    <p class="section-label reveal">Translation Layer</p>
+    <h2 class="section-title reveal">From Human Words to System Parameters</h2>
+    <p class="section-body reveal">
+      "Not fluffy" doesn't appear in any product name or spec sheet. It lives only in reviews. The Translation Layer is the missing bridge &mdash; turning qualitative human constraints into machine-readable specifications.
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image06_translation-pipeline.png" alt="Translation Layer pipeline" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--3col">
+      <div class="layer-card layer-card--1 reveal reveal-delay-1">
+        <p class="layer-card__label">Step 1</p>
+        <h3 class="layer-card__title">Semantic Decomposition</h3>
+        <p class="layer-card__text">"Fluffy" = fleece-lined, sherpa, fur, plush lining. The system expands a single human word into a cluster of product-domain synonyms.</p>
+      </div>
+      <div class="layer-card layer-card--2 reveal reveal-delay-2">
+        <p class="layer-card__label">Step 2</p>
+        <h3 class="layer-card__title">Multi-Modal Verification</h3>
+        <p class="layer-card__text">NLP on 300+ reviews + product image analysis + spec cross-reference. Three independent signals triangulate the truth.</p>
+      </div>
+      <div class="layer-card layer-card--3 reveal reveal-delay-3">
+        <p class="layer-card__label">Step 3</p>
+        <h3 class="layer-card__title">Confidence Scoring</h3>
+        <p class="layer-card__text">Candidate A: 94%. Candidate B: 88%. Candidate C: 71% &mdash; below threshold, triggers escalation. The user sees certainty, not guesswork.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="insight-box reveal">
+      <p class="insight-box__label">Core Thesis</p>
+      <p class="insight-box__text">The Translation Layer is Article #01's core thesis fully implemented: translating human intent into system specification. Every qualitative constraint a person voices &mdash; "not fluffy," "cool-looking," "easy to put on" &mdash; becomes a structured query the system can act on.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     4. PHASE 0 — THE PLATFORM
+     ============================================ -->
+<section class="content-section">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Phase 0 &mdash; Station Platform</p>
+    <h2 class="section-title reveal">Both Hands. Private. Full Power.</h2>
+    <p class="section-body centered reveal" style="text-align: center;">
+      Standing on the platform, both hands free. Full browse UI. Voice command: <em>"Find winter PE shoes for my son. Black, waterproof, famous brand. Absolutely no fluffy lining inside."</em>
+    </p>
+  </div>
+</section>
+
+<div class="cinema-sequence">
+  <div class="cinema-frame cinema-frame--full reveal">
+    <img src="image-set03/P3_FluidHandoff/P3-image01_station-photo.png" alt="Phase 0 — Station platform, both hands free" loading="lazy">
+  </div>
+  <div class="cinema-caption reveal">
+    <div class="illustration" style="margin: 0 0 2rem 0;">
+      <img src="image-set03/P3_FluidHandoff/P3-image01_station-illust.png" alt="Station platform isometric illustration" loading="lazy">
+    </div>
+    <p class="cinema-caption__text">
+      The system receives the full intent. Translation Layer activates: "fluffy" decomposes into fleece-lined, sherpa, fur, plush. 847 candidates enter the pipeline. Within seconds, 3 emerge.
+    </p>
+    <div class="context-pills" style="margin-top: 1.5rem;">
+      <span class="context-pill"><span class="context-pill__key">Physical</span><span class="context-pill__value">both-hands</span></span>
+      <span class="context-pill"><span class="context-pill__key">Social</span><span class="context-pill__value">PRIVATE</span></span>
+      <span class="context-pill"><span class="context-pill__key">Form</span><span class="context-pill__value">phone</span></span>
+    </div>
+    <div class="dial">
+      <span class="dial__dot dial__dot--suggest"></span>
+      <span class="dial__label">Suggest</span>
+      <span class="dial__desc">Position 1 &mdash; First search, full confirmation needed</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     5. PHASE 1 — THE TRAIN
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Phase 1 &mdash; The Train</p>
+    <h2 class="section-title reveal">One Hand Changes Everything</h2>
+  </div>
+</section>
+
+<div class="cinema-sequence">
+  <div class="cinema-frame cinema-frame--full reveal">
+    <img src="image-set03/P3_FluidHandoff/P3-image02_train-photo.png" alt="Phase 1 — Inside the train, one hand on the strap" loading="lazy">
+  </div>
+  <div class="cinema-caption reveal">
+    <p class="cinema-caption__text">
+      Boarded the train. Grabbed the strap. <strong>"One-hand mode."</strong> The UI transforms: touch targets expand to 56px, interaction zone shrinks to thumb zone (bottom 40%), card layout replaces grid. The content hasn't changed &mdash; only the way you reach it.
+    </p>
+  </div>
+</div>
+
+<section class="content-section--compact">
+  <div class="container" style="margin-top: 1rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image02_train-illust.png" alt="Train interior isometric illustration" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <div class="device-grid">
+      <div class="device-card reveal reveal-delay-1">
+        <p class="device-card__name">What Transforms</p>
+        <h3 class="device-card__role">UI Adapts to Physical Context</h3>
+        <div class="transform-list">
+          <div class="transform-item">
+            <span class="transform-item__label">Layout</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">card-compact</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">Touch targets</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">56px minimum</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">Zone</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">thumb-zone (bottom 40%)</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">Notifications</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">silent</span>
+          </div>
+        </div>
+      </div>
+      <div class="device-card reveal reveal-delay-2">
+        <p class="device-card__name">What Stays</p>
+        <h3 class="device-card__role">Content Integrity Preserved</h3>
+        <div class="transform-list">
+          <div class="transform-item">
+            <span class="transform-item__label">Prices</span>
+            <span class="transform-item__arrow">=</span>
+            <span class="transform-item__value">Shoe prices aren't confidential</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">Product images</span>
+            <span class="transform-item__arrow">=</span>
+            <span class="transform-item__value">Within cards, responsive</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">Confidence</span>
+            <span class="transform-item__arrow">=</span>
+            <span class="transform-item__value">Signals remain visible</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="insight-box reveal">
+      <p class="insight-box__label">Over Time</p>
+      <p class="insight-box__text">3 months later, same train. You said nothing. But the UI is already in card mode. The system learned: weekday 8:05&ndash;8:40 train = one-hand mode. Context becomes implicit. Friction becomes invisible.</p>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="text-align: center;">
+    <div class="context-pills reveal" style="justify-content: center;">
+      <span class="context-pill"><span class="context-pill__key">Physical</span><span class="context-pill__value">one-hand</span></span>
+      <span class="context-pill"><span class="context-pill__key">Social</span><span class="context-pill__value">PUBLIC</span></span>
+      <span class="context-pill"><span class="context-pill__key">Form</span><span class="context-pill__value">phone</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     6. PHASE 2 — THE LIVING ROOM (THE MAGIC MOMENT)
+     ============================================ -->
+<section class="content-section">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Phase 2 &mdash; The Living Room</p>
+    <h2 class="section-title reveal">The Phone Becomes a Remote</h2>
+    <p class="section-body centered reveal" style="text-align: center;">
+      Home. Son is here. You cast the comparison board to the TV. In that instant, two things happen simultaneously &mdash; and everything changes.
+    </p>
+  </div>
+</section>
+
+<div class="cinema-sequence">
+  <div class="cinema-frame cinema-frame--full reveal">
+    <img src="image-set03/P3_FluidHandoff/P3-image03_livingroom-photo.png" alt="Phase 2 — Living room, family together" loading="lazy">
+  </div>
+</div>
+
+<section class="content-section--compact">
+  <div class="container" style="margin-top: 1rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image08_phone-remote.png" alt="Phone transforms into a remote control" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <div class="device-grid">
+      <div class="device-card reveal reveal-delay-1">
+        <div class="device-card__icon">&#128250;</div>
+        <p class="device-card__name">TV Output</p>
+        <h3 class="device-card__role">Facilitate Mode</h3>
+        <p class="device-card__desc">Large shoe images fill the screen. Emotional labels: "Waterproof!", "Lightweight!", "Cool!". Price hidden by default. The child can point and choose freely.</p>
+      </div>
+      <div class="device-card reveal reveal-delay-2">
+        <div class="device-card__icon">&#128241;</div>
+        <p class="device-card__name">Mobile Output</p>
+        <h3 class="device-card__role">Parent View</h3>
+        <p class="device-card__desc">Product images PURGED from phone. D-pad remote appears center screen. Price + Confidence Signal + Buy button at bottom. Only the parent sees the numbers.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image03_livingroom-illust.png" alt="Living room isometric illustration" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container--narrow" style="text-align: center;">
+    <div class="context-pills reveal" style="justify-content: center;">
+      <span class="context-pill"><span class="context-pill__key">Physical</span><span class="context-pill__value">seated</span></span>
+      <span class="context-pill"><span class="context-pill__key">Social</span><span class="context-pill__value">FAMILY</span></span>
+      <span class="context-pill"><span class="context-pill__key">Form</span><span class="context-pill__value">phone+TV</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     7. NOW IMAGINE DIVIDER
+     ============================================ -->
+<div class="full-bleed full-bleed--viewport reveal">
+  <img src="image-set03/P3_FluidHandoff/P3-image04_boots-photo.png" alt="Winter boots — the moment of choice" loading="lazy" style="height: 100%; object-fit: cover;">
+  <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, transparent 70%); z-index: 1;"></div>
+  <div style="position: absolute; bottom: 3rem; left: 2rem; right: 2rem; z-index: 2; max-width: 650px;">
+    <p style="font-family: 'Outfit', sans-serif; font-size: clamp(1.15rem, 2.2vw, 1.5rem); font-weight: 400; color: #ffffff; line-height: 1.7;">
+      The child points at the TV. <strong>&ldquo;The middle one!&rdquo;</strong><br>
+      Parent taps OK on the remote. Checks price. Taps Buy.
+    </p>
+  </div>
+</div>
+
+<!-- ============================================
+     8. HUMAN-HUMAN FACILITATION (仁)
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container">
+    <p class="section-label reveal">Human-Human Facilitation</p>
+    <h2 class="section-title reveal">AI Protects the Family Moment</h2>
+  </div>
+
+  <div class="container" style="margin-top: 2rem;">
+    <div class="atmo-image reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image10_family-choosing-photo.png" alt="Family choosing together" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <p class="section-body reveal">
+      From Article #11 (<em>Ren</em> &mdash; &#20161;): AI doesn't make the decision. It creates an environment where the family can decide together &mdash; with joy. The system's role is facilitation, not automation.
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--3col">
+      <div class="card reveal reveal-delay-1">
+        <p class="card__number">Principle 1</p>
+        <h3 class="card__title">Information Architecture</h3>
+        <p class="card__text">TV = child-friendly (emotional features, big images). Phone = parent-only (price, confidence, buy). Each screen serves a different participant's needs.</p>
+      </div>
+      <div class="card reveal reveal-delay-2">
+        <p class="card__number">Principle 2</p>
+        <h3 class="card__title">Participation Balance</h3>
+        <p class="card__text">Child's preference = top priority (point to choose). Parent's constraints = protected behind the scenes. Both voices matter, neither dominates.</p>
+      </div>
+      <div class="card reveal reveal-delay-3">
+        <p class="card__number">Principle 3</p>
+        <h3 class="card__title">Dynamic Protection</h3>
+        <p class="card__text">Price hidden from TV = prevents "I want the expensive one!" dynamic. 3 candidates only = eliminates choice paralysis. Architecture shapes behavior.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="contribution-bar reveal">
+      <div class="contribution-bar__ai" style="width: 25%;">AI ~25%</div>
+      <div class="contribution-bar__human" style="width: 75%;">Human ~75%</div>
+    </div>
+    <p style="font-size: 0.85rem; color: #71717a; text-align: center; margin-top: 0.5rem;">AI handles filtering, verification, and surface optimization. Humans handle choosing, judging, and conversation.</p>
+  </div>
+
+  <div class="stat-row reveal" style="margin-top: 2.5rem;">
+    <div class="stat-card">
+      <p class="stat-card__value">847&rarr;3</p>
+      <p class="stat-card__label">Candidates filtered</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-card__value">2hrs&rarr;5min</p>
+      <p class="stat-card__label">Time saved</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-card__value">Zero</p>
+      <p class="stat-card__label">Prices shown to child</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     9. CONTEXT TOKENS — 4 PHASE CHANGES
+     ============================================ -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label reveal">Context Tokens</p>
+    <h2 class="section-title reveal">6 Tokens Shift Across 4 Phases</h2>
+    <p class="section-body reveal">
+      The same shopping task &mdash; same person, same intent &mdash; produces four completely different interfaces. What changed? Not the content. The context.
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image09_context-dashboard.png" alt="Context Tokens across 4 phases" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--2col">
+
+      <!-- Phase 0: Platform -->
+      <div class="card reveal reveal-delay-1" style="padding: 0; overflow: hidden;">
+        <div style="background: #2563eb; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Phase 0</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">Station Platform</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2563eb; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">both-hands, standing</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2563eb; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">PRIVATE &mdash; alone</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2563eb; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">phone &mdash; full grid UI</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--suggest"></span>
+              <span class="dial__label">Suggest</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 1: Train -->
+      <div class="card reveal reveal-delay-2" style="padding: 0; overflow: hidden;">
+        <div style="background: #d97706; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Phase 1</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">The Train</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #d97706; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">one-hand, strap</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #d97706; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">PUBLIC &mdash; crowded</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #d97706; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">phone &mdash; card-compact, thumb zone</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--suggest"></span>
+              <span class="dial__label">Suggest</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2: Living Room -->
+      <div class="card reveal reveal-delay-3" style="padding: 0; overflow: hidden;">
+        <div style="background: #16a34a; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Phase 2</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">The Living Room</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #16a34a; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">seated, both-hands</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #16a34a; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">FAMILY &mdash; child present</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #16a34a; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">phone + TV &mdash; split output</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--confirm"></span>
+              <span class="dial__label">Confirm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 3: Over Time -->
+      <div class="card reveal reveal-delay-4" style="padding: 0; overflow: hidden;">
+        <div style="background: #18181b; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Over Time</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">Learned Patterns</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #71717a; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">predicted from time + location</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #71717a; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">inferred from co-located devices</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #71717a; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">pre-configured from history</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--notify"></span>
+              <span class="dial__label">Notify</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image04_boots-illust.png" alt="Boots with AI agents isometric illustration" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="insight-box reveal">
+      <p class="insight-box__label">Cross-Project Pattern</p>
+      <p class="insight-box__text">Feasibility Token &#9320; works across all projects: P1 = "fridge inventory + store availability + delivery window." P2 = "28 min to home." P3 = "in stock, size verified, delivers before weekend." Same token, different domains, identical logic.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     10. OVER TIME — TRUST EVOLUTION
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Over Time &mdash; Trust Evolution</p>
+    <h2 class="section-title reveal">The System Learns What &ldquo;Fluffy&rdquo; Means</h2>
+    <p class="section-body centered reveal" style="text-align: center;">
+      Trust isn't granted. It's accumulated through repeated accuracy, transparent reasoning, and graceful failures. The Translation Layer refines with every purchase.
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--3col">
+      <div class="card reveal reveal-delay-1" style="border-top: 3px solid #ef4444;">
+        <p class="card__number">Today</p>
+        <h3 class="card__title">First Purchase</h3>
+        <p class="card__text">Translation Layer processes "fluffy" for the first time. Decomposes into 4 synonyms, scans 300 reviews, analyzes product images. 3 candidates survive. Full confirmation required.</p>
+        <div class="dial" style="margin-top: 1rem;">
+          <span class="dial__dot dial__dot--suggest"></span>
+          <span class="dial__label">Suggest</span>
+        </div>
+      </div>
+      <div class="card reveal reveal-delay-2" style="border-top: 3px solid #d97706;">
+        <p class="card__number">4 Months Later</p>
+        <h3 class="card__title">Growth Detected</h3>
+        <p class="card__text">Son grew. System proactively suggests: "Size 4 needed?" Already knows: no fluffy, black, waterproof, sporty brand. Synonym cluster refined. 2 candidates. Less effort.</p>
+        <div class="dial" style="margin-top: 1rem;">
+          <span class="dial__dot dial__dot--confirm"></span>
+          <span class="dial__label">Confirm</span>
+        </div>
+      </div>
+      <div class="card reveal reveal-delay-3" style="border-top: 3px solid #2563eb;">
+        <p class="card__number">1 Year Later</p>
+        <h3 class="card__title">Cycle Stable</h3>
+        <p class="card__text">Purchase cycle stable (~6 months). Translation Layer fully refined: "thin fleece OK, thick fleece NG, boa absolutely NG." The system has its own vocabulary for your family.</p>
+        <div class="dial" style="margin-top: 1rem;">
+          <span class="dial__dot dial__dot--notify"></span>
+          <span class="dial__label">Notify</span>
+          <span class="dial__desc">search &rarr; Confirm purchase</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image05_child-shoes-illust.png" alt="Child running in new shoes isometric illustration" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="quote-block reveal">
+      <p class="quote-block__text">"Trust isn't a switch. It's a history &mdash; written one successful interaction at a time, and erased by one bad one."</p>
+      <p class="quote-block__source">&mdash; Article #14, Trust History</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     11. CLOSING
+     ============================================ -->
+<section class="closing">
+  <div class="closing__bg">
+    <img src="image-set03/P3_FluidHandoff/P3-image05_child-shoes-photo.png" alt="Child in new shoes — the moment that matters" loading="lazy">
+  </div>
+  <div class="closing__overlay"></div>
+  <div class="closing__text reveal">
+    <h2>This is not shoe shopping.<br>This is a family choosing together &mdash;<br>and AI protecting that moment.</h2>
+  </div>
+</section>
+
+<!-- ============================================
+     12. FOOTER
+     ============================================ -->
+<footer class="footer">
+  <p class="footer__label">Based on Substack Articles</p>
+  <div class="footer__articles">
+    <span class="footer__tag">#01 Translation Layer</span>
+    <span class="footer__tag">#03 JTBD</span>
+    <span class="footer__tag">#05 Friction Discovery</span>
+    <span class="footer__tag">#11 Ren (Human Facilitation)</span>
+    <span class="footer__tag">#14 Trust History</span>
+  </div>
+  <p class="footer__copy">Project 03 &mdash; Fluid Handoff &middot; Context Grammar Portfolio</p>
+</footer>
+
+<!-- ============================================
+     JAVASCRIPT — Scroll Reveal
+     ============================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // IntersectionObserver for scroll-reveal animations
+  var observerOptions = {
+    root: null,
+    rootMargin: '0px 0px -60px 0px',
+    threshold: 0.1
+  };
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Once visible, no need to observe anymore
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // Observe all reveal elements
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    observer.observe(el);
+  });
+
+  // Hero elements should be visible immediately (slight delay for effect)
+  var heroReveals = document.querySelectorAll('.hero .reveal');
+  setTimeout(function() {
+    heroReveals.forEach(function(el) {
+      el.classList.add('visible');
+    });
+  }, 300);
+
+  // Smooth scroll for any anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -43,53 +43,58 @@
       animation: fadeUp 0.8s 0.2s forwards;
     }
 
-    /* ═══ TOKEN CARDS ═══ */
+    /* ═══ TOKEN CARDS ═══
+       Layout: [illustration col 1] | [.token-content col 2]
+       Illustration is FIRST in DOM → auto-placed col 1.
+       .token-content wrapper contains badge then body → col 2.
+       Text-only cards (no illustration) use single column.
+       ═══ */
     .token-grid {
       display: flex;
       flex-direction: column;
-      gap: clamp(16px, 2vw, 24px);
+      gap: clamp(24px, 3vw, 36px);
       margin-top: clamp(28px, 4vw, 48px);
     }
 
     .token-card {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-left: 3px solid var(--illust-blue);
       border-radius: 0;
-      padding: clamp(24px, 2.5vw, 36px);
       display: grid;
-      grid-template-columns: auto 1fr;
-      gap: clamp(16px, 2vw, 28px);
-      align-items: start;
-      transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+      grid-template-columns: 1fr; /* text-only default */
+      overflow: hidden;
+      transition: box-shadow 0.3s var(--ease);
+    }
+
+    /* Two-column when illustration is present */
+    .token-card:has(> .token-illust) {
+      grid-template-columns: clamp(240px, 42%, 400px) 1fr;
     }
 
     .token-card:hover {
-      border-color: var(--border-hover);
-      border-left-color: var(--illust-blue);
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
     }
 
-    .token-card--dial {
-      border-left-color: var(--illust-amber);
+    /* ── Illustration: auto-placed col 1 (first DOM child) ── */
+    .token-card > .token-illust {
+      border-right: 1px solid var(--border);
+      background: var(--bg-2);
+      padding: clamp(24px, 3.5vw, 44px);
+      min-height: 280px;
+      /* inherits display:flex, align-items/justify-content from base */
+    }
+    .token-card > .token-illust img {
+      max-height: none;
     }
 
-    .token-card--dial:hover {
-      border-left-color: var(--illust-amber);
+    /* ── Content wrapper: badge + body stacked vertically ── */
+    .token-content {
+      display: flex;
+      flex-direction: column;
+      padding: clamp(20px, 2.5vw, 28px);
     }
 
-    .token-illust {
-      margin: 20px 0 4px;
-      text-align: center;
-    }
-    .token-illust img {
-      max-width: 360px;
-      width: 100%;
-      display: block;
-      margin: 0 auto;
-      border-radius: 8px;
-    }
-
+    /* ── Badge: first item in .token-content ── */
     .token-badge {
       width: 44px;
       height: 44px;
@@ -101,7 +106,15 @@
       font-size: 16px;
       font-weight: 600;
       flex-shrink: 0;
-      margin-top: 2px;
+      margin-bottom: 16px;
+    }
+
+    /* Text-only card: badge sits inside card directly (no .token-content) */
+    .token-card:not(:has(> .token-illust)) > .token-badge {
+      margin: clamp(20px, 2vw, 28px) 0 12px clamp(20px, 2vw, 28px);
+    }
+    .token-card:not(:has(> .token-illust)) > .token-body {
+      padding: 0 clamp(20px, 2vw, 28px) clamp(20px, 2vw, 28px);
     }
 
     .token-badge--blue {
@@ -114,6 +127,7 @@
       color: var(--chip-amber-text);
     }
 
+    /* ── Body: second item in .token-content (or direct child for text-only) ── */
     .token-body {
       display: flex;
       flex-direction: column;
@@ -136,7 +150,7 @@
 
     .token-tagline {
       font-size: clamp(14px, 1vw, 16px);
-      font-weight: 300;
+      font-weight: 400;
       color: var(--text-3);
     }
 
@@ -290,7 +304,7 @@
     .formula-sub {
       font-size: clamp(12px, 0.85vw, 14px);
       color: var(--text-3);
-      font-weight: 300;
+      font-weight: 400;
     }
 
     .formula-arrow {
@@ -331,7 +345,7 @@
 
     .cta-sub {
       font-size: clamp(15px, 1.1vw, 18px);
-      font-weight: 300;
+      font-weight: 400;
       color: rgba(240, 236, 228, 0.45);
       max-width: 480px;
       line-height: 1.7;
@@ -463,7 +477,7 @@
     .surface-desc {
       font-size: clamp(12px, 0.85vw, 14px);
       color: var(--text-3);
-      font-weight: 300;
+      font-weight: 400;
       line-height: 1.55;
     }
 
@@ -474,19 +488,25 @@
     }
 
     /* ═══ MOBILE ═══ */
-    @media (max-width: 768px) {
-      .token-card {
+    @media (max-width: 640px) {
+      .token-card:has(> .token-illust) {
         grid-template-columns: 1fr;
       }
-
-      .token-badge {
-        margin-bottom: -4px;
+      .token-card > .token-illust {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        min-height: auto;
+        padding: clamp(20px, 3vw, 32px);
       }
+      .token-card > .token-illust img {
+        max-height: 220px;
+      }
+    }
 
+    @media (max-width: 768px) {
       .formula-row {
         flex-direction: column;
       }
-
       .formula-arrow {
         transform: rotate(90deg);
       }
@@ -547,7 +567,11 @@
   <!-- ═══════════════════════════════════════
      HERO
      ═══════════════════════════════════════ -->
-  <section class="hero">
+  <section class="hero" style="position: relative;">
+    <img src="../images/ISO-GREEN/IF-04.8tokens.png"
+         alt=""
+         aria-hidden="true"
+         style="position:absolute; bottom:0; right:5%; width:clamp(280px,40vw,520px); opacity:0.06; pointer-events:none; mix-blend-mode:screen;">
     <h1 class="hero-title">Context Grammar / Grammar</h1>
     <p class="hero-label">8 Tokens That Teach AI to Read the Room</p>
     <p class="hero-sub">Every waiter reads the room before speaking. Context Grammar gives AI the same instinct —
@@ -601,227 +625,239 @@
 
         <!-- TOKEN 1 ─────────────────────────── -->
         <div class="token-card reveal d1">
-          <div class="token-badge token-badge--blue">①</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Physical State</span>
-              <span class="token-tagline">"Are they rushing or relaxed?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                Customer rushes in, coat half-off, scanning for a seat. The waiter brings water before the menu. A
-                couple strolls in on a Saturday evening. Full welcome, wine list, no rush. Same restaurant. Different
-                service. The waiter read the body, not the booking.
-              </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                Activity Recognition API detects walking, running, driving, still. Galaxy Watch adds heart rate, stress
-                index, sleep debt. Accelerometer data is cheap and reliable. The gap: combining these signals into a
-                single "state" that drives design decisions.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
-              </div>
-            </div>
-          </div>
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token1-physical.png" alt="Isometric figure in motion — walking, driving, sitting states mapped to design responses" loading="lazy">
           </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--blue">①</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Physical State</span>
+                <span class="token-tagline">"Are they rushing or relaxed?"</span>
+              </div>
+              <div class="token-desc">
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  Customer rushes in, coat half-off, scanning for a seat. The waiter brings water before the menu. A
+                  couple strolls in on a Saturday evening. Full welcome, wine list, no rush. Same restaurant. Different
+                  service. The waiter read the body, not the booking.
+                </div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  Activity Recognition API detects walking, running, driving, still. Galaxy Watch adds heart rate, stress
+                  index, sleep debt. Accelerometer data is cheap and reliable. The gap: combining these signals into a
+                  single "state" that drives design decisions.
+                </div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- TOKEN 2 ─────────────────────────── -->
         <div class="token-card reveal d2">
-          <div class="token-badge token-badge--blue">②</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Cognitive Load</span>
-              <span class="token-tagline">"How much mental bandwidth remains?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                Two people deep in conversation, leaning in, hands moving. The waiter watches from a distance. A solo
-                diner staring at the ceiling, looking around. The waiter approaches. Reading cognitive load is reading
-                the moment between "I'm available" and "don't interrupt me."
-              </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                This is estimation only. Time of day, calendar density, recent activity patterns, number of app switches
-                in the last 10 minutes. No brain scanner. No EEG. The model infers bandwidth from observable proxies —
-                and it will be wrong sometimes. Honesty matters here.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9733;&#9734;&#9734;&#9734;</span> Speculative — estimation only
-              </div>
-              <div class="insight">
-                <span class="insight-label">Honest Design Note</span>
-                <p>Cognitive Load is the most speculative token. There is no direct measurement today. Context Grammar
-                  uses it as an estimation layer, not a certainty. Design decisions based on this token should always
-                  include graceful fallbacks.</p>
-              </div>
-            </div>
-          </div>
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token2-congnitiveload.png" alt="Mental bandwidth meter — low, medium, high load affecting UI complexity decisions" loading="lazy">
           </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--blue">②</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Cognitive Load</span>
+                <span class="token-tagline">"How much mental bandwidth remains?"</span>
+              </div>
+              <div class="token-desc">
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  Two people deep in conversation, leaning in, hands moving. The waiter watches from a distance. A solo
+                  diner staring at the ceiling, looking around. The waiter approaches. Reading cognitive load is reading
+                  the moment between "I'm available" and "don't interrupt me."
+                </div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  This is estimation only. Time of day, calendar density, recent activity patterns, number of app switches
+                  in the last 10 minutes. No brain scanner. No EEG. The model infers bandwidth from observable proxies —
+                  and it will be wrong sometimes. Honesty matters here.
+                </div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9733;&#9734;&#9734;&#9734;</span> Speculative — estimation only
+                </div>
+                <div class="insight">
+                  <span class="insight-label">Honest Design Note</span>
+                  <p>Cognitive Load is the most speculative token. There is no direct measurement today. Context Grammar
+                    uses it as an estimation layer, not a certainty. Design decisions based on this token should always
+                    include graceful fallbacks.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- TOKEN 3 ─────────────────────────── -->
         <div class="token-card reveal d3">
-          <div class="token-badge token-badge--blue">③</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Social Exposure</span>
-              <span class="token-tagline">"Who else is watching?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                Date night. The waiter dims the energy. Quiet suggestions. No mention of the loyalty card discount.
-                Business lunch with the CEO. No casual banter. Precise timing. Who's at the table changes everything
-                about how service is delivered.
-              </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                Proximity sensors detect nearby devices. Voice ID distinguishes family members. Samsung's Family Hub
-                already supports up to 6 member profiles. Visual detection (on-device) can estimate crowd density. The
-                gap: a unified protocol that tells AI "you're in public" vs "you're alone" across all devices.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
-              </div>
-            </div>
-          </div>
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token3-SocialExposure.png" alt="Person surrounded by different audience contexts — alone, public, with colleagues" loading="lazy">
           </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--blue">③</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Social Exposure</span>
+                <span class="token-tagline">"Who else is watching?"</span>
+              </div>
+              <div class="token-desc">
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  Date night. The waiter dims the energy. Quiet suggestions. No mention of the loyalty card discount.
+                  Business lunch with the CEO. No casual banter. Precise timing. Who's at the table changes everything
+                  about how service is delivered.
+                </div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  Proximity sensors detect nearby devices. Voice ID distinguishes family members. Samsung's Family Hub
+                  already supports up to 6 member profiles. Visual detection (on-device) can estimate crowd density. The
+                  gap: a unified protocol that tells AI "you're in public" vs "you're alone" across all devices.
+                </div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- TOKEN 4 ─────────────────────────── -->
         <div class="token-card reveal d4">
-          <div class="token-badge token-badge--blue">④</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Priority Weight</span>
-              <span class="token-tagline">"When demands collide, what wins?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                A child has a nut allergy. The meal must taste great. The bill should stay reasonable. When these three
-                demands collide, allergy wins. Always. A great waiter never needs to be told this hierarchy. They know:
-                safety beats taste beats price.
-              </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                Calendar priority levels, notification settings, Gmail Priority Inbox — pieces of the puzzle exist. The
-                gap: cross-domain priority that resolves "your meeting starts in 5 minutes but your daughter's school is
-                calling" without asking the user to build rules manually.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Partially shipping
-              </div>
-              <div class="insight">
-                <span class="insight-label">Design Note</span>
-                <p>Priority Weight has two layers: current urgency (this token) and learned tradeoff patterns (stored in
-                  the Brain). The token captures what's pressing right now. The Brain remembers how you've resolved
-                  similar collisions before.</p>
-              </div>
-            </div>
-          </div>
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token4_PriorityWeight.png" alt="Competing demands on a balance scale — urgent vs. important collision resolution" loading="lazy">
           </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--blue">④</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Priority Weight</span>
+                <span class="token-tagline">"When demands collide, what wins?"</span>
+              </div>
+              <div class="token-desc">
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  A child has a nut allergy. The meal must taste great. The bill should stay reasonable. When these three
+                  demands collide, allergy wins. Always. A great waiter never needs to be told this hierarchy. They know:
+                  safety beats taste beats price.
+                </div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  Calendar priority levels, notification settings, Gmail Priority Inbox — pieces of the puzzle exist. The
+                  gap: cross-domain priority that resolves "your meeting starts in 5 minutes but your daughter's school is
+                  calling" without asking the user to build rules manually.
+                </div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Partially shipping
+                </div>
+                <div class="insight">
+                  <span class="insight-label">Design Note</span>
+                  <p>Priority Weight has two layers: current urgency (this token) and learned tradeoff patterns (stored in
+                    the Brain). The token captures what's pressing right now. The Brain remembers how you've resolved
+                    similar collisions before.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- TOKEN 5 ─────────────────────────── -->
         <div class="token-card reveal d5">
-          <div class="token-badge token-badge--blue">⑤</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Form Factor</span>
-              <span class="token-tagline">"What surfaces surround them?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                Counter seat — one dish at a time, quick bites, minimal conversation. Private dining room — full course
-                presentation, multiple plates, space to linger. The physical space shapes the service. The screen shapes
-                the experience.
+          <figure class="token-illust">
+            <img src="../images/ISO-GREEN/IF-Token5-FormFactor.png" alt="Device family grid — phone, watch, TV, car dashboard with different capability levels" loading="lazy">
+          </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--blue">⑤</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Form Factor</span>
+                <span class="token-tagline">"What surfaces surround them?"</span>
               </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                Device type detection is trivial. Samsung DeX, Apple CarPlay, Continuity Handoff — all production-ready.
-                The gap: dynamic multi-screen allocation. Knowing "the TV is on and you're holding your phone" should
-                change what appears on each screen simultaneously.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
-              </div>
-              <div class="token-tech" style="margin-top: 16px;">
-                <span class="token-tech-label">Beyond Screens</span>
-                Form Factor isn't just about displays. AI speaks through every surface:
-              </div>
-              <div class="surfaces-grid">
-                <div class="surface">
-                  <div class="surface-name">Voice-only</div>
-                  <div class="surface-desc">Smart speakers, earbuds. No visual feedback — AI must be concise and confirmable by voice.</div>
+              <div class="token-desc">
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  Counter seat — one dish at a time, quick bites, minimal conversation. Private dining room — full course
+                  presentation, multiple plates, space to linger. The physical space shapes the service. The screen shapes
+                  the experience.
                 </div>
-                <div class="surface">
-                  <div class="surface-name">Gesture / Spatial</div>
-                  <div class="surface-desc">AR glasses, spatial computing. AI overlays information on the real world.</div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  Device type detection is trivial. Samsung DeX, Apple CarPlay, Continuity Handoff — all production-ready.
+                  The gap: dynamic multi-screen allocation. Knowing "the TV is on and you're holding your phone" should
+                  change what appears on each screen simultaneously.
                 </div>
-                <div class="surface">
-                  <div class="surface-name">Ambient</div>
-                  <div class="surface-desc">Environmental sensors, smart home. No direct interface — AI acts through the environment (lights, temperature, locks).</div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> Mostly shipping
                 </div>
-                <div class="surface">
-                  <div class="surface-name">Hybrid</div>
-                  <div class="surface-desc">Car dashboard + voice. Phone + earbuds. Multi-surface coordination where AI chooses the best channel.</div>
+                <div class="token-tech" style="margin-top: 16px;">
+                  <span class="token-tech-label">Beyond Screens</span>
+                  Form Factor isn't just about displays. AI speaks through every surface:
+                </div>
+                <figure class="token-illust token-illust--standalone" style="max-width:100%; margin: 12px 0; padding: clamp(12px,2vw,20px);">
+                  <img src="../images/ISO-GREEN/IF-Token5b-BeyondScreens.png"
+                       alt="Isometric room with multiple non-screen AI surfaces: smart speaker, earbuds, AR glasses, ambient sensors"
+                       loading="lazy">
+                </figure>
+                <div class="surfaces-grid">
+                  <div class="surface">
+                    <div class="surface-name">Voice-only</div>
+                    <div class="surface-desc">Smart speakers, earbuds. No visual feedback — AI must be concise and confirmable by voice.</div>
+                  </div>
+                  <div class="surface">
+                    <div class="surface-name">Gesture / Spatial</div>
+                    <div class="surface-desc">AR glasses, spatial computing. AI overlays information on the real world.</div>
+                  </div>
+                  <div class="surface">
+                    <div class="surface-name">Ambient</div>
+                    <div class="surface-desc">Environmental sensors, smart home. No direct interface — AI acts through the environment (lights, temperature, locks).</div>
+                  </div>
+                  <div class="surface">
+                    <div class="surface-name">Hybrid</div>
+                    <div class="surface-desc">Car dashboard + voice. Phone + earbuds. Multi-surface coordination where AI chooses the best channel.</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <figure class="token-illust">
-            <img src="../images/ISO-GREEN/IF-Token5-FormFactor.png" alt="Device family grid — phone, watch, TV, car dashboard with different capability levels" loading="lazy">
-          </figure>
-          <figure class="token-illust">
-            <img src="../images/ISO-GREEN/IF-Token5b-BeyondScreens.png"
-                 alt="Isometric room with multiple non-screen AI surfaces: smart speaker, earbuds, AR glasses, ambient sensors"
-                 loading="lazy">
-          </figure>
         </div>
 
         <!-- TOKEN 6 ─────────────────────────── -->
         <div class="token-card reveal d6">
-          <div class="token-badge token-badge--blue">⑥</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Feasibility</span>
-              <span class="token-tagline">"What's actually possible right now?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                "That fish is sold out tonight." A bad waiter stops there. A great waiter says: "But the sea bass came
-                in this morning, and the chef does it the same way." Feasibility isn't about saying no. It's about
-                proposing what's possible instead.
-              </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                Inventory APIs, weather APIs, real-time delivery estimates, store hours — individual feasibility checks
-                are mature. The gap: multi-constraint optimization. Combining "it's raining + the store closes in 20
-                minutes + you have a toddler in the car" into a single feasibility score.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Partially shipping
-              </div>
-            </div>
-          </div>
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token6-Feasibility.png" alt="Traffic light signal — what AI can and cannot do right now in this context" loading="lazy">
           </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--blue">⑥</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Feasibility</span>
+                <span class="token-tagline">"What's actually possible right now?"</span>
+              </div>
+              <div class="token-desc">
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  "That fish is sold out tonight." A bad waiter stops there. A great waiter says: "But the sea bass came
+                  in this morning, and the chef does it the same way." Feasibility isn't about saying no. It's about
+                  proposing what's possible instead.
+                </div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  Inventory APIs, weather APIs, real-time delivery estimates, store hours — individual feasibility checks
+                  are mature. The gap: multi-constraint optimization. Combining "it's raining + the store closes in 20
+                  minutes + you have a toddler in the car" into a single feasibility score.
+                </div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Partially shipping
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -839,7 +875,7 @@
       <p class="sec-desc reveal d1">You asked for Meiji Bulgarian yogurt, but the store is out. What should AI do? The
         answer depends on your Substitution Mode — a preference that works hand-in-hand with the Autonomy Dial.</p>
 
-      <figure class="token-illust reveal d1" style="margin-bottom: clamp(16px, 2vw, 24px);">
+      <figure class="token-illust token-illust--standalone reveal d1" style="margin-bottom: clamp(16px, 2vw, 24px);">
         <img src="images/ISO-GREEN/IF-SubstitutionModes.png"
           alt="Four substitution modes illustrated — Exact, Flexible, Exploring, Surprise — showing increasing AI creative latitude"
           loading="lazy">
@@ -980,113 +1016,117 @@
 
         <!-- TOKEN 7 ─────────────────────────── -->
         <div class="token-card token-card--dial reveal d1">
-          <div class="token-badge token-badge--amber">⑦</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Autonomy Dial</span>
-              <span class="token-tagline">"How much can AI act on its own?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="stages">
-                <div class="stage">
-                  <div class="stage-num">Stage 1</div>
-                  <div class="stage-name">Suggest</div>
-                </div>
-                <div class="stage">
-                  <div class="stage-num">Stage 2</div>
-                  <div class="stage-name">Confirm</div>
-                </div>
-                <div class="stage">
-                  <div class="stage-num">Stage 3</div>
-                  <div class="stage-name">Notify</div>
-                </div>
-                <div class="stage">
-                  <div class="stage-num">Stage 4</div>
-                  <div class="stage-name">Auto</div>
-                </div>
-              </div>
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                First visit. "Here's the menu. Take your time." Third visit. "The usual?" Twentieth visit. The food just
-                appears. The progression from full menu to automatic is trust earned through consistency. Not a switch
-                you flip on day one.
-              </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                Claude Code uses 3-stage autonomy modes. Cursor IDE has an autonomy slider. Agent frameworks ship with
-                suggest/confirm/auto patterns as standard. The gap: consumer-facing gradual dial that adjusts
-                per-domain, not a binary on/off.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Shipping in dev tools
-              </div>
-              <div class="insight insight--amber">
-                <span class="insight-label">Key Insight</span>
-                <p>The Autonomy Dial is <strong>not purely user-controlled</strong>. Three forces shape it: the
-                  service's default setting (Netflix starts high), AI adjustment based on observed trust patterns, and
-                  the user's active choice. Your Uber Eats doesn't ask permission to reorder — because the service
-                  default already assumed autonomy.</p>
-              </div>
-            </div>
-          </div>
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token7-AutonomyDial.png" alt="Four-stage dial from Suggest to Auto — trust building through track record" loading="lazy">
           </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--amber">⑦</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Autonomy Dial</span>
+                <span class="token-tagline">"How much can AI act on its own?"</span>
+              </div>
+              <div class="token-desc">
+                <div class="stages">
+                  <div class="stage">
+                    <div class="stage-num">Stage 1</div>
+                    <div class="stage-name">Suggest</div>
+                  </div>
+                  <div class="stage">
+                    <div class="stage-num">Stage 2</div>
+                    <div class="stage-name">Confirm</div>
+                  </div>
+                  <div class="stage">
+                    <div class="stage-num">Stage 3</div>
+                    <div class="stage-name">Notify</div>
+                  </div>
+                  <div class="stage">
+                    <div class="stage-num">Stage 4</div>
+                    <div class="stage-name">Auto</div>
+                  </div>
+                </div>
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  First visit. "Here's the menu. Take your time." Third visit. "The usual?" Twentieth visit. The food just
+                  appears. The progression from full menu to automatic is trust earned through consistency. Not a switch
+                  you flip on day one.
+                </div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  Claude Code uses 3-stage autonomy modes. Cursor IDE has an autonomy slider. Agent frameworks ship with
+                  suggest/confirm/auto patterns as standard. The gap: consumer-facing gradual dial that adjusts
+                  per-domain, not a binary on/off.
+                </div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> Shipping in dev tools
+                </div>
+                <div class="insight insight--amber">
+                  <span class="insight-label">Key Insight</span>
+                  <p>The Autonomy Dial is <strong>not purely user-controlled</strong>. Three forces shape it: the
+                    service's default setting (Netflix starts high), AI adjustment based on observed trust patterns, and
+                    the user's active choice. Your Uber Eats doesn't ask permission to reorder — because the service
+                    default already assumed autonomy.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- TOKEN 8 ─────────────────────────── -->
         <div class="token-card token-card--dial reveal d2">
-          <div class="token-badge token-badge--amber">⑧</div>
-          <div class="token-body">
-            <div class="token-header">
-              <span class="token-name">Disclosure Dial</span>
-              <span class="token-tagline">"How much does AI know about you?"</span>
-            </div>
-            <div class="token-desc">
-              <div class="levels">
-                <div class="level">
-                  <div class="level-label">Level 1</div>
-                  <div class="level-name">Full</div>
-                </div>
-                <div class="level">
-                  <div class="level-label">Level 2</div>
-                  <div class="level-name">Summary</div>
-                </div>
-                <div class="level">
-                  <div class="level-label">Level 3</div>
-                  <div class="level-name">Existence</div>
-                </div>
-                <div class="level">
-                  <div class="level-label">Level 4</div>
-                  <div class="level-name">Hidden</div>
-                </div>
-              </div>
-              <div class="token-metaphor">
-                <span class="token-metaphor-label">Restaurant</span>
-                Tell the waiter your allergies, your anniversary, your wine preference. You get a perfect evening. Tell
-                them nothing. You get the generic menu and a "is everything okay?" every ten minutes. The more you
-                share, the better the service. But sharing is always your choice.
-              </div>
-              <div class="token-tech">
-                <span class="token-tech-label">Technology Reality</span>
-                App-level permissions exist. Gemini Connected Apps lets you choose which services share data. Samsung
-                privacy dashboard shows what's accessed. The gap: a unified cross-domain dial. "Full disclosure to my
-                health AI, summary only for shopping, hidden from social media" — one interface, granular control.
-              </div>
-              <div class="readiness">
-                <span class="readiness-stars">&#9733;&#9734;&#9734;&#9734;&#9734;</span> Concept stage
-              </div>
-              <div class="insight insight--amber">
-                <span class="insight-label">Key Insight</span>
-                <p>Disclosure is the <strong>prerequisite for Autonomy</strong>. You cannot say "don't tell AI anything
-                  about me" and also expect "but handle everything automatically." That combination is logically
-                  dangerous. The Disclosure Dial must open before the Autonomy Dial can advance.</p>
-              </div>
-            </div>
-          </div>
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token8-DisclosureDial.png" alt="Privacy control panel — per-domain disclosure settings with lock icons" loading="lazy">
           </figure>
+          <div class="token-content">
+            <div class="token-badge token-badge--amber">⑧</div>
+            <div class="token-body">
+              <div class="token-header">
+                <span class="token-name">Disclosure Dial</span>
+                <span class="token-tagline">"How much does AI know about you?"</span>
+              </div>
+              <div class="token-desc">
+                <div class="levels">
+                  <div class="level">
+                    <div class="level-label">Level 1</div>
+                    <div class="level-name">Full</div>
+                  </div>
+                  <div class="level">
+                    <div class="level-label">Level 2</div>
+                    <div class="level-name">Summary</div>
+                  </div>
+                  <div class="level">
+                    <div class="level-label">Level 3</div>
+                    <div class="level-name">Existence</div>
+                  </div>
+                  <div class="level">
+                    <div class="level-label">Level 4</div>
+                    <div class="level-name">Hidden</div>
+                  </div>
+                </div>
+                <div class="token-metaphor">
+                  <span class="token-metaphor-label">Restaurant</span>
+                  Tell the waiter your allergies, your anniversary, your wine preference. You get a perfect evening. Tell
+                  them nothing. You get the generic menu and a "is everything okay?" every ten minutes. The more you
+                  share, the better the service. But sharing is always your choice.
+                </div>
+                <div class="token-tech">
+                  <span class="token-tech-label">Technology Reality</span>
+                  App-level permissions exist. Gemini Connected Apps lets you choose which services share data. Samsung
+                  privacy dashboard shows what's accessed. The gap: a unified cross-domain dial. "Full disclosure to my
+                  health AI, summary only for shopping, hidden from social media" — one interface, granular control.
+                </div>
+                <div class="readiness">
+                  <span class="readiness-stars">&#9733;&#9734;&#9734;&#9734;&#9734;</span> Concept stage
+                </div>
+                <div class="insight insight--amber">
+                  <span class="insight-label">Key Insight</span>
+                  <p>Disclosure is the <strong>prerequisite for Autonomy</strong>. You cannot say "don't tell AI anything
+                    about me" and also expect "but handle everything automatically." That combination is logically
+                    dangerous. The Disclosure Dial must open before the Autonomy Dial can advance.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

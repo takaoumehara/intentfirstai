@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プロジェクト03 — Fluid Handoff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #18181b;
+  background: #ffffff;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+.mono {
+  font-family: 'DM Mono', 'SF Mono', monospace;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #18181b;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.section-body {
+  font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+  line-height: 1.8;
+  color: #3f3f46;
+  max-width: 680px;
+}
+
+.section-body.centered {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.container--narrow {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.content-section {
+  padding: 7rem 0;
+}
+
+.content-section--compact {
+  padding: 4rem 0;
+}
+
+/* ============================================
+   SCROLL REVEAL
+   ============================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+
+/* ============================================
+   HERO
+   ============================================ */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.55) 50%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  z-index: 1;
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #ffffff;
+  padding: 0 2rem;
+  max-width: 900px;
+}
+
+.hero__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1.5rem;
+}
+
+.hero__title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+}
+
+.hero__subtitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2.5rem;
+  letter-spacing: 0.01em;
+}
+
+.hero__hook {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.8;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero__scroll-cue {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: float 2.5s ease-in-out infinite;
+}
+
+.hero__scroll-cue svg {
+  width: 20px;
+  height: 20px;
+  stroke: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* ============================================
+   FULL-BLEED IMAGE
+   ============================================ */
+.full-bleed {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.full-bleed img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.full-bleed--viewport {
+  height: 70vh;
+  min-height: 400px;
+}
+
+.full-bleed--viewport img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.full-bleed--half {
+  height: 50vh;
+  min-height: 320px;
+}
+
+.full-bleed--half img {
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ============================================
+   ATMOSPHERIC IMAGE (within content)
+   ============================================ */
+.atmo-image {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 2.5rem 0;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+}
+
+.atmo-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.atmo-image--large {
+  margin: 3rem -2rem;
+  width: calc(100% + 4rem);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ============================================
+   ILLUSTRATION (full-width within container)
+   ============================================ */
+.illustration {
+  width: 100%;
+  margin: 3rem 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.illustration img {
+  width: 100%;
+  height: auto;
+}
+
+.illustration--no-border {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+/* ============================================
+   CARD GRID
+   ============================================ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin: 3rem 0;
+}
+
+.card-grid--3col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.card-grid--2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.card-grid--4col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .card-grid--4col {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.card {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 14px;
+  padding: 1.75rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.card__number {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #2563eb;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.card__title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.card__text {
+  font-size: 0.9rem;
+  color: #71717a;
+  line-height: 1.6;
+}
+
+/* ============================================
+   LAYER CARDS (3 layers)
+   ============================================ */
+.layer-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 2rem;
+  border: 1px solid #e4e4e7;
+  position: relative;
+  overflow: hidden;
+}
+
+.layer-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.layer-card--1::before { background: #2563eb; }
+.layer-card--2::before { background: #16a34a; }
+.layer-card--3::before { background: #d97706; }
+
+.layer-card__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.layer-card--1 .layer-card__label { color: #2563eb; }
+.layer-card--2 .layer-card__label { color: #16a34a; }
+.layer-card--3 .layer-card__label { color: #d97706; }
+
+.layer-card__title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.75rem;
+}
+
+.layer-card__text {
+  font-size: 0.9rem;
+  color: #71717a;
+  line-height: 1.7;
+}
+
+/* ============================================
+   QUOTE
+   ============================================ */
+.quote-block {
+  border-left: 3px solid #2563eb;
+  padding: 1.75rem 2rem;
+  margin: 3rem 0;
+  background: #f8faff;
+  border-radius: 0 12px 12px 0;
+}
+
+.quote-block__text {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  font-weight: 400;
+  font-style: italic;
+  color: #3f3f46;
+  line-height: 1.8;
+  margin-bottom: 0.75rem;
+}
+
+.quote-block__source {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   DIAL / TRUST INDICATOR
+   ============================================ */
+.dial {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 100px;
+  background: #18181b;
+  color: #ffffff;
+  margin: 2rem 0;
+}
+
+.dial__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dial__dot--suggest { background: #ef4444; }
+.dial__dot--confirm { background: #d97706; }
+.dial__dot--notify { background: #2563eb; }
+.dial__dot--auto { background: #16a34a; }
+
+.dial__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dial__desc {
+  font-size: 0.8rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ============================================
+   TIMELINE (Month 6 cinematic sequence)
+   ============================================ */
+.cinema-sequence {
+  margin: 0;
+  padding: 0;
+}
+
+.cinema-frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cinema-frame img {
+  width: 100%;
+  display: block;
+}
+
+.cinema-frame--full {
+  height: 75vh;
+  min-height: 450px;
+}
+
+.cinema-frame--full img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.cinema-caption {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+}
+
+.cinema-caption__time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: #2563eb;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.cinema-caption__text {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 400;
+  color: #3f3f46;
+  line-height: 1.7;
+}
+
+/* cinema with overlay text */
+.cinema-frame--overlay {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.cinema-frame--overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
+  z-index: 1;
+}
+
+.cinema-frame__overlay-text {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  right: 2rem;
+  z-index: 2;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 300;
+  max-width: 600px;
+}
+
+/* ============================================
+   STAT CARDS
+   ============================================ */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: #fafafa;
+  border-radius: 14px;
+  border: 1px solid #f0f0f0;
+}
+
+.stat-card__value {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #2563eb;
+  line-height: 1.2;
+}
+
+.stat-card__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #a1a1aa;
+  letter-spacing: 0.08em;
+  margin-top: 0.35rem;
+}
+
+/* ============================================
+   DEVICE CARDS
+   ============================================ */
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin: 2.5rem 0;
+}
+
+.device-card {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  padding: 1.75rem;
+  position: relative;
+}
+
+.device-card__icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.device-card__name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.device-card__role {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.5rem;
+}
+
+.device-card__desc {
+  font-size: 0.88rem;
+  color: #71717a;
+  line-height: 1.6;
+}
+
+/* ============================================
+   TIMELINE BAR
+   ============================================ */
+.timeline-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 2.5rem 0;
+  padding: 1.5rem 0;
+  position: relative;
+}
+
+.timeline-bar::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e4e4e7;
+  transform: translateY(-50%);
+}
+
+.timeline-point {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  z-index: 1;
+}
+
+.timeline-point__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2563eb;
+  margin: 0 auto 0.5rem;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+.timeline-point__time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #2563eb;
+  letter-spacing: 0.05em;
+}
+
+.timeline-point__label {
+  font-size: 0.78rem;
+  color: #71717a;
+  margin-top: 0.2rem;
+}
+
+/* ============================================
+   COMPARISON
+   ============================================ */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: center;
+  margin: 3rem 0;
+}
+
+.comparison__side {
+  text-align: center;
+}
+
+.comparison__side img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.comparison__side-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  margin-bottom: 0.35rem;
+}
+
+.comparison__side-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.comparison__arrow {
+  font-size: 1.5rem;
+  color: #d4d4d8;
+}
+
+/* ============================================
+   FRAMEWORK GRID
+   ============================================ */
+.framework-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+
+.framework-item {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.framework-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+.framework-item img {
+  width: 100%;
+  display: block;
+}
+
+.framework-item__caption {
+  padding: 1.25rem 1.5rem;
+}
+
+.framework-item__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #18181b;
+  margin-bottom: 0.3rem;
+}
+
+.framework-item__desc {
+  font-size: 0.82rem;
+  color: #71717a;
+  line-height: 1.6;
+}
+
+/* ============================================
+   CLOSING / FOOTER
+   ============================================ */
+.closing {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  min-height: 450px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.closing__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.closing__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.closing__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+.closing__text {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #ffffff;
+  padding: 0 2rem;
+  max-width: 750px;
+}
+
+.closing__text h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.footer {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.footer__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  margin-bottom: 1rem;
+}
+
+.footer__articles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.footer__tag {
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: #71717a;
+  letter-spacing: 0.03em;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.footer__tag:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.footer__copy {
+  font-size: 0.78rem;
+  color: #a1a1aa;
+  margin-top: 1.5rem;
+}
+
+/* ============================================
+   MODE CARDS (Substitution)
+   ============================================ */
+.mode-card {
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.mode-card--exact::before { background: #ef4444; }
+.mode-card--flexible::before { background: #2563eb; }
+.mode-card--exploring::before { background: #d97706; }
+.mode-card--surprise::before { background: #a855f7; }
+
+.mode-card__name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.mode-card--exact .mode-card__name { color: #ef4444; }
+.mode-card--flexible .mode-card__name { color: #2563eb; }
+.mode-card--exploring .mode-card__name { color: #d97706; }
+.mode-card--surprise .mode-card__name { color: #a855f7; }
+
+.mode-card__quote {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #18181b;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* ============================================
+   SECTION DIVIDER
+   ============================================ */
+.divider {
+  width: 60px;
+  height: 2px;
+  background: #e4e4e7;
+  margin: 0 auto;
+}
+
+.spacer { height: 2rem; }
+.spacer--lg { height: 4rem; }
+
+/* ============================================
+   INSIGHT BOX
+   ============================================ */
+.insight-box {
+  background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 1.75rem 2rem;
+  margin: 2.5rem 0;
+}
+
+.insight-box__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.insight-box__text {
+  font-size: 1rem;
+  color: #3f3f46;
+  line-height: 1.7;
+}
+
+/* ============================================
+   P3-SPECIFIC: CONTEXT PILLS
+   ============================================ */
+.context-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.context-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 100px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  border: 1px solid #e4e4e7;
+  background: #ffffff;
+  color: #3f3f46;
+}
+
+.context-pill__key {
+  color: #a1a1aa;
+  font-weight: 400;
+}
+
+.context-pill__value {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* ============================================
+   P3-SPECIFIC: TRANSFORM LIST
+   ============================================ */
+.transform-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.transform-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  font-size: 0.88rem;
+}
+
+.transform-item__label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #a1a1aa;
+  min-width: 90px;
+  letter-spacing: 0.05em;
+}
+
+.transform-item__arrow {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.transform-item__value {
+  color: #18181b;
+  font-weight: 500;
+}
+
+/* ============================================
+   P3-SPECIFIC: CONTRIBUTION BAR
+   ============================================ */
+.contribution-bar {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 32px;
+  margin: 1.5rem 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+
+.contribution-bar__ai {
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contribution-bar__human {
+  background: #18181b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 900px) {
+  .card-grid--3col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .framework-grid {
+    grid-template-columns: 1fr;
+  }
+  .comparison {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .comparison__arrow {
+    transform: rotate(90deg);
+  }
+  .stat-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .card-grid--3col,
+  .card-grid--2col {
+    grid-template-columns: 1fr;
+  }
+  .device-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-row {
+    grid-template-columns: 1fr;
+  }
+  .content-section {
+    padding: 4.5rem 0;
+  }
+  .cinema-frame--full {
+    height: 55vh;
+    min-height: 300px;
+  }
+  .hero__title {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+  .atmo-image--large {
+    margin: 2rem 0;
+    width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     1. HERO
+     ============================================ -->
+<section class="hero">
+  <div class="hero__bg">
+    <img src="image-set03/P3_FluidHandoff/P3-image01_station-photo.png" alt="駅のホーム — 朝の通勤">
+  </div>
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    <p class="hero__label reveal">Project 03 &mdash; Context Grammar</p>
+    <h1 class="hero__title reveal reveal-delay-1">Fluid Handoff</h1>
+    <p class="hero__subtitle reveal reveal-delay-2">意図の翻訳 &amp; Form Factor変換</p>
+    <p class="hero__hook reveal reveal-delay-3">
+      &laquo;&#12501;&#12527;&#12501;&#12527;&#12375;&#12390;&#12394;&#12356;&#12420;&#12388;&raquo;&mdash;&mdash;&#12371;&#12398;&#21046;&#32004;&#12434;&#12289;&#26082;&#23384;&#12398;&#12393;&#12398;&#12501;&#12451;&#12523;&#12479;&#12540;&#12418;&#20966;&#29702;&#12391;&#12365;&#12394;&#12356;&#12290;
+    </p>
+  </div>
+  <div class="hero__scroll-cue">
+    <span>Scroll</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ============================================
+     2. BEFORE — THE FRICTION
+     ============================================ -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label reveal">Before &mdash; フリクション</p>
+    <h2 class="section-title reveal">2時間、30タブ、サイズ違い</h2>
+    <p class="section-body reveal">
+      実際の靴買いの話。Amazonで「boys winter shoes black waterproof」と検索して847件。12タブを開き、Google Docsに比較表を自作。3サイトを横断。息子を呼んでスマホの小さい画面を見せる。注文。サイズが合わない。返品。
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image07_before-after.png" alt="ビフォー/アフター フリクション比較" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid reveal">
+      <div class="card reveal reveal-delay-1">
+        <p class="card__number">01</p>
+        <h3 class="card__title">質的制約はフィルターにならない</h3>
+        <p class="card__text">「フワフワしていない」は商品仕様に存在しない。レビューの中にしか、自然言語でしか存在しない。</p>
+      </div>
+      <div class="card reveal reveal-delay-2">
+        <p class="card__number">02</p>
+        <h3 class="card__title">クロスサイト比較は人力労働</h3>
+        <p class="card__text">Amazon、Zappos、Nikeの情報をGoogle Docsにコピペ。ユーザー自身が「使い捨てエージェント」を構築している。</p>
+      </div>
+      <div class="card reveal reveal-delay-3">
+        <p class="card__number">03</p>
+        <h3 class="card__title">サイズはブランド間で異なる</h3>
+        <p class="card__text">NikeとAdidasとNew Balanceで「サイズ3」の実寸が違う。標準化するシステムがない。</p>
+      </div>
+      <div class="card reveal reveal-delay-4">
+        <p class="card__number">04</p>
+        <h3 class="card__title">スマホ画面が家族の意思決定を壊す</h3>
+        <p class="card__text">小さい画面で1つずつ見せる。横並びで比較できない。子供が選択に参加できない。</p>
+      </div>
+      <div class="card reveal reveal-delay-5">
+        <p class="card__number">05</p>
+        <h3 class="card__title">意思決定のダイナミクスが歪む</h3>
+        <p class="card__text">子供が価格を見る→一番高いのを選ぶ→親が罪悪感。情報設計そのものが摩擦を生む。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 3rem;">
+    <div class="quote-block reveal">
+      <p class="quote-block__text">"全てのワークアラウンドの裏にフリクション・ポイントがある。Google Docsに比較表を自作する行為は、システムに欠けている構造的役割を示している。"</p>
+      <p class="quote-block__source">&mdash; 記事#05、フリクション発見</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     3. TRANSLATION LAYER
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container">
+    <p class="section-label reveal">Translation Layer</p>
+    <h2 class="section-title reveal">人間の言葉からシステムパラメータへ</h2>
+    <p class="section-body reveal">
+      「フワフワしていない」は商品名にも仕様書にも出てこない。レビューの中にしか存在しない。Translation Layerこそが——人間の質的制約を、機械が実行できる仕様に翻訳する——その欠けていた橋だ。
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image06_translation-pipeline.png" alt="Translation Layerパイプライン" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--3col">
+      <div class="layer-card layer-card--1 reveal reveal-delay-1">
+        <p class="layer-card__label">Step 1</p>
+        <h3 class="layer-card__title">意味の分解</h3>
+        <p class="layer-card__text">「フワフワ」= 裏起毛・ボア素材・シェルパ素材・ファーライニング。1つの人間の言葉を、商品ドメインの同義語クラスターに展開する。</p>
+      </div>
+      <div class="layer-card layer-card--2 reveal reveal-delay-2">
+        <p class="layer-card__label">Step 2</p>
+        <h3 class="layer-card__title">マルチモーダル検証</h3>
+        <p class="layer-card__text">300件以上のレビューのNLP解析 + 商品画像認識 + スペックシート照合。3つの独立したシグナルが真実を三角測量する。</p>
+      </div>
+      <div class="layer-card layer-card--3 reveal reveal-delay-3">
+        <p class="layer-card__label">Step 3</p>
+        <h3 class="layer-card__title">確信度スコアリング</h3>
+        <p class="layer-card__text">候補A: 94%。候補B: 88%。候補C: 71%——閾値以下、エスカレーション発動。ユーザーが見るのは確信であり、推測ではない。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="insight-box reveal">
+      <p class="insight-box__label">Core Thesis</p>
+      <p class="insight-box__text">Translation Layerは記事#01の核心テーゼの完全実装である。人間の意図をシステム仕様に翻訳すること。ユーザーが口にする全ての質的制約——「フワフワしていない」「かっこいい」「履きやすい」——が、システムが実行できる構造化クエリになる。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     4. PHASE 0 — THE PLATFORM
+     ============================================ -->
+<section class="content-section">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Phase 0 &mdash; 駅のホーム</p>
+    <h2 class="section-title reveal">両手自由。プライベート。フルパワー。</h2>
+    <p class="section-body centered reveal" style="text-align: center;">
+      ホームに立っている。両手は自由。フルブラウジングUI。音声指示：<em>「息子の冬用PEシューズを探して。黒で防水。有名ブランド。でも中は絶対にフワフワしていないやつ。」</em>
+    </p>
+  </div>
+</section>
+
+<div class="cinema-sequence">
+  <div class="cinema-frame cinema-frame--full reveal">
+    <img src="image-set03/P3_FluidHandoff/P3-image01_station-photo.png" alt="Phase 0 — 駅のホーム、両手自由" loading="lazy">
+  </div>
+  <div class="cinema-caption reveal">
+    <div class="illustration" style="margin: 0 0 2rem 0;">
+      <img src="image-set03/P3_FluidHandoff/P3-image01_station-illust.png" alt="駅のホーム アイソメトリックイラスト" loading="lazy">
+    </div>
+    <p class="cinema-caption__text">
+      システムが意図を受け取る。Translation Layerが起動：「フワフワ」→ 裏起毛・ボア・シェルパ・ファーに分解。847候補がパイプラインに入る。数秒で3足が生き残る。
+    </p>
+    <div class="context-pills" style="margin-top: 1.5rem;">
+      <span class="context-pill"><span class="context-pill__key">Physical</span><span class="context-pill__value">both-hands</span></span>
+      <span class="context-pill"><span class="context-pill__key">Social</span><span class="context-pill__value">PRIVATE</span></span>
+      <span class="context-pill"><span class="context-pill__key">Form</span><span class="context-pill__value">phone</span></span>
+    </div>
+    <div class="dial">
+      <span class="dial__dot dial__dot--suggest"></span>
+      <span class="dial__label">Suggest</span>
+      <span class="dial__desc">Position 1 &mdash; 初回検索、完全な確認が必要</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     5. PHASE 1 — THE TRAIN
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Phase 1 &mdash; 電車</p>
+    <h2 class="section-title reveal">片手で、すべてが変わる</h2>
+  </div>
+</section>
+
+<div class="cinema-sequence">
+  <div class="cinema-frame cinema-frame--full reveal">
+    <img src="image-set03/P3_FluidHandoff/P3-image02_train-photo.png" alt="Phase 1 — 電車の中、片手でつり革" loading="lazy">
+  </div>
+  <div class="cinema-caption reveal">
+    <p class="cinema-caption__text">
+      電車に乗った。つり革を掴む。<strong>「片手モード」。</strong>UIが変形する：タッチターゲットが56pxに拡大、操作ゾーンがサムゾーン（下部40%）に縮小、カードレイアウトに切り替え。コンテンツは変わっていない——到達方法だけが変わった。
+    </p>
+  </div>
+</div>
+
+<section class="content-section--compact">
+  <div class="container" style="margin-top: 1rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image02_train-illust.png" alt="電車内アイソメトリックイラスト" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <div class="device-grid">
+      <div class="device-card reveal reveal-delay-1">
+        <p class="device-card__name">What Transforms</p>
+        <h3 class="device-card__role">UIが物理的文脈に適応</h3>
+        <div class="transform-list">
+          <div class="transform-item">
+            <span class="transform-item__label">Layout</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">card-compact</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">タッチターゲット</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">最小56px</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">ゾーン</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">サムゾーン（下部40%）</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">通知</span>
+            <span class="transform-item__arrow">&rarr;</span>
+            <span class="transform-item__value">サイレント</span>
+          </div>
+        </div>
+      </div>
+      <div class="device-card reveal reveal-delay-2">
+        <p class="device-card__name">What Stays</p>
+        <h3 class="device-card__role">コンテンツの整合性を維持</h3>
+        <div class="transform-list">
+          <div class="transform-item">
+            <span class="transform-item__label">価格</span>
+            <span class="transform-item__arrow">=</span>
+            <span class="transform-item__value">靴の値段は機密情報ではない</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">商品画像</span>
+            <span class="transform-item__arrow">=</span>
+            <span class="transform-item__value">カード内で、レスポンシブに</span>
+          </div>
+          <div class="transform-item">
+            <span class="transform-item__label">Confidence</span>
+            <span class="transform-item__arrow">=</span>
+            <span class="transform-item__value">Signal表示を維持</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="insight-box reveal">
+      <p class="insight-box__label">Over Time</p>
+      <p class="insight-box__text">3ヶ月後、同じ電車。何も言っていない。でもUIはもうカードモードになっている。システムが学習したのだ：平日8:05&ndash;8:40の電車 = 片手モード。文脈が暗黙的になる。摩擦が見えなくなる。</p>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="text-align: center;">
+    <div class="context-pills reveal" style="justify-content: center;">
+      <span class="context-pill"><span class="context-pill__key">Physical</span><span class="context-pill__value">one-hand</span></span>
+      <span class="context-pill"><span class="context-pill__key">Social</span><span class="context-pill__value">PUBLIC</span></span>
+      <span class="context-pill"><span class="context-pill__key">Form</span><span class="context-pill__value">phone</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     6. PHASE 2 — THE LIVING ROOM (THE MAGIC MOMENT)
+     ============================================ -->
+<section class="content-section">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Phase 2 &mdash; リビング</p>
+    <h2 class="section-title reveal">スマホがリモコンになる</h2>
+    <p class="section-body centered reveal" style="text-align: center;">
+      帰宅。息子がいる。比較ボードをTVにキャスト。その瞬間、2つのことが同時に起こる——すべてが変わる。
+    </p>
+  </div>
+</section>
+
+<div class="cinema-sequence">
+  <div class="cinema-frame cinema-frame--full reveal">
+    <img src="image-set03/P3_FluidHandoff/P3-image03_livingroom-photo.png" alt="Phase 2 — リビング、家族と一緒に" loading="lazy">
+  </div>
+</div>
+
+<section class="content-section--compact">
+  <div class="container" style="margin-top: 1rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image08_phone-remote.png" alt="スマホがリモコンに変形する" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <div class="device-grid">
+      <div class="device-card reveal reveal-delay-1">
+        <div class="device-card__icon">&#128250;</div>
+        <p class="device-card__name">TV Output</p>
+        <h3 class="device-card__role">ファシリテーションモード</h3>
+        <p class="device-card__desc">靴の大きな画像が画面を埋める。感情的なラベル：「防水！」「軽い！」「かっこいい！」。価格はデフォルトで非表示。子供が自由に指差して選べる。</p>
+      </div>
+      <div class="device-card reveal reveal-delay-2">
+        <div class="device-card__icon">&#128241;</div>
+        <p class="device-card__name">Mobile Output</p>
+        <h3 class="device-card__role">親ビュー</h3>
+        <p class="device-card__desc">商品画像がスマホから完全消去（PURGE）。D-padリモコンが画面中央に出現。画面下部に価格 + Confidence Signal + Buyボタン。数字を見るのは親だけ。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image03_livingroom-illust.png" alt="リビング アイソメトリックイラスト" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container--narrow" style="text-align: center;">
+    <div class="context-pills reveal" style="justify-content: center;">
+      <span class="context-pill"><span class="context-pill__key">Physical</span><span class="context-pill__value">seated</span></span>
+      <span class="context-pill"><span class="context-pill__key">Social</span><span class="context-pill__value">FAMILY</span></span>
+      <span class="context-pill"><span class="context-pill__key">Form</span><span class="context-pill__value">phone+TV</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     7. NOW IMAGINE DIVIDER
+     ============================================ -->
+<div class="full-bleed full-bleed--viewport reveal">
+  <img src="image-set03/P3_FluidHandoff/P3-image04_boots-photo.png" alt="冬のブーツ — 選択の瞬間" loading="lazy" style="height: 100%; object-fit: cover;">
+  <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, transparent 70%); z-index: 1;"></div>
+  <div style="position: absolute; bottom: 3rem; left: 2rem; right: 2rem; z-index: 2; max-width: 650px;">
+    <p style="font-family: 'Outfit', sans-serif; font-size: clamp(1.15rem, 2.2vw, 1.5rem); font-weight: 400; color: #ffffff; line-height: 1.7;">
+      子供がTVを指差す。<strong>「真ん中のやつ！」</strong><br>
+      親がリモコンでOKをタップ。価格を確認。Buyをタップ。
+    </p>
+  </div>
+</div>
+
+<!-- ============================================
+     8. HUMAN-HUMAN FACILITATION (仁)
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container">
+    <p class="section-label reveal">Human-Human Facilitation</p>
+    <h2 class="section-title reveal">AIが家族の瞬間を守る</h2>
+  </div>
+
+  <div class="container" style="margin-top: 2rem;">
+    <div class="atmo-image reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image10_family-choosing-photo.png" alt="家族が一緒に選んでいる" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 2.5rem;">
+    <p class="section-body reveal">
+      記事#11（<em>Ren</em> &mdash; &#20161;）より：AIは決定を下さない。家族が一緒に——喜びを持って——決められる環境を作る。システムの役割はファシリテーションであり、自動化ではない。
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--3col">
+      <div class="card reveal reveal-delay-1">
+        <p class="card__number">Principle 1</p>
+        <h3 class="card__title">情報アーキテクチャ</h3>
+        <p class="card__text">TV = 子供向け（感情的な特徴、大きな画像）。スマホ = 親専用（価格、確信度、購入）。各画面が異なる参加者のニーズに応える。</p>
+      </div>
+      <div class="card reveal reveal-delay-2">
+        <p class="card__number">Principle 2</p>
+        <h3 class="card__title">参加のバランス</h3>
+        <p class="card__text">子供の好み = 最優先（指差しで選べる）。親の制約 = 裏側で保護。両者の声が重要で、どちらも支配しない。</p>
+      </div>
+      <div class="card reveal reveal-delay-3">
+        <p class="card__number">Principle 3</p>
+        <h3 class="card__title">ダイナミクスの保護</h3>
+        <p class="card__text">TVに価格を非表示 = 「高いの！」というダイナミクスを防ぐ。候補を3つだけ = 選択麻痺を排除。アーキテクチャが行動を形作る。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="contribution-bar reveal">
+      <div class="contribution-bar__ai" style="width: 25%;">AI ~25%</div>
+      <div class="contribution-bar__human" style="width: 75%;">Human ~75%</div>
+    </div>
+    <p style="font-size: 0.85rem; color: #71717a; text-align: center; margin-top: 0.5rem;">AIがフィルタリング、検証、サーフェス最適化を担当。人間が選択、判断、会話を担当。</p>
+  </div>
+
+  <div class="stat-row reveal" style="margin-top: 2.5rem;">
+    <div class="stat-card">
+      <p class="stat-card__value">847&rarr;3</p>
+      <p class="stat-card__label">候補をフィルタリング</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-card__value">2hrs&rarr;5min</p>
+      <p class="stat-card__label">時間短縮</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-card__value">Zero</p>
+      <p class="stat-card__label">子供に見せた価格</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     9. CONTEXT TOKENS — 4 PHASE CHANGES
+     ============================================ -->
+<section class="content-section">
+  <div class="container">
+    <p class="section-label reveal">Context Tokens</p>
+    <h2 class="section-title reveal">6つのトークンが4つのフェーズで変化する</h2>
+    <p class="section-body reveal">
+      同じ買い物タスク——同じ人、同じ意図——が4つの完全に異なるインターフェースを生む。何が変わったのか？コンテンツではない。文脈だ。
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image09_context-dashboard.png" alt="4フェーズにわたるContext Tokens" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--2col">
+
+      <!-- Phase 0: Platform -->
+      <div class="card reveal reveal-delay-1" style="padding: 0; overflow: hidden;">
+        <div style="background: #2563eb; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Phase 0</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">駅のホーム</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2563eb; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">両手自由・立ち</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2563eb; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">PRIVATE &mdash; 一人</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2563eb; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">phone &mdash; フルグリッドUI</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--suggest"></span>
+              <span class="dial__label">Suggest</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 1: Train -->
+      <div class="card reveal reveal-delay-2" style="padding: 0; overflow: hidden;">
+        <div style="background: #d97706; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Phase 1</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">電車</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #d97706; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">片手・つり革</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #d97706; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">PUBLIC &mdash; 混雑</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #d97706; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">phone &mdash; card-compact、サムゾーン</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--suggest"></span>
+              <span class="dial__label">Suggest</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2: Living Room -->
+      <div class="card reveal reveal-delay-3" style="padding: 0; overflow: hidden;">
+        <div style="background: #16a34a; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Phase 2</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">リビング</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #16a34a; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">着席・両手自由</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #16a34a; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">FAMILY &mdash; 子供あり</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #16a34a; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">phone + TV &mdash; 分離出力</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--confirm"></span>
+              <span class="dial__label">Confirm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 3: Over Time -->
+      <div class="card reveal reveal-delay-4" style="padding: 0; overflow: hidden;">
+        <div style="background: #18181b; padding: 1rem 1.75rem;">
+          <p style="font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.25rem;">Over Time</p>
+          <p style="font-size: 1.1rem; font-weight: 600; color: #ffffff;">学習パターン</p>
+        </div>
+        <div style="padding: 1.5rem 1.75rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #71717a; min-width: 1.5rem;">02</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Physical</span><br><span style="font-size: 0.85rem; color: #71717a;">時刻+場所から予測</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #71717a; min-width: 1.5rem;">04</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Social</span><br><span style="font-size: 0.85rem; color: #71717a;">同位置デバイスから推定</span></div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: baseline;">
+              <span style="font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #71717a; min-width: 1.5rem;">07</span>
+              <div><span style="font-weight: 600; font-size: 0.9rem;">Form Factor</span><br><span style="font-size: 0.85rem; color: #71717a;">履歴から事前設定</span></div>
+            </div>
+          </div>
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f0f0f0;">
+            <div class="dial" style="margin: 0;">
+              <span class="dial__dot dial__dot--notify"></span>
+              <span class="dial__label">Notify</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image04_boots-illust.png" alt="ブーツとAIエージェント アイソメトリックイラスト" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="insight-box reveal">
+      <p class="insight-box__label">Cross-Project Pattern</p>
+      <p class="insight-box__text">Feasibility Token &#9320;は全プロジェクトで機能する：P1 =「冷蔵庫の在庫 + 店舗の在庫 + 配送ウィンドウ」。P2 =「帰宅まで28分」。P3 =「在庫あり、サイズ検証済み、週末までに配送」。同じトークン、異なるドメイン、同一のロジック。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     10. OVER TIME — TRUST EVOLUTION
+     ============================================ -->
+<section class="content-section" style="background: #fafafa;">
+  <div class="container--narrow" style="text-align: center;">
+    <p class="section-label reveal">Over Time &mdash; 信頼の進化</p>
+    <h2 class="section-title reveal">システムが「フワフワ」の意味を学ぶ</h2>
+    <p class="section-body centered reveal" style="text-align: center;">
+      信頼は与えられるものではない。繰り返しの正確さ、透明な推論、そして優雅な失敗を通じて蓄積される。Translation Layerは購入のたびに洗練される。
+    </p>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="card-grid card-grid--3col">
+      <div class="card reveal reveal-delay-1" style="border-top: 3px solid #ef4444;">
+        <p class="card__number">今日</p>
+        <h3 class="card__title">初回購入</h3>
+        <p class="card__text">Translation Layerが初めて「フワフワ」を処理。4つの同義語に分解、300件のレビューをスキャン、商品画像を分析。3候補が生き残る。完全な確認が必要。</p>
+        <div class="dial" style="margin-top: 1rem;">
+          <span class="dial__dot dial__dot--suggest"></span>
+          <span class="dial__label">Suggest</span>
+        </div>
+      </div>
+      <div class="card reveal reveal-delay-2" style="border-top: 3px solid #d97706;">
+        <p class="card__number">4ヶ月後</p>
+        <h3 class="card__title">成長を検知</h3>
+        <p class="card__text">息子が成長。システムが先んじて提案：「サイズ4が必要では？」既に把握済み：フワフワNG、黒、防水、スポーツブランド。同義語クラスターが洗練。2候補。より少ない労力。</p>
+        <div class="dial" style="margin-top: 1rem;">
+          <span class="dial__dot dial__dot--confirm"></span>
+          <span class="dial__label">Confirm</span>
+        </div>
+      </div>
+      <div class="card reveal reveal-delay-3" style="border-top: 3px solid #2563eb;">
+        <p class="card__number">1年後</p>
+        <h3 class="card__title">サイクル安定</h3>
+        <p class="card__text">購入サイクルが安定（約6ヶ月）。Translation Layerが完全に洗練：「薄いフリースはOK、厚い裏起毛はNG、ボアは絶対NG」。システムがあなたの家族専用の語彙を持つようになった。</p>
+        <div class="dial" style="margin-top: 1rem;">
+          <span class="dial__dot dial__dot--notify"></span>
+          <span class="dial__label">Notify</span>
+          <span class="dial__desc">search &rarr; Confirm purchase</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="margin-top: 3rem;">
+    <div class="illustration reveal">
+      <img src="image-set03/P3_FluidHandoff/P3-image05_child-shoes-illust.png" alt="新しい靴で走る子供 アイソメトリックイラスト" loading="lazy">
+    </div>
+  </div>
+
+  <div class="container--narrow" style="margin-top: 2.5rem;">
+    <div class="quote-block reveal">
+      <p class="quote-block__text">"信頼はスイッチではない。歴史だ——1つの成功した交流ごとに書かれ、1つの失敗で消える。"</p>
+      <p class="quote-block__source">&mdash; 記事#14、信頼の歴史</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     11. CLOSING
+     ============================================ -->
+<section class="closing">
+  <div class="closing__bg">
+    <img src="image-set03/P3_FluidHandoff/P3-image05_child-shoes-photo.png" alt="新しい靴を履いた子供 — 大切な瞬間" loading="lazy">
+  </div>
+  <div class="closing__overlay"></div>
+  <div class="closing__text reveal">
+    <h2>これは靴を買う話ではない。<br>家族が一緒に選ぶ話だ——<br>そしてAIがその瞬間を守る。</h2>
+  </div>
+</section>
+
+<!-- ============================================
+     12. FOOTER
+     ============================================ -->
+<footer class="footer">
+  <p class="footer__label">Substackの記事に基づく</p>
+  <div class="footer__articles">
+    <span class="footer__tag">#01 Translation Layer</span>
+    <span class="footer__tag">#03 JTBD</span>
+    <span class="footer__tag">#05 フリクション発見</span>
+    <span class="footer__tag">#11 Ren（仁）</span>
+    <span class="footer__tag">#14 信頼の歴史</span>
+  </div>
+  <p class="footer__copy">プロジェクト03 &mdash; Fluid Handoff &middot; Context Grammarポートフォリオ</p>
+</footer>
+
+<!-- ============================================
+     JAVASCRIPT — Scroll Reveal
+     ============================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // IntersectionObserver for scroll-reveal animations
+  var observerOptions = {
+    root: null,
+    rootMargin: '0px 0px -60px 0px',
+    threshold: 0.1
+  };
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Once visible, no need to observe anymore
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // Observe all reveal elements
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    observer.observe(el);
+  });
+
+  // Hero elements should be visible immediately (slight delay for effect)
+  var heroReveals = document.querySelectorAll('.hero .reveal');
+  setTimeout(function() {
+    heroReveals.forEach(function(el) {
+      el.classList.add('visible');
+    });
+  }, 300);
+
+  // Smooth scroll for any anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -5,174 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>intentfirst.ai — AIのための新しいデザイン言語</title>
 <meta name="description" content="Context Grammar — 人の状態をAIが読み取る8つのトークン。見えない文脈を構造化し、体験を根本から変えるデザイン言語。">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@100;200;300;400;500;600;700&family=Google+Sans+Text:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@100;200;300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/nav.css">
 <link rel="preload" as="image" href="../assets/img/intentFirst-hero-m.jpg">
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+/* ═══ PAGE-SPECIFIC LAYOUT (tokens.css handles resets, fonts, animations, colors) ═══ */
 
-:root {
-  --bg: #ffffff;
-  --bg-cool: #f4f4f2;
-  --bg-dark: #08080a;
-  --text: #18181b;
-  --text-2: #52525b;
-  --text-3: #a1a1aa;
-  --border: #e4e4e7;
-  --accent: #2563eb;
-  --accent-light: #3b82f6;
-  --amber: #d97706;
-  --rose: #c48a7c;
-  --font: 'Google Sans', 'Google Sans Text', 'Noto Sans JP', -apple-system, sans-serif;
-  --mono: 'DM Mono', monospace;
-  --max-w: min(1200px, 88vw);
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-html {
-  scroll-behavior: smooth;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  font-size: clamp(15px, 1.05vw, 19px);
-}
-body { overflow-x: hidden; }
-
-/* ═══ ANIMATIONS ═══ */
-.reveal {
-  opacity: 0; transform: translateY(36px);
-  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
-}
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.d1 { transition-delay: 0.08s; }
-.d2 { transition-delay: 0.16s; }
-.d3 { transition-delay: 0.24s; }
-.d4 { transition-delay: 0.32s; }
-.d5 { transition-delay: 0.4s; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+/* ── bob animation (page-specific) ── */
 @keyframes bob {
   0%,100% { transform: translateY(0); }
   50%     { transform: translateY(6px); }
 }
 
-/* ═══ NAV ═══ */
-.nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  height: 56px;
-  background: rgba(220,225,232,0.7);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.5s var(--ease);
+/* ═══ AT A GLANCE ═══ */
+#at-a-glance {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+  border-bottom: 1px solid var(--border);
 }
-.nav.scrolled {
-  background: rgba(255,255,255,0.92);
-  border-bottom-color: rgba(0,0,0,0.06);
+.glance-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
 }
-.nav-inner {
-  width: var(--max-w);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 clamp(24px, 4vw, 48px);
-}
-.nav-logo { text-decoration: none; display: flex; align-items: center; }
-.nav-logo-img { height: 22px; width: auto; }
-.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
-.nav-links a {
-  font-size: 13px; font-weight: 400; color: var(--text-3);
-  text-decoration: none; transition: color 0.3s var(--ease);
-}
-.nav-links a:hover { color: var(--accent); }
-.nav-cta {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 8px 20px; background: var(--accent); color: #fff !important;
-  border-radius: 8px; text-decoration: none;
-  transition: background 0.3s var(--ease);
-}
-.nav-cta:hover { background: #1d4ed8; }
-@media (max-width: 768px) {
-  .nav-links a:not(.nav-cta) { display: none; }
-}
-
-/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
-.lang-switch {
-  position: fixed;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-left: none;
-  border-radius: 0 10px 10px 0;
-  padding: 6px 8px;
-  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
-}
-.lang-switch a {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-decoration: none;
-  color: var(--text-3);
-  padding: 8px 6px;
-  transition: color 0.3s var(--ease);
-  line-height: 1;
-}
-.lang-switch a:hover { color: var(--accent); }
-.lang-switch a.active {
+.glance-statement {
+  font-weight: 300;
+  font-size: clamp(24px, 2.8vw, 44px);
+  line-height: 1.35;
+  letter-spacing: -1px;
   color: var(--text);
-  font-weight: 700;
+  max-width: 860px;
+  margin-bottom: clamp(48px, 6vw, 72px);
 }
-.lang-switch-divider {
-  width: 16px;
-  height: 1px;
-  background: var(--border);
+.glance-statement strong {
+  font-weight: 600;
+  color: var(--color-grammar);
 }
-@media (max-width: 768px) {
-  .lang-switch {
-    top: auto;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    flex-direction: row;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px 10px;
-    gap: 0;
-  }
-  .lang-switch-divider {
-    width: 1px;
-    height: 14px;
-  }
+.glance-pillars {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+}
+@media (max-width: 960px) {
+  .glance-pillars { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .glance-pillars { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .glance-pillars { grid-template-columns: 1fr; }
+}
+.glance-pillar {
+  text-decoration: none;
+  color: inherit;
+  padding: clamp(20px, 2vw, 28px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition: all 0.3s var(--ease);
+  display: block;
+}
+.glance-pillar:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+}
+.glance-pillar-num {
+  font-family: var(--font-mono);
+  font-size: clamp(32px, 3.5vw, 48px);
+  font-weight: 300;
+  color: var(--color-grammar);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.glance-pillar-label {
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.glance-pillar-desc {
+  font-size: clamp(13px, 0.85vw, 14px);
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.6;
 }
 
 /* ═══ COMMON ═══ */
 .sec { padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px); }
 .sec-inner { max-width: var(--max-w); margin: 0 auto; }
 .sec-label {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: clamp(12px, 1vw, 14px);
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--color-grammar);
   margin-bottom: 16px;
 }
 .sec-title {
-  font-weight: 200;
+  font-weight: 500;
   font-size: clamp(28px, 3.2vw, 52px);
   line-height: 1.1;
   letter-spacing: -1.5px;
@@ -180,13 +110,13 @@ body { overflow-x: hidden; }
 }
 .sec-sub {
   font-size: clamp(16px, 1.15vw, 18px);
-  color: var(--text);
-  font-weight: 350;
+  color: var(--text-2);
+  font-weight: 400;
   line-height: 1.8;
   max-width: 540px;
 }
 .btn {
-  font-family: var(--mono); font-size: 11px; letter-spacing: 1px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px;
   text-transform: uppercase;
   padding: 14px 32px; border-radius: 10px;
   text-decoration: none;
@@ -194,12 +124,12 @@ body { overflow-x: hidden; }
   display: inline-block;
 }
 .btn-primary {
-  background: var(--accent); color: #fff;
-  box-shadow: 0 4px 24px rgba(37,99,235,0.25);
+  background: var(--accent); color: var(--bg);
+  box-shadow: 0 4px 24px rgba(26,24,22,0.15);
 }
 .btn-primary:hover {
-  background: #1d4ed8;
-  box-shadow: 0 6px 32px rgba(37,99,235,0.4);
+  background: var(--text-2);
+  box-shadow: 0 6px 32px rgba(26,24,22,0.25);
   transform: translateY(-1px);
 }
 .btn-outline {
@@ -207,10 +137,10 @@ body { overflow-x: hidden; }
   border: 1px solid var(--border);
 }
 .btn-outline:hover {
-  border-color: var(--accent); color: var(--accent);
+  border-color: var(--color-grammar); color: var(--color-grammar);
 }
-.btn-dark { background: var(--bg-dark); color: #fff; }
-.btn-dark:hover { background: #1e1e22; }
+.btn-dark { background: var(--bg-inverse); color: var(--bg); }
+.btn-dark:hover { opacity: 0.85; }
 
 /* ═══════════════════════════════════════
    HERO — FULL SCREEN BACKGROUND IMAGE
@@ -256,7 +186,7 @@ body { overflow-x: hidden; }
   position: relative; z-index: 2;
   max-width: 580px;
   padding: clamp(100px, 14vw, 160px) clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
-  margin-left: max(calc((100vw - min(1200px, 88vw)) / 2 + 24px), 6vw);
+  margin-left: max(calc((100vw - var(--max-w)) / 2 + 24px), 6vw);
 }
 @media (max-width: 900px) {
   .hero-content {
@@ -267,16 +197,16 @@ body { overflow-x: hidden; }
   }
 }
 .hero-label {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: clamp(12px, 0.9vw, 14px);
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--color-grammar);
   margin-bottom: 28px;
   opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
 }
 .hero-title {
-  font-weight: 200;
+  font-weight: 500;
   font-size: clamp(36px, 4.5vw, 72px);
   line-height: 1.05;
   letter-spacing: -2.5px;
@@ -286,15 +216,15 @@ body { overflow-x: hidden; }
 }
 .hero-title em {
   font-style: normal;
-  background: linear-gradient(135deg, var(--accent) 0%, #6366f1 50%, var(--rose) 100%);
+  background: linear-gradient(135deg, var(--grad-from) 0%, var(--grad-mid) 50%, var(--grad-to) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .hero-sub {
   font-size: clamp(16px, 1.2vw, 19px);
-  font-weight: 350;
-  color: var(--text);
+  font-weight: 400;
+  color: var(--text-2);
   line-height: 1.8;
   margin-bottom: 36px;
   opacity: 0; animation: fadeUp 0.8s 0.6s forwards;
@@ -311,7 +241,7 @@ body { overflow-x: hidden; }
   transform: translateX(-50%); z-index: 2;
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   color: var(--text-3);
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
   opacity: 0; animation: fadeUp 0.8s 1.2s forwards;
 }
@@ -344,27 +274,27 @@ body { overflow-x: hidden; }
 }
 .intro-detail {
   font-size: clamp(15px, 1.05vw, 17px);
-  color: var(--text);
-  font-weight: 350;
+  color: var(--text-2);
+  font-weight: 400;
   line-height: 1.8;
   margin-bottom: 36px;
 }
 .intro-cta {
   display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: 13px;
-  color: var(--accent);
+  font-family: var(--font-mono); font-size: 13px;
+  color: var(--color-grammar);
   text-decoration: none; letter-spacing: 0.5px;
   padding: 14px 32px;
-  background: rgba(37,99,235,0.04);
-  border: 1px solid rgba(37,99,235,0.15);
+  background: rgba(104,137,180,0.06);
+  border: 1px solid rgba(104,137,180,0.18);
   border-radius: 12px;
   transition: all 0.3s var(--ease);
 }
 .intro-cta:hover {
   gap: 14px;
-  background: rgba(37,99,235,0.08);
-  border-color: var(--accent);
-  box-shadow: 0 4px 20px rgba(37,99,235,0.12);
+  background: rgba(104,137,180,0.10);
+  border-color: var(--color-grammar);
+  box-shadow: 0 4px 20px rgba(104,137,180,0.12);
 }
 .intro-cta .arrow {
   transition: transform 0.3s var(--ease);
@@ -379,7 +309,7 @@ body { overflow-x: hidden; }
 /* ═══════════════════════════════════════
    APPLIED — CASE STUDIES
    ═══════════════════════════════════════ */
-#applied { background: var(--bg-cool); }
+#applied { background: var(--bg-2); }
 .cs-grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 16px; margin-top: 48px;
@@ -395,22 +325,25 @@ body { overflow-x: hidden; }
   display: block;
 }
 .cs-card:hover {
-  border-color: var(--accent);
+  border-color: var(--border-hover);
   transform: translateY(-4px);
-  box-shadow: 0 16px 48px rgba(24,24,27,0.08);
+  box-shadow: 0 16px 48px rgba(26,24,22,0.06);
 }
 .cs-card-img-placeholder {
   width: 100%; aspect-ratio: 16/10;
-  background: linear-gradient(135deg, var(--bg-cool) 0%, #e8e8e6 100%);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--mono); font-size: 11px; color: var(--text-3);
+  background-size: cover;
+  background-position: center;
+  display: flex; align-items: flex-end; justify-content: flex-start;
+  padding: 12px 16px;
+  font-family: var(--font-mono); font-size: 11px; color: rgba(255,255,255,0.7);
   letter-spacing: 1px; text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 .cs-card-body { padding: clamp(18px, 2vw, 24px); }
 .cs-card-label {
-  font-family: var(--mono); font-size: clamp(12px, 0.85vw, 13px);
+  font-family: var(--font-mono); font-size: clamp(12px, 0.85vw, 13px);
   letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 6px;
+  color: var(--color-grammar); margin-bottom: 6px;
 }
 .cs-card-title {
   font-weight: 400; font-size: clamp(16px, 1.2vw, 19px);
@@ -418,7 +351,7 @@ body { overflow-x: hidden; }
 }
 .cs-card-desc {
   font-size: clamp(14px, 0.95vw, 16px);
-  color: var(--text); font-weight: 350; line-height: 1.65;
+  color: var(--text-2); font-weight: 400; line-height: 1.65;
 }
 
 /* ═══════════════════════════════════════
@@ -440,7 +373,7 @@ body { overflow-x: hidden; }
   overflow: hidden;
 }
 .journal-card:hover {
-  border-color: var(--accent);
+  border-color: var(--border-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0,0,0,0.04);
 }
@@ -455,7 +388,7 @@ body { overflow-x: hidden; }
   display: flex; flex-direction: column; flex-grow: 1;
 }
 .journal-card-date {
-  font-family: var(--mono); font-size: 12px;
+  font-family: var(--font-mono); font-size: 12px;
   color: var(--text-3); margin-bottom: 10px;
 }
 .journal-card-title {
@@ -464,40 +397,40 @@ body { overflow-x: hidden; }
 }
 .journal-card-excerpt {
   font-size: clamp(14px, 0.9vw, 15px);
-  color: var(--text); font-weight: 350; line-height: 1.65;
+  color: var(--text-2); font-weight: 400; line-height: 1.65;
 }
 .journal-subscribe {
   margin-top: 36px; text-align: center;
 }
 .journal-subscribe a {
-  font-family: var(--mono); font-size: 12px; color: var(--accent);
+  font-family: var(--font-mono); font-size: 12px; color: var(--color-grammar);
   text-decoration: none; letter-spacing: 0.5px;
   padding: 12px 28px;
-  border: 1px solid rgba(37,99,235,0.2);
+  border: 1px solid rgba(104,137,180,0.2);
   border-radius: 10px;
   transition: all 0.3s var(--ease);
 }
 .journal-subscribe a:hover {
-  background: rgba(37,99,235,0.04);
-  border-color: var(--accent);
+  background: rgba(104,137,180,0.06);
+  border-color: var(--color-grammar);
 }
 
 /* ═══════════════════════════════════════
    CTA
    ═══════════════════════════════════════ */
 #cta {
-  background: var(--bg-dark); color: #fff;
+  background: var(--bg-inverse); color: var(--bg);
   text-align: center;
 }
 .cta-title {
-  font-weight: 200; font-size: clamp(28px, 3.2vw, 48px);
+  font-weight: 500; font-size: clamp(28px, 3.2vw, 48px);
   line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 16px;
-  color: #fff;
+  color: var(--bg);
 }
 .cta-sub {
   font-size: clamp(15px, 1.1vw, 17px);
-  color: rgba(255,255,255,0.4);
-  font-weight: 300; line-height: 1.7;
+  color: rgba(240,236,228,0.4);
+  font-weight: 400; line-height: 1.7;
   max-width: 480px; margin: 0 auto 36px;
 }
 .cta-buttons {
@@ -506,47 +439,28 @@ body { overflow-x: hidden; }
 
 /* ═══ FOOTER ═══ */
 .footer {
-  background: var(--bg-dark);
-  color: rgba(255,255,255,0.3);
+  background: var(--bg-inverse);
+  color: rgba(240,236,228,0.3);
   padding: 20px clamp(24px, 4vw, 48px);
-  border-top: 1px solid rgba(255,255,255,0.04);
+  border-top: 1px solid rgba(240,236,228,0.04);
 }
 .footer-inner {
   max-width: var(--max-w); margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 12px;
-  font-family: var(--mono); font-size: 11px;
+  font-family: var(--font-mono); font-size: 11px;
 }
 .footer a {
-  color: rgba(255,255,255,0.3); text-decoration: none;
+  color: rgba(240,236,228,0.3); text-decoration: none;
   transition: color 0.3s var(--ease);
 }
-.footer a:hover { color: var(--accent); }
+.footer a:hover { color: var(--color-grammar); }
 .footer-logo { height: 16px; width: auto; opacity: 0.3; }
 .footer-links { display: flex; gap: 16px; }
+
 </style>
 </head>
 <body>
-
-<!-- ═══ NAV ═══ -->
-<nav class="nav" id="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo"><img src="../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
-    <div class="nav-links">
-      <a href="context-grammar/index.html">Context Grammar</a>
-      <a href="applied/index.html">プロジェクト</a>
-      <a href="journal/index.html">エッセイ</a>
-      <a href="about/index.html">About</a>
-    </div>
-  </div>
-</nav>
-
-<!-- ═══ LANGUAGE SWITCHER ═══ -->
-<div class="lang-switch">
-  <a href="index.html" class="active">JA</a>
-  <div class="lang-switch-divider"></div>
-  <a href="../index.html">EN</a>
-</div>
 
 <!-- ═══════════════════════════════════════
      HERO
@@ -557,16 +471,57 @@ body { overflow-x: hidden; }
 
   <div class="hero-content">
     <p class="hero-label">Context Grammar</p>
-    <h1 class="hero-title">AIは<em>聞いている</em>。<br>しかし、<em>理解していない</em>。</h1>
-    <p class="hero-sub">位置情報、スケジュール、検索履歴——スマホはあらゆるデータを握っている。しかし、使う人が疲れているのか、焦っているのか、余裕がないのかは理解できない。Context Grammarは、人の状態をAIが読める言語に変換する8つのトークン。</p>
+    <h1 class="hero-title">AIに足りないのは、<br>言葉ではなく<em>「状況」</em>だ。</h1>
+    <p class="hero-sub">人の文脈をAIが読み解くための、オープンなデザイン言語。8つのトークン、記憶のアーキテクチャ、信頼の設計。AI体験をつくるすべての人が、自由に使える共通基盤。</p>
     <div class="hero-buttons">
-      <a href="context-grammar/index.html" class="btn btn-primary">Context Grammarを知る</a>
+      <a href="context-grammar/grammar/index.html" class="btn btn-primary">仕様を読む</a>
+      <a href="#applied" class="btn btn-outline">実装を見る</a>
     </div>
   </div>
 
   <div class="hero-scroll">
     Scroll
     <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     AT A GLANCE
+     ═══════════════════════════════════════ -->
+<section id="at-a-glance">
+  <div class="glance-inner">
+    <p class="glance-statement reveal">
+      AIアシスタントは一瞬で航空券を取れる。でも、あなたが<strong>疲れ果てている</strong>こと、急いでいること、人混みの中にいることは分からない。<br>
+      Context Grammarは、その断絶を埋めるオープンな<strong>デザイン言語</strong>。AIプロダクトをつくるすべての人のための共通<strong>基盤</strong>。
+    </p>
+
+    <div class="glance-pillars">
+      <a href="context-grammar/index.html" class="glance-pillar reveal d1">
+        <div class="glance-pillar-num">01</div>
+        <div class="glance-pillar-label">Foundation</div>
+        <p class="glance-pillar-desc">設計思想を学ぶ。8つのContext Token、3層のBrain、Autonomy Dial、そしてそれらを束ねる信頼の設計。</p>
+      </a>
+      <a href="spec/index.html" class="glance-pillar reveal d2">
+        <div class="glance-pillar-num">02</div>
+        <div class="glance-pillar-label">Spec</div>
+        <p class="glance-pillar-desc">言語仕様を使う。YAML形式のトークン定義とルール構造。自分のプロダクトにそのまま組み込める。</p>
+      </a>
+      <a href="patterns/index.html" class="glance-pillar reveal d3">
+        <div class="glance-pillar-num">03</div>
+        <div class="glance-pillar-label">Patterns</div>
+        <p class="glance-pillar-desc">UIパターンを見る。31のインタラクティブプロトタイプ。自律制御、開示設定、マルチパーソン・オーケストレーション。</p>
+      </a>
+      <a href="applied/index.html" class="glance-pillar reveal d4">
+        <div class="glance-pillar-num">04</div>
+        <div class="glance-pillar-label">Reference</div>
+        <p class="glance-pillar-desc">実装で確認する。スマートキッチン、家族旅行、デバイス間ハンドオフ — 5つのエンドツーエンド実装。</p>
+      </a>
+      <a href="journal/index.html" class="glance-pillar reveal d5">
+        <div class="glance-pillar-num">15+</div>
+        <div class="glance-pillar-label">Essays</div>
+        <p class="glance-pillar-desc">思考を辿る。すべての設計判断の裏にあるリサーチ、推論、そして知的な転換点。</p>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -581,11 +536,11 @@ body { overflow-x: hidden; }
 
       <div class="intro-text">
         <p class="sec-label reveal">Context Grammar（コンテキストグラマー）とは</p>
-        <h2 class="sec-title reveal d1">人とAIの間に<br>足りなかった言語。</h2>
-        <p class="sec-sub reveal d2">AIは言葉を処理できます。しかし、その人の「今」を感じ取ることはできません。満員電車でつり革を握りながら、疲れた頭で夕飯を考えている——そんな状況を、AIは何も知りません。</p>
-        <p class="intro-detail reveal d3">Context Grammarは8つのトークンで構成されます。意図、身体の状態、認知的余裕、社会的文脈——目に見えない人間の状態を捉え、AIが読み取れる形に変換するフレームワークです。入力された言葉に反応するだけでなく、この瞬間の「あなた」に適応するAIを実現します。</p>
-        <a href="context-grammar/index.html" class="intro-cta reveal d4">
-          8つのトークンについて詳しく <span class="arrow">→</span>
+        <h2 class="sec-title reveal d1">人とAIの間に<br>足りなかった「文法」。</h2>
+        <p class="sec-sub reveal d2">今のAIは言葉を処理できます。しかし、その人の「今」を感じ取ることはできません。満員電車でつり革を握りながら、疲れた頭で夕飯を考えている—そんな状況を、AIは何も知りません。</p>
+        <p class="intro-detail reveal d3">Context Grammarは8つのトークンで構成されます。意図、身体の状態、認知的余裕、社会的文脈—目に見えない人間の状態を捉え、AIが読み取れる形に変換するフレームワークです。入力された言葉に反応するだけでなく、この瞬間の「あなた」に適応するAIを実現します。</p>
+        <a href="context-grammar/grammar/index.html" class="intro-cta reveal d4">
+          8つのトークンについて詳しく<span class="arrow">→</span>
         </a>
       </div>
 
@@ -600,31 +555,47 @@ body { overflow-x: hidden; }
   <div class="sec-inner">
     <p class="sec-label reveal">応用プロジェクト</p>
     <h2 class="sec-title reveal d1">トークンが人の意図を読み解き、<br>体験を形づくる。</h2>
-    <p class="sec-sub reveal d2">「何をしたいか」だけでなく「今どんな状態か」を8つのトークンで構造化し、最適なUX体験を設計する。3つのプロジェクトでその仕組みを実証します。</p>
+    <p class="sec-sub reveal d2">「何をしたいか」だけでなく「今どんな状態か」を8つのトークンで構造化し、最適なUX体験を設計する。5つのプロジェクトでその仕組みを実証します。</p>
 
     <div class="cs-grid">
-      <a href="applied/index.html#project-01" class="cs-card reveal d2">
-        <div class="cs-card-img-placeholder">Project 01</div>
+      <a href="../projects/project-01/p1-growing-family.html" class="cs-card reveal d2">
+        <div class="cs-card-img-placeholder" style="background-image: url('../projects/project-01/image-set02/IP-01_hero-fridge-v2.jpg');">Project 01</div>
         <div class="cs-card-body">
           <p class="cs-card-label">普段の生活</p>
-          <h3 class="cs-card-title">家族の暮らしを学び、信頼を積み重ね、家全体が連動する</h3>
-          <p class="cs-card-desc">スマートホームが家族一人ひとりの生活パターンを認識し、自律的に最適化していく過程を描きます。</p>
+          <h3 class="cs-card-title">意図の分解 × Context Grammar × 家族オーケストレーション</h3>
+          <p class="cs-card-desc">誰が何を食べるかを学び、提案し、やがて全自動に。Day 1のオンボーディングから半年後の自律まで。</p>
         </div>
       </a>
-      <a href="applied/index.html#project-02" class="cs-card reveal d3">
-        <div class="cs-card-img-placeholder">Project 02</div>
+      <a href="../projects/project-02/p2-family-trip.html" class="cs-card reveal d3">
+        <div class="cs-card-img-placeholder" style="background-image: url('../projects/project-02/image-set02/P2_FamilyTrip/P2-IP01_hero-rain-temple-v2.jpg');">Project 02</div>
         <div class="cs-card-body">
           <p class="cs-card-label">家族旅行</p>
-          <h3 class="cs-card-title">計画から突発的変化まで、一貫して家族を支える</h3>
-          <p class="cs-card-desc">天候の急変、子どもの体調不良——刻々と変わる状況にAIがリアルタイムで適応する旅行体験です。</p>
+          <h3 class="cs-card-title">意図の分解 × Context Grammar × 使い捨てインターフェース</h3>
+          <p class="cs-card-desc">旅の宣言から生まれる一時的なUI。雨、発熱、家族の投票に適応する5つのフェーズ。</p>
         </div>
       </a>
-      <a href="applied/index.html#project-03" class="cs-card reveal d4">
-        <div class="cs-card-img-placeholder">Project 03</div>
+      <a href="../projects/project-03/p3-fluid-handoff-v3.html" class="cs-card reveal d4">
+        <div class="cs-card-img-placeholder" style="background-image: url('../projects/project-03/image-set03/generated/IP-01_hero-train-swipe-v2.jpg');">Project 03</div>
         <div class="cs-card-body">
           <p class="cs-card-label">オンラインショッピング</p>
-          <h3 class="cs-card-title">電車ではスマホ、自宅ではテレビ。途切れない買い物体験</h3>
-          <p class="cs-card-desc">移動中にスマホで候補を絞り、帰宅後はテレビで家族と最終決定。場面が変わっても体験は連続します。</p>
+          <h3 class="cs-card-title">意図の翻訳 × デバイス変形 × 共同意思決定</h3>
+          <p class="cs-card-desc">親子の靴選び。電車ではスマホ、自宅ではテレビ。子供が最終決定者になる購買体験。</p>
+        </div>
+      </a>
+      <a href="../projects/project-04/p4-sales-floor.html" class="cs-card reveal d5">
+        <div class="cs-card-img-placeholder" style="background: linear-gradient(135deg, #1a1816 0%, #2a2520 50%, #3a3530 100%); color: rgba(240,236,228,0.5);">Project 04</div>
+        <div class="cs-card-body">
+          <p class="cs-card-label">セールスフロア</p>
+          <h3 class="cs-card-title">Social-Aware Filtering × 時間的進化 × エンタープライズ</h3>
+          <p class="cs-card-desc">上司が近づくと画面が変わる。AIが3ヶ月で信頼を獲得するエンタープライズ営業の設計。</p>
+        </div>
+      </a>
+      <a href="../projects/project-05/p5-control-tower.html" class="cs-card reveal d6">
+        <div class="cs-card-img-placeholder" style="background-image: url('../projects/project-05/images/p5-hero-control-tower.jpg');">Project 05</div>
+        <div class="cs-card-body">
+          <p class="cs-card-label">コントロールタワー</p>
+          <h3 class="cs-card-title">マルチエージェント統制 × カスケード委任 × スケーラブルな信頼</h3>
+          <p class="cs-card-desc">1人のマネージャーが3つのAIエージェントを同時に統制する。設計言語のスケーラビリティの証明。</p>
         </div>
       </a>
     </div>
@@ -638,10 +609,37 @@ body { overflow-x: hidden; }
   <div class="sec-inner">
     <p class="sec-label reveal">エッセイ</p>
     <h2 class="sec-title reveal d1">AIと人の関係を、<br>問い直す。</h2>
-    <p class="sec-sub reveal d2">「AIはなぜ人の状況を理解できないのか」「インターフェースはどう進化すべきか」「Intent-Firstとは何か」——Context Grammarの根底にある思考を、エッセイとして公開しています。</p>
+    <p class="sec-sub reveal d2">「AIはなぜ人の状況を理解できないのか」「インターフェースはどう進化すべきか」「Intent-Firstとは何か」—Context Grammarの根底にある思考を、エッセイとして公開しています。</p>
 
     <div id="journal-feed" class="journal-grid">
-      <p style="color:var(--text-3);font-size:14px;font-weight:300;">読み込み中...</p>
+
+      <a href="journal/14/index.html" class="journal-card reveal d2">
+        <img src="../assets/img/journal/14.webp" alt="" class="journal-card-img" loading="lazy">
+        <div class="journal-card-body">
+          <p class="journal-card-date">Essay 14</p>
+          <h3 class="journal-card-title">何をAIに任せ、何を自分で握るか。そしてその境界線が動く理由</h3>
+          <p class="journal-card-excerpt">オートノミーマップとオートノミーダイヤルは別物。どちらも信頼の蓄積とともに、動的に変化していく。</p>
+        </div>
+      </a>
+
+      <a href="journal/13/index.html" class="journal-card reveal d3">
+        <img src="../assets/img/journal/13.webp" alt="" class="journal-card-img" loading="lazy">
+        <div class="journal-card-body">
+          <p class="journal-card-date">Essay 13</p>
+          <h3 class="journal-card-title">AIにできる仕事と、AIに渡してはいけない判断。その境界線を、あなたのプロダクトは勝手に引いている。</h3>
+          <p class="journal-card-excerpt">チームはAIプロダクトを「機能的な仕事」に合わせて設計する。どの判断をユーザー自身が握りたいかを問うチームは、ほとんどいない。</p>
+        </div>
+      </a>
+
+      <a href="journal/12/index.html" class="journal-card reveal d4">
+        <img src="../assets/img/journal/11.webp" alt="" class="journal-card-img" loading="lazy">
+        <div class="journal-card-body">
+          <p class="journal-card-date">Essay 12</p>
+          <h3 class="journal-card-title">デザイナーの仕事は消えなかった。上流へ移動した。</h3>
+          <p class="journal-card-excerpt">UIを作る仕事から、人間とAIの協働システムを設計する仕事へ。この変化が本当に求めるものと、多くの人が見誤っている準備の話。</p>
+        </div>
+      </a>
+
     </div>
 
     <div class="journal-subscribe reveal d5">
@@ -655,11 +653,11 @@ body { overflow-x: hidden; }
      ═══════════════════════════════════════ -->
 <section id="cta" class="sec">
   <div class="sec-inner">
-    <h2 class="cta-title reveal">Context Grammarはオープンです。<br>共に構築しましょう。</h2>
-    <p class="cta-sub reveal d1">フレームワークの全体像を確認し、リサーチに目を通し、あなたのプロダクトへの応用をご相談ください。</p>
+    <h2 class="cta-title reveal">Context Grammarはオープンです。<br>一緒につくりましょう。</h2>
+    <p class="cta-sub reveal d1">フレームワークの全体像を確認し、リサーチに目を通し、あなたのプロダクトへの応用をぜひご相談ください。</p>
     <div class="cta-buttons reveal d2">
       <a href="context-grammar/index.html" class="btn btn-primary">Context Grammarを知る</a>
-      <a href="mailto:takaoumehara@gmail.com" class="btn btn-outline" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.12);">お問い合わせ</a>
+      <a href="contact/index.html" class="btn btn-outline" style="color:rgba(240,236,228,0.5);border-color:rgba(240,236,228,0.12);">お問い合わせ</a>
     </div>
   </div>
 </section>
@@ -668,7 +666,7 @@ body { overflow-x: hidden; }
 <footer class="footer">
   <div class="footer-inner">
     <img src="../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
-    <span>&copy; 2025 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
     <div class="footer-links">
       <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
       <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
@@ -687,13 +685,6 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.08 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// Nav style on scroll
-const nav = document.getElementById('nav');
-const hero = document.getElementById('hero');
-new IntersectionObserver(([e]) => {
-  nav.classList.toggle('scrolled', !e.isIntersecting);
-}, { threshold: 0.05 }).observe(hero);
-
 // Subtle parallax on hero background
 const heroBg = document.querySelector('.hero-bg');
 if (heroBg) {
@@ -703,43 +694,9 @@ if (heroBg) {
     heroBg.style.transform = `translate(${cx * -8}px, ${cy * -8}px) scale(1.05)`;
   });
 }
-
-// ─── RSS Feed for Journal section ───
-(async function() {
-  const el = document.getElementById('journal-feed');
-  if (!el) return;
-  try {
-    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fintentfirst.substack.com%2Ffeed');
-    const d = await r.json();
-    const items = (d.items || []).slice(0, 3);
-    if (!items.length) throw new Error('empty');
-    el.innerHTML = items.map((item, i) => {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = item.description || '';
-      const exc = tmp.textContent.slice(0, 120);
-      const date = new Date(item.pubDate);
-      const ds = date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' });
-      const imgUrl = item.thumbnail || (item.content && (item.content.match(/<img[^>]+src="([^"]+)"/) || [])[1]) || '';
-      const imgHTML = imgUrl ? `<img src="${imgUrl}" alt="" class="journal-card-img" loading="lazy">` : '';
-      return `<a href="${item.link}" target="_blank" class="journal-card reveal d${i+2}">
-        ${imgHTML}
-        <div class="journal-card-body">
-          <p class="journal-card-date">${ds}</p>
-          <h3 class="journal-card-title">${item.title}</h3>
-          <p class="journal-card-excerpt">${exc}</p>
-        </div>
-      </a>`;
-    }).join('');
-    el.querySelectorAll('.reveal').forEach(c => io.observe(c));
-  } catch(e) {
-    el.innerHTML = `<a href="https://intentfirst.substack.com" target="_blank" class="journal-card">
-      <p class="journal-card-date">最新</p>
-      <h3 class="journal-card-title">Substackで読む</h3>
-      <p class="journal-card-excerpt">AIと人の関係、インターフェースの未来、Context Grammarの背景にある思考をエッセイとして公開しています。</p>
-    </a>`;
-  }
-})();
 </script>
+<script src="../assets/js/nav.js"></script>
+<script>initNav({ basePath: '../', activePage: 'home', lang: 'ja' });</script>
 
 </body>
 </html>

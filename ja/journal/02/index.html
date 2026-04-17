@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>インターフェースは「盾」だった。AIがそれを取り去った。 — intentfirst.ai</title>
+<meta name="description" content="デザインに起きている変化を、過大評価せず、正直に見つめる。">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(253,252,250,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--color-grammar); }
+.nav-links a[href="../../journal/index.html"] { color: var(--color-grammar); }
+
+@media (max-width: 768px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+.lang-switch {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: rgba(253,252,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
+}
+.lang-switch a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 6px;
+  transition: color 0.3s var(--ease);
+  line-height: 1;
+}
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+.lang-switch-divider {
+  width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+@media (max-width: 768px) {
+  .lang-switch {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .lang-switch-divider {
+    width: 1px;
+    height: 14px;
+  }
+}
+
+/* ═══ ARTICLE HERO ═══ */
+.article-hero {
+  padding-top: 56px;
+}
+.article-hero-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-meta {
+  padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 48px) clamp(32px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.article-hero-meta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article-hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.15s forwards;
+}
+.article-hero-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.25s forwards;
+}
+.article-hero-subtitle {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.35s forwards;
+}
+.article-hero-date {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.8vw, 13px);
+  letter-spacing: 1px;
+  color: var(--text-3);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.45s forwards;
+}
+
+/* ═══ ARTICLE BODY ═══ */
+.article-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  font-size: clamp(16px, 1.1vw, 18px);
+  line-height: 1.8;
+  color: var(--text);
+}
+.article-body p {
+  margin-bottom: 1.6em;
+}
+.article-body h2 {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  margin-top: 2.8em;
+  margin-bottom: 1em;
+}
+.article-body h3 {
+  font-weight: 500;
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-top: 2.2em;
+  margin-bottom: 0.8em;
+}
+.article-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.article-body em {
+  font-style: italic;
+  color: var(--text-2);
+}
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.4em 0;
+}
+.article-body ul {
+  margin-bottom: 1.6em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+.article-body ul li {
+  position: relative;
+  padding-left: 1em;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grammar);
+}
+.article-body ol {
+  margin-bottom: 1.6em;
+  padding-left: 1.5em;
+}
+.article-body ol li {
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body .closing-note {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin-top: 2em;
+}
+.article-body .closing-note p {
+  margin-bottom: 0.8em;
+}
+.article-body .closing-note p:last-child {
+  margin-bottom: 0;
+}
+.article-body pre {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2em 1.5em;
+  margin-bottom: 1.6em;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+/* ═══ ARTICLE NAV ═══ */
+.article-nav {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.article-nav a {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+.article-nav a:hover {
+  color: var(--color-grammar);
+  border-color: var(--color-grammar);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(104,137,180,0.15);
+}
+
+/* ═══ SUBSCRIBE CTA ═══ */
+.subscribe-cta {
+  background: var(--bg-inverse);
+  color: #fff;
+  text-align: center;
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+}
+.subscribe-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.subscribe-sub {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+.subscribe-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--color-grammar);
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s var(--ease);
+  box-shadow: 0 4px 24px rgba(104,137,180,0.25);
+}
+.subscribe-btn:hover {
+  filter: brightness(0.85);
+  box-shadow: 0 6px 32px rgba(104,137,180,0.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 580px) {
+  .article-hero-title {
+    letter-spacing: -0.8px;
+  }
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article-nav a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo"><img src="../../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../../context-grammar/index.html">Context Grammar</a>
+      <a href="../../../projects/index.html">Projects</a>
+      <a href="../../industry/index.html">Industry</a>
+      <a href="../../about/index.html">About</a>
+      <a href="../../about/index.html#contact" class="nav-cta">Contact</a>
+    </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../../context-grammar/index.html">Context Grammar</a>
+    <a href="../../../projects/index.html">Projects</a>
+    <a href="../../industry/index.html">Industry</a>
+    <a href="../../about/index.html">About</a>
+    <a href="../../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../../journal/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../../journal/index.html">EN</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE HERO
+     ═══════════════════════════════════════ -->
+<section class="article-hero">
+  <img src="../../../assets/img/journal/02.webp" alt="インターフェースは、設計の甘さから私たちを守ってくれていた。AIがその緩衝材を取り払った。" class="article-hero-img">
+  <div class="article-hero-meta">
+    <div class="article-hero-meta-inner">
+      <p class="article-hero-label">エッセイ &mdash; 02</p>
+      <h1 class="article-hero-title">インターフェースは「盾」だった。AIがそれを取り去った。</h1>
+      <p class="article-hero-subtitle">デザインに起きている変化を、過大評価せず、正直に見つめる。</p>
+      <p class="article-hero-date">2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE BODY
+     ═══════════════════════════════════════ -->
+<article class="article-body">
+  <div class="reveal">
+    <p>午前2時。あなたはECサイトの購入フローを眺めている。</p>
+
+    <p>ユーザーが間違ったボタンを押した。エラーメッセージが表示された。ユーザーは戻った。再試行した。完了した。</p>
+
+    <p>悪い体験だった。しかし致命的ではなかった。</p>
+
+    <p>なぜか。インターフェースがあったからだ。ユーザーは常にすべてのステップでコントロールを持っていた。間違えても、戻れた。確認できた。やり直せた。</p>
+
+    <p>いま、同じ購入をAIが代行する世界を想像してほしい。</p>
+
+    <p>AIが「最適」と判断した商品を、確認なしに購入する。ユーザーの意図の理解がわずかにずれていた。しかしAIは自分の判断に確信を持っている。購入は完了した。不可逆的に。</p>
+
+    <p>この差が、デザインの専門職にいま起きている変化の核心だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>簡潔な歴史——ただし一つの修正を組み込む</h2>
+
+    <p><strong>UX 1.0</strong>はユーザビリティの時代だった。Webは新しく、ソフトウェアは混乱を招き、デザイナーの仕事は物事を学びやすく機能的にすることだった。Nielsenのヒューリスティクス、情報アーキテクチャ、ユーザーテスト——これが時代のツールだった。成功の指標：ユーザーはそのことのやり方を理解できるか？</p>
+
+    <p><strong>UX 2.0</strong>はエクスペリエンスの時代だった。デジタルプロダクトが成熟し競争が激化するにつれ、ユーザビリティは当たり前になった。デザイナーの仕事は、喜び、感情、ブランドの一貫性を含むようになった。ジャーニーマッピング、Jobs-to-be-Doneリサーチ、デザインシステム——これが新しいツールだった。成功の指標：ユーザーはそのことをして気持ちいいか？</p>
+
+    <p><strong>UX 3.0</strong>は、AIが「そのこと」の実行を処理できるようになったとき、何が起きるかの時代だ。デザイナーの仕事は、人間の意図のレベルで「そのこと」が実際に何であるかを定義することにシフトする。</p>
+
+    <p>ここで、すぐに修正を入れる必要がある。ユーザーの意図からデザインするという発想は新しくない。優れたデザイナーは常にこれをやってきた。Jobs-to-be-Done理論は1990年代に体系化された。Don Normanは1988年に人間の目標のためにデザインすることについて書いていた。2.0時代の最高のUX実践者たちは、フローをデザインしていたのではなく——フローの背後にあるより深い動機を理解していた。</p>
+
+    <p>では、実際に何が変わったのか？</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>変わったのは方法ではない。理解の「届け先」だ。</h2>
+
+    <p>手法は変わっていない。届け先が変わった。</p>
+
+    <p>2.0時代、ユーザーの意図を深く理解したデザイナーは、その理解をより良いインターフェースの設計に使った。意図がレイアウト、ナビゲーション、ラベル、フローに反映された。しかしユーザーはまだインターフェースを操作しなければならなかった。デザイナーの意図理解は画面に翻訳され、ユーザーはその画面とやり取りして目標を達成した。</p>
+
+    <p>インターフェースが、意図が行動になる媒体だった。</p>
+
+    <p>3.0時代、AIは意図をより直接的に受け取れる。ユーザーが「来月の東京行き、8万円以下、乗り継ぎ1回まで」と言えば——システムが行動する。インターフェースは消えないが、多くのインタラクションで薄くなるか、オプションになるか、操作層ではなく確認層になる。</p>
+
+    <p>これがデザイナーの意図理解の届け先を変える。</p>
+
+    <p>意図を画面レイアウトに翻訳する代わりに、デザイナーはいま、意図を<strong>AIの振る舞いを支配するパラメータ</strong>に翻訳する。このユーザーにとって、この文脈で、成功とは何か。システムは何を優先すべきか。どの制約が重要か。ユーザーは何を自分でコントロールしたいのか、何を委任して構わないのか。</p>
+
+    <p>これらはインターフェースの問いではない。システム設計の問いだ。そしてユーザーの意図への深い理解を、以前と同等に——むしろそれ以上に——要求する。不正確さを隠す余地が少ないからだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>インターフェースはバッファだった。AIがそれを取り去る。</h2>
+
+    <p>ここが本当に新しい部分だ。</p>
+
+    <p>2.0時代、デザイナーのユーザー意図の理解が少しずれていても、インターフェースがそれを吸収できた。よく設計されたナビゲーションは、デザイナーがユーザーの経路を完璧に予測していなくても、ユーザーに自分で道を見つける十分なコントロールを与えた。明快なレイアウトはユーザーにスキャンと自己修正を可能にした。インターフェースは、他の機能に加えて、不完全なデザイン判断とユーザーの目標の間のバッファだった。</p>
+
+    <p>AIが実行を担うとき、このバッファが縮む。</p>
+
+    <p>システムのユーザー意図理解が間違っていたら——意図のモデルが不正確、成功基準の定義が曖昧、制約の指定が不完全——AIはその間違ったモデルに基づいて行動する。しかも確信を持って、速く、時に不可逆的に。</p>
+
+    <p>良いインターフェースが吸収できた不正確さが、AIがユーザーに代わって実行するとき、システム障害になる。</p>
+
+    <p><strong>これが意味するのは、意図理解の質がもはや単なるグッドプラクティスではないということだ。構造的なものだ。</strong> システムが機能するか否かを決定する。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>具体的にどう見えるか——家族旅行の予約</h2>
+
+    <p>具体例で示す。</p>
+
+    <p>ユーザーが家族旅行を予約したい。2.0の世界で、このユーザーをリサーチしたデザイナーは学ぶ：選択肢が多すぎると圧倒される、自分の選択に自信を持ちたい、価格より子どもの体験を重視する。</p>
+
+    <p>2.0のデザイナーはこれを使って、より良い予約インターフェースを構築する。一度に表示する選択肢を少なく、明確なソーシャルプルーフ、家族向けを強調するフィルター。</p>
+
+    <p>ユーザーがすべての決定を下す。デザイナーは意思決定環境を改善した。</p>
+
+    <p>3.0の世界では、AIエージェントがこの旅行を予約する。AIが仕事をうまくやるには、デザイナーがこのようなものを定義している必要がある：</p>
+
+    <p>```</p>
+
+    <p>Job:      子どもが一生覚えている家族旅行を作る</p>
+
+    <p>Success:  子どもが楽しみ、親がそれだけの価値があったと感じる</p>
+
+    <p>Constraints:</p>
+
+    <ul>
+      <li>予算 30万円</li>
+      <li>日程 7月20日〜27日</li>
+      <li>最大フライト時間 4時間</li>
+    </ul>
+
+    <p>Priorities: 体験の質 > 価格 > 利便性</p>
+
+    <p>Delegate:  フライトとホテルの検索・予約</p>
+
+    <p>Control:   予約確定前の最終確認</p>
+
+    <p>```</p>
+
+    <p>これが意図をシステムパラメータに翻訳したものだ。AIはこの構造を使って判断する——どの選択肢を提示するか、何を優先するか、いつ聞くか、いつ行動するか。</p>
+
+    <p>この理解を生み出したリサーチは、2.0のリサーチと同じに見える。同じインタビュー、同じJTBDフレームワーク、同じ深いリスニング。違うのはデザイナーがアウトプットをどう使うかだ。より良いフィルターUIではない。自律型システムのための意思決定パラメータのセットだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>実際にシフトしている3つのこと</h2>
+
+    <p><strong>デザイナーが作るものが変わっている。</strong></p>
+
+    <p>ワイヤーフレームやプロトタイプに加えて、いま重要な成果物には、意図モデル、エージェントの役割定義、自律性パラメータ、成功基準フレームワークが含まれる。これらは周辺的なものではない——システムが機能するかどうかを決定するものが、これらであることが多い。</p>
+
+    <p><strong>最も重要なデザイン決定が生まれる場所が変わっている。</strong></p>
+
+    <p>最もレバレッジの高いデザイン決定は、Figmaを開く前に起きる。それは以下についてだ：このシステムがユーザーに代わって適切に行動するために、ユーザーについて何を理解している必要があるか。何を自律的に行い、何を人間の判断に提示すべきか。AIが最適化できるほど具体的な成功とは何か。</p>
+
+    <p><strong>不正確さのコストが変わっている。</strong></p>
+
+    <p>わずかに間違ったメンタルモデルは、わずかに混乱するインターフェースを生んだ。わずかに間違った意図モデルは、自信を持って間違ったことをするAIを生む。理解を正確にすることのステークスが上がった。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>変わっていないこと——そしてなぜそれがいまより重要か</h2>
+
+    <p>根本的なディシプリンは変わっていない。人々が自分のプロダクトの中でしていることだけでなく、人生の中で本当に何を達成しようとしているかを、十分に深く理解すること。</p>
+
+    <p>これは常に良いデザインのコアだった。JTBD、コンテキスチュアル・インクワイアリー、エスノグラフィックリサーチ、5 Whys——これらはすべて、表面の行動を超えて根底にある意図に到達するためのツールだった。この仕事は不変だ。</p>
+
+    <p>変わったのは、この理解がいまやシステムの振る舞いへの直接的なインプットであり、インターフェースデザインを介した一段階先ではなくなったことだ。理解の質はより露出し、より重大で、より直接的にテスト可能になっている——AIが意図に基づいて正しく行動するか、しないかだから。</p>
+
+    <p>優れたデザイナーは常に、意図を理解することがこの仕事だと知っていた。UX 3.0はそれを、デザインをする人間だけでなく、システム全体にとって真実にする。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>出発点——自分自身に問うべきたった一つの質問</h2>
+
+    <p>もしこのシフトに対して自分の立ち位置を確認しようとしているなら、最も有用な問いは「どんなツールを学ぶべきか」ではない。これだ：</p>
+
+    <p><strong>もしAIが自分のユーザーに代わって行動するとしたら、AIは何を知る必要があるか？</strong></p>
+
+    <p>ユーザーが何をしたいかだけではない。何を達成しようとしているか。成功がどう見えるか。何をコントロールしたいか。どの制約が重要で、どれがそうでないか。</p>
+
+    <p>この問いに厳密に答えれば、AIの時代における最も重要なデザインワークをしたことになる——前の時代の最高のデザインワークとほぼ同じ形をした仕事が、かつてないほど重要な文脈に適用されたものだ。</p>
+
+    <p>それがUX 3.0の内側から見た感覚だ。革命ではない。常にやる価値のあった仕事のステークスが、上がったのだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>この背後にあるフレームワークをさらに深く知りたいなら、Jobs-to-be-Doneが私が見つけた中で最も有用なレンズだ。意図をAIシステムが実際に使える形で構造化する方法について、コンパニオン記事を書いた：[30年前のリサーチフレームワークがいまAIの指示書を書いている。ほとんどのチームはその存在を知らない →]</em></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>P.S. 一つ告白がある。私はかつて「インターフェースの質 = デザインの質」だと信じていた。ピクセルの精度、遷移のスムーズさ、タイポグラフィの美しさ。それが私のプロとしてのアイデンティティだった。AIの仕事を始めたとき、私は最初、自分の存在意義が薄れる不安を感じた。しかし現場で起きていたのは逆だった。AIが実行すればするほど、「何を実行すべきか」の定義がより重要になった。インターフェースという盾がなくなった世界で、デザイナーの理解力は守りではなく攻めになる。この気づきが私のキャリア観を変えた。恐れは消えた。代わりに、使命感が残った。</p>
+
+    <p>#UXDesign #AIDesign #FutureOfDesign #ProductDesign #IntentFirst #DesignThinking #JTBD</p>
+  </div>
+
+</article>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="article-nav reveal">
+  <a href="../01/index.html">&larr; 前の記事</a>
+  <a href="../index.html">一覧に戻る</a>
+  <a href="../03/index.html">次の記事 &rarr;</a>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     SUBSCRIBE
+     ═══════════════════════════════════════ -->
+<section class="subscribe-cta">
+  <div style="max-width: var(--max-w); margin: 0 auto;">
+    <h2 class="subscribe-title reveal">最新のエッセイを、<br>受信箱へ。</h2>
+    <p class="subscribe-sub reveal d1">Context Grammarは進化を続けています。その過程をお届けします。</p>
+    <a href="https://intentfirst.substack.com" target="_blank" class="subscribe-btn reveal d2">Substackで購読</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+</body>
+</html>

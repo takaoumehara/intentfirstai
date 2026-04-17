@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Same Data, Different Grammar — Form Factor Transformation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   RESET & DESIGN TOKENS
+   ============================================ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#1A73E8;
+  --primary-light:rgba(26,115,232,.08);
+  --primary-lighter:rgba(26,115,232,.04);
+  --surface:#FFFFFF;
+  --surface-dim:#F8F9FA;
+  --surface-container:#F1F3F4;
+  --text:#202124;
+  --text-secondary:#5F6368;
+  --text-tertiary:#9AA0A6;
+  --coral:#E8710A;
+  --coral-light:rgba(232,113,10,.08);
+  --green:#1E8E3E;
+  --green-light:rgba(30,142,62,.08);
+  --indigo:#3949AB;
+  --indigo-light:rgba(57,73,171,.08);
+  --purple:#7B1FA2;
+  --purple-light:rgba(123,31,162,.08);
+  --amber:#F9AB00;
+  --red:#D93025;
+  --border:#DADCE0;
+  --border-light:#E8EAED;
+  --radius-xs:8px;
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:24px;
+  --radius-xl:32px;
+  --ease:cubic-bezier(0.2,0,0,1);
+  --ease-bounce:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out-expo:cubic-bezier(0.23,1,0.32,1);
+  --ease-in-out-expo:cubic-bezier(0.77,0,0.175,1);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --shadow-xl:0 16px 48px rgba(0,0,0,.14);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Google Sans','Google Sans Text','Segoe UI',system-ui,sans-serif;
+  background:#FAFBFC;
+  color:var(--text);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ============================================
+   HERO
+   ============================================ */
+.hero{
+  min-height:60vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:100px 32px 80px;
+  text-align:center;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FAFBFC 100%);
+  position:relative;
+}
+.hero::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border-light),transparent);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border-light);
+  border-radius:100px;padding:8px 20px;font-size:13px;
+  color:var(--text-secondary);letter-spacing:.3px;
+  box-shadow:var(--shadow-sm);
+  opacity:0;transform:translateY(16px);
+}
+.hero-badge .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--indigo);
+}
+.hero h1{
+  font-size:clamp(36px,5.5vw,64px);font-weight:600;
+  letter-spacing:-1px;line-height:1.1;
+  max-width:800px;margin:32px 0 16px;
+  background:linear-gradient(135deg,var(--text) 0%,var(--text-secondary) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  opacity:0;transform:translateY(20px);
+}
+.hero-subtitle{
+  font-size:clamp(16px,2vw,20px);color:var(--text-secondary);
+  max-width:560px;line-height:1.6;font-weight:400;
+  opacity:0;transform:translateY(20px);
+}
+.hero-scroll{
+  margin-top:48px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--text-tertiary);font-size:12px;letter-spacing:.5px;
+  opacity:0;transform:translateY(10px);
+}
+.hero-scroll .chevron{
+  width:24px;height:24px;
+  border-right:2px solid var(--text-tertiary);
+  border-bottom:2px solid var(--text-tertiary);
+  transform:rotate(45deg);
+  animation:scrollBounce 2s var(--ease) infinite;
+}
+@keyframes scrollBounce{
+  0%,100%{transform:rotate(45deg) translate(0,0);opacity:.4}
+  50%{transform:rotate(45deg) translate(3px,3px);opacity:1}
+}
+
+/* ============================================
+   SECTION LAYOUT
+   ============================================ */
+.section{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:100px 48px;
+  position:relative;
+}
+.section:nth-child(even){background:var(--surface)}
+.section:nth-child(odd){background:#FAFBFC}
+
+.section-inner{
+  display:flex;
+  align-items:center;
+  gap:80px;
+  max-width:1200px;
+  width:100%;
+}
+.section-inner.reversed{flex-direction:row-reverse}
+
+.section-visual{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:500px;
+  position:relative;
+}
+.section-content{
+  flex:0 0 400px;
+  max-width:400px;
+}
+
+/* Section text */
+.section-number{
+  font-size:13px;font-weight:600;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:16px;
+  opacity:0;transform:translateY(16px);
+}
+.section-title{
+  font-size:clamp(24px,3vw,36px);font-weight:600;
+  letter-spacing:-.3px;line-height:1.2;margin-bottom:16px;
+  opacity:0;transform:translateY(20px);
+}
+.section-desc{
+  font-size:16px;color:var(--text-secondary);
+  line-height:1.7;margin-bottom:28px;
+  opacity:0;transform:translateY(20px);
+}
+
+/* Token badges */
+.token-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 18px;border-radius:100px;
+  font-size:13px;font-weight:500;
+  border:1.5px solid;
+  opacity:0;transform:translateY(16px);
+  margin-bottom:8px;
+}
+.token-badge + .token-badge{margin-left:8px}
+.token-badge .token-icon{
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:white;
+}
+
+/* ============================================
+   PHONE DEVICE — Pixel Style
+   ============================================ */
+.phone{
+  width:280px;
+  background:#1A1A1A;
+  border-radius:40px;
+  padding:12px;
+  box-shadow:
+    var(--shadow-xl),
+    inset 0 0 0 1px rgba(255,255,255,.08);
+  position:relative;
+  opacity:0;transform:translateY(30px);
+}
+.phone-screen{
+  background:var(--surface);
+  border-radius:30px;
+  overflow:hidden;
+  position:relative;
+}
+
+/* Status bar */
+.status-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 24px 6px;
+  font-size:11px;font-weight:500;color:var(--text-secondary);
+}
+.status-bar-right{
+  display:flex;align-items:center;gap:4px;
+}
+.status-bar-right .signal{
+  display:flex;gap:1px;align-items:flex-end;
+}
+.status-bar-right .signal span{
+  width:3px;background:var(--text-secondary);border-radius:1px;
+}
+.status-bar-right .battery{
+  width:18px;height:9px;border:1.5px solid var(--text-secondary);
+  border-radius:2px;position:relative;
+}
+.status-bar-right .battery::after{
+  content:'';position:absolute;right:-4px;top:2px;
+  width:2px;height:4px;background:var(--text-secondary);border-radius:0 1px 1px 0;
+}
+.status-bar-right .battery-fill{
+  width:70%;height:100%;background:var(--green);border-radius:1px;
+}
+
+/* Dynamic Island / Notch */
+.dynamic-island{
+  width:96px;height:28px;
+  background:#1A1A1A;
+  border-radius:20px;
+  margin:0 auto 8px;
+  position:relative;
+}
+.dynamic-island::after{
+  content:'';
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle,#2D2D2D 30%,#1A1A1A 100%);
+}
+
+/* Home indicator */
+.home-indicator{
+  width:120px;height:4px;
+  background:var(--text-tertiary);
+  border-radius:2px;
+  margin:8px auto 10px;
+  opacity:.4;
+}
+
+/* Phone screen content */
+.phone-content{padding:0 16px 4px;min-height:420px;display:flex;flex-direction:column}
+.screen-header{
+  font-size:18px;font-weight:600;color:var(--text);
+  margin-bottom:4px;
+}
+.screen-subheader{
+  font-size:12px;color:var(--text-tertiary);
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:4px;
+}
+.screen-subheader .live-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);
+  animation:pulse 2s ease infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1}
+  50%{opacity:.4}
+}
+
+/* ============================================
+   PRODUCT CARDS — Full Browse
+   ============================================ */
+.product-card{
+  display:flex;gap:12px;
+  padding:12px;
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-sm);
+  margin-bottom:10px;
+  transition:opacity .6s var(--ease-out-expo),transform .6s var(--ease-out-expo),border-color .2s var(--ease),box-shadow .2s var(--ease);
+  cursor:default;
+  opacity:0;transform:translateX(-20px);
+  will-change:transform,opacity;
+}
+.product-card-img{
+  width:64px;height:64px;
+  border-radius:var(--radius-xs);
+  overflow:hidden;
+  background:var(--surface-dim);
+  flex-shrink:0;
+}
+.product-card-img img{
+  width:100%;height:100%;object-fit:cover;
+}
+.product-card-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.product-card-name{font-size:13px;font-weight:600;margin-bottom:2px;color:var(--text)}
+.product-card-price{font-size:12px;color:var(--text-secondary);margin-bottom:6px}
+.product-card-price .price{font-weight:600;color:var(--text)}
+.product-card-delivery{font-size:10px;color:var(--green);margin-bottom:6px;display:flex;align-items:center;gap:3px}
+
+/* Confidence bar */
+.confidence{display:flex;align-items:center;gap:6px}
+.confidence-track{
+  flex:1;height:4px;background:var(--surface-container);
+  border-radius:4px;overflow:hidden;
+}
+.confidence-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--primary),#4D9EF6);
+  width:0;transition:width 1.2s var(--ease);
+}
+.confidence-label{
+  font-size:10px;font-weight:600;color:var(--primary);
+  white-space:nowrap;
+  min-width:28px;text-align:right;
+}
+
+/* ============================================
+   COMPACT CARDS — One-hand Mode
+   ============================================ */
+.phone-onehand{
+  position:relative;
+}
+.phone-onehand .phone-screen{position:relative}
+
+/* Thumb reach overlay */
+.thumb-overlay{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:40%;
+  background:linear-gradient(180deg,rgba(0,0,0,.06) 0%,rgba(0,0,0,.02) 100%);
+  z-index:2;
+  border-radius:30px 30px 0 0;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.thumb-overlay-label{
+  font-size:10px;color:var(--text-tertiary);
+  background:rgba(255,255,255,.9);
+  padding:4px 12px;border-radius:20px;
+  backdrop-filter:blur(4px);
+}
+
+.onehand-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--coral-light);color:var(--coral);
+  font-size:11px;font-weight:600;
+  padding:6px 14px;border-radius:100px;
+  margin-bottom:12px;
+}
+
+/* Thumb zone */
+.thumb-zone{
+  margin-top:auto;
+  padding-top:12px;
+  position:relative;
+}
+.thumb-zone::before{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(232,113,10,.3),transparent);
+}
+.thumb-zone-label{
+  font-size:9px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;color:var(--coral);
+  text-align:center;margin-bottom:10px;opacity:.7;
+}
+
+.compact-card{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-sm);
+  margin-bottom:8px;
+  opacity:0;transform:translateY(10px);
+}
+.compact-card-img{
+  width:48px;height:48px;
+  border-radius:var(--radius-xs);
+  overflow:hidden;
+  background:var(--surface-dim);
+  flex-shrink:0;
+}
+.compact-card-img img{width:100%;height:100%;object-fit:cover}
+.compact-card-info{
+  flex:1;min-width:0;
+  font-size:13px;font-weight:500;
+  color:var(--text);
+  display:flex;align-items:center;gap:6px;
+}
+.compact-card-info .sep{color:var(--text-tertiary);font-weight:400}
+.compact-card-conf{
+  font-size:12px;font-weight:700;
+  color:var(--primary);
+  flex-shrink:0;
+}
+
+/* Thumb reach semi-circle */
+.thumb-reach{
+  position:absolute;
+  bottom:12px;right:12px;
+  width:200px;height:200px;
+  border-radius:50%;
+  border:1.5px dashed rgba(232,113,10,.25);
+  pointer-events:none;
+  z-index:1;
+  transform:translate(30%,30%);
+}
+
+/* ============================================
+   TV DEVICE
+   ============================================ */
+.tv-container{
+  display:flex;flex-direction:column;align-items:center;gap:24px;
+  opacity:0;transform:translateY(30px);
+}
+
+.tv{
+  width:560px;
+  background:#0D0D0D;
+  border-radius:12px;
+  padding:8px;
+  box-shadow:var(--shadow-xl);
+  position:relative;
+}
+.tv-screen{
+  background:#1A1A1A;
+  border-radius:6px;
+  overflow:hidden;
+  aspect-ratio:16/9;
+  position:relative;
+}
+.tv-bezel-logo{
+  position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
+  font-size:8px;letter-spacing:2px;color:var(--text-tertiary);
+  text-transform:uppercase;
+}
+.tv-stand{
+  width:180px;height:4px;
+  background:linear-gradient(180deg,#BDBDBD,#9E9E9E);
+  border-radius:0 0 4px 4px;
+  margin:-2px auto 0;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.tv-foot{
+  display:flex;justify-content:center;gap:120px;margin-top:-2px;
+}
+.tv-foot span{
+  width:40px;height:3px;
+  background:linear-gradient(180deg,#BDBDBD,#9E9E9E);
+  border-radius:0 0 2px 2px;
+}
+
+/* TV content */
+.tv-content{
+  padding:24px 28px 20px;
+  display:flex;flex-direction:column;
+  height:100%;
+  background:linear-gradient(135deg,#1A1A2E 0%,#16213E 50%,#0F3460 100%);
+}
+.tv-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:20px;
+}
+.tv-title{
+  font-size:18px;font-weight:600;color:white;
+}
+.tv-child-badge{
+  font-size:11px;color:rgba(255,255,255,.7);
+  background:rgba(255,255,255,.1);
+  padding:4px 12px;border-radius:20px;
+  backdrop-filter:blur(8px);
+}
+
+/* Netflix-style grid */
+.tv-grid{
+  display:flex;gap:16px;flex:1;
+}
+.tv-card{
+  flex:1;
+  border-radius:12px;
+  overflow:hidden;
+  position:relative;
+  background:#111;
+  transition:transform .4s var(--ease),box-shadow .4s var(--ease);
+  cursor:default;
+  display:flex;
+  flex-direction:column;
+}
+.tv-card.focused{
+  transform:scale(1.05);
+  box-shadow:0 0 0 3px var(--primary),0 8px 32px rgba(26,115,232,.3);
+  z-index:1;
+}
+.tv-card-image{
+  width:100%;aspect-ratio:1/1;
+  overflow:hidden;
+  position:relative;
+}
+.tv-card-image img{
+  width:100%;height:100%;object-fit:cover;
+  transition:transform .6s var(--ease-out-expo);
+}
+.tv-card.focused .tv-card-image img{transform:scale(1.05)}
+.tv-card-body{
+  padding:10px 12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.03) 100%);
+  flex:1;display:flex;flex-direction:column;gap:3px;
+}
+.tv-card-name{
+  font-size:13px;font-weight:600;color:white;
+}
+.tv-card-fun{
+  font-size:11px;color:var(--green);
+  display:flex;align-items:center;gap:4px;
+}
+.tv-no-price{
+  margin-top:12px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:11px;color:rgba(255,255,255,.5);
+  background:rgba(255,255,255,.05);
+  padding:6px 12px;border-radius:8px;
+}
+.tv-no-price .lock{font-size:14px}
+
+/* ============================================
+   PHONE REMOTE
+   ============================================ */
+.remote-phone{
+  width:160px;
+  background:#1A1A1A;
+  border-radius:28px;
+  padding:8px;
+  box-shadow:var(--shadow-lg);
+}
+.remote-screen{
+  background:var(--surface);
+  border-radius:22px;
+  overflow:hidden;
+  padding:16px 12px;
+  display:flex;flex-direction:column;
+  align-items:center;
+  min-height:280px;
+}
+.remote-label{
+  font-size:10px;font-weight:600;color:var(--text-tertiary);
+  letter-spacing:.5px;text-transform:uppercase;
+  margin-bottom:12px;
+}
+
+/* CSS D-Pad */
+.dpad{
+  width:80px;height:80px;
+  position:relative;
+  margin:0 auto 16px;
+}
+.dpad-bg{
+  width:80px;height:80px;
+  background:var(--surface-dim);
+  border-radius:50%;
+  border:1px solid var(--border-light);
+  position:absolute;top:0;left:0;
+}
+.dpad-center{
+  width:20px;height:20px;
+  background:var(--primary);
+  border-radius:50%;
+  position:absolute;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:3;
+  box-shadow:0 2px 8px rgba(26,115,232,.3);
+}
+.dpad-center::after{
+  content:'OK';
+  font-size:7px;font-weight:700;color:white;
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  letter-spacing:.5px;
+}
+.dpad-btn{
+  position:absolute;
+  z-index:2;
+  display:flex;align-items:center;justify-content:center;
+}
+.dpad-btn svg{width:12px;height:12px;fill:var(--text-tertiary)}
+.dpad-up{top:4px;left:50%;transform:translateX(-50%)}
+.dpad-down{bottom:4px;left:50%;transform:translateX(-50%)}
+.dpad-left{left:4px;top:50%;transform:translateY(-50%)}
+.dpad-right{right:4px;top:50%;transform:translateY(-50%)}
+
+/* Remote product detail */
+.remote-detail{
+  width:100%;text-align:center;margin-bottom:12px;
+}
+.remote-detail-img{
+  width:80px;height:80px;
+  border-radius:var(--radius-xs);
+  overflow:hidden;margin:0 auto 8px;
+  background:var(--surface-dim);
+}
+.remote-detail-img img{width:100%;height:100%;object-fit:cover}
+.remote-detail-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.remote-detail-price{font-size:14px;font-weight:700;color:var(--primary)}
+.remote-buy{
+  width:100%;padding:10px;
+  background:var(--primary);color:white;
+  border:none;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:600;
+  font-family:inherit;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(26,115,232,.3);
+  transition:background .2s var(--ease),box-shadow .2s var(--ease),transform .1s var(--ease);
+  margin-top:auto;
+}
+.remote-buy:active{
+  transform:scale(0.96);
+}
+
+/* ============================================
+   TRANSITION ARROWS
+   ============================================ */
+.transition-arrow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 0;
+  position:relative;
+}
+.transition-arrow-inner{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  max-width:1200px;width:100%;padding:0 48px;
+}
+.arrow-line-container{
+  display:flex;align-items:center;gap:12px;
+}
+.arrow-line{
+  width:120px;height:2px;
+  position:relative;
+  overflow:visible;
+}
+.arrow-line-track{
+  width:100%;height:100%;
+  background:var(--border-light);
+  border-radius:1px;
+}
+.arrow-line-fill{
+  position:absolute;top:0;left:0;
+  height:100%;width:0;
+  background:var(--primary);
+  border-radius:1px;
+  transition:width 1s var(--ease);
+}
+.arrow-line::after{
+  content:'';position:absolute;right:-6px;top:-4px;
+  width:0;height:0;
+  border-top:5px solid transparent;
+  border-bottom:5px solid transparent;
+  border-left:8px solid var(--border-light);
+  transition:border-left-color .6s var(--ease);
+}
+.arrow-line.drawn .arrow-line-fill{width:100%}
+.arrow-line.drawn::after{border-left-color:var(--primary)}
+
+.arrow-label{
+  text-align:center;
+}
+.arrow-label-text{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.5;margin-bottom:10px;
+}
+.arrow-tokens{
+  display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+}
+.arrow-token{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;
+  padding:6px 14px;border-radius:100px;
+  border:1.5px solid;
+}
+
+/* ============================================
+   INSIGHT BOX
+   ============================================ */
+.insight-section{
+  padding:80px 48px 60px;
+  display:flex;flex-direction:column;align-items:center;
+  background:var(--surface);
+}
+.insight-box{
+  max-width:800px;width:100%;
+  background:linear-gradient(135deg,
+    rgba(57,73,171,.04) 0%,
+    rgba(26,115,232,.04) 33%,
+    rgba(232,113,10,.04) 66%,
+    rgba(123,31,162,.04) 100%
+  );
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-xl);
+  padding:56px 48px;
+  text-align:center;
+  opacity:0;transform:translateY(20px);
+}
+.insight-label{
+  font-size:11px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--text-tertiary);
+  margin-bottom:20px;
+}
+.insight-text{
+  font-size:clamp(18px,2.5vw,26px);
+  color:var(--text);line-height:1.7;
+  font-weight:400;
+}
+.insight-text strong{font-weight:600;color:var(--primary)}
+
+/* ============================================
+   TOKEN SUMMARY CARDS
+   ============================================ */
+.token-summary{
+  display:flex;gap:20px;justify-content:center;
+  padding:0 48px 100px;
+  background:var(--surface);
+  flex-wrap:wrap;
+  margin-top:48px;
+}
+.token-summary-card{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 24px;
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-sm);
+  transition:opacity .6s var(--ease-out-expo),transform .6s var(--ease-out-expo),border-color .2s var(--ease),box-shadow .2s var(--ease);
+  opacity:0;transform:translateY(16px);
+  will-change:transform,opacity;
+}
+.token-num{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:white;
+  flex-shrink:0;
+}
+.token-summary-info{display:flex;flex-direction:column}
+.token-summary-name{font-size:14px;font-weight:600;color:var(--text)}
+.token-summary-role{font-size:12px;color:var(--text-tertiary)}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+.reveal{
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo);
+  will-change:transform,opacity;
+}
+.reveal.visible{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* Stagger children */
+.stagger-children .reveal:nth-child(1){transition-delay:.1s}
+.stagger-children .reveal:nth-child(2){transition-delay:.2s}
+.stagger-children .reveal:nth-child(3){transition-delay:.3s}
+.stagger-children .reveal:nth-child(4){transition-delay:.4s}
+.stagger-children .reveal:nth-child(5){transition-delay:.5s}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes slideInLeft{
+  from{opacity:0;transform:translateX(-30px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes slideInRight{
+  from{opacity:0;transform:translateX(30px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes confFill{
+  from{width:0}
+}
+
+/* ============================================
+   HOVER STATES (pointer devices only)
+   ============================================ */
+@media(hover:hover) and (pointer:fine){
+  .product-card:hover{
+    border-color:var(--primary);
+    box-shadow:0 2px 12px rgba(26,115,232,.1);
+  }
+  .remote-buy:hover{
+    background:#1567D3;
+    box-shadow:0 4px 12px rgba(26,115,232,.4);
+  }
+  .token-summary-card:hover{
+    border-color:var(--primary);
+    box-shadow:0 4px 20px rgba(26,115,232,.1);
+    transform:translateY(-2px);
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media(max-width:1100px){
+  .section-inner{flex-direction:column !important;gap:48px;text-align:center}
+  .section-content{flex:none;max-width:560px}
+  .section{padding:80px 24px}
+  .tv{width:100%;max-width:480px}
+  .token-badge + .token-badge{margin-left:0}
+}
+@media(max-width:640px){
+  .hero{padding:80px 20px 60px}
+  .section{padding:60px 16px}
+  .section-inner{gap:36px}
+  .phone{width:240px}
+  .phone-content{min-height:360px}
+  .product-card-img{width:52px;height:52px}
+  .compact-card-img{width:40px;height:40px}
+  .tv{max-width:340px}
+  .remote-phone{width:140px}
+  .insight-box{padding:36px 24px}
+  .token-summary{flex-direction:column;align-items:center;padding:0 24px 80px}
+  .insight-section{padding:60px 24px 40px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     HERO
+     ============================================ -->
+<header class="hero">
+  <div class="hero-badge reveal"><span class="dot"></span> Context Token &#9316; Form Factor</div>
+  <h1 class="reveal">Same Data, Different Grammar</h1>
+  <p class="hero-subtitle reveal">Three Context Tokens reshape the same shoe shopping data across devices, postures, and social contexts — without the user lifting a finger.</p>
+  <div class="hero-scroll reveal">
+    <span>Scroll to explore</span>
+    <div class="chevron"></div>
+  </div>
+</header>
+
+<!-- ============================================
+     SECTION 1: Phone Full Browse — Train Platform
+     ============================================ -->
+<section class="section" id="s1">
+  <div class="section-inner">
+    <div class="section-visual">
+      <div class="phone reveal" id="phone-full">
+        <div class="phone-screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div class="status-bar-right">
+              <div class="signal">
+                <span style="height:4px"></span>
+                <span style="height:6px"></span>
+                <span style="height:8px"></span>
+                <span style="height:10px"></span>
+              </div>
+              <div class="battery"><div class="battery-fill"></div></div>
+            </div>
+          </div>
+          <div class="dynamic-island"></div>
+          <div class="phone-content stagger-children">
+            <div class="screen-header">Hiking Shoes</div>
+            <div class="screen-subheader"><span class="live-dot"></span> Comparing 3 options</div>
+
+            <div class="product-card reveal" data-conf="94">
+              <div class="product-card-img">
+                <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB" loading="lazy">
+              </div>
+              <div class="product-card-body">
+                <div class="product-card-name">Nike SFB 6" Leather</div>
+                <div class="product-card-price"><span class="price">$65</span> &middot; Size 10</div>
+                <div class="product-card-delivery">&#10003; Arrives Thu, Apr 3</div>
+                <div class="confidence">
+                  <div class="confidence-track"><div class="confidence-fill" data-width="94"></div></div>
+                  <span class="confidence-label">94%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-card reveal" data-conf="88">
+              <div class="product-card-img">
+                <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex" loading="lazy">
+              </div>
+              <div class="product-card-body">
+                <div class="product-card-name">Adidas Terrex Free Hiker</div>
+                <div class="product-card-price"><span class="price">$58</span> &middot; Size 10</div>
+                <div class="product-card-delivery">&#10003; Arrives Fri, Apr 4</div>
+                <div class="confidence">
+                  <div class="confidence-track"><div class="confidence-fill" data-width="88"></div></div>
+                  <span class="confidence-label">88%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="product-card reveal" data-conf="71">
+              <div class="product-card-img">
+                <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack" loading="lazy">
+              </div>
+              <div class="product-card-body">
+                <div class="product-card-name">TNF Fastpack Hiker Mid</div>
+                <div class="product-card-price"><span class="price">$52</span> &middot; Size 10</div>
+                <div class="product-card-delivery">&#10003; Arrives Sat, Apr 5</div>
+                <div class="confidence">
+                  <div class="confidence-track"><div class="confidence-fill" data-width="71"></div></div>
+                  <span class="confidence-label">71%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-content">
+      <div class="section-number reveal" style="color:var(--green)">Section 01</div>
+      <h2 class="section-title reveal">Train Platform</h2>
+      <p class="section-desc reveal">Standing on the platform, both hands free. The phone shows the full browse experience: large product images, prices, confidence scores, and delivery timelines. Everything a decision needs.</p>
+      <div class="reveal">
+        <div class="token-badge" style="color:var(--green);border-color:var(--green);background:var(--green-light)">
+          <span class="token-icon" style="background:var(--green)">&oplus;</span>
+          Physical State: Standing, both hands free
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Transition Arrow 1 -->
+<div class="transition-arrow">
+  <div class="transition-arrow-inner">
+    <div class="arrow-line-container">
+      <div class="arrow-line" id="arrow1">
+        <div class="arrow-line-track"></div>
+        <div class="arrow-line-fill"></div>
+      </div>
+    </div>
+    <div class="arrow-label">
+      <div class="arrow-label-text">Grabbed overhead strap with left hand.<br>Train arrives.</div>
+      <div class="arrow-tokens">
+        <span class="arrow-token" style="color:var(--green);border-color:var(--green);background:var(--green-light)">&#9312; Physical State shifts</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     SECTION 2: Phone One-hand — Packed Train
+     ============================================ -->
+<section class="section" id="s2">
+  <div class="section-inner reversed">
+    <div class="section-visual">
+      <div class="phone phone-onehand reveal" id="phone-onehand">
+        <div class="phone-screen">
+          <div class="thumb-overlay">
+            <span class="thumb-overlay-label">Difficult to reach</span>
+          </div>
+          <div class="status-bar" style="position:relative;z-index:3">
+            <span>9:43</span>
+            <div class="status-bar-right">
+              <div class="signal">
+                <span style="height:4px"></span>
+                <span style="height:6px"></span>
+                <span style="height:8px"></span>
+                <span style="height:10px"></span>
+              </div>
+              <div class="battery"><div class="battery-fill"></div></div>
+            </div>
+          </div>
+          <div class="dynamic-island" style="position:relative;z-index:3"></div>
+          <div class="phone-content" style="position:relative;z-index:3">
+            <div class="onehand-badge">One-hand Mode &#9995;</div>
+            <div class="screen-subheader" style="margin-bottom:0"><span class="live-dot"></span> Quick compare</div>
+
+            <div class="thumb-zone stagger-children">
+              <div class="thumb-zone-label">Thumb zone</div>
+              <div class="compact-card reveal">
+                <div class="compact-card-img">
+                  <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB" loading="lazy">
+                </div>
+                <div class="compact-card-info">
+                  Nike SFB <span class="sep">&middot;</span> $65
+                </div>
+                <div class="compact-card-conf">94%</div>
+              </div>
+              <div class="compact-card reveal">
+                <div class="compact-card-img">
+                  <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex" loading="lazy">
+                </div>
+                <div class="compact-card-info">
+                  Terrex <span class="sep">&middot;</span> $58
+                </div>
+                <div class="compact-card-conf">88%</div>
+              </div>
+              <div class="compact-card reveal">
+                <div class="compact-card-img">
+                  <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack" loading="lazy">
+                </div>
+                <div class="compact-card-info">
+                  TNF <span class="sep">&middot;</span> $52
+                </div>
+                <div class="compact-card-conf">71%</div>
+              </div>
+            </div>
+          </div>
+          <div class="home-indicator"></div>
+          <div class="thumb-reach"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-content">
+      <div class="section-number reveal" style="color:var(--coral)">Section 02</div>
+      <h2 class="section-title reveal">Packed Train</h2>
+      <p class="section-desc reveal">One hand grips the overhead strap. The UI instantly compresses: cards shrink to single-line chips, all critical info stays in the thumb zone. Same data, restructured for a constrained hand.</p>
+      <div class="reveal">
+        <div class="token-badge" style="color:var(--coral);border-color:var(--coral);background:var(--coral-light)">
+          <span class="token-icon" style="background:var(--coral)">&oplus;</span>
+          Physical State: One hand on strap
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Transition Arrow 2 -->
+<div class="transition-arrow">
+  <div class="transition-arrow-inner">
+    <div class="arrow-line-container">
+      <div class="arrow-line" id="arrow2">
+        <div class="arrow-line-track"></div>
+        <div class="arrow-line-fill"></div>
+      </div>
+    </div>
+    <div class="arrow-label">
+      <div class="arrow-label-text">Home. Cast to TV.<br>Child walks into the room.</div>
+      <div class="arrow-tokens">
+        <span class="arrow-token" style="color:var(--indigo);border-color:var(--indigo);background:var(--indigo-light)">&#9320; Form Factor: TV detected</span>
+        <span class="arrow-token" style="color:var(--purple);border-color:var(--purple);background:var(--purple-light)">&#9314; Social Exposure: Child present</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     SECTION 3: TV + Phone Remote — Living Room
+     ============================================ -->
+<section class="section" id="s3">
+  <div class="section-inner">
+    <div class="section-visual">
+      <div class="tv-container reveal" id="tv-setup">
+        <!-- TV -->
+        <div class="tv">
+          <div class="tv-screen">
+            <div class="tv-content">
+              <div class="tv-header">
+                <div class="tv-title">Which ones look cool?</div>
+                <div class="tv-child-badge">&#128118; Kid-friendly view</div>
+              </div>
+              <div class="tv-grid">
+                <div class="tv-card">
+                  <div class="tv-card-image">
+                    <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB" loading="lazy">
+                  </div>
+                  <div class="tv-card-body">
+                    <div class="tv-card-name">Nike SFB</div>
+                    <div class="tv-card-fun">&#127783;&#65039; Water-resistant!</div>
+                  </div>
+                </div>
+                <div class="tv-card focused">
+                  <div class="tv-card-image">
+                    <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex" loading="lazy">
+                  </div>
+                  <div class="tv-card-body">
+                    <div class="tv-card-name">Adidas Terrex</div>
+                    <div class="tv-card-fun">&#9968;&#65039; Mountain ready!</div>
+                  </div>
+                </div>
+                <div class="tv-card">
+                  <div class="tv-card-image">
+                    <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack" loading="lazy">
+                  </div>
+                  <div class="tv-card-body">
+                    <div class="tv-card-name">TNF Fastpack</div>
+                    <div class="tv-card-fun">&#9889; Super light!</div>
+                  </div>
+                </div>
+              </div>
+              <div class="tv-no-price">
+                <span class="lock">&#128274;</span> Prices hidden — child-friendly mode
+              </div>
+            </div>
+          </div>
+          <span class="tv-bezel-logo">SmartTV</span>
+        </div>
+        <div class="tv-stand"></div>
+        <div class="tv-foot"><span></span><span></span></div>
+
+        <!-- Phone Remote -->
+        <div class="remote-phone" style="margin-top:24px">
+          <div class="remote-screen">
+            <div class="remote-label">Parent Remote</div>
+            <div class="dpad">
+              <div class="dpad-bg"></div>
+              <div class="dpad-center"></div>
+              <div class="dpad-btn dpad-up">
+                <svg viewBox="0 0 24 24"><path d="M12 8l-6 6h12z"/></svg>
+              </div>
+              <div class="dpad-btn dpad-down">
+                <svg viewBox="0 0 24 24"><path d="M12 16l6-6H6z"/></svg>
+              </div>
+              <div class="dpad-btn dpad-left">
+                <svg viewBox="0 0 24 24"><path d="M8 12l6-6v12z"/></svg>
+              </div>
+              <div class="dpad-btn dpad-right">
+                <svg viewBox="0 0 24 24"><path d="M16 12l-6 6V6z"/></svg>
+              </div>
+            </div>
+            <div class="remote-detail">
+              <div class="remote-detail-img">
+                <img src="../../projects/project-03/image-set03/product/Adidas-Terrex Free Hiker 2.0 Gore-Tex Hiking Shoes/Terrex_Free_Hiker_2.0_Gore-Tex_Hiking_Shoes_Black_IH3524_HM1.avif" alt="Adidas Terrex" loading="lazy">
+              </div>
+              <div class="remote-detail-name">Adidas Terrex</div>
+              <div class="remote-detail-price">$58</div>
+            </div>
+            <button class="remote-buy">Buy Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-content">
+      <div class="section-number reveal" style="color:var(--indigo)">Section 03</div>
+      <h2 class="section-title reveal">Living Room</h2>
+      <p class="section-desc reveal">The TV becomes a shared, kid-friendly showcase: large images, playful labels, no prices. The phone transforms into a private remote where the parent sees the real price and completes the purchase. Two screens, one session, split by social context.</p>
+      <div class="reveal" style="display:flex;flex-direction:column;gap:8px">
+        <div class="token-badge" style="color:var(--indigo);border-color:var(--indigo);background:var(--indigo-light)">
+          <span class="token-icon" style="background:var(--indigo)">&oplus;</span>
+          Form Factor: TV detected
+        </div>
+        <div class="token-badge" style="color:var(--purple);border-color:var(--purple);background:var(--purple-light)">
+          <span class="token-icon" style="background:var(--purple)">&oplus;</span>
+          Social Exposure: Child present
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     INSIGHT + TOKEN SUMMARY
+     ============================================ -->
+<div class="insight-section">
+  <div class="insight-box reveal">
+    <div class="insight-label">Design Principle</div>
+    <p class="insight-text">
+      Content doesn't just <strong>resize</strong> across screens —<br>
+      it <strong>restructures</strong> based on who is holding what, where, with whom.<br>
+      The same 3 shoes become detailed cards, thumb-zone chips, or a TV show<br>
+      depending on <strong>three Context Tokens working in concert</strong>.
+    </p>
+  </div>
+
+  <div class="token-summary">
+    <div class="token-summary-card reveal">
+      <div class="token-num" style="background:var(--green)">&#9312;</div>
+      <div class="token-summary-info">
+        <span class="token-summary-name">Physical State</span>
+        <span class="token-summary-role">Triggers posture-aware layout shift</span>
+      </div>
+    </div>
+    <div class="token-summary-card reveal">
+      <div class="token-num" style="background:var(--indigo)">&#9320;</div>
+      <div class="token-summary-info">
+        <span class="token-summary-name">Form Factor</span>
+        <span class="token-summary-role">Restructures information architecture</span>
+      </div>
+    </div>
+    <div class="token-summary-card reveal">
+      <div class="token-num" style="background:var(--purple)">&#9314;</div>
+      <div class="token-summary-info">
+        <span class="token-summary-name">Social Exposure</span>
+        <span class="token-summary-role">Filters what's visible to whom</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     JAVASCRIPT — IntersectionObserver + Animations
+     ============================================ -->
+<script>
+(function(){
+  'use strict';
+
+  // ---- Reveal on scroll ----
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Don't unobserve — allow re-trigger if user scrolls back? No, keep it.
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.15,
+    rootMargin: '0px 0px -60px 0px'
+  });
+
+  document.querySelectorAll('.reveal').forEach(el => {
+    revealObserver.observe(el);
+  });
+
+  // ---- Confidence bar fill animation ----
+  const confObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const fills = entry.target.querySelectorAll('.confidence-fill');
+        fills.forEach((fill, i) => {
+          setTimeout(() => {
+            fill.style.width = fill.dataset.width + '%';
+          }, i * 200);
+        });
+        confObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('#phone-full').forEach(el => confObserver.observe(el));
+
+  // ---- Arrow draw animation ----
+  const arrowObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('drawn');
+        arrowObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.arrow-line').forEach(el => arrowObserver.observe(el));
+
+  // ---- Staggered card entry within phone ----
+  const cardObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const cards = entry.target.querySelectorAll('.product-card, .compact-card');
+        cards.forEach((card, i) => {
+          setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateX(0) translateY(0)';
+            card.style.transition = 'opacity .6s cubic-bezier(0.23,1,0.32,1), transform .6s cubic-bezier(0.23,1,0.32,1)';
+          }, 150 + i * 120);
+        });
+        cardObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.phone').forEach(el => cardObserver.observe(el));
+
+  // ---- Hero entrance ----
+  window.addEventListener('load', () => {
+    const heroEls = document.querySelectorAll('.hero .reveal');
+    heroEls.forEach((el, i) => {
+      setTimeout(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+        el.style.transition = 'opacity .8s cubic-bezier(0.23,1,0.32,1), transform .8s cubic-bezier(0.23,1,0.32,1)';
+      }, 200 + i * 150);
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>

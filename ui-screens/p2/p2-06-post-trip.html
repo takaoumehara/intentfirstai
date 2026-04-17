@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-06 Post-Trip Synthesis</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8EAED;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 20px;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: #FFFFFF;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.status-bar {
+  height: 54px;
+  padding: 14px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFFFFF;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.status-bar .time { font-size: 15px; font-weight: 600; color: #202124; }
+.status-bar .icons { display: flex; gap: 6px; align-items: center; }
+.status-bar .icons span { font-size: 17px; color: #202124; }
+
+.header {
+  padding: 8px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  position: sticky;
+  top: 54px;
+  z-index: 10;
+}
+.header-left { display: flex; align-items: center; gap: 8px; }
+.header-left .material-symbols-outlined { font-size: 24px; color: #202124; cursor: pointer; }
+.header-left h1 { font-size: 18px; font-weight: 500; color: #202124; }
+.edit-btn {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 14px; color: #1A73E8; font-weight: 500; cursor: pointer;
+  background: none; border: none; font-family: inherit;
+}
+.edit-btn .material-symbols-outlined { font-size: 18px; }
+
+.scroll-content {
+  height: calc(844px - 54px - 48px - 20px);
+  overflow-y: auto;
+  padding: 0 16px 40px;
+  scroll-behavior: smooth;
+}
+.scroll-content::-webkit-scrollbar { width: 0; }
+
+.section-label {
+  font-size: 13px; font-weight: 500; color: #9AA0A6; letter-spacing: 0.5px;
+  text-transform: uppercase; margin-bottom: 12px; margin-top: 24px;
+}
+
+/* Video Player */
+.video-player {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background-image: url('https://images.unsplash.com/photo-1633112306621-981f5700ce0b?w=800&h=450&fit=crop&q=80');
+  background-size: cover;
+  background-position: center;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  margin: 8px 0 8px;
+}
+.video-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.play-btn {
+  width: 56px; height: 56px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 200ms;
+}
+.play-btn .material-symbols-outlined { font-size: 32px; color: #FFFFFF; margin-left: 3px; }
+.video-label { font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 500; }
+.video-progress {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px; background: rgba(255,255,255,0.2);
+}
+.video-progress-fill {
+  height: 100%; width: 0; background: #1A73E8;
+  border-radius: 0 2px 2px 0;
+}
+.video-meta {
+  font-size: 12px; color: #9AA0A6; margin-top: 6px; margin-bottom: 16px;
+}
+
+/* Expense Summary */
+.expense-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.expense-total {
+  font-size: 36px;
+  font-weight: 700;
+  color: #202124;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.expense-total .currency { font-size: 18px; font-weight: 400; color: #5F6368; }
+
+.donut-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+.donut-chart {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  flex-shrink: 0;
+}
+.donut-chart svg {
+  width: 120px;
+  height: 120px;
+  transform: rotate(-90deg);
+}
+.donut-chart circle {
+  fill: none;
+  stroke-width: 20;
+  cx: 60;
+  cy: 60;
+  r: 50;
+}
+.donut-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  color: #5F6368;
+  text-align: center;
+  font-weight: 500;
+}
+
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #202124;
+}
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.legend-pct {
+  margin-left: auto;
+  color: #5F6368;
+  font-weight: 500;
+}
+
+.expense-highlight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+.expense-highlight-icon { font-size: 20px; }
+.expense-highlight-text { font-size: 14px; color: #202124; flex: 1; }
+.expense-highlight-amount { font-size: 14px; font-weight: 500; color: #1A73E8; }
+
+/* Preference Updates */
+.pref-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.pref-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+}
+.pref-header .material-symbols-outlined { font-size: 20px; color: #8E24AA; }
+.pref-header span:last-child { font-size: 14px; font-weight: 500; color: #202124; }
+
+.pref-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #E8EAED;
+}
+.pref-item:last-child { border-bottom: none; }
+.pref-emoji { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.pref-text { font-size: 14px; color: #202124; line-height: 1.5; }
+.pref-sub { font-size: 12px; color: #5F6368; }
+.pref-mode {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.mode-exact { background: #E8F0FE; color: #1A73E8; }
+
+/* Souvenir Records */
+.souvenir-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #E8EAED;
+}
+.souvenir-item:last-child { border-bottom: none; }
+.souvenir-name { flex: 1; font-size: 14px; color: #202124; }
+.souvenir-to { font-size: 12px; color: #5F6368; }
+.souvenir-reaction {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 9999px;
+}
+.reaction-great { background: #E6F4EA; color: #1E8E3E; }
+.reaction-good { background: #E8F0FE; color: #1A73E8; }
+
+/* Notes */
+.notes-list {
+  list-style: none;
+  padding: 0;
+}
+.notes-list li {
+  font-size: 14px;
+  color: #202124;
+  line-height: 1.6;
+  padding: 6px 0 6px 20px;
+  position: relative;
+}
+.notes-list li::before {
+  content: '';
+  position: absolute;
+  left: 4px; top: 14px;
+  width: 6px; height: 6px;
+  background: #1A73E8;
+  border-radius: 50%;
+}
+
+/* Trip Brain Status */
+.brain-card {
+  background: linear-gradient(135deg, #E8F0FE, #F3E8FD);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.brain-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #202124;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brain-title .material-symbols-outlined { font-size: 20px; color: #8E24AA; }
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #1A73E8, #8E24AA);
+  border-radius: 4px;
+  transition: width 1.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.progress-label {
+  font-size: 13px;
+  color: #5F6368;
+  margin-bottom: 16px;
+}
+
+.brain-transfer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  position: relative;
+  height: 40px;
+}
+.brain-node {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: #fff;
+}
+.node-trip { background: #1A73E8; }
+.node-home { background: #8E24AA; }
+.transfer-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 2px;
+  position: relative;
+  overflow: visible;
+}
+.transfer-dot {
+  width: 8px; height: 8px;
+  background: #1A73E8;
+  border-radius: 50%;
+  position: absolute;
+  top: -2px;
+  opacity: 0;
+}
+
+.brain-delete {
+  font-size: 12px;
+  color: #9AA0A6;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.brain-delete .material-symbols-outlined { font-size: 14px; }
+
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: #202124;
+}
+
+.play-btn:active { transform: scale(0.95); }
+.edit-btn:active { transform: scale(0.97); }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hover states - pointer devices only */
+@media (hover: hover) and (pointer: fine) {
+  .play-btn:hover { background: rgba(255,255,255,0.3); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="status-bar">
+    <span class="time">10:30</span>
+    <div class="icons">
+      <span class="material-symbols-outlined" style="font-size:16px">signal_cellular_alt</span>
+      <span class="material-symbols-outlined" style="font-size:16px">wifi</span>
+      <span class="material-symbols-outlined" style="font-size:16px">battery_full</span>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="header-left">
+      <span class="material-symbols-outlined">arrow_back</span>
+      <h1>Trip Summary 2026</h1>
+    </div>
+    <button class="edit-btn">
+      Edit <span class="material-symbols-outlined">edit</span>
+    </button>
+  </div>
+
+  <div class="scroll-content">
+    <!-- Video Player -->
+    <div class="video-player">
+      <div class="video-overlay">
+        <div class="play-btn">
+          <span class="material-symbols-outlined">play_arrow</span>
+        </div>
+        <div class="video-label">3-minute trip video</div>
+      </div>
+      <div class="video-progress">
+        <div class="video-progress-fill" id="videoProgress"></div>
+      </div>
+    </div>
+    <div class="video-meta">Auto-generated from 3,000+ photos across 3 phones</div>
+
+    <!-- Expense Summary -->
+    <div class="section-label">Expenses</div>
+    <div class="expense-card">
+      <div class="expense-total" id="expenseTotal"><span class="currency">¥</span>0</div>
+
+      <div class="donut-container">
+        <div class="donut-chart">
+          <svg viewBox="0 0 120 120">
+            <circle class="donut-seg" id="seg1" stroke="#1E8E3E" stroke-dasharray="0 314.16" style="transition: stroke-dasharray 800ms cubic-bezier(0.2,0,0,1) 600ms"/>
+            <circle class="donut-seg" id="seg2" stroke="#1A73E8" stroke-dasharray="0 314.16" style="transition: stroke-dasharray 800ms cubic-bezier(0.2,0,0,1) 800ms"/>
+            <circle class="donut-seg" id="seg3" stroke="#E8710A" stroke-dasharray="0 314.16" style="transition: stroke-dasharray 800ms cubic-bezier(0.2,0,0,1) 1000ms"/>
+            <circle class="donut-seg" id="seg4" stroke="#8E24AA" stroke-dasharray="0 314.16" style="transition: stroke-dasharray 800ms cubic-bezier(0.2,0,0,1) 1200ms"/>
+          </svg>
+          <div class="donut-center">Total<br>¥385K</div>
+        </div>
+        <div class="donut-legend">
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#1E8E3E"></span>
+            Dining
+            <span class="legend-pct">42%</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#1A73E8"></span>
+            Transport
+            <span class="legend-pct">23%</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#E8710A"></span>
+            Activities
+            <span class="legend-pct">20%</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#8E24AA"></span>
+            Lodging
+            <span class="legend-pct">15%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="expense-highlight">
+        <span class="expense-highlight-icon">🍜</span>
+        <span class="expense-highlight-text">Ramen highlights</span>
+        <span class="expense-highlight-amount">¥15,000</span>
+      </div>
+    </div>
+
+    <!-- Family Preference Updates -->
+    <div class="section-label">Family Preferences</div>
+    <div class="pref-card">
+      <div class="pref-header">
+        <span class="material-symbols-outlined">psychology</span>
+        <span>Reflected in Home Brain</span>
+      </div>
+      <div class="pref-item">
+        <span class="pref-emoji">👦</span>
+        <div>
+          <div class="pref-text">Son got crazy for ramen</div>
+          <div class="pref-sub">5 ramen shops visited in 4 days</div>
+        </div>
+      </div>
+      <div class="pref-item">
+        <span class="pref-emoji">👧</span>
+        <div>
+          <div class="pref-text">Daughter spent 3 hours at teamLab</div>
+          <div class="pref-sub">Digital art + interactive → strong preference</div>
+        </div>
+      </div>
+      <div class="pref-item">
+        <span class="pref-emoji">🏔</span>
+        <div>
+          <div class="pref-text">Ueda: 2-3 days sufficient</div>
+          <div class="pref-sub">Day 3 showed lower engagement</div>
+        </div>
+      </div>
+      <div class="pref-item">
+        <span class="pref-emoji">🥐</span>
+        <div>
+          <div class="pref-text">Itabashi bakery</div>
+          <div class="pref-sub">Visited twice — consistent favorite</div>
+          <span class="pref-mode mode-exact">Exact Mode</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Souvenir Records -->
+    <div class="section-label">Gift Summary</div>
+    <div class="pref-card">
+      <div class="souvenir-item">
+        <span style="font-size:16px">🎁</span>
+        <div style="flex:1">
+          <div class="souvenir-name">Toraya Yokan</div>
+          <div class="souvenir-to">Wife's Parents</div>
+        </div>
+        <span class="souvenir-reaction reaction-great">✓✓ Greatly enjoyed</span>
+      </div>
+      <div class="souvenir-item">
+        <span style="font-size:16px">🎁</span>
+        <div style="flex:1">
+          <div class="souvenir-name">Press Butter Sand</div>
+          <div class="souvenir-to">Wife's Sister</div>
+        </div>
+        <span class="souvenir-reaction reaction-good">✓ Well-received</span>
+      </div>
+      <div class="souvenir-item">
+        <span style="font-size:16px">🍷</span>
+        <div style="flex:1">
+          <div class="souvenir-name">Homemade Wine (10 bottles)</div>
+          <div class="souvenir-to">Parents, Family, Home</div>
+        </div>
+        <span class="souvenir-reaction reaction-great">✓✓ Greatly enjoyed</span>
+      </div>
+    </div>
+
+    <!-- Notes for Next Year -->
+    <div class="section-label">Notes for Next Year</div>
+    <div class="pref-card">
+      <ul class="notes-list">
+        <li>Book ramen shops in advance — popular ones had 40min wait</li>
+        <li>teamLab needs half-day minimum, not 1 hour</li>
+        <li>Ueda onsen best for 2 nights max</li>
+        <li>Start souvenir shopping Day 2, not last day</li>
+        <li>Son's fever kit: pack children's medicine next time</li>
+      </ul>
+    </div>
+
+    <!-- Trip Brain Status -->
+    <div class="section-label">Trip Brain</div>
+    <div class="brain-card" id="brainCard">
+      <div class="brain-title">
+        <span class="material-symbols-outlined">neurology</span>
+        Memory Transfer Status
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label">Memory transfer to Home Brain complete</div>
+
+      <div class="brain-transfer">
+        <div class="brain-node node-trip">Trip</div>
+        <div class="transfer-track" id="transferTrack">
+          <!-- dots injected by JS -->
+        </div>
+        <div class="brain-node node-home">Home</div>
+      </div>
+
+      <div class="brain-delete">
+        <span class="material-symbols-outlined">schedule</span>
+        Trip Brain will auto-delete in 1 week
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Expense count-up
+  const totalEl = document.getElementById('expenseTotal');
+  const target = 385000;
+  const dur = 800;
+  let start = null;
+  setTimeout(() => {
+    function tick(ts) {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = Math.round(eased * target).toLocaleString();
+      totalEl.innerHTML = '<span class="currency">¥</span>' + val;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }, 400);
+
+  // Donut chart animation
+  const circ = 314.16;
+  const segs = [
+    { id: 'seg1', pct: 0.42, offset: 0 },
+    { id: 'seg2', pct: 0.23, offset: 0.42 },
+    { id: 'seg3', pct: 0.20, offset: 0.65 },
+    { id: 'seg4', pct: 0.15, offset: 0.85 },
+  ];
+  setTimeout(() => {
+    segs.forEach(s => {
+      const el = document.getElementById(s.id);
+      const len = s.pct * circ;
+      const gap = circ - len;
+      el.style.strokeDasharray = len + ' ' + gap;
+      el.style.strokeDashoffset = -s.offset * circ;
+    });
+  }, 100);
+
+  // Progress bar
+  setTimeout(() => {
+    document.getElementById('progressFill').style.width = '100%';
+  }, 800);
+
+  // Transfer dots animation
+  const track = document.getElementById('transferTrack');
+  for (let i = 0; i < 8; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'transfer-dot';
+    dot.style.left = '0%';
+    track.appendChild(dot);
+
+    // Stagger and loop
+    const delay = i * 300;
+    function animateDot() {
+      setTimeout(() => {
+        dot.style.opacity = '1';
+        dot.style.transition = 'left 1.5s cubic-bezier(0.2,0,0,1), opacity 0.3s';
+        dot.style.left = '100%';
+        setTimeout(() => {
+          dot.style.opacity = '0';
+          setTimeout(() => {
+            dot.style.transition = 'none';
+            dot.style.left = '0%';
+            animateDot();
+          }, 300);
+        }, 1500);
+      }, delay);
+    }
+    animateDot();
+  }
+});
+</script>
+</body>
+</html>

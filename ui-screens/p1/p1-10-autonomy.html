@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1-10 Autonomy Dial Evolution</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8EAED;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 20px;
+}
+
+.phone-frame {
+  width: 390px; height: 844px;
+  background: #FFFFFF; border-radius: 40px;
+  overflow: hidden; position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+.status-bar {
+  height: 54px; padding: 14px 24px 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.status-bar .time { font-size: 15px; font-weight: 600; color: #202124; }
+.status-bar .icons { display: flex; gap: 6px; }
+.status-bar .icons span { font-size: 17px; color: #202124; }
+
+.header {
+  padding: 8px 16px 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.header .material-symbols-outlined { font-size: 24px; color: #202124; cursor: pointer; }
+.header h1 { font-size: 18px; font-weight: 500; color: #202124; }
+
+.scroll-content {
+  height: calc(844px - 54px - 48px - 20px);
+  overflow-y: auto; padding: 0 20px 32px;
+}
+.scroll-content::-webkit-scrollbar { width: 0; }
+
+/* Circular Dial */
+.dial-container {
+  display: flex; flex-direction: column;
+  align-items: center; padding: 24px 0 28px;
+  opacity: 0;
+  animation: fadeUp 500ms cubic-bezier(0.2, 0, 0, 1) 200ms forwards;
+}
+
+.dial-svg { width: 200px; height: 200px; }
+
+.dial-track { fill: none; stroke: #E8EAED; stroke-width: 12; stroke-linecap: round; }
+.dial-progress {
+  fill: none; stroke: #1E8E3E; stroke-width: 12; stroke-linecap: round;
+  stroke-dasharray: 251.2;
+  stroke-dashoffset: 251.2;
+  transition: stroke-dashoffset 800ms cubic-bezier(0.2, 0, 0, 1);
+  transform: rotate(-90deg);
+  transform-origin: 100px 100px;
+}
+.dial-progress.animated {
+  stroke-dashoffset: 155; /* ~38% of 251.2, pointing to Confirm */
+}
+
+.notch-label {
+  font-size: 10px; fill: #9AA0A6; font-weight: 500;
+  text-anchor: middle;
+}
+.notch-label.active { fill: #1E8E3E; font-weight: 700; }
+.notch-dot { fill: #E8EAED; }
+.notch-dot.active { fill: #1E8E3E; }
+.notch-dot.current {
+  fill: #1E8E3E;
+  filter: drop-shadow(0 0 4px rgba(30,142,62,0.5));
+}
+
+.dial-center-text {
+  font-size: 16px; font-weight: 500; fill: #202124;
+  text-anchor: middle;
+}
+.dial-center-sub {
+  font-size: 12px; fill: #9AA0A6;
+  text-anchor: middle;
+}
+
+/* Category Cards */
+.section-label {
+  font-size: 13px; font-weight: 500; color: #9AA0A6;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.category-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(8px);
+}
+.category-card:nth-child(1) { animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 600ms forwards; }
+.category-card:nth-child(2) { animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 700ms forwards; }
+.category-card:nth-child(3) { animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 800ms forwards; }
+.category-card:nth-child(4) { animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 900ms forwards; }
+
+.cat-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cat-name {
+  font-size: 15px; font-weight: 500; color: #202124;
+  display: flex; align-items: center; gap: 6px;
+}
+.cat-name .emoji { font-size: 18px; }
+.cat-duration { font-size: 12px; color: #9AA0A6; }
+
+.cat-bar-container {
+  position: relative; margin-bottom: 8px;
+}
+.cat-bar-labels {
+  display: flex; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.cat-bar-labels span {
+  font-size: 10px; color: #9AA0A6; font-weight: 500;
+}
+.cat-bar-labels span.active { color: #1E8E3E; font-weight: 700; }
+.cat-bar-track {
+  height: 6px; background: #E8EAED; border-radius: 3px;
+  position: relative; overflow: hidden;
+}
+.cat-bar-fill {
+  height: 100%; background: #1E8E3E; border-radius: 3px;
+  width: 0;
+  transition: width 600ms var(--ease-out-expo);
+}
+.cat-bar-dot {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #1E8E3E; border: 2px solid #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: left 600ms var(--ease-out-expo);
+}
+.cat-bar-dot.glow {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.cat-desc { font-size: 13px; color: #5F6368; }
+.cat-lock {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; color: #D93025; font-weight: 500;
+  margin-left: 8px;
+}
+
+/* History Link */
+.history-link {
+  display: block; text-align: center;
+  margin-top: 20px; padding: 12px;
+  font-size: 14px; color: #1A73E8; font-weight: 500;
+  text-decoration: none;
+  opacity: 0;
+  animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 1100ms forwards;
+}
+.history-link:active { transform: scale(0.97); }
+
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; border-radius: 2.5px; background: #202124;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 0 0 0 rgba(30,142,62,0); }
+  50% { box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 0 0 6px rgba(30,142,62,0.15); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .history-link:hover { text-decoration: underline; }
+  .category-card:hover { background: #F1F3F4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <span class="material-symbols-outlined" style="font-size:16px">signal_cellular_alt</span>
+      <span class="material-symbols-outlined" style="font-size:16px">wifi</span>
+      <span class="material-symbols-outlined" style="font-size:16px">battery_full</span>
+    </div>
+  </div>
+  <div class="header">
+    <span class="material-symbols-outlined">arrow_back</span>
+    <h1>Autonomy Dial</h1>
+  </div>
+
+  <div class="scroll-content">
+    <!-- Circular Dial -->
+    <div class="dial-container">
+      <svg class="dial-svg" viewBox="0 0 200 200">
+        <!-- Track -->
+        <circle class="dial-track" cx="100" cy="100" r="80" />
+        <!-- Progress arc (partial circle) -->
+        <circle class="dial-progress" id="dialProgress" cx="100" cy="100" r="80"
+          stroke-dasharray="502.4"
+          stroke-dashoffset="502.4" />
+
+        <!-- Notch marks at 4 positions around the arc -->
+        <!-- Suggest: top (270deg) -->
+        <circle class="notch-dot" cx="100" cy="20" r="4" />
+        <text class="notch-label" x="100" y="12">Suggest</text>
+
+        <!-- Confirm: right (0deg) -->
+        <circle class="notch-dot active current" cx="180" cy="100" r="5" id="currentDot" />
+        <text class="notch-label active" x="196" y="104">Confirm</text>
+
+        <!-- Notify: bottom (90deg) -->
+        <circle class="notch-dot" cx="100" cy="180" r="4" />
+        <text class="notch-label" x="100" y="196">Notify</text>
+
+        <!-- Auto: left (180deg) -->
+        <circle class="notch-dot" cx="20" cy="100" r="4" />
+        <text class="notch-label" x="10" y="88">Auto</text>
+
+        <!-- Center text -->
+        <text class="dial-center-text" x="100" y="96">Average</text>
+        <text class="dial-center-text" x="100" y="114" style="font-size:14px;fill:#1E8E3E">Confirm</text>
+        <text class="dial-center-sub" x="100" y="132">Month 6</text>
+      </svg>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="section-label">Category Breakdown</div>
+
+    <div class="category-card">
+      <div class="cat-top">
+        <span class="cat-name"><span class="emoji">🛒</span> Grocery</span>
+        <span class="cat-duration">9 months</span>
+      </div>
+      <div class="cat-bar-container">
+        <div class="cat-bar-labels">
+          <span>Suggest</span><span>Confirm</span><span>Notify</span><span class="active">Auto</span>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" data-width="100%"></div>
+          <div class="cat-bar-dot glow" data-left="calc(100% - 7px)"></div>
+        </div>
+      </div>
+      <div class="cat-desc">Auto-ordering staples now</div>
+    </div>
+
+    <div class="category-card">
+      <div class="cat-top">
+        <span class="cat-name"><span class="emoji">🗑</span> Disposal</span>
+        <span class="cat-duration">3 months</span>
+      </div>
+      <div class="cat-bar-container">
+        <div class="cat-bar-labels">
+          <span>Suggest</span><span class="active">Confirm</span><span>Notify</span><span>Auto</span>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" data-width="40%"></div>
+          <div class="cat-bar-dot" data-left="calc(40% - 7px)"></div>
+        </div>
+      </div>
+      <div class="cat-desc">Brain learns timing</div>
+    </div>
+
+    <div class="category-card">
+      <div class="cat-top">
+        <span class="cat-name"><span class="emoji">🏥</span> Medical</span>
+        <span class="cat-duration"></span>
+      </div>
+      <div class="cat-bar-container">
+        <div class="cat-bar-labels">
+          <span>Suggest</span><span class="active">Confirm</span><span>Notify</span><span>Auto</span>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" data-width="40%" style="background:#5F6368"></div>
+          <div class="cat-bar-dot" data-left="calc(40% - 7px)" style="background:#5F6368"></div>
+        </div>
+      </div>
+      <div class="cat-desc">
+        Always Confirm (unchangeable)
+        <span class="cat-lock">🔒 LOCKED</span>
+      </div>
+    </div>
+
+    <div class="category-card">
+      <div class="cat-top">
+        <span class="cat-name"><span class="emoji">🏠</span> Guest Mode</span>
+        <span class="cat-duration">0 days</span>
+      </div>
+      <div class="cat-bar-container">
+        <div class="cat-bar-labels">
+          <span>Suggest</span><span>Confirm</span><span>Notify</span><span class="active">Auto</span>
+        </div>
+        <div class="cat-bar-track">
+          <div class="cat-bar-fill" data-width="100%"></div>
+          <div class="cat-bar-dot glow" data-left="calc(100% - 7px)"></div>
+        </div>
+      </div>
+      <div class="cat-desc">Auto from day 1 (safe)</div>
+    </div>
+
+    <a href="#" class="history-link">View change history →</a>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Animate dial arc
+  setTimeout(() => {
+    const progress = document.getElementById('dialProgress');
+    // Draw about 25% of circle (Suggest to Confirm = quarter turn)
+    progress.style.strokeDashoffset = '377'; // 502.4 - 125 = about 25%
+    progress.style.transition = 'stroke-dashoffset 800ms cubic-bezier(0.2, 0, 0, 1)';
+  }, 400);
+
+  // Animate category bars with stagger
+  const fills = document.querySelectorAll('.cat-bar-fill');
+  const dots = document.querySelectorAll('.cat-bar-dot');
+  fills.forEach((fill, i) => {
+    setTimeout(() => {
+      fill.style.width = fill.dataset.width;
+    }, 800 + i * 100);
+  });
+  dots.forEach((dot, i) => {
+    setTimeout(() => {
+      dot.style.left = dot.dataset.left;
+    }, 800 + i * 100);
+  });
+});
+</script>
+</body>
+</html>

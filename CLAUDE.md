@@ -231,3 +231,114 @@ window.deckNavBeforeAdvance = function(slide, index) {
 ## Code Review Process
 
 When making changes to HTML/CSS/JS files, use **OpenAI Codex** for code review before finalizing. This ensures a second set of eyes catches issues that a single agent might miss — accessibility problems, CSS specificity conflicts, broken links, inconsistent design token usage, and cross-browser edge cases.
+
+## Image Generation — kie.ai / NanoBanana 2 (MANDATORY)
+
+### Overview
+
+All concept illustrations are generated via the **kie.ai API** using the `nano-banana-2` model (powered by Gemini). Prompts are stored as `.md` (human-readable) and `.json` (API-ready) in `_Gem_instruction_for_Image/`.
+
+### API Configuration
+
+- **API Key**: stored in `../.env` as `KIE_API_KEY` (parent Portfolio directory)
+- **Endpoint**: `https://api.kie.ai/api/v1/jobs/createTask` (POST)
+- **Status polling**: `https://api.kie.ai/api/v1/jobs/recordInfo` (GET, `?taskId=...`)
+- **Auth header**: `Authorization: Bearer {KIE_API_KEY}`
+
+### Generation Script
+
+Use the shared script at `../scripts/generate_kie.py`:
+
+```bash
+# From the Portfolio root directory:
+python scripts/generate_kie.py <prompt.json> <output_file> [aspect_ratio]
+
+# Example:
+python scripts/generate_kie.py \
+  intentfirst/_Gem_instruction_for_Image/full-circle-architecture.json \
+  intentfirst/assets/img/full-circle-architecture.png
+```
+
+### JSON Prompt File Format
+
+```json
+{
+  "style": "Isometric perspective, minimalist line art...",
+  "composition": "Description of overall layout...",
+  "element_1": "Detailed description of element...",
+  "element_2": "...",
+  "api_parameters": {
+    "resolution": "4K",
+    "aspect_ratio": "3:4",
+    "output_format": "png"
+  }
+}
+```
+
+- All keys except `api_parameters` and `image_input` are serialized as the prompt string
+- Use descriptive key names (e.g. `floor_1`, `exterior_elements`) for readability
+- `image_input` (optional): array of image URLs for image-to-image transformation
+
+### API Parameters
+
+| Parameter | Options | Default |
+|-----------|---------|---------|
+| `resolution` | `1K`, `2K`, `4K` | `1K` |
+| `aspect_ratio` | `auto`, `1:1`, `2:1`, `16:9`, `4:5`, `3:4` | `auto` |
+| `output_format` | `jpg`, `png` | `jpg` |
+| `google_search` | `true`, `false` | not set |
+
+### Workflow
+
+1. Write the prompt as `.md` in `_Gem_instruction_for_Image/` (human-readable reference)
+2. Convert to `.json` format with `api_parameters` for the API call
+3. Run `generate_kie.py` — script polls automatically (~60s typical, up to 4 min)
+4. Output image is saved to the specified path
+5. For high-resolution portfolio illustrations, always use `"resolution": "4K"` and `"output_format": "png"`
+
+## Multi-Session Management (MANDATORY)
+
+This project runs multiple Claude windows in parallel. Every session MUST follow this protocol.
+
+### On Session Start (do this FIRST, before any work)
+
+1. Read `PROJECT_ROADMAP.md` — understand overall context and priorities
+2. Read `ACTIVE_SESSIONS.md` — see what other Claudes are doing, check file locks
+3. Read any relevant `.claude/session-*.md` files for context
+4. Create your own session file: `.claude/session-{YYYYMMDD-HHMMSS}-{task-slug}.md`
+   - Copy from `.claude/SESSION_TEMPLATE.md`
+5. Add yourself to `ACTIVE_SESSIONS.md` (append a row to the "Currently Running" table)
+
+### During Work
+
+- Update your `.claude/session-{id}.md` as you progress (Done / In Progress / Blocked)
+- If you need to touch a file another session is using → stop and note it as Blocked
+
+### On Session End (IMPORTANT)
+
+1. Fill in the "Completion Report" section of your session file
+2. **Update `PROJECT_ROADMAP.md`:**
+   - Find the task(s) you completed
+   - Change `[ ]` to `[x]` for each completed task
+   - Save the file
+3. **Update `ACTIVE_SESSIONS.md`:**
+   - Move your row from "Currently Running" to "Completed Today"
+   - Remove your file locks
+   - Save the file
+
+### About PROJECT_ROADMAP.md Edits
+
+- **You CAN edit** ✅ — mark tasks as done, add discovered tasks
+- **You SHOULD propose** 🤔 — big changes (delete task, re-prioritize, add new area)
+- **No git required** — Takao can push changes whenever needed
+
+### Dashboard
+
+View real-time project status in a browser:
+```bash
+# From intentfirst/ directory:
+python3 -m http.server 8080
+# Then open: http://localhost:8080/dashboard/
+```
+
+Auto-refreshes every 10 seconds. Shows progress, active sessions, file locks, and next tasks.

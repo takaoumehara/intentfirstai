@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disclosure 2-Direction Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --primary:#1A73E8;
+    --disclosure:#8E24AA;
+    --coral:#E8710A;
+    --coral-light:#FFF3E0;
+    --coral-mid:rgba(232,113,10,.12);
+    --indigo:#3949AB;
+    --indigo-light:#E8EAF6;
+    --indigo-mid:rgba(57,73,171,.12);
+    --surface:#FFFFFF;
+    --surface-dim:#F8F9FA;
+    --surface-warm:#FFFBF7;
+    --text-primary:#1D1D1F;
+    --text-secondary:#5F6368;
+    --text-tertiary:#9AA0A6;
+    --border:#E8EAED;
+    --radius-sm:12px;
+    --radius-md:16px;
+    --radius-lg:24px;
+    --radius-xl:32px;
+    --ease:cubic-bezier(0.2,0,0,1);
+    --ease-out:cubic-bezier(0,0,0.2,1);
+    --ease-out-expo:cubic-bezier(0.23,1,0.32,1);
+    --ease-in-out-expo:cubic-bezier(0.77,0,0.175,1);
+  }
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Google Sans','Google Sans Text','Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--surface);color:var(--text-primary);
+    line-height:1.6;overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* ── Utility ── */
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo);will-change:transform,opacity}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+  .reveal-delay-1{transition-delay:.1s}
+  .reveal-delay-2{transition-delay:.2s}
+  .reveal-delay-3{transition-delay:.3s}
+  .reveal-delay-4{transition-delay:.4s}
+
+  /* ── Hero Section ── */
+  .hero{
+    min-height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:80px 24px 60px;
+    position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:'';position:absolute;top:-20%;left:-10%;width:120%;height:140%;
+    background:
+      radial-gradient(ellipse 50% 40% at 30% 30%,rgba(57,73,171,.05),transparent 70%),
+      radial-gradient(ellipse 50% 40% at 70% 60%,rgba(232,113,10,.04),transparent 70%),
+      radial-gradient(ellipse 80% 50% at 50% 50%,rgba(142,36,170,.02),transparent 70%);
+    pointer-events:none;
+  }
+  .hero::after{
+    content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--border),transparent);
+  }
+
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(142,36,170,.06);border:1px solid rgba(142,36,170,.12);
+    border-radius:100px;padding:8px 20px;font-size:13px;font-weight:500;
+    color:var(--disclosure);letter-spacing:.5px;text-transform:uppercase;
+    opacity:0;animation:fadeUp .8s var(--ease-out) .2s forwards;
+  }
+  .badge-dot{width:6px;height:6px;border-radius:50%;background:var(--disclosure);animation:pulse 2s ease infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  h1{
+    font-size:clamp(28px,4.5vw,48px);font-weight:500;
+    text-align:center;letter-spacing:-.3px;line-height:1.2;
+    max-width:680px;margin-top:28px;
+    opacity:0;animation:fadeUp .8s var(--ease-out) .4s forwards;
+  }
+  h1 .indigo{color:var(--indigo)}
+  h1 .coral{color:var(--coral)}
+
+  .subtitle{
+    font-size:clamp(15px,1.8vw,18px);color:var(--text-secondary);
+    text-align:center;max-width:520px;margin-top:16px;line-height:1.7;
+    opacity:0;animation:fadeUp .8s var(--ease-out) .6s forwards;
+  }
+
+  /* ── Central Shield Icon ── */
+  .shield-section{
+    display:flex;flex-direction:column;align-items:center;
+    margin-top:56px;
+    opacity:0;animation:fadeUp 1s var(--ease-out) .8s forwards;
+  }
+  .shield-wrap{position:relative;width:220px;height:220px}
+
+  .shield-svg{width:100%;height:100%;filter:drop-shadow(0 8px 32px rgba(142,36,170,.12))}
+
+  .shield-glow{
+    position:absolute;top:50%;left:50%;width:180px;height:180px;
+    transform:translate(-50%,-50%);border-radius:50%;
+    background:conic-gradient(from 180deg,rgba(57,73,171,.15),rgba(142,36,170,.08),rgba(232,113,10,.15),rgba(142,36,170,.08),rgba(57,73,171,.15));
+    animation:glowRotate 8s linear infinite;
+    filter:blur(30px);pointer-events:none;
+  }
+  @keyframes glowRotate{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  .shield-poles{
+    display:flex;align-items:center;justify-content:space-between;
+    width:100%;max-width:480px;margin-top:32px;padding:0 20px;
+  }
+  .pole{display:flex;align-items:center;gap:10px}
+  .pole-indicator{
+    width:10px;height:10px;border-radius:50%;position:relative;
+  }
+  .pole-indicator::after{
+    content:'';position:absolute;inset:-4px;border-radius:50%;
+    border:2px solid currentColor;opacity:.2;
+  }
+  .pole-indicator.indigo{background:var(--indigo);color:var(--indigo)}
+  .pole-indicator.coral{background:var(--coral);color:var(--coral)}
+  .pole-text{font-size:14px;font-weight:500}
+  .pole-text.indigo{color:var(--indigo)}
+  .pole-text.coral{color:var(--coral)}
+  .pole-divider{
+    flex:1;height:1px;margin:0 16px;
+    background:linear-gradient(90deg,var(--indigo),var(--border) 40%,var(--border) 60%,var(--coral));
+    opacity:.3;
+  }
+
+  /* ── Section Container ── */
+  .section-container{
+    max-width:1120px;width:100%;margin:0 auto;padding:0 32px;
+  }
+
+  /* ── Direction Cards Section ── */
+  .directions-section{padding:100px 0 0}
+  .directions{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+
+  .dir-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-xl);
+    padding:0;overflow:hidden;
+    transition:box-shadow .4s var(--ease),border-color .4s var(--ease);
+  }
+
+  .dir-card-header{padding:40px 40px 0}
+  .dir-card-body{padding:0 40px 40px}
+
+  /* Icon Area */
+  .dir-icon-area{
+    width:72px;height:72px;border-radius:20px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:24px;position:relative;
+  }
+  .protective .dir-icon-area{background:linear-gradient(135deg,rgba(57,73,171,.08),rgba(57,73,171,.15))}
+  .connective .dir-icon-area{background:linear-gradient(135deg,rgba(232,113,10,.08),rgba(232,113,10,.15))}
+  .dir-icon-area svg{width:36px;height:36px}
+
+  .dir-title{font-size:24px;font-weight:500;margin-bottom:8px;letter-spacing:-.2px}
+  .protective .dir-title{color:var(--indigo)}
+  .connective .dir-title{color:var(--coral)}
+
+  .dir-desc{font-size:15px;color:var(--text-secondary);line-height:1.7;margin-bottom:32px}
+
+  /* Accent stripe on top of card */
+  .dir-card-header{
+    position:relative;
+  }
+  .dir-card-header::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  }
+  .protective .dir-card-header::before{background:linear-gradient(90deg,var(--indigo),#7986CB)}
+  .connective .dir-card-header::before{background:linear-gradient(90deg,var(--coral),#FFAB91)}
+
+  /* Scenario Cards */
+  .scenarios{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+  .scenario{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:16px 18px;border-radius:var(--radius-md);
+    transition:background .3s var(--ease);
+  }
+  .protective .scenario{background:rgba(57,73,171,.04)}
+  .connective .scenario{background:rgba(232,113,10,.04)}
+
+  .scenario-icon{
+    width:40px;height:40px;border-radius:10px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:600;color:white;
+  }
+  .protective .scenario-icon{background:var(--indigo)}
+  .connective .scenario-icon{background:var(--coral)}
+
+  .scenario-content{flex:1;min-width:0}
+  .scenario-title{font-size:14px;font-weight:500;color:var(--text-primary);margin-bottom:2px}
+  .scenario-detail{font-size:13px;color:var(--text-secondary);line-height:1.5}
+
+  /* ── Spectrum Section ── */
+  .spectrum-section{padding:100px 0 0}
+  .spectrum-header{text-align:center;margin-bottom:56px}
+  .spectrum-header h2{
+    font-size:clamp(20px,3vw,28px);font-weight:500;
+    letter-spacing:-.2px;margin-bottom:8px;
+  }
+  .spectrum-header p{font-size:15px;color:var(--text-secondary);max-width:480px;margin:0 auto}
+
+  .spectrum-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+
+  .spectrum-column{position:relative}
+  .spectrum-label{
+    font-size:13px;font-weight:500;text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:20px;
+  }
+  .spectrum-label.indigo{color:var(--indigo)}
+  .spectrum-label.coral{color:var(--coral)}
+  .spectrum-direction{font-size:12px;color:var(--text-tertiary);margin-bottom:20px}
+
+  /* Spectrum Bar */
+  .spectrum-track{
+    position:relative;height:6px;border-radius:3px;
+    margin-bottom:8px;overflow:hidden;
+  }
+  .protective .spectrum-track{background:rgba(57,73,171,.08)}
+  .connective .spectrum-track{background:rgba(232,113,10,.08)}
+  .spectrum-fill{
+    position:absolute;top:0;left:0;height:100%;border-radius:3px;
+    transition:width .6s var(--ease);
+  }
+  .protective .spectrum-fill{background:linear-gradient(90deg,var(--indigo),#7986CB)}
+  .connective .spectrum-fill{background:linear-gradient(90deg,var(--coral),#FFAB91)}
+
+  /* Spectrum Levels */
+  .spectrum-levels{display:flex;flex-direction:column;gap:0;margin-top:16px}
+  .spectrum-level{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 16px;border-radius:var(--radius-sm);
+    cursor:pointer;transition:background .2s var(--ease);
+    position:relative;
+  }
+  .spectrum-level.active{background:var(--surface-dim)}
+
+  .level-pip{
+    width:12px;height:12px;border-radius:50%;flex-shrink:0;
+    border:2px solid;position:relative;
+    transition:transform .2s var(--ease),border-color .2s var(--ease),background .2s var(--ease);
+  }
+  .protective .level-pip{border-color:rgba(57,73,171,.25)}
+  .connective .level-pip{border-color:rgba(232,113,10,.25)}
+  .spectrum-level.active .level-pip{transform:scale(1.15)}
+  .protective .spectrum-level.active .level-pip{border-color:var(--indigo);background:var(--indigo)}
+  .connective .spectrum-level.active .level-pip{border-color:var(--coral);background:var(--coral)}
+
+  .level-info{flex:1;min-width:0}
+  .level-name{
+    font-size:13px;font-weight:600;letter-spacing:.5px;
+    text-transform:uppercase;color:var(--text-primary);
+    transition:color .2s var(--ease);
+  }
+  .protective .spectrum-level.active .level-name{color:var(--indigo)}
+  .connective .spectrum-level.active .level-name{color:var(--coral)}
+
+  .level-desc{
+    font-size:13px;color:var(--text-secondary);line-height:1.5;
+    max-height:0;overflow:hidden;opacity:0;
+    transition:max-height .4s var(--ease),opacity .2s var(--ease),margin .2s var(--ease);
+  }
+  .spectrum-level.active .level-desc{max-height:60px;opacity:1;margin-top:4px}
+
+  /* Connecting line between pips */
+  .spectrum-level:not(:last-child)::after{
+    content:'';position:absolute;left:21px;top:32px;
+    width:2px;height:calc(100% - 18px);
+    pointer-events:none;
+  }
+  .protective .spectrum-level:not(:last-child)::after{background:rgba(57,73,171,.1)}
+  .connective .spectrum-level:not(:last-child)::after{background:rgba(232,113,10,.1)}
+
+  /* ── Insight Section ── */
+  .insight-section{padding:100px 0 120px}
+  .insight-box{
+    max-width:760px;margin:0 auto;text-align:center;
+    background:linear-gradient(135deg,rgba(57,73,171,.03),rgba(142,36,170,.02),rgba(232,113,10,.03));
+    border:1px solid var(--border);
+    border-radius:var(--radius-xl);
+    padding:56px 48px;position:relative;overflow:hidden;
+  }
+  .insight-box::before{
+    content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:120px;height:3px;border-radius:0 0 3px 3px;
+    background:linear-gradient(90deg,var(--indigo),var(--disclosure),var(--coral));
+  }
+  .insight-label{
+    font-size:12px;font-weight:600;text-transform:uppercase;
+    letter-spacing:1.5px;color:var(--disclosure);margin-bottom:20px;
+  }
+  .insight-text{
+    font-size:clamp(17px,2.2vw,22px);font-weight:400;
+    color:var(--text-primary);line-height:1.65;
+  }
+  .insight-text em{font-style:normal;font-weight:500}
+  .insight-text .indigo{color:var(--indigo)}
+  .insight-text .coral{color:var(--coral)}
+  .insight-text .disclosure{color:var(--disclosure)}
+  .insight-divider{
+    width:48px;height:1px;background:var(--border);
+    margin:24px auto;
+  }
+  .insight-footer{
+    font-size:14px;color:var(--text-tertiary);line-height:1.6;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(24px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  /* Stagger children */
+  .stagger-children > *{
+    opacity:0;transform:translateY(20px);
+    transition:opacity .5s var(--ease-out-expo),transform .5s var(--ease-out-expo);
+    will-change:transform,opacity;
+  }
+  .stagger-children.visible > *:nth-child(1){transition-delay:.05s}
+  .stagger-children.visible > *:nth-child(2){transition-delay:.12s}
+  .stagger-children.visible > *:nth-child(3){transition-delay:.19s}
+  .stagger-children.visible > *:nth-child(4){transition-delay:.26s}
+  .stagger-children.visible > *{opacity:1;transform:translateY(0)}
+
+  /* SVG line draw */
+  .draw-line{
+    stroke-dasharray:1000;stroke-dashoffset:1000;
+    transition:stroke-dashoffset 1.5s var(--ease-out-expo);
+  }
+  .visible .draw-line{stroke-dashoffset:0}
+
+  /* ── Hover states (pointer devices only) ── */
+  @media(hover:hover) and (pointer:fine){
+    .dir-card:hover{box-shadow:0 4px 24px rgba(0,0,0,.06)}
+    .protective .scenario:hover{background:rgba(57,73,171,.07)}
+    .connective .scenario:hover{background:rgba(232,113,10,.07)}
+    .spectrum-level:hover{background:var(--surface-dim)}
+  }
+
+  /* ── Active feedback for clickable elements ── */
+  .spectrum-level:active{background:rgba(0,0,0,.04);transform:scale(0.98)}
+
+  /* ── Reduced motion ── */
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+    }
+  }
+
+  /* ── Responsive ── */
+  @media(max-width:900px){
+    .directions{grid-template-columns:1fr;gap:24px}
+    .spectrum-grid{grid-template-columns:1fr;gap:48px}
+    .dir-card-header{padding:32px 28px 0}
+    .dir-card-body{padding:0 28px 32px}
+    .shield-wrap{width:180px;height:180px}
+    .shield-poles{max-width:360px}
+    .section-container{padding:0 20px}
+    .insight-box{padding:40px 28px}
+  }
+  @media(max-width:480px){
+    .hero{padding:60px 20px 40px;min-height:auto}
+    .shield-poles{flex-direction:column;gap:12px}
+    .pole-divider{width:1px;height:24px;margin:0}
+    .directions-section{padding:60px 0 0}
+    .spectrum-section{padding:60px 0 0}
+    .insight-section{padding:60px 0 80px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ HERO ════════════════════════════════════════ -->
+<section class="hero">
+  <div class="badge">
+    <span class="badge-dot"></span>
+    Context Token 8 — Disclosure Dial
+  </div>
+
+  <h1>Disclosure is<br><span class="indigo">protection</span> and <span class="coral">connection</span></h1>
+
+  <p class="subtitle">The Disclosure Dial doesn't just hide data. It actively shapes what flows between people and AI, in two distinct directions.</p>
+
+  <!-- Central Shield -->
+  <div class="shield-section">
+    <div class="shield-wrap">
+      <div class="shield-glow"></div>
+      <svg class="shield-svg" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="shieldGradL" x1="40" y1="30" x2="110" y2="200">
+            <stop offset="0%" stop-color="#3949AB"/>
+            <stop offset="100%" stop-color="#7986CB"/>
+          </linearGradient>
+          <linearGradient id="shieldGradR" x1="180" y1="30" x2="110" y2="200">
+            <stop offset="0%" stop-color="#E8710A"/>
+            <stop offset="100%" stop-color="#FFAB91"/>
+          </linearGradient>
+          <linearGradient id="shieldCenter" x1="90" y1="60" x2="130" y2="170">
+            <stop offset="0%" stop-color="#8E24AA" stop-opacity=".15"/>
+            <stop offset="100%" stop-color="#8E24AA" stop-opacity=".03"/>
+          </linearGradient>
+          <filter id="shieldShadow" x="-20%" y="-10%" width="140%" height="130%">
+            <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#8E24AA" flood-opacity=".08"/>
+          </filter>
+          <clipPath id="shieldClipL"><rect x="0" y="0" width="110" height="220"/></clipPath>
+          <clipPath id="shieldClipR"><rect x="110" y="0" width="110" height="220"/></clipPath>
+        </defs>
+
+        <!-- Outer subtle ring -->
+        <circle cx="110" cy="110" r="104" stroke="#E8EAED" stroke-width="1" fill="none" opacity=".5"/>
+        <circle cx="110" cy="110" r="96" stroke="#E8EAED" stroke-width=".5" fill="none" opacity=".3"/>
+
+        <!-- Shield shape - left half (Protective/Indigo) -->
+        <g clip-path="url(#shieldClipL)">
+          <path d="M110 32L52 58v44c0 36 24 68 58 76V32z" fill="url(#shieldGradL)" opacity=".12"/>
+          <path d="M110 32L52 58v44c0 36 24 68 58 76V32z" stroke="#3949AB" stroke-width="1.5" fill="none" opacity=".4"/>
+        </g>
+
+        <!-- Shield shape - right half (Connective/Coral) -->
+        <g clip-path="url(#shieldClipR)">
+          <path d="M110 32l58 26v44c0 36-24 68-58 76V32z" fill="url(#shieldGradR)" opacity=".12"/>
+          <path d="M110 32l58 26v44c0 36-24 68-58 76V32z" stroke="#E8710A" stroke-width="1.5" fill="none" opacity=".4"/>
+        </g>
+
+        <!-- Center fill -->
+        <path d="M110 48L66 68v36c0 30 20 56 44 64 24-8 44-34 44-64V68L110 48z" fill="url(#shieldCenter)"/>
+
+        <!-- Inner shield outline -->
+        <path d="M110 48L66 68v36c0 30 20 56 44 64 24-8 44-34 44-64V68L110 48z" stroke="#8E24AA" stroke-width="1" fill="none" opacity=".2"/>
+
+        <!-- Center divider line -->
+        <line x1="110" y1="44" x2="110" y2="182" stroke="#8E24AA" stroke-width="1" opacity=".15" stroke-dasharray="4 4"/>
+
+        <!-- Left arrow (inward = protective) -->
+        <g opacity=".6">
+          <path d="M88 105l-10 5 10 5" stroke="#3949AB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <line x1="78" y1="110" x2="100" y2="110" stroke="#3949AB" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <!-- Right arrow (outward = connective) -->
+        <g opacity=".6">
+          <path d="M132 105l10 5-10 5" stroke="#E8710A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <line x1="122" y1="110" x2="142" y2="110" stroke="#E8710A" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <!-- Center eye/core -->
+        <circle cx="110" cy="110" r="6" fill="#8E24AA" opacity=".25"/>
+        <circle cx="110" cy="110" r="3" fill="#8E24AA" opacity=".6"/>
+
+        <!-- Small label -->
+        <text x="110" y="146" text-anchor="middle" font-family="Google Sans,system-ui,sans-serif" font-size="11" font-weight="500" fill="#8E24AA" opacity=".7">DISCLOSURE</text>
+
+        <!-- Animated orbit dots -->
+        <circle r="3" fill="#3949AB" opacity=".4">
+          <animateMotion dur="10s" repeatCount="indefinite" path="M110 32L52 58v44c0 36 24 68 58 76" />
+        </circle>
+        <circle r="3" fill="#E8710A" opacity=".4">
+          <animateMotion dur="10s" repeatCount="indefinite" path="M110 32l58 26v44c0 36-24 68-58 76" />
+        </circle>
+      </svg>
+    </div>
+
+    <div class="shield-poles">
+      <div class="pole">
+        <span class="pole-indicator indigo"></span>
+        <span class="pole-text indigo">Protective</span>
+      </div>
+      <div class="pole-divider"></div>
+      <div class="pole">
+        <span class="pole-text coral">Connective</span>
+        <span class="pole-indicator coral"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ DIRECTIONS ════════════════════════════════════════ -->
+<section class="directions-section">
+  <div class="section-container">
+    <div class="directions">
+
+      <!-- ── Protective Card ── -->
+      <div class="dir-card protective reveal" data-observe>
+        <div class="dir-card-header">
+          <div class="dir-icon-area">
+            <svg viewBox="0 0 36 36" fill="none">
+              <path d="M18 3L5 10v8c0 9 5.5 17.4 13 19 7.5-1.6 13-10 13-19v-8L18 3z" fill="#3949AB" opacity=".12"/>
+              <path d="M18 3L5 10v8c0 9 5.5 17.4 13 19 7.5-1.6 13-10 13-19v-8L18 3z" stroke="#3949AB" stroke-width="1.5" fill="none"/>
+              <path d="M13 18l3.5 3.5L23 15" stroke="#3949AB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <h2 class="dir-title">Protective Disclosure</h2>
+          <p class="dir-desc">Controlling what others can see about you. A contextual filter on outgoing information, applied per-person and per-domain.</p>
+        </div>
+        <div class="dir-card-body">
+          <div class="scenarios stagger-children" data-observe>
+            <div class="scenario">
+              <div class="scenario-icon">
+                <svg viewBox="0 0 20 20" fill="none" width="20" height="20"><path d="M10 2a4 4 0 0 0-4 4v2H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-1V6a4 4 0 0 0-4-4zm0 2a2 2 0 0 1 2 2v2H8V6a2 2 0 0 1 2-2z" fill="white" opacity=".9"/></svg>
+              </div>
+              <div class="scenario-content">
+                <div class="scenario-title">Daughter's health data hidden from father</div>
+                <div class="scenario-detail">Gynecology visit records set to HIDDEN level, per-person and per-domain. Father sees no trace.</div>
+              </div>
+            </div>
+            <div class="scenario">
+              <div class="scenario-icon">
+                <svg viewBox="0 0 20 20" fill="none" width="20" height="20"><rect x="2" y="4" width="16" height="12" rx="2" fill="white" opacity=".9"/><path d="M6 14h8" stroke="#3949AB" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="scenario-content">
+                <div class="scenario-title">Prices hidden from children on shared TV</div>
+                <div class="scenario-detail">Social Exposure token detects children present, triggers HIDDEN for financial data on the family display.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Connective Card ── -->
+      <div class="dir-card connective reveal reveal-delay-2" data-observe>
+        <div class="dir-card-header">
+          <div class="dir-icon-area">
+            <svg viewBox="0 0 36 36" fill="none">
+              <circle cx="12" cy="14" r="5" fill="#E8710A" opacity=".12" stroke="#E8710A" stroke-width="1.5"/>
+              <circle cx="24" cy="14" r="5" fill="#E8710A" opacity=".12" stroke="#E8710A" stroke-width="1.5"/>
+              <path d="M12 19c-4 0-7 2.5-7 5v2h14v-2c0-2.5-3-5-7-5z" fill="#E8710A" opacity=".08" stroke="#E8710A" stroke-width="1.2"/>
+              <path d="M24 19c-1.2 0-2.3.3-3.2.8" stroke="#E8710A" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M15 14h6" stroke="#E8710A" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2 2"/>
+            </svg>
+          </div>
+          <h2 class="dir-title">Connective Disclosure</h2>
+          <p class="dir-desc">Actively pushing personal data to strengthen relationships. Not just allowing access, but deliberately sharing to be known.</p>
+        </div>
+        <div class="dir-card-body">
+          <div class="scenarios stagger-children" data-observe>
+            <div class="scenario">
+              <div class="scenario-icon">
+                <svg viewBox="0 0 20 20" fill="none" width="20" height="20"><path d="M10 3l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4l2-4z" fill="white" opacity=".9"/></svg>
+              </div>
+              <div class="scenario-content">
+                <div class="scenario-title">Wife shares dance video highlights weekly</div>
+                <div class="scenario-detail">DIGEST level. AI curates her best practice clips into a weekly family recap. Sharing without effort.</div>
+              </div>
+            </div>
+            <div class="scenario">
+              <div class="scenario-icon">
+                <svg viewBox="0 0 20 20" fill="none" width="20" height="20"><rect x="3" y="3" width="14" height="14" rx="2" fill="white" opacity=".9"/><circle cx="10" cy="10" r="3" fill="#E8710A" opacity=".5"/></svg>
+              </div>
+              <div class="scenario-content">
+                <div class="scenario-title">Daughter pushes art posts to parents</div>
+                <div class="scenario-detail">PUSH level. New digital art auto-surfaces on parents' display. "Look what I made" without saying it.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ SPECTRUM ════════════════════════════════════════ -->
+<section class="spectrum-section">
+  <div class="section-container">
+    <div class="spectrum-header reveal" data-observe>
+      <h2>Disclosure Levels</h2>
+      <p>Each direction has its own granularity. Click a level to see what it means.</p>
+    </div>
+
+    <div class="spectrum-grid">
+
+      <!-- Protective Spectrum -->
+      <div class="spectrum-column protective reveal" data-observe>
+        <div class="spectrum-label indigo">Protective Direction</div>
+        <div class="spectrum-direction">HIDDEN &larr; EXISTENCE &larr; SUMMARY &larr; FULL</div>
+        <div class="spectrum-track">
+          <div class="spectrum-fill" id="protectiveFill" style="width:25%"></div>
+        </div>
+        <div class="spectrum-levels" id="protectiveLevels">
+          <div class="spectrum-level active" data-fill="25" onclick="setLevel(this,'protectiveFill')">
+            <div class="level-pip"></div>
+            <div class="level-info">
+              <div class="level-name">Hidden</div>
+              <div class="level-desc">Data exists but is completely invisible to this audience.</div>
+            </div>
+          </div>
+          <div class="spectrum-level" data-fill="50" onclick="setLevel(this,'protectiveFill')">
+            <div class="level-pip"></div>
+            <div class="level-info">
+              <div class="level-name">Existence</div>
+              <div class="level-desc">Audience knows the data category exists, but sees no content.</div>
+            </div>
+          </div>
+          <div class="spectrum-level" data-fill="75" onclick="setLevel(this,'protectiveFill')">
+            <div class="level-pip"></div>
+            <div class="level-info">
+              <div class="level-name">Summary</div>
+              <div class="level-desc">Aggregated or anonymized view. Trends, not specifics.</div>
+            </div>
+          </div>
+          <div class="spectrum-level" data-fill="100" onclick="setLevel(this,'protectiveFill')">
+            <div class="level-pip"></div>
+            <div class="level-info">
+              <div class="level-name">Full</div>
+              <div class="level-desc">Complete data visible to this audience. No filtering applied.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connective Spectrum -->
+      <div class="spectrum-column connective reveal reveal-delay-2" data-observe>
+        <div class="spectrum-label coral">Connective Direction</div>
+        <div class="spectrum-direction">AVAILABLE &rarr; DIGEST &rarr; PUSH</div>
+        <div class="spectrum-track">
+          <div class="spectrum-fill" id="connectiveFill" style="width:33%"></div>
+        </div>
+        <div class="spectrum-levels" id="connectiveLevels">
+          <div class="spectrum-level active" data-fill="33" onclick="setLevel(this,'connectiveFill')">
+            <div class="level-pip"></div>
+            <div class="level-info">
+              <div class="level-name">Available</div>
+              <div class="level-desc">Data is accessible if someone asks or AI pulls it. Passive sharing.</div>
+            </div>
+          </div>
+          <div class="spectrum-level" data-fill="66" onclick="setLevel(this,'connectiveFill')">
+            <div class="level-pip"></div>
+            <div class="level-info">
+              <div class="level-name">Digest</div>
+              <div class="level-desc">AI curates and sends periodic summaries to chosen audience.</div>
+            </div>
+          </div>
+          <div class="spectrum-level" data-fill="100" onclick="setLevel(this,'connectiveFill')">
+            <div class="level-pip"></div>
+            <div class="level-info">
+              <div class="level-name">Push</div>
+              <div class="level-desc">Actively surfaces content to the audience in real time.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ INSIGHT ════════════════════════════════════════ -->
+<section class="insight-section">
+  <div class="section-container">
+    <div class="insight-box reveal" data-observe>
+      <div class="insight-label">Key Insight</div>
+      <p class="insight-text">
+        Most privacy models only think about <em class="indigo">protection</em> — what to hide.<br>
+        The Disclosure Dial also models <em class="coral">connection</em> — what to actively share.
+      </p>
+      <div class="insight-divider"></div>
+      <p class="insight-footer">
+        The same dial, two directions.<br>
+        One person's HIDDEN is another person's PUSH.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════ SCRIPT ════════════════════════════════════════ -->
+<script>
+  // ── Level interaction ──
+  function setLevel(el, fillId) {
+    const parent = el.closest('.spectrum-levels');
+    parent.querySelectorAll('.spectrum-level').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+    const fill = document.getElementById(fillId);
+    if (fill) {
+      fill.style.width = el.dataset.fill + '%';
+    }
+  }
+
+  // ── IntersectionObserver for scroll reveals ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -60px 0px'
+  });
+
+  document.querySelectorAll('[data-observe]').forEach(el => observer.observe(el));
+
+  // ── Connecting lines between direction cards and spectrum (SVG drawn dynamically) ──
+  function createConnectors() {
+    const existing = document.getElementById('connectorSvg');
+    if (existing) existing.remove();
+
+    // Only draw on wider screens
+    if (window.innerWidth < 901) return;
+
+    const dirSection = document.querySelector('.directions-section');
+    const specSection = document.querySelector('.spectrum-section');
+    if (!dirSection || !specSection) return;
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'connectorSvg';
+    svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0';
+
+    const dirRect = dirSection.getBoundingClientRect();
+    const specRect = specSection.getBoundingClientRect();
+
+    // Protective connector
+    const protCard = document.querySelector('.dir-card.protective');
+    const protSpec = document.querySelector('.spectrum-column.protective');
+    if (protCard && protSpec) {
+      const from = protCard.getBoundingClientRect();
+      const to = protSpec.getBoundingClientRect();
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', from.left + from.width / 2);
+      line.setAttribute('y1', from.bottom);
+      line.setAttribute('x2', to.left + to.width / 2);
+      line.setAttribute('y2', to.top);
+      line.setAttribute('stroke', '#3949AB');
+      line.setAttribute('stroke-width', '1');
+      line.setAttribute('stroke-dasharray', '4 6');
+      line.setAttribute('opacity', '0.1');
+      svg.appendChild(line);
+    }
+
+    document.body.appendChild(svg);
+  }
+
+  // Don't draw connectors on load to keep it clean — the layout speaks for itself
+</script>
+</body>
+</html>

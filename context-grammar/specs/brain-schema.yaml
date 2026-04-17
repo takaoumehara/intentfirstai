@@ -1,0 +1,1147 @@
+# ============================================================================
+# Context Grammar — Brain Schema v1.0
+# ============================================================================
+# Data architecture for AI memory that acts, not just stores.
+# Three layers of knowledge, activated by the present moment.
+#
+# "Not a database. A butler."
+#
+# Brain is the engine that turns knowledge into action. Every AI in 2026
+# remembers — Gemini, Apple Intelligence, Claude all have memory. But memory
+# alone can't act. Brain adds structure: layers that operate on different
+# timescales, a domain axis for organizing knowledge, a disclosure axis for
+# privacy, and disposable sub-brains for temporary projects.
+# ============================================================================
+
+spec:
+  name: "Context Grammar Brain Schema"
+  version: "1.0"
+  date: "2026-04-09"
+  author: "Takao Umehara"
+  description: >
+    Data architecture for AI memory — 3 layers that give context its meaning
+    over time. Brain is one component of Context Grammar, working alongside
+    Intent, 8 Context Tokens, and the Rule Engine. Where Tokens describe
+    the present moment, Brain provides the accumulated knowledge that makes
+    that moment meaningful.
+  license: "CC BY 4.0"
+  related:
+    - context_tokens: "Intent + 8 Context Tokens (situation + relationship dials)"
+    - rule_engine: "Transforms Brain + Tokens into design rules"
+
+# ============================================================================
+# CORE METAPHOR
+# ============================================================================
+# Library: You search. You check. You remember. You decide.
+# Butler:  "Egg-free pasta, 20 min, based on what's in the fridge. Proceed?"
+#
+# Second Brain tools (Obsidian, Notion) store information for you to search.
+# Brain does the opposite — it comes to you, activated by the present moment.
+# ============================================================================
+
+# ============================================================================
+# BRAIN — 3-Layer Architecture
+# ============================================================================
+# Formula: Identity + Accumulated Learning + Right Now = Brain that acts
+#
+# The critical insight: Layer 3 (Right Now) is the OXYGEN that activates
+# everything above. Knowledge without the present moment is frozen.
+# "Wife is allergic to eggs" — remembered. But is she next to you? Is this
+# a busy Tuesday? Memory without context is a library with no lights.
+# ============================================================================
+
+brain:
+
+  # --------------------------------------------------------------------------
+  # LAYER 1 — IDENTITY
+  # --------------------------------------------------------------------------
+  # Stable foundation. Rarely changes. Explicitly registered — never assumed.
+  # This is "who you are" — the slow-changing facts that define the household,
+  # the person, or the organization.
+  # --------------------------------------------------------------------------
+  identity:
+    description: >
+      Slow-changing facts about users, households, and their values.
+      Explicitly registered by the user — never inferred or assumed.
+      This layer forms the stable foundation that all other layers build upon.
+    update_frequency: "months to years"
+    update_mechanism: "explicit user registration and periodic review"
+    persistence: "permanent until user modifies"
+
+    domains:
+
+      family:
+        description: "Household composition and member attributes"
+        fields:
+          - name: "members"
+            type: "array<Person>"
+            description: "All household members with individual profiles"
+          - name: "household_size"
+            type: "integer"
+            description: "Number of people in the household"
+          - name: "relationships"
+            type: "map<string, string>"
+            description: "How members relate to each other"
+          - name: "household_rules"
+            type: "array<Rule>"
+            description: "Family-level rules and boundaries"
+        example:
+          members:
+            - id: "kenji"
+              name: "Kenji"
+              role: "father"
+              age: 42
+            - id: "yuki"
+              name: "Yuki"
+              role: "mother"
+              age: 40
+            - id: "ren"
+              name: "Ren"
+              role: "son"
+              age: 10
+              capabilities: ["vacuuming"]
+              restrictions: ["no_high_shelves", "no_long_walks"]
+            - id: "hana"
+              name: "Hana"
+              role: "daughter"
+              age: 7
+              capabilities: ["tidying"]
+              restrictions: ["no_high_shelves", "no_vacuuming"]
+          household_size: 4
+          relationships:
+            kenji_yuki: "spouse"
+            kenji_ren: "parent"
+            kenji_hana: "parent"
+          household_rules:
+            - rule: "Ren (10) can vacuum; Hana (7) can tidy only"
+            - rule: "No high shelves for children"
+
+      dietary:
+        description: "Food-related identity: allergies, restrictions, cooking ability"
+        fields:
+          - name: "allergies"
+            type: "map<member_id, array<Allergy>>"
+            description: "Per-member allergy and sensitivity information"
+          - name: "cuisine_orientation"
+            type: "string"
+            description: "Household's general food style"
+          - name: "cooking_skills"
+            type: "map<string, SkillLevel>"
+            description: "Proficiency with different cooking methods"
+          - name: "budget"
+            type: "Budget"
+            description: "Weekly/monthly food budget"
+        example:
+          allergies:
+            yuki:
+              - type: "egg"
+                severity: "allergy"
+            hana:
+              - type: "dairy"
+                severity: "sensitivity"
+                note: "Cashew or Coconut alternatives OK"
+          cuisine_orientation: "Japanese-American fusion"
+          cooking_skills:
+            air_fryer: "proficient"
+            oven: "beginner"
+            stovetop: "proficient"
+          budget:
+            weekly_food: "$100"
+            preference: "homemade over delivery when cost is equal or lower"
+
+      values:
+        description: "Household priorities and decision-making principles"
+        fields:
+          - name: "priorities"
+            type: "array<ValueStatement>"
+            description: "Ranked values that guide AI decision-making"
+          - name: "cleanliness_standard"
+            type: "string"
+            description: "Household cleaning expectations"
+          - name: "spending_philosophy"
+            type: "map<category, string>"
+            description: "How the household thinks about money per category"
+        example:
+          priorities:
+            - "Children's food should be organic when possible"
+            - "Experiences over possessions"
+            - "Homemade meals preferred over delivery"
+          cleanliness_standard: "Not perfect, but presentable for guests"
+          spending_philosophy:
+            food: "Quality matters; organic for kids"
+            experiences: "Worth spending on"
+            souvenirs: "Keep it modest"
+
+      location:
+        description: "Home base and geographic identity"
+        fields:
+          - name: "home_address"
+            type: "Address"
+          - name: "timezone"
+            type: "string"
+          - name: "primary_stores"
+            type: "array<Store>"
+            description: "Preferred shopping locations"
+        example:
+          home_address: "Tokyo, Japan"
+          timezone: "Asia/Tokyo"
+          primary_stores:
+            - name: "Trader Joe's"
+              frequency: "2x/week"
+              role: "primary groceries"
+            - name: "Costco"
+              frequency: "1x/month"
+              role: "bulk items"
+
+  # --------------------------------------------------------------------------
+  # LAYER 2 — ACCUMULATED LEARNING
+  # --------------------------------------------------------------------------
+  # Grows through repeated interactions. Behavioral patterns learned from
+  # actions, decaying if not reinforced. This is what the AI discovers about
+  # you over weeks and months of living together.
+  # --------------------------------------------------------------------------
+  accumulated:
+    description: >
+      Behavioral patterns and preferences learned from repeated interactions.
+      Entries decay if not reinforced — a recipe tried once and never repeated
+      fades; a weekly habit strengthens. This layer is the AI's growing
+      understanding of how this household actually lives.
+    update_frequency: "days to weeks"
+    update_mechanism: "implicit observation of user actions + explicit corrections"
+    persistence: "decays without reinforcement; strengthened by repetition"
+    decay_model:
+      description: >
+        Observations have a confidence score that increases with repetition
+        and decreases with time. A pattern observed 3+ times in a month
+        is considered established. A pattern not seen in 3+ months decays.
+      reinforcement_threshold: 3
+      decay_period: "3 months without observation"
+
+    domains:
+
+      meal_patterns:
+        description: "Cooking frequency, meal structure, and timing"
+        fields:
+          - name: "cooking_frequency"
+            type: "FrequencyPattern"
+            description: "How often the household cooks vs orders"
+          - name: "meal_timing"
+            type: "map<meal, TimeRange>"
+          - name: "seasonal_shifts"
+            type: "array<SeasonalPattern>"
+            description: "How eating patterns change with seasons"
+        example:
+          cooking_frequency:
+            homemade: "4x/week"
+            delivery: "1x/week"
+            confidence: 0.85
+            observed_over: "6 months"
+          meal_timing:
+            weekday_dinner: "18:30-19:30"
+            weekend_breakfast: "09:00-10:00"
+          seasonal_shifts:
+            - season: "summer"
+              pattern: "More salads, lighter meals"
+            - season: "winter"
+              pattern: "More soups, heavier meals"
+
+      taste_preferences:
+        description: "Per-member food preferences with substitution modes"
+        fields:
+          - name: "member_preferences"
+            type: "map<member_id, array<Preference>>"
+            description: "Individual taste profiles with substitution behavior"
+          - name: "success_recipes"
+            type: "array<Recipe>"
+            description: "Recipes that were repeated (liked)"
+          - name: "failure_recipes"
+            type: "array<Recipe>"
+            description: "Recipes that were tried once and abandoned"
+        # -------------------------------------------------------------------
+        # SUBSTITUTION MODES — how flexible is each preference?
+        # -------------------------------------------------------------------
+        # Exact:     This specific product only. No alternatives.
+        # Flexible:  Category is fixed, brand/variant can change.
+        # Exploring: Actively wants variety within the category.
+        # Surprise:  Open to unexpected discoveries.
+        # -------------------------------------------------------------------
+        example:
+          member_preferences:
+            yuki:
+              - item: "TJ's Honey Yogurt"
+                mode: "exact"
+                note: "32oz preferred; 5.3oz acceptable"
+                confidence: 0.95
+            kenji:
+              - item: "Greek Yogurt"
+                mode: "flexible_to_exploring"
+                note: "Any brand OK; recently liked Strawberry"
+                confidence: 0.80
+            ren:
+              - item: "TJ's Blueberries & Cream Yogurt"
+                mode: "exact"
+                note: "Only this flavor"
+                confidence: 0.95
+            hana:
+              - item: "Dairy-free yogurt alternative"
+                mode: "flexible"
+                note: "Cashew or Coconut, no strong preference"
+                confidence: 0.85
+          success_recipes:
+            - name: "Honey-Garlic Salmon"
+              repeat_count: 3
+              avg_prep_time: "20 min"
+              family_rating: "high"
+          failure_recipes:
+            - name: "Handmade Pasta"
+              reason: "Took too long; kids got hungry"
+              tried_once: "2026-02-15"
+
+      shopping_patterns:
+        description: "Where, when, and how the household shops"
+        fields:
+          - name: "store_preferences"
+            type: "array<StorePattern>"
+          - name: "delivery_trust"
+            type: "TrustLevel"
+            description: "How comfortable the household is with delivery services"
+          - name: "price_sensitivity"
+            type: "ContextualRule"
+            description: "When price matters and when it doesn't"
+        example:
+          store_preferences:
+            - store: "Trader Joe's"
+              visit_pattern: "Tuesday and Friday evenings"
+              items: "weekly groceries"
+            - store: "Costco"
+              visit_pattern: "First Saturday of month"
+              items: "bulk staples"
+          delivery_trust:
+            service: "TaskRabbit"
+            trust_level: "established"
+            approved_count: 5
+            note: "User approved 2 deliveries in Month 3, now routine"
+          price_sensitivity:
+            rushed: "Ignores price; convenience wins"
+            normal: "Prefers homemade if cost <= delivery"
+            budget_tight: "Strictly cost-optimized"
+
+      schedule_rhythms:
+        description: "Daily, weekly, and seasonal patterns of household activity"
+        fields:
+          - name: "weekday_pattern"
+            type: "DailyPattern"
+          - name: "weekend_pattern"
+            type: "DailyPattern"
+          - name: "energy_curve"
+            type: "EnergyCurve"
+            description: "Estimated energy levels throughout the day"
+        example:
+          weekday_pattern:
+            morning: "Rush — school prep, commute"
+            afternoon: "Kids at school, parents working"
+            evening: "Depleted — wants simple meals, minimal decisions"
+          weekend_pattern:
+            morning: "Relaxed breakfast, flexible"
+            afternoon: "Activities or errands"
+            evening: "Family time, slightly more ambitious meals"
+          energy_curve:
+            peak: "09:00-11:00"
+            low: "17:00-19:00 (post-commute)"
+            note: "Weekday evenings = high cognitive load, minimal decision capacity"
+
+      tradeoff_history:
+        description: >
+          Learned patterns of how the household resolves competing demands.
+          This feeds into Priority Weight — the Token captures current urgency,
+          while Brain stores the learned tradeoff patterns that inform decisions.
+        fields:
+          - name: "patterns"
+            type: "array<TradeoffPattern>"
+            description: "Observed decision patterns when priorities conflict"
+        # -------------------------------------------------------------------
+        # PRIORITY WEIGHT has two layers:
+        #   1. Current urgency — from the Priority Weight Token (real-time)
+        #   2. Learned tradeoff patterns — stored here in Brain (accumulated)
+        # The Rule Engine combines both to resolve collisions.
+        # -------------------------------------------------------------------
+        example:
+          patterns:
+            - conflict: "cost vs convenience"
+              observed_resolution: "When rushed, convenience wins regardless of cost"
+              confidence: 0.80
+              observation_count: 8
+            - conflict: "organic vs budget"
+              observed_resolution: "Organic prioritized for children's food; flexible for adults"
+              confidence: 0.90
+              observation_count: 12
+            - conflict: "homemade vs delivery"
+              observed_resolution: "Homemade preferred unless prep time exceeds 30 min on weekdays"
+              confidence: 0.75
+              observation_count: 6
+
+      decision_debt:
+        description: >
+          Deferred decisions that accumulate over time. Tasks the household
+          wants to do but keeps postponing. Brain tracks these so the AI can
+          surface them at appropriate moments.
+        fields:
+          - name: "items"
+            type: "array<DeferredDecision>"
+        example:
+          items:
+            - task: "Fix stairway light"
+              deferred_since: "2025-10-01"
+              reason: "Finding an electrician is tedious"
+              estimated_effort: "medium"
+            - task: "Paint living room wall"
+              deferred_since: "2026-01-15"
+              reason: "Unknown cost; need estimates"
+              estimated_effort: "high"
+            - task: "Return package"
+              deferred_since: "2026-02-20"
+              reason: "Printing return label is annoying"
+              estimated_effort: "low"
+
+  # --------------------------------------------------------------------------
+  # LAYER 3 — RIGHT NOW
+  # --------------------------------------------------------------------------
+  # Ephemeral and real-time. This is the OXYGEN that activates the layers
+  # above. Without it, Identity and Learning are frozen — a library with
+  # no lights. Right Now is populated by the 8 Context Tokens.
+  #
+  # "Add Right Now — 6:30pm Tuesday, wife in the kitchen, pasta in the
+  # fridge, 25 minutes to dinner — and knowledge becomes action."
+  # --------------------------------------------------------------------------
+  right_now:
+    description: >
+      Real-time context from the 8 Context Tokens. This is the oxygen
+      that activates everything above. Without this layer, Brain is a
+      static database. With it, Brain becomes a butler that acts.
+      Updated continuously from device sensors, APIs, and user signals.
+    update_frequency: "seconds to minutes"
+    update_mechanism: "automatic from 8 Context Tokens + device sensors + APIs"
+    persistence: "ephemeral — overwritten continuously"
+
+    # The 8 Context Tokens that feed Right Now:
+    # Situation tokens: Physical State, Cognitive Load, Social Exposure,
+    #                   Priority Weight, Form Factor, Feasibility
+    # Relationship dials: Autonomy Dial, Disclosure Dial
+
+    domains:
+
+      physical_state:
+        description: "Where users are and what they're physically doing"
+        source_token: "Physical State"
+        fields:
+          - name: "location"
+            type: "GeoLocation"
+            description: "Current position of each family member"
+          - name: "activity"
+            type: "ActivityState"
+            description: "Walking, driving, sitting, sleeping, etc."
+          - name: "proximity"
+            type: "map<member_id, ProximityState>"
+            description: "Who is near whom"
+        example:
+          location:
+            kenji: {lat: 35.6762, lng: 139.6503, label: "En route home", eta_home: "28 min"}
+            yuki: {lat: 35.6812, lng: 139.6791, label: "Home — kitchen"}
+            ren: {lat: 35.6812, lng: 139.6791, label: "Home — living room"}
+            hana: {lat: 35.6812, lng: 139.6791, label: "Home — living room"}
+          activity:
+            kenji: "driving"
+            yuki: "cooking_prep"
+          proximity:
+            yuki_ren: "same_room_adjacent"
+            yuki_hana: "same_room_adjacent"
+            kenji_family: "remote_28min"
+
+      cognitive_load:
+        description: >
+          Estimated mental capacity. NOT directly measured — estimated from
+          time of day, calendar density, and recent activity patterns.
+          This is inherently speculative (reality level: 2/5 stars).
+        source_token: "Cognitive Load"
+        estimation_method: "time_of_day * calendar_density * recent_activity"
+        fields:
+          - name: "estimated_load"
+            type: "enum[low, moderate, high, depleted]"
+          - name: "factors"
+            type: "array<LoadFactor>"
+            description: "What's contributing to current load estimate"
+          - name: "decision_capacity"
+            type: "enum[full, reduced, minimal]"
+        example:
+          estimated_load: "high"
+          factors:
+            - "Weekday evening post-commute"
+            - "3 meetings today (calendar)"
+            - "Driving (divided attention)"
+          decision_capacity: "reduced"
+
+      social_exposure:
+        description: "Who can see/hear the user's device interactions"
+        source_token: "Social Exposure"
+        fields:
+          - name: "audience"
+            type: "array<member_id | string>"
+            description: "Who is present and might see/hear AI interactions"
+          - name: "setting"
+            type: "enum[private, family, social, public]"
+          - name: "sensitivity_level"
+            type: "enum[unrestricted, filtered, minimal]"
+        example:
+          audience: ["yuki", "ren", "hana"]
+          setting: "family"
+          sensitivity_level: "filtered"
+          note: "Children present — hide price details on TV display"
+
+      active_context:
+        description: "Current devices, schedule state, and environmental conditions"
+        source_tokens: ["Form Factor", "Feasibility"]
+        fields:
+          - name: "active_devices"
+            type: "map<member_id, array<Device>>"
+            description: "What device each person is using or near"
+          - name: "calendar_state"
+            type: "CalendarSnapshot"
+            description: "Current and upcoming schedule items"
+          - name: "weather"
+            type: "WeatherState"
+          - name: "inventory"
+            type: "InventoryState"
+            description: "Current state of household inventory (fridge, pantry)"
+        example:
+          active_devices:
+            kenji: [{type: "phone", context: "CarPlay"}]
+            yuki: [{type: "phone", context: "kitchen"}, {type: "smart_display", context: "Family Hub"}]
+            ren: [{type: "tablet", context: "living room"}]
+          calendar_state:
+            tonight: "No events"
+            tomorrow: "Ren — soccer practice 09:00"
+          weather:
+            current: "Rain"
+            forecast: "Rain until 21:00"
+            impact: "Shopping trip undesirable"
+          inventory:
+            fridge_scan: "Frozen broccoli only"
+            last_scanned: "2026-04-09T17:30:00+09:00"
+            low_stock: ["soy_sauce (20%)", "eggs (0)"]
+
+      current_priority:
+        description: >
+          What matters most RIGHT NOW. This is the real-time half of
+          Priority Weight. Combined with tradeoff_history from Layer 2,
+          the Rule Engine resolves competing demands.
+        source_token: "Priority Weight"
+        fields:
+          - name: "urgency"
+            type: "enum[routine, elevated, urgent, emergency]"
+          - name: "active_needs"
+            type: "array<Need>"
+            description: "Currently active needs ranked by priority"
+          - name: "collision"
+            type: "Collision | null"
+            description: "When two needs conflict, describes the collision"
+        example:
+          urgency: "routine"
+          active_needs:
+            - need: "Dinner for 4"
+              deadline: "19:30"
+              constraints: ["egg-free for Yuki", "dairy-free for Hana", "under 30 min prep"]
+            - need: "Restock soy sauce"
+              deadline: "next shopping trip"
+          collision: null
+
+# ============================================================================
+# DISCLOSURE DIAL
+# ============================================================================
+# Controls what Brain is ALLOWED to know, per domain, per person.
+# Prerequisite for Autonomy — you cannot delegate what AI doesn't know.
+#
+# The key insight: "Don't tell AI" + "Let AI handle it" is logically
+# impossible. Disclosure must come before Autonomy.
+#
+# Quadrant model:
+#   High Autonomy + High Disclosure = Butler Zone (AI knows and acts)
+#   High Autonomy + Low Disclosure  = IMPOSSIBLE (can't automate unknown)
+#   Low Autonomy  + High Disclosure = AI Advises (AI shows options, you decide)
+#   Low Autonomy  + Low Disclosure  = No AI (private stays private)
+# ============================================================================
+
+disclosure:
+  description: >
+    Per-domain, per-person privacy controls that determine what Brain is
+    allowed to know. This is a prerequisite for Autonomy — the AI cannot
+    act on information it doesn't have. Disclosure is not binary; it's a
+    spectrum controlled independently for each domain and each person.
+  structure:
+    axes:
+      - name: "domain"
+        description: "What category of information (health, finance, food, schedule, etc.)"
+      - name: "person"
+        description: "Which family member's data"
+      - name: "level"
+        type: "enum[full, filtered, minimal, none]"
+        description: >
+          full: AI has complete access to this domain for this person.
+          filtered: AI sees aggregated/anonymized data, not raw details.
+          minimal: AI knows the domain exists but not specifics.
+          none: AI has zero access. Domain is invisible to the system.
+
+  fields:
+    - name: "policies"
+      type: "array<DisclosurePolicy>"
+      description: "Per-domain, per-person disclosure settings"
+    - name: "default_level"
+      type: "enum[full, filtered, minimal, none]"
+      description: "Default disclosure for new domains"
+
+  example:
+    default_level: "filtered"
+    policies:
+      - domain: "food_preferences"
+        person: "all"
+        level: "full"
+        reason: "Needed for meal planning and grocery automation"
+      - domain: "health"
+        person: "ren"
+        level: "filtered"
+        managed_by: "kenji"
+        reason: "Parent manages child's health data; AI sees allergy info only"
+      - domain: "finance"
+        person: "kenji"
+        level: "filtered"
+        reason: "AI sees budget limits, not account balances"
+      - domain: "finance"
+        person: "ren"
+        level: "none"
+        reason: "Children don't see price details"
+        ui_impact: "TV display hides prices when children are present"
+      - domain: "location"
+        person: "all"
+        level: "full"
+        reason: "Needed for ETA calculations and proximity awareness"
+      - domain: "work_calendar"
+        person: "kenji"
+        level: "minimal"
+        reason: "AI knows 'busy' blocks, not meeting content"
+
+# ============================================================================
+# AUTONOMY DIAL
+# ============================================================================
+# 4-stage control over how much AI acts independently.
+# NOT purely user-controlled — driven by 3 forces:
+#   1. Service default (Netflix/Amazon already default to high autonomy)
+#   2. AI adjustment (earned through demonstrated reliability)
+#   3. User active change (explicit override up or down)
+#
+# The Autonomy Dial interacts with Disclosure: you cannot set high autonomy
+# on a domain where disclosure is low/none.
+# ============================================================================
+
+autonomy:
+  description: >
+    4-stage dial controlling how independently AI acts. Per-domain,
+    per-task, and per-person. Driven by three forces: service defaults,
+    AI adjustment based on track record, and explicit user overrides.
+  stages:
+    - position: 1
+      name: "Suggest"
+      behavior: "AI shows options. User decides and executes."
+      example: "Here are 3 recipe ideas based on what's in the fridge."
+    - position: 2
+      name: "Confirm"
+      behavior: "AI proposes a specific action. User approves before execution."
+      example: "Honey-Garlic Salmon tonight? Approve to start prep."
+    - position: 3
+      name: "Notify"
+      behavior: "AI executes and informs the user after the fact."
+      example: "Ordered Yuki's yogurt — it was out of stock. Arriving tomorrow."
+    - position: 4
+      name: "Auto"
+      behavior: "AI executes silently. User sees results only if they look."
+      example: "Soy sauce restocked automatically. Receipt in log."
+
+  three_forces:
+    - name: "service_default"
+      description: "The baseline autonomy level set by the service/domain"
+      example: "Grocery restock defaults to Confirm; post-trip photo sorting defaults to Auto"
+    - name: "ai_adjustment"
+      description: "AI earns higher autonomy through consistent, correct actions over time"
+      example: "After 5 successful TaskRabbit deliveries, AI proposes moving from Confirm to Notify"
+    - name: "user_override"
+      description: "User can explicitly raise or lower autonomy at any time"
+      example: "User says 'Always confirm purchases over $50' — overrides AI adjustment"
+
+  escalation_rules:
+    - trigger: "medical_situation"
+      forced_position: 1
+      reason: "Medical decisions always require human judgment"
+    - trigger: "irreversible_financial"
+      max_position: 2
+      reason: "Non-refundable purchases require explicit confirmation"
+    - trigger: "child_safety"
+      forced_position: 1
+      reason: "Decisions affecting children's safety are always parent-owned"
+
+  fields:
+    - name: "settings"
+      type: "array<AutonomySetting>"
+      description: "Per-domain, per-person autonomy levels"
+
+  example:
+    settings:
+      # Month 1 — new household, everything at Suggest
+      - domain: "meal_planning"
+        person: "kenji"
+        position: 1
+        stage: "Suggest"
+        note: "Initial setup — AI has no track record yet"
+
+      # Month 6 — trust established through repeated interactions
+      - domain: "grocery_restock"
+        person: "kenji"
+        position: 3
+        stage: "Notify"
+        note: "6 months of successful restocking"
+        per_item_overrides:
+          - item: "Yuki's yogurt (Exact mode)"
+            position: 4
+            stage: "Auto"
+            reason: "Never varies; always the same product"
+          - item: "New items"
+            position: 2
+            stage: "Confirm"
+            reason: "First-time purchases always need approval"
+
+      # Medical — forced to position 1 regardless of general trust level
+      - domain: "health_decisions"
+        person: "all"
+        position: 1
+        stage: "Suggest"
+        forced: true
+        reason: "AI provides information and options only; never decides"
+
+# ============================================================================
+# MULTI-PERSON ORCHESTRATION
+# ============================================================================
+# Different family members have different Brain profiles, different
+# Disclosure levels, different Autonomy positions, and receive different
+# UI presentations for the same event.
+#
+# Same event, different interfaces:
+#   Father (Confirm): "Japanese pasta tonight. Approve?"
+#   Mother (Notify):  "Ingredients ordered (egg-free)."
+#   Daughter, 16 (Suggest): "It's pasta night. Requests?"
+#   Son, 10 (Parent-managed): "It's pasta tonight!" [on TV]
+# ============================================================================
+
+multi_person:
+  description: >
+    Each household member has their own Brain profile with independent
+    Disclosure and Autonomy settings. The orchestration layer ensures that
+    the same event is presented differently to each person based on their
+    role, age, capabilities, and trust level.
+
+  per_member_profile:
+    description: "Each member gets their own configuration"
+    fields:
+      - name: "member_id"
+        type: "string"
+      - name: "brain_access"
+        type: "BrainAccessLevel"
+        description: "What parts of the household Brain this member can see/modify"
+      - name: "autonomy_position"
+        type: "integer (1-4)"
+        description: "Default autonomy level for this member"
+      - name: "disclosure_overrides"
+        type: "array<DisclosurePolicy>"
+        description: "Member-specific disclosure settings"
+      - name: "preferred_devices"
+        type: "array<Device>"
+      - name: "managed_by"
+        type: "member_id | null"
+        description: "If non-null, this member's settings are controlled by another member"
+
+  example:
+    profiles:
+      - member_id: "kenji"
+        role: "household_admin"
+        brain_access: "full"
+        default_autonomy: 2
+        note: "Primary decision maker; sees all household data"
+      - member_id: "yuki"
+        role: "household_admin"
+        brain_access: "full"
+        default_autonomy: 3
+        note: "Higher autonomy for groceries — trusted domain"
+      - member_id: "ren"
+        role: "child"
+        brain_access: "limited"
+        default_autonomy: null
+        managed_by: "kenji"
+        ui_mode: "simplified"
+        restrictions:
+          - "Cannot see financial information"
+          - "Cannot approve purchases"
+          - "Receives task assignments, not decision prompts"
+        devices: ["tablet", "tv"]
+      - member_id: "hana"
+        role: "child"
+        brain_access: "limited"
+        default_autonomy: null
+        managed_by: "kenji"
+        ui_mode: "simplified"
+        restrictions:
+          - "Cannot see financial information"
+          - "Task-capable items only (tidying)"
+        devices: ["tv"]
+
+    orchestration_example:
+      event: "Saturday deep cleaning"
+      description: >
+        When a parent says "Let's do a big clean today," each family member's
+        device transforms to show their role-appropriate view.
+      per_member:
+        kenji:
+          device: "phone"
+          view: "Full task dashboard with progress tracking for all members"
+          autonomy: "Confirm — approves task distribution"
+        yuki:
+          device: "phone"
+          view: "Shared task dashboard, can reassign tasks"
+          autonomy: "Confirm — co-manages with Kenji"
+        ren:
+          device: "tablet"
+          view: "Mission-style UI: 'Your missions today!' with checklist"
+          tasks: ["Vacuum living room", "Vacuum hallway"]
+          autonomy: "Parent-managed"
+        hana:
+          device: "tv"
+          view: "Simple visual: 'Tidy your room! Stars earned: 0/3'"
+          tasks: ["Put toys in bins", "Stack books on shelf"]
+          autonomy: "Parent-managed"
+
+# ============================================================================
+# DISPOSABLE BRAIN
+# ============================================================================
+# Temporary brains for temporary projects. Home Brain spawns a Disposable
+# Brain — a scoped learning context that lives only as long as the project.
+#
+# Lifecycle: Born -> Learns -> Returns knowledge to Home Brain -> Dissolves
+#
+# NOT a full copy. References Home Brain's Identity layer, shares Right Now.
+# Only owns its own Project Parameters + Project Learning.
+# ============================================================================
+
+disposable_brain:
+  description: >
+    A scoped, temporary brain spawned by the Home Brain for a specific
+    project. It inherits Identity (Layer 1) from the parent Brain, builds
+    its own Accumulated Learning during the project, and shares Right Now.
+    When the project ends, valuable learnings flow back to the Home Brain,
+    and the Disposable Brain dissolves.
+  metaphor: >
+    Like a consultant hired for a specific engagement — they learn about
+    you during the project, deliver insights when it's over, then leave.
+
+  lifecycle:
+    stages:
+      - name: "birth"
+        description: "Disposable Brain spawns, inheriting Layer 1 from Home Brain"
+        trigger: "User initiates a project (trip, renovation, event, etc.)"
+      - name: "learn"
+        description: "Discovers patterns specific to this project"
+        duration: "Lifetime of the project"
+      - name: "return"
+        description: "Valuable insights flow back to Home Brain's Accumulated Learning"
+        mechanism: "Automated synthesis + user review"
+      - name: "dissolve"
+        description: "Disposable Brain is deleted; only the returned insights persist"
+        trigger: "Project completion + synthesis confirmed"
+
+  structure:
+    inherited:
+      - source: "Home Brain Layer 1 (Identity)"
+        type: "reference"
+        description: "Not copied — references the live Identity layer"
+    owned:
+      - name: "project_parameters"
+        description: "Scope, dates, budget, constraints specific to this project"
+      - name: "project_learning"
+        description: "Patterns discovered during the project"
+    shared:
+      - source: "Home Brain Layer 3 (Right Now)"
+        type: "shared"
+        description: "Real-time context is always live, never copied"
+
+  # --------------------------------------------------------------------------
+  # TRIP BRAIN — Primary example of Disposable Brain
+  # --------------------------------------------------------------------------
+  examples:
+
+    trip_brain:
+      project_type: "family_trip"
+      description: "A 2-week Japan trip for a family of 4"
+
+      parameters:
+        destination: "Japan (Tokyo -> Kyoto -> Osaka)"
+        duration: "14 days"
+        travelers: ["kenji", "yuki", "ren", "hana"]
+        budget:
+          total: "$5,000"
+          allocation:
+            accommodation: "40%"
+            food: "25%"
+            experiences: "20%"
+            transportation: "15%"
+        constraints:
+          - "Ren has limited walking endurance"
+          - "Hana loves anime (Akihabara is essential)"
+          - "Hana has dairy sensitivity"
+
+      inherited_from_home_brain:
+        identity:
+          - "Family of 4 with specific dietary needs"
+          - "Son: dairy sensitivity, limited walking"
+          - "Daughter: anime enthusiast"
+          - "Values: experiences > souvenirs"
+          - "Cooking orientation: Japanese-American fusion"
+
+      project_learning:
+        description: "Patterns discovered during the trip"
+        entries:
+          - day: 1-3
+            learning: "Ren fell in love with ramen"
+            confidence: 0.9
+          - day: 4
+            learning: "Hana loved the kimono experience in Asakusa"
+            confidence: 0.95
+          - day: 5
+            learning: "Onsen ryokan: perfect for parents, boring for kids"
+            confidence: 0.85
+          - day: 1-14
+            learning: "Family energy peaks in morning, crashes at 3pm"
+            confidence: 0.9
+          - day: 1-14
+            learning: "Food pattern: light breakfast, full lunch, local dinner"
+            confidence: 0.85
+          - day: 7
+            learning: "Mid-trip rest day needed — Ren got sick from exhaustion"
+            confidence: 0.95
+
+      return_to_home_brain:
+        description: "Insights that flow back when the trip ends"
+        updates:
+          - target: "accumulated.taste_preferences.ren"
+            update: "Add 'ramen' as Flexible mode preference"
+          - target: "accumulated.tradeoff_history"
+            update: "Onsen ryokan: max 1 night with children"
+          - target: "accumulated.tradeoff_history"
+            update: "Vehicle/train experiences are family-wide hits"
+          - target: "accumulated.schedule_rhythms"
+            update: "Travel days: build in rest day around day 7"
+          - target: "accumulated.shopping_patterns"
+            update: "Budget $5,000 for 14-day Japan trip yielded $220 surplus"
+
+      post_dissolution:
+        description: >
+          After dissolution, the Trip Brain no longer exists as an active
+          entity. Its learnings live on in Home Brain's Accumulated Learning.
+          A summary artifact (travel video, expense report) persists as a
+          static record, not a live brain.
+        artifacts:
+          - type: "travel_video"
+            duration: "3 minutes"
+            source: "Auto-compiled from 3 phones, best shots selected"
+          - type: "expense_report"
+            total: "$4,780"
+            breakdown: {food: "$2,008 (42%)", transport: "$1,099 (23%)", experiences: "$956 (20%)", accommodation: "$717 (15%)"}
+            insight: "Ramen alone was $400"
+
+    # Additional Disposable Brain examples
+    other_examples:
+      - project: "Home renovation"
+        parameters: ["scope", "contractor", "budget", "timeline"]
+        learns: "Design taste, contractor reliability, cost overrun patterns"
+        returns: "Preferred materials, reliable contractors, realistic budgets"
+
+      - project: "Daughter's school exam prep"
+        parameters: ["target_schools", "exam_dates", "subjects"]
+        learns: "Study rhythm, stress triggers, effective study methods"
+        returns: "Optimal study schedule patterns, stress management insights"
+
+      - project: "Consulting engagement"
+        parameters: ["client", "scope", "team", "deliverables"]
+        learns: "Client decision cycles, stakeholder preferences, risk flags"
+        returns: "Client relationship patterns, estimation accuracy data"
+
+      - project: "Product launch"
+        parameters: ["SKUs", "channels", "target_audience", "KPIs"]
+        learns: "Audience response patterns, creative fatigue signals"
+        returns: "Channel effectiveness data, audience segment insights"
+
+# ============================================================================
+# TRUST TIMELINE
+# ============================================================================
+# Brain's capabilities grow over time as trust is earned. This is not a
+# feature toggle — it's a gradual, observable progression.
+# ============================================================================
+
+trust_timeline:
+  description: >
+    The relationship between Brain and the household deepens over time.
+    Month 1 is like a new roommate — capable but ignorant of house rules.
+    By Month 6, Brain anticipates needs. This timeline governs how
+    Autonomy naturally rises (or doesn't) based on demonstrated reliability.
+
+  stages:
+    - period: "Month 1"
+      label: "Stranger"
+      autonomy_ceiling: "Suggest"
+      brain_state:
+        identity: "User-registered basics only"
+        accumulated: "Empty — no observations yet"
+        right_now: "Active from day 1 (sensors + APIs)"
+      example: >
+        User: "What can I cook tonight?"
+        Brain: "Here are 10 popular recipes."
+        User: "...I only have broccoli and soy sauce."
+        Brain: "Ah. Here are 3 recipes with those ingredients."
+      note: "Brain is capable but doesn't know this household yet."
+
+    - period: "Month 3"
+      label: "Learning"
+      autonomy_ceiling: "Confirm"
+      brain_state:
+        identity: "Basics + explicit preferences registered"
+        accumulated: "Emerging patterns (3 months of observation)"
+        right_now: "Active"
+      example: >
+        Brain: "Broccoli and soy sauce available. Salmon stir-fry?
+        If you want protein, TJ's has salmon at $5.99.
+        TaskRabbit can deliver in 20 min. Order?"
+      note: "Brain connects inventory + preferences + delivery. Still asks permission."
+
+    - period: "Month 6"
+      label: "Trusted"
+      autonomy_ceiling: "Notify"
+      brain_state:
+        identity: "Complete household profile"
+        accumulated: "Rich patterns (shopping, cooking, energy, tradeoffs)"
+        right_now: "Active + integrated with accumulated patterns"
+      example: >
+        Brain: "Honey-Garlic Salmon & Fries — 20 min.
+        Salmon + fries ordered from TJ's via TaskRabbit, $15.
+        Uber Eats alternative: $28.
+        [Already ordered — TaskRabbit delivery in 20 min]"
+      note: >
+        Brain knows: Kenji is driving home (depleted), fridge is nearly empty,
+        this recipe has been a hit 3 times, homemade wins when cheaper than
+        delivery. Acts and notifies.
+
+    - period: "Month 12+"
+      label: "Butler"
+      autonomy_ceiling: "Auto (for established patterns)"
+      brain_state:
+        identity: "Mature + seasonally aware"
+        accumulated: "Deep patterns including seasonal shifts"
+        right_now: "Deeply integrated"
+      example: >
+        Yuki's yogurt restocked automatically. Seasonal shift to soups
+        detected — winter menu suggestions rotate in. Decision Debt items
+        surfaced during low-stress weekend mornings.
+      note: "Brain operates like a household member who simply handles things."
+
+# ============================================================================
+# TYPE DEFINITIONS
+# ============================================================================
+# Reference types used throughout the schema.
+# ============================================================================
+
+types:
+
+  Person:
+    fields:
+      - {name: "id", type: "string", required: true}
+      - {name: "name", type: "string", required: true}
+      - {name: "role", type: "enum[father, mother, son, daughter, guardian, other]", required: true}
+      - {name: "age", type: "integer"}
+      - {name: "capabilities", type: "array<string>", description: "What this person can do (for task assignment)"}
+      - {name: "restrictions", type: "array<string>", description: "Limitations or safety boundaries"}
+
+  Allergy:
+    fields:
+      - {name: "type", type: "string", required: true, description: "Allergen name"}
+      - {name: "severity", type: "enum[allergy, sensitivity, preference]", required: true}
+      - {name: "note", type: "string"}
+
+  Preference:
+    fields:
+      - {name: "item", type: "string", required: true}
+      - {name: "mode", type: "enum[exact, flexible, exploring, surprise]", required: true}
+      - {name: "note", type: "string"}
+      - {name: "confidence", type: "float (0-1)", description: "How certain the system is about this preference"}
+
+  SubstitutionMode:
+    values:
+      - name: "exact"
+        description: "This specific product only. No alternatives ever."
+        example: "TJ's Honey Yogurt 32oz — nothing else"
+      - name: "flexible"
+        description: "Category is fixed; brand or variant can change."
+        example: "Any Greek yogurt is fine"
+      - name: "exploring"
+        description: "Actively wants variety within the category."
+        example: "Greek yogurt, but surprise me with flavors"
+      - name: "surprise"
+        description: "Open to completely unexpected discoveries."
+        example: "Whatever looks interesting in the dairy aisle"
+
+  TradeoffPattern:
+    fields:
+      - {name: "conflict", type: "string", required: true, description: "The two competing priorities"}
+      - {name: "observed_resolution", type: "string", required: true, description: "How the user typically resolves it"}
+      - {name: "confidence", type: "float (0-1)"}
+      - {name: "observation_count", type: "integer"}
+      - {name: "context_dependent", type: "string", description: "Conditions under which this pattern applies"}
+
+  DeferredDecision:
+    fields:
+      - {name: "task", type: "string", required: true}
+      - {name: "deferred_since", type: "date", required: true}
+      - {name: "reason", type: "string", required: true}
+      - {name: "estimated_effort", type: "enum[low, medium, high]"}
+      - {name: "surfacing_conditions", type: "string", description: "When to remind the user about this"}
+
+  DisclosurePolicy:
+    fields:
+      - {name: "domain", type: "string", required: true}
+      - {name: "person", type: "member_id | 'all'", required: true}
+      - {name: "level", type: "enum[full, filtered, minimal, none]", required: true}
+      - {name: "managed_by", type: "member_id", description: "Who controls this policy"}
+      - {name: "reason", type: "string"}
+      - {name: "ui_impact", type: "string", description: "How this affects what's shown on screen"}
+
+  AutonomySetting:
+    fields:
+      - {name: "domain", type: "string", required: true}
+      - {name: "person", type: "member_id | 'all'", required: true}
+      - {name: "position", type: "integer (1-4)", required: true}
+      - {name: "stage", type: "enum[Suggest, Confirm, Notify, Auto]", required: true}
+      - {name: "forced", type: "boolean", default: false, description: "If true, cannot be overridden by AI adjustment"}
+      - {name: "per_item_overrides", type: "array<ItemOverride>", description: "Task-level exceptions"}
+
+  Budget:
+    fields:
+      - {name: "amount", type: "string", required: true}
+      - {name: "period", type: "enum[weekly, monthly, per_project]", required: true}
+      - {name: "preference", type: "string", description: "Spending philosophy"}
+
+  Device:
+    fields:
+      - {name: "type", type: "enum[phone, tablet, tv, smart_display, speaker, carplay, watch]", required: true}
+      - {name: "context", type: "string", description: "Where/how the device is being used"}
+      - {name: "capabilities", type: "array<string>", description: "What this device can show/do"}

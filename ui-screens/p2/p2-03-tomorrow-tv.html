@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-03 Tomorrow's Recommendations (TV + Phone)</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 40px;
+  }
+
+  /* ========== TV FRAME ========== */
+  .tv-frame {
+    width: 100%;
+    max-width: 1080px;
+    aspect-ratio: 16 / 9;
+    background: #0a0a0a;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow:
+      0 0 0 3px #2a2a2a,
+      0 0 0 6px #111,
+      0 30px 80px rgba(0,0,0,0.6);
+    position: relative;
+  }
+  .tv-frame::after {
+    content: '';
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    height: 12px;
+    background: linear-gradient(180deg, #333, #222);
+    border-radius: 0 0 6px 6px;
+  }
+
+  .tv-stand {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .tv-stand-bar {
+    width: 280px;
+    height: 6px;
+    background: linear-gradient(180deg, #333, #1a1a1a);
+    border-radius: 0 0 4px 4px;
+    margin-top: -2px;
+  }
+
+  .tv-screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #0D1117 0%, #1B2028 100%);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TV Content */
+  .tv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 28px 40px 16px;
+    flex-shrink: 0;
+  }
+  .tv-title {
+    font-size: clamp(22px, 2.5vw, 40px);
+    font-weight: 700;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tv-title .sparkle { color: #8AB4F8; }
+  .tv-date {
+    font-size: clamp(13px, 1.4vw, 20px);
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+  }
+  .tv-weather {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(14px, 1.5vw, 22px);
+    color: rgba(255,255,255,0.5);
+  }
+  .tv-weather .temp {
+    font-size: clamp(20px, 2.2vw, 36px);
+    font-weight: 700;
+    color: #F9AB00;
+  }
+
+  /* Cards Row */
+  .cards-row {
+    display: flex;
+    gap: clamp(10px, 1.2vw, 20px);
+    padding: 0 40px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .rec-card {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid transparent;
+    transition: border-color 300ms cubic-bezier(0.2, 0, 0, 1), transform 300ms cubic-bezier(0.2, 0, 0, 1), box-shadow 300ms cubic-bezier(0.2, 0, 0, 1), opacity 300ms cubic-bezier(0.2, 0, 0, 1);
+    opacity: 0;
+    transform: translateY(20px);
+    cursor: pointer;
+    position: relative;
+  }
+  .rec-card.focused {
+    border-color: #8AB4F8;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 1px #8AB4F8, 0 8px 32px rgba(138,180,248,0.15);
+  }
+  .rec-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .card-photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-photo-bg {
+    position: absolute;
+    inset: -10%;
+    width: 120%;
+    height: 120%;
+  }
+  .card-photo-bg.art {
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1633112306621-981f5700ce0b?w=600&h=400&fit=crop&q=80');
+    background-size: cover;
+    background-position: center;
+    animation: kenBurns 20s ease-in-out infinite alternate;
+  }
+  .card-photo-bg.gaming {
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1558797532-9ebc63025444?w=600&h=400&fit=crop&q=80');
+    background-size: cover;
+    background-position: center;
+    animation: kenBurns 20s ease-in-out infinite alternate-reverse;
+  }
+  .card-photo-bg.food {
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1590579670545-bfbb5b038f86?w=600&h=400&fit=crop&q=80');
+    background-size: cover;
+    background-position: center;
+    animation: kenBurns 20s ease-in-out infinite alternate;
+  }
+
+  @keyframes kenBurns {
+    0% { transform: scale(1) translate(0,0); }
+    50% { transform: scale(1.08) translate(-2%, -1%); }
+    100% { transform: scale(1.04) translate(1%, -2%); }
+  }
+
+  .card-photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.6) 100%);
+  }
+
+  .card-for-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    font-size: clamp(10px, 0.9vw, 13px);
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 9999px;
+  }
+
+  .card-badge-urgent {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(249,171,0,0.9);
+    color: #FFFFFF;
+    font-size: clamp(9px, 0.8vw, 12px);
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    animation: amberPulse 2s ease-in-out infinite;
+  }
+
+  .card-body {
+    padding: clamp(10px, 1.2vw, 18px);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card-body-title {
+    font-size: clamp(13px, 1.3vw, 20px);
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .card-body-location {
+    font-size: clamp(11px, 0.9vw, 14px);
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .card-body-location .material-symbols-outlined { font-size: 14px; }
+  .card-body-note {
+    font-size: clamp(10px, 0.8vw, 13px);
+    color: rgba(255,255,255,0.4);
+    margin-top: auto;
+  }
+
+  /* Route Suggestion */
+  .route-bar {
+    margin: 10px 40px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: clamp(10px, 1vw, 16px) clamp(14px, 1.4vw, 24px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 500ms cubic-bezier(0.2, 0, 0, 1), transform 500ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .route-bar.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .route-sparkle {
+    font-size: clamp(16px, 1.6vw, 24px);
+    color: #8AB4F8;
+  }
+  .route-text {
+    flex: 1;
+    font-size: clamp(11px, 0.9vw, 14px);
+    color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+  }
+  .route-text strong { color: #FFFFFF; font-weight: 500; }
+  .route-meta {
+    display: flex;
+    gap: 12px;
+    font-size: clamp(11px, 0.9vw, 14px);
+    color: rgba(255,255,255,0.4);
+    flex-shrink: 0;
+  }
+  .route-meta span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  /* TV Bottom Bar */
+  .tv-bottom-bar {
+    display: flex;
+    justify-content: center;
+    gap: clamp(8px, 1vw, 16px);
+    padding: clamp(10px, 1vw, 16px) 40px;
+    flex-shrink: 0;
+  }
+
+  .tv-btn {
+    padding: clamp(6px, 0.6vw, 10px) clamp(16px, 1.6vw, 28px);
+    border-radius: 9999px;
+    font-size: clamp(11px, 0.9vw, 15px);
+    font-weight: 500;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 200ms cubic-bezier(0.2, 0, 0, 1), border-color 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms cubic-bezier(0.2, 0, 0, 1), transform 200ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .tv-btn:active { transform: scale(0.97); }
+  .tv-btn-primary {
+    background: #8AB4F8;
+    color: #0D1117;
+  }
+  .tv-btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.7);
+  }
+  .tv-btn-tertiary {
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .tv-btn.focused {
+    border-color: #8AB4F8;
+    box-shadow: 0 0 0 2px rgba(138,180,248,0.3);
+  }
+
+  /* ========== COMPANION PHONE ========== */
+  .companion-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+  }
+
+  .companion-label {
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .companion-label .material-symbols-outlined { font-size: 16px; }
+
+  .phone-frame-sm {
+    width: 280px;
+    height: 606px;
+    background: #000;
+    border-radius: 36px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 2px #1a1a1a,
+      0 16px 48px rgba(0,0,0,0.4),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+  .phone-frame-sm::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 24px;
+    background: #000;
+    border-radius: 0 0 14px 14px;
+    z-index: 10;
+  }
+
+  .phone-screen-sm {
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    border-radius: 28px;
+    overflow: hidden;
+  }
+
+  .phone-content-sm {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .phone-content-sm::-webkit-scrollbar { display: none; }
+
+  /* Phone Status */
+  .p-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #202124;
+  }
+  .p-status-right {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .p-status-right .material-symbols-outlined { font-size: 14px; }
+
+  .p-header {
+    padding: 6px 16px 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #202124;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .p-header .material-symbols-outlined { font-size: 18px; }
+
+  .p-parents-only {
+    margin: 0 14px 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #F3E8FD;
+    color: #8E24AA;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    width: fit-content;
+  }
+  .p-parents-only .material-symbols-outlined { font-size: 12px; }
+
+  /* Budget Items */
+  .budget-card {
+    margin: 0 14px 10px;
+    background: #F8F9FA;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .budget-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 12px;
+    color: #202124;
+  }
+  .budget-row + .budget-row {
+    border-top: 1px solid #E8EAED;
+  }
+  .budget-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .budget-amount {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .budget-detail {
+    font-size: 10px;
+    color: #9AA0A6;
+  }
+
+  .budget-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    margin: 0 14px 8px;
+    background: #E8F0FE;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1A73E8;
+  }
+  .budget-total-amount {
+    font-size: 18px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .budget-remaining {
+    padding: 0 14px;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: #5F6368;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .budget-remaining strong {
+    color: #1E8E3E;
+  }
+
+  .p-actions {
+    padding: 0 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .p-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    transition: background-color 200ms, transform 200ms;
+  }
+  .p-btn:active { transform: scale(0.97); }
+  .p-btn-primary {
+    background: #1A73E8;
+    color: #FFFFFF;
+  }
+  .p-btn-secondary {
+    background: #F1F3F4;
+    color: #202124;
+  }
+
+  /* Animations */
+  @keyframes amberPulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(249,171,0,0.4); }
+    50% { opacity: 0.85; box-shadow: 0 0 0 6px rgba(249,171,0,0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes counterRoll {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .screen-label-tv {
+    color: rgba(255,255,255,0.3);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: -20px;
+  }
+
+  /* Hover states - pointer devices only */
+  @media (hover: hover) and (pointer: fine) {
+    .p-btn-primary:hover { background: #1765CC; }
+    .p-btn-secondary:hover { background: #E8EAED; }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    .companion-row { flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== TV ========== -->
+<div style="width:100%; max-width:1080px;">
+  <div class="tv-frame">
+    <div class="tv-screen">
+
+      <!-- Header -->
+      <div class="tv-header">
+        <div>
+          <div class="tv-title"><span class="sparkle">✦</span> Tomorrow's Recommendations</div>
+          <div class="tv-date">July 15 (Tue)</div>
+        </div>
+        <div class="tv-weather">
+          <span>☀</span>
+          <span class="temp">33°C</span>
+        </div>
+      </div>
+
+      <!-- 3 Cards -->
+      <div class="cards-row">
+
+        <!-- Card 1: Daughter -->
+        <div class="rec-card" id="card1">
+          <div class="card-photo">
+            <div class="card-photo-bg art"></div>
+            <div class="card-photo-overlay"></div>
+            <div class="card-for-badge">🎨 For Daughter</div>
+            <div class="card-badge-urgent">⚠ Last Chance</div>
+          </div>
+          <div class="card-body">
+            <div class="card-body-title">teamLab Borderless</div>
+            <div class="card-body-location">
+              <span class="material-symbols-outlined">place</span> Odaiba
+            </div>
+            <div class="card-body-note">Reservations available &middot; Closing Sept</div>
+          </div>
+        </div>
+
+        <!-- Card 2: Son -->
+        <div class="rec-card" id="card2">
+          <div class="card-photo">
+            <div class="card-photo-bg gaming"></div>
+            <div class="card-photo-overlay"></div>
+            <div class="card-for-badge">🎮 For Son</div>
+          </div>
+          <div class="card-body">
+            <div class="card-body-title">PokePark Kanto</div>
+            <div class="card-body-location">
+              <span class="material-symbols-outlined">place</span> Yomiuriland
+            </div>
+            <div class="card-body-note" style="color:rgba(255,255,255,0.5);">Reserved &middot; Tuesday = less crowded</div>
+          </div>
+        </div>
+
+        <!-- Card 3: Family -->
+        <div class="rec-card" id="card3">
+          <div class="card-photo">
+            <div class="card-photo-bg food"></div>
+            <div class="card-photo-overlay"></div>
+            <div class="card-for-badge">🍜 For Family</div>
+          </div>
+          <div class="card-body">
+            <div class="card-body-title">Ramen Shop B</div>
+            <div class="card-body-location">
+              <span class="material-symbols-outlined">place</span> Shibuya &middot; <span style="color:#F9AB00;">★ 3.8</span>
+            </div>
+            <div class="card-body-note">Saved 8 months ago via LINE friend rec</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Route Bar -->
+      <div class="route-bar" id="routeBar">
+        <span class="route-sparkle">✦</span>
+        <div class="route-text">
+          <strong>Recommended Itinerary:</strong> Morning Shibuya Ramen → Afternoon Odaiba teamLab.
+          Son's PokePark Thursday (reserved).
+        </div>
+        <div class="route-meta">
+          <span>🕐 Travel 40 min</span>
+          <span>💰 ~¥15,000</span>
+        </div>
+      </div>
+
+      <!-- Bottom Buttons -->
+      <div class="tv-bottom-bar">
+        <button class="tv-btn tv-btn-primary focused" id="tvBtn1">Confirm Schedule</button>
+        <button class="tv-btn tv-btn-secondary" id="tvBtn2">Change</button>
+        <button class="tv-btn tv-btn-tertiary" id="tvBtn3">Decide Tomorrow</button>
+      </div>
+
+    </div>
+  </div>
+  <div class="tv-stand"><div class="tv-stand-bar"></div></div>
+</div>
+
+<div class="screen-label-tv">P2-03 Tomorrow's Recommendations &mdash; TV Display (1920x1080 scaled)</div>
+
+<!-- ========== COMPANION PHONE ========== -->
+<div>
+  <div class="companion-label">
+    <span class="material-symbols-outlined">smartphone</span>
+    Companion Phone View (Parents Only)
+  </div>
+
+  <div class="phone-frame-sm">
+    <div class="phone-screen-sm">
+      <div class="phone-content-sm">
+
+        <!-- Status -->
+        <div class="p-status">
+          <span>9:41</span>
+          <div class="p-status-right">
+            <span class="material-symbols-outlined">signal_cellular_alt</span>
+            <span class="material-symbols-outlined">wifi</span>
+            <span class="material-symbols-outlined">battery_5_bar</span>
+          </div>
+        </div>
+
+        <!-- Header -->
+        <div class="p-header">
+          <span class="material-symbols-outlined">account_balance_wallet</span>
+          Budget Breakdown
+        </div>
+
+        <div class="p-parents-only">
+          <span class="material-symbols-outlined">lock</span>
+          Parents only &mdash; hidden from TV
+        </div>
+
+        <!-- Budget Card -->
+        <div class="budget-card">
+          <div class="budget-row">
+            <div class="budget-label">🎨 teamLab Borderless</div>
+            <div>
+              <div class="budget-amount counter" data-target="12800">--</div>
+              <div class="budget-detail">¥3,200 x 4</div>
+            </div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-label">🚃 Travel (trains, taxi)</div>
+            <div>
+              <div class="budget-amount counter" data-target="3000">--</div>
+            </div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-label">🍜 Lunch (Ramen Shop B)</div>
+            <div>
+              <div class="budget-amount counter" data-target="4000">--</div>
+              <div class="budget-detail">~¥1,000 x 4</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="budget-total">
+          <span>Tomorrow Total</span>
+          <span class="budget-total-amount counter" data-target="19800">--</span>
+        </div>
+
+        <!-- Remaining -->
+        <div class="budget-remaining">
+          <span class="material-symbols-outlined" style="font-size:14px; color:#1E8E3E;">savings</span>
+          Remaining trip budget: <strong>&nbsp;¥180,000</strong>
+        </div>
+
+        <!-- Actions -->
+        <div class="p-actions">
+          <button class="p-btn p-btn-primary">Reserve teamLab</button>
+          <button class="p-btn p-btn-secondary">Call Ramen Shop</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  // === Card stagger entrance ===
+  const cards = document.querySelectorAll('.rec-card');
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.classList.add('visible');
+    }, 300 + i * 80);
+  });
+
+  // === Route bar slide in ===
+  setTimeout(() => {
+    document.getElementById('routeBar').classList.add('visible');
+  }, 900);
+
+  // === D-pad Navigation Simulation ===
+  const tvBtns = [
+    document.getElementById('tvBtn1'),
+    document.getElementById('tvBtn2'),
+    document.getElementById('tvBtn3')
+  ];
+  let focusedBtn = 0;
+
+  function updateBtnFocus() {
+    tvBtns.forEach((btn, i) => {
+      btn.classList.toggle('focused', i === focusedBtn);
+    });
+  }
+
+  // Card focus simulation
+  const recCards = [
+    document.getElementById('card1'),
+    document.getElementById('card2'),
+    document.getElementById('card3')
+  ];
+  let focusedCard = -1; // -1 = button row
+  let focusLayer = 'cards'; // 'cards' or 'buttons'
+
+  function updateAllFocus() {
+    recCards.forEach((c, i) => {
+      c.classList.toggle('focused', focusLayer === 'cards' && i === focusedCard);
+    });
+    tvBtns.forEach((b, i) => {
+      b.classList.toggle('focused', focusLayer === 'buttons' && i === focusedBtn);
+    });
+  }
+
+  // Keyboard D-pad
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+      if (focusLayer === 'cards') {
+        focusedCard = Math.min(2, focusedCard + 1);
+      } else {
+        focusedBtn = Math.min(2, focusedBtn + 1);
+      }
+    } else if (e.key === 'ArrowLeft') {
+      if (focusLayer === 'cards') {
+        focusedCard = Math.max(0, focusedCard - 1);
+      } else {
+        focusedBtn = Math.max(0, focusedBtn - 1);
+      }
+    } else if (e.key === 'ArrowDown') {
+      if (focusLayer === 'cards') {
+        focusLayer = 'buttons';
+        focusedBtn = 0;
+      }
+    } else if (e.key === 'ArrowUp') {
+      if (focusLayer === 'buttons') {
+        focusLayer = 'cards';
+        if (focusedCard < 0) focusedCard = 0;
+      }
+    }
+    updateAllFocus();
+  });
+
+  // Start with first card focused
+  setTimeout(() => {
+    focusLayer = 'cards';
+    focusedCard = 0;
+    updateAllFocus();
+  }, 1200);
+
+  // Auto-cycle focus demo
+  let autoCycle;
+  function startAutoCycle() {
+    let step = 0;
+    const sequence = [
+      () => { focusLayer = 'cards'; focusedCard = 0; },
+      () => { focusedCard = 1; },
+      () => { focusedCard = 2; },
+      () => { focusLayer = 'buttons'; focusedBtn = 0; },
+      () => { focusedBtn = 1; },
+      () => { focusedBtn = 2; },
+      () => { focusLayer = 'cards'; focusedCard = 0; },
+    ];
+    autoCycle = setInterval(() => {
+      sequence[step]();
+      updateAllFocus();
+      step = (step + 1) % sequence.length;
+    }, 2000);
+  }
+
+  // Start auto cycle after entrance animations
+  setTimeout(startAutoCycle, 2500);
+
+  // Stop auto cycle on any key press
+  document.addEventListener('keydown', () => {
+    if (autoCycle) { clearInterval(autoCycle); autoCycle = null; }
+  }, { once: true });
+
+  // === Budget Counter Roll ===
+  const counters = document.querySelectorAll('.counter');
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target);
+    const duration = 1200;
+    const start = performance.now();
+
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(target * eased);
+      el.textContent = '¥' + current.toLocaleString();
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // Trigger counters with delay
+  setTimeout(() => {
+    counters.forEach((c, i) => {
+      setTimeout(() => animateCounter(c), i * 200);
+    });
+  }, 800);
+
+});
+</script>
+</body>
+</html>

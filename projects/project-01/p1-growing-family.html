@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 1 — Growing Family | Context Grammar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/slide-layouts.css">
+<style>
+/* ===== P1-specific: Brain progressive reveal ===== */
+.brain-two-col { display:grid; grid-template-columns:1fr 420px; gap:48px; align-items:start; }
+.brain-step { opacity:0; transform:translateY(24px); transition:all 0.6s var(--ease); }
+.brain-layer { border-radius:16px; padding:28px 32px; }
+.brain-layer--identity { background:var(--chip-purple-bg); }
+.brain-layer--accumulated { background:var(--chip-blue-bg); }
+.brain-layer--rightnow { background:var(--chip-green-bg); }
+.brain-layer-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.brain-layer-num { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; color:#fff; font-size:16px; font-weight:500; }
+.brain-layer-num--identity { background:var(--illust-purple); }
+.brain-layer-num--accumulated { background:var(--illust-blue); }
+.brain-layer-num--rightnow { background:var(--illust-green); }
+.brain-layer-label { font-family:var(--font-mono); font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0; }
+.brain-layer-label--identity { color:var(--color-brain); }
+.brain-layer-label--accumulated { color:var(--color-grammar); }
+.brain-layer-label--rightnow { color:var(--color-success); }
+.brain-layer-title { font-family:var(--font-sans); font-weight:500; font-size:18px; margin-bottom:4px; color:var(--text); }
+.brain-layer-desc { font-family:var(--font-jp); font-size:14px; color:var(--text-2); line-height:1.8; }
+.brain-layer-insight { margin-top:12px; font-family:var(--font-jp); font-size:12px; font-weight:500; }
+.brain-layer-insight--identity { color:var(--color-brain); }
+.brain-layer-insight--accumulated { color:var(--color-grammar); }
+.brain-layer-insight--rightnow { color:var(--color-success); }
+.brain-layer-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+.brain-layer-chip { font-family:var(--font-jp); font-size:11px; padding:4px 10px; border-radius:6px; font-weight:400; white-space:nowrap; }
+.brain-layer-chip--identity { background:rgba(139,92,246,0.10); color:var(--chip-purple-text); }
+.brain-layer-chip--accumulated { background:rgba(59,130,246,0.08); color:var(--chip-blue-text); }
+.brain-layer-chip--rightnow { background:rgba(5,150,105,0.08); color:var(--chip-green-text); }
+
+/* Brain diagram (right column) */
+.brain-diagram { display:flex; flex-direction:column-reverse; gap:8px; width:100%; max-width:420px; }
+.brain-diagram-layer { opacity:0; transform:translateY(16px); transition:opacity 500ms cubic-bezier(0.23,1,0.32,1), transform 500ms cubic-bezier(0.23,1,0.32,1); border-radius:14px; padding:18px 20px; display:flex; align-items:flex-start; gap:14px; }
+.brain-diagram-layer.visible { opacity:1; transform:translateY(0); }
+.brain-diagram-layer--identity { background:var(--chip-purple-bg); border-left:4px solid var(--illust-purple); }
+.brain-diagram-layer--accumulated { background:var(--chip-blue-bg); border-left:4px solid var(--illust-blue); }
+.brain-diagram-layer--rightnow { background:var(--chip-green-bg); border-left:4px solid var(--illust-green); }
+.brain-diagram-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; margin-top:2px; }
+.brain-diagram-layer--identity .brain-diagram-icon { background:rgba(139,92,246,0.12); }
+.brain-diagram-layer--accumulated .brain-diagram-icon { background:rgba(59,130,246,0.10); }
+.brain-diagram-layer--rightnow .brain-diagram-icon { background:rgba(5,150,105,0.10); }
+.brain-diagram-content { flex:1; min-width:0; }
+.brain-diagram-name { font-family:var(--font-sans); font-weight:500; font-size:14px; margin-bottom:6px; }
+.brain-diagram-layer--identity .brain-diagram-name { color:var(--color-brain); }
+.brain-diagram-layer--accumulated .brain-diagram-name { color:var(--color-grammar); }
+.brain-diagram-layer--rightnow .brain-diagram-name { color:var(--color-success); }
+.brain-diagram-chips { display:flex; flex-wrap:wrap; gap:4px; }
+.brain-diagram-chip { font-family:var(--font-jp); font-size:11px; padding:3px 8px; border-radius:6px; font-weight:400; white-space:nowrap; }
+.brain-diagram-layer--identity .brain-diagram-chip { background:rgba(139,92,246,0.10); color:var(--chip-purple-text); }
+.brain-diagram-layer--accumulated .brain-diagram-chip { background:rgba(59,130,246,0.08); color:var(--chip-blue-text); }
+.brain-diagram-layer--rightnow .brain-diagram-chip { background:rgba(5,150,105,0.08); color:var(--chip-green-text); }
+.brain-diagram-layer--rightnow .brain-diagram-name::after { content:''; display:inline-block; width:7px; height:7px; background:var(--illust-green); border-radius:50%; margin-left:6px; vertical-align:middle; animation:pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.4;transform:scale(0.7);} }
+.brain-diagram-connector { width:2px; height:12px; background:var(--border); margin-left:38px; opacity:0; transition:opacity 400ms 200ms cubic-bezier(0.23,1,0.32,1); }
+.brain-diagram-connector.visible { opacity:1; }
+.brain-conclusion { padding:20px 24px; border-radius:14px; background:linear-gradient(135deg,var(--chip-purple-bg) 0%,var(--chip-blue-bg) 40%,var(--chip-green-bg) 100%); border:1px solid var(--border); }
+.brain-right-col { display:flex; flex-direction:column; gap:24px; position:sticky; top:100px; }
+
+/* ===== P1-specific: Disclosure Dial ===== */
+.disclosure-intro { font-family:var(--font-jp); font-size:15px; line-height:1.8; color:var(--text-2); max-width:720px; margin-bottom:12px; }
+.disclosure-intro strong { color:var(--text); font-weight:600; }
+.disclosure-why { display:flex; align-items:flex-start; gap:14px; margin-bottom:28px; padding:18px 22px; border-radius:14px; background:linear-gradient(135deg,var(--chip-purple-bg) 0%,var(--chip-amber-bg) 100%); font-family:var(--font-jp); font-size:14px; line-height:1.75; color:var(--text); max-width:720px; }
+.disclosure-why .why-icon { font-size:20px; flex-shrink:0; margin-top:2px; }
+.disclosure-diagram { display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:720px; }
+.disclosure-col { display:flex; flex-direction:column; gap:8px; }
+.disclosure-col-header { font-family:var(--font-sans); font-weight:500; font-size:18px; margin-bottom:2px; display:flex; align-items:center; gap:10px; }
+.disclosure-col-header .icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.disclosure-direction-label { display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; margin-bottom:6px; padding:5px 12px; border-radius:8px; width:fit-content; }
+.col-connective .disclosure-direction-label { background:var(--chip-amber-bg); color:var(--chip-amber-text); }
+.col-protective .disclosure-direction-label { background:var(--chip-purple-bg); color:var(--chip-purple-text); }
+.disclosure-step { display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:10px; font-family:var(--font-jp); font-size:13px; font-weight:500; transition:transform 0.2s var(--ease); }
+.disclosure-step:hover { transform:translateX(4px); }
+.disclosure-step .step-name { font-family:var(--font-mono); font-size:11px; font-weight:600; min-width:76px; letter-spacing:0.04em; }
+.col-protective .disclosure-step { background:var(--chip-purple-bg); color:var(--chip-purple-text); }
+.col-protective .disclosure-step .step-name { color:var(--chip-purple-text); }
+.col-connective .disclosure-step { background:var(--chip-amber-bg); color:var(--chip-amber-text); }
+.col-connective .disclosure-step .step-name { color:var(--chip-amber-text); }
+.disclosure-callout { margin-top:20px; padding:16px 20px 16px 24px; border-radius:12px; background:var(--chip-purple-bg); font-family:var(--font-jp); font-size:14px; color:var(--chip-purple-text); font-weight:500; position:relative; overflow:hidden; max-width:720px; line-height:1.7; }
+.disclosure-callout::before { content:''; position:absolute; top:0; left:0; bottom:0; width:4px; background:var(--illust-purple); }
+
+/* ===== P1-specific: DA Matrix ===== */
+.da-matrix { display:grid; grid-template-columns:140px 1fr 1fr; grid-template-rows:auto auto auto; max-width:640px; margin:32px auto 0; gap:0; }
+.da-matrix-corner { }
+.da-col-header { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:10px 8px 14px; text-align:center; }
+.da-col-header .da-header-jp { font-family:var(--font-jp); font-weight:500; font-size:15px; color:var(--text); }
+.da-col-header .da-header-en { font-family:var(--font-mono); font-size:11px; color:var(--text-3); letter-spacing:0.04em; margin-top:2px; }
+.da-row-header { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; padding:16px 20px 16px 0; text-align:right; }
+.da-row-header .da-header-jp { font-family:var(--font-jp); font-weight:500; font-size:15px; color:var(--text); }
+.da-row-header .da-header-en { font-family:var(--font-mono); font-size:11px; color:var(--text-3); letter-spacing:0.04em; margin-top:2px; }
+.da-cell { padding:28px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; text-align:center; border:1px solid var(--border); min-height:130px; }
+.da-cell--neutral { background:var(--bg-3); border-radius:16px 0 0 0; }
+.da-cell--suggest { background:var(--chip-blue-bg); border-radius:0 16px 0 0; }
+.da-cell--impossible { background:var(--chip-red-bg); border-radius:0 0 0 16px; position:relative; overflow:hidden; }
+.da-cell--impossible::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(-45deg,transparent,transparent 8px,rgba(220,38,38,0.08) 8px,rgba(220,38,38,0.08) 10px); pointer-events:none; }
+.da-cell--auto { background:var(--chip-green-bg); border-radius:0 0 16px 0; border:2px solid var(--illust-green); }
+.da-cell-icon { font-size:28px; line-height:1; }
+.da-cell-title { font-family:var(--font-jp); font-weight:500; font-size:15px; }
+.da-cell--neutral .da-cell-title { color:var(--text-2); }
+.da-cell--suggest .da-cell-title { color:var(--chip-blue-text); }
+.da-cell--impossible .da-cell-title { color:var(--chip-red-text); }
+.da-cell--auto .da-cell-title { color:var(--chip-green-text); }
+.da-cell-desc { font-family:var(--font-jp); font-size:12px; color:var(--text-2); line-height:1.5; }
+.da-cell--impossible .da-cell-desc { color:var(--chip-red-text); }
+.da-cell--auto .da-cell-desc { color:var(--chip-green-text); }
+.da-axis-x { text-align:center; padding:0 0 6px; font-family:var(--font-sans); font-weight:500; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-brain); }
+.da-y-axis { display:flex; align-items:center; justify-content:center; writing-mode:vertical-lr; transform:rotate(180deg); font-family:var(--font-sans); font-weight:500; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-success); padding:0 8px 0 0; margin-top:60px; }
+.da-prerequisite { display:flex; align-items:center; justify-content:center; gap:16px; max-width:640px; margin:28px auto 0; padding:16px 24px; border-radius:12px; background:linear-gradient(135deg,rgba(139,92,246,0.06) 0%,rgba(5,150,105,0.06) 100%); border:1px solid var(--border); }
+.da-prerequisite-flow { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.da-pill { display:inline-flex; align-items:center; gap:4px; padding:6px 14px; border-radius:20px; font-family:var(--font-sans); font-weight:500; font-size:13px; }
+.da-pill--disclosure { background:var(--chip-purple-bg); color:var(--chip-purple-text); }
+.da-pill--autonomy { background:var(--chip-green-bg); color:var(--chip-green-text); }
+.da-prerequisite-flow .da-arrow-icon { font-size:20px; color:var(--text-3); }
+.da-prerequisite-label { font-family:var(--font-jp); font-size:13px; color:var(--text-2); line-height:1.5; }
+
+/* ===== P1-specific: Phase content (text + UI embed) ===== */
+.phase-content { display:flex; gap:56px; align-items:center; }
+.phase-text { flex:1; min-width:0; }
+.phase-ui { flex-shrink:0; }
+.ui-embed { width:100%; max-width:420px; aspect-ratio:9/16; border:none; border-radius:16px; overflow:hidden; flex-shrink:0; background:var(--bg-2); box-shadow:0 4px 24px rgba(0,0,0,0.2),0 1px 4px rgba(0,0,0,0.1); }
+.ui-embed--phone { max-width:390px; aspect-ratio:9/19.5; border-radius:24px; box-shadow:0 8px 40px rgba(0,0,0,0.25),0 2px 8px rgba(0,0,0,0.12); }
+
+/* ===== P1-specific: Substitution modes ===== */
+.sub-modes { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.sub-mode { padding:10px 20px; border-radius:100px; font-family:var(--font-sans); font-weight:500; font-size:14px; letter-spacing:0.02em; }
+.sub-mode--exact { background:var(--chip-red-bg); color:var(--chip-red-text); }
+.sub-mode--flexible { background:var(--chip-blue-bg); color:var(--chip-blue-text); }
+.sub-mode--exploring { background:var(--chip-amber-bg); color:var(--chip-amber-text); }
+.sub-mode--surprise { background:var(--chip-amber-bg); color:var(--chip-amber-text); }
+
+/* ===== P1-specific: Autonomy bar ===== */
+.autonomy-bar { display:flex; align-items:center; gap:0; margin-top:16px; border-radius:8px; overflow:hidden; background:var(--bg-2); }
+.autonomy-stage { padding:10px 16px; font-family:var(--font-mono); font-size:11px; font-weight:500; letter-spacing:0.04em; color:var(--text-3); position:relative; transition:all 0.3s var(--ease); }
+.autonomy-stage--active { background:var(--chip-green-bg); color:var(--chip-green-text); }
+.autonomy-stage + .autonomy-stage::before { content:'\2192'; position:absolute; left:-4px; top:50%; transform:translateY(-50%); font-size:10px; color:var(--text-3); }
+
+/* ===== P1-specific: Before/After panels ===== */
+.ba-panel { padding:24px; border-radius:16px; }
+.ba-panel--before { background:var(--bg-2); border:1px solid var(--border); }
+.ba-panel--after { background:var(--chip-purple-bg); border:1px solid transparent; }
+.ba-label { font-family:var(--font-mono); font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px; color:var(--text-3); }
+.ba-content { font-family:var(--font-jp); font-size:14px; line-height:1.8; color:var(--text); }
+
+/* ===== P1-specific: Connective cards ===== */
+.conn-card { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:28px 28px 28px 32px; position:relative; overflow:hidden; transition:transform 0.3s var(--ease),box-shadow 0.3s var(--ease); }
+.conn-card::before { content:''; position:absolute; top:0; left:0; bottom:0; width:4px; background:var(--illust-amber); }
+.conn-card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.15); }
+.conn-card-title { font-family:var(--font-jp); font-weight:500; font-size:16px; color:var(--text); margin-bottom:8px; }
+.conn-card-desc { font-family:var(--font-jp); font-size:14px; color:var(--text-2); line-height:1.6; }
+
+/* ===== P1-specific: Photo strip ===== */
+.photo-strip { display:flex; gap:3px; width:100%; height:200px; border-radius:16px; overflow:hidden; margin-top:32px; }
+.photo-strip img { flex:1; object-fit:cover; min-width:0; }
+
+/* ===== P1-specific: Inline photo ===== */
+.inline-photo { border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.2); }
+.inline-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* ===== P1-specific: Pronoun climax quote ===== */
+.climax-quote { font-family:var(--font-jp); font-weight:400; font-size:clamp(16px,1.8vw,22px); line-height:1.8; color:var(--text-2); max-width:600px; margin-top:24px; padding:24px 24px 24px 27px; border-radius:12px; background:var(--chip-purple-bg); position:relative; overflow:hidden; }
+.climax-quote::before { content:''; position:absolute; top:0; left:0; bottom:0; width:3px; background:var(--illust-purple); }
+
+/* ===== P1-specific: Disclosure Map ===== */
+.map-compare { display:grid; grid-template-columns:1fr auto 1fr; gap:32px; align-items:center; }
+.map-panel { background:var(--bg-2); border:1px solid var(--border); border-radius:16px; padding:24px; }
+.map-panel-label { font-family:var(--font-mono); font-size:12px; font-weight:500; letter-spacing:0.08em; color:var(--text-3); margin-bottom:16px; }
+.mini-grid { display:grid; gap:4px; }
+.mini-grid--simple { grid-template-columns:repeat(4,1fr); }
+.mini-grid--complex { grid-template-columns:repeat(6,1fr); }
+.mini-cell { aspect-ratio:1; border-radius:6px; min-width:28px; }
+.map-arrow { font-size:32px; color:var(--text-3); }
+
+/* ===== P1-specific: Autonomy Timeline ===== */
+.timeline-rows { display:flex; flex-direction:column; gap:16px; max-width:720px; }
+.timeline-row { display:grid; grid-template-columns:140px 1fr; gap:16px; align-items:center; }
+.timeline-label { font-family:var(--font-jp); font-weight:500; font-size:14px; color:var(--text); text-align:right; }
+.timeline-bar { display:flex; gap:2px; border-radius:8px; overflow:hidden; }
+.timeline-stage { padding:12px 16px; font-family:var(--font-mono); font-size:11px; font-weight:500; letter-spacing:0.03em; text-align:center; flex:1; }
+.timeline-stage--inactive { background:var(--bg-3); color:var(--text-3); }
+.timeline-stage--active { background:var(--chip-green-bg); color:var(--chip-green-text); }
+.timeline-stage--cap { background:var(--chip-amber-bg); color:var(--chip-amber-text); }
+
+/* ===== P1-specific: Token Map Table ===== */
+.token-map-table { width:100%; border-collapse:separate; border-spacing:3px; font-size:12px; }
+.token-map-table th { padding:10px 8px; font-family:var(--font-mono); font-weight:500; font-size:10px; letter-spacing:0.06em; color:var(--text-3); text-align:center; white-space:nowrap; }
+.token-map-table th:first-child { text-align:left; min-width:120px; }
+.token-map-table td { padding:8px; text-align:center; border-radius:6px; font-family:var(--font-mono); font-size:10px; font-weight:500; }
+.token-map-table td:first-child { text-align:left; font-family:var(--font-jp); font-size:12px; font-weight:500; color:var(--text); background:transparent; }
+.tm-high { background:var(--illust-blue); color:#FFF; }
+.tm-med { background:var(--chip-blue-bg); color:var(--chip-blue-text); }
+.tm-low { background:var(--bg-3); color:var(--text-2); }
+.tm-none { background:var(--bg-2); color:var(--text-3); }
+
+/* ===== P1-specific: Hero Summary Grid ===== */
+.hero-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.hero-card { padding:24px 20px; border-radius:14px; background:var(--bg-2); border:1px solid var(--border); text-align:center; transition:transform 0.3s var(--ease),box-shadow 0.3s var(--ease); }
+.hero-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+.hero-card-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; margin:0 auto 12px; }
+.hero-card-label { font-family:var(--font-jp); font-weight:500; font-size:13px; color:var(--text); line-height:1.4; }
+
+/* ===== P1-specific: Phase transition photo overlays ===== */
+.slide--photo { background-size:cover; background-position:center; }
+.slide--photo::before { content:''; position:absolute; inset:0; z-index:1; }
+.slide--photo .slide-inner { z-index:2; }
+.slide--photo .slide-title,
+.slide--photo .slide-subtitle,
+.slide--photo .slide-label { text-shadow:0 2px 24px rgba(0,0,0,0.3); }
+.slide--photo-dark::before { background:linear-gradient(0deg,rgba(8,7,11,0.85) 0%,rgba(8,7,11,0.5) 40%,rgba(8,7,11,0.15) 100%); }
+.slide--photo-light::before { background:linear-gradient(0deg,rgba(8,7,11,0.85) 0%,rgba(8,7,11,0.5) 50%,rgba(8,7,11,0.15) 100%); }
+.slide--photo-center::before { background:radial-gradient(ellipse at center,rgba(8,7,11,0.7) 0%,rgba(8,7,11,0.4) 70%); }
+.phase-number { font-family:var(--font-mono); font-size:clamp(80px,12vw,160px); font-weight:300; color:rgba(255,255,255,0.08); position:absolute; right:64px; bottom:40px; line-height:1; z-index:1; letter-spacing:-0.05em; }
+
+/* ===== P1-specific: Epilogue ===== */
+.epilogue-text { font-family:var(--font-jp); font-weight:300; font-size:clamp(18px,2.2vw,28px); line-height:1.8; color:rgba(255,255,255,0.75); max-width:600px; }
+.epilogue-text strong { color:#FFFFFF; font-weight:500; }
+
+/* ===== P1-specific: Card with photo ===== */
+.card--photo { padding:0; overflow:hidden; }
+.card--photo .card-img { width:100%; height:140px; object-fit:cover; }
+.card--photo .card-body { padding:20px 24px 24px; }
+
+/* ===== P1-specific: Token row ===== */
+.token-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .phase-content { flex-direction:column; }
+  .hero-grid { grid-template-columns:1fr 1fr; }
+  .map-compare { grid-template-columns:1fr; }
+  .map-arrow { transform:rotate(90deg); text-align:center; }
+  .timeline-row { grid-template-columns:100px 1fr; }
+  .photo-strip { height:140px; }
+  .disclosure-diagram { grid-template-columns:1fr; gap:32px; }
+  .da-matrix { grid-template-columns:100px 1fr 1fr; }
+  .phase-ui { width:100%; display:flex; justify-content:center; }
+  .ui-embed { max-width:320px; }
+  .ui-embed--phone { max-width:300px; }
+  .brain-two-col { grid-template-columns:1fr !important; }
+  .brain-right-col { position:static !important; }
+  /* P1-M06: Device Role Map */
+  #s23 .slide-inner > div:nth-child(4) { grid-template-columns:1fr 1fr !important; }
+  /* P1-M05: Error Recovery */
+  #s24 .slide-inner > div:nth-child(5) { grid-template-columns:1fr !important; }
+  /* P1-M04: Week 1 vs Month 6 */
+  #s25 .slide-inner > div:nth-child(3) { grid-template-columns:1fr !important; }
+  #s25 .slide-inner > div:nth-child(3) > div:nth-child(2) { transform:rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- =============================================================
+     S1 — Hero Title (Family Dinner BG)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--photo slide--photo-center slide--v-center" id="s1"
+  style="background-image:url('presentation-images/family-dinner-epilogue-warmth.png');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(255,255,255,0.3);">Context Grammar — Project 1</div>
+      <h1 class="slide-title" style="color:#fff;font-size:clamp(40px,5.5vw,72px);max-width:100%;">Growing Family</h1>
+      <p class="slide-subtitle" style="color:rgba(255,255,255,0.5);max-width:600px;margin:0 auto;">Disclosure Architecture &amp; Trust Evolution</p>
+      <div style="width:48px;height:3px;background:var(--color-grammar);margin:32px auto 0;border-radius:2px;"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S2 — Empathy: Decision Fatigue (Photo BG)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--photo slide--photo-light" id="s2"
+  style="background-image:url('./image-set01/P1_LivingHome/P1-IP02_before-cluttered-kitchen.webp');">
+  <div class="slide-inner" style="max-width:800px;">
+    <div class="slide-label">The Moment</div>
+    <blockquote class="quote-text" style="background:rgba(8,7,11,0.85);padding:32px 32px 32px 40px;border-radius:16px;backdrop-filter:blur(8px);">
+      「今夜何食べる？」——毎晩、冷蔵庫の前で立ち尽くす。レシピアプリは開いたが、足りない食材、子どものアレルギー、帰宅時間の計算…。情報はあるのに、判断できない。
+    </blockquote>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S3 — Five Frictions
+     ============================================================= -->
+<section class="slide slide--dim" id="s3">
+  <div class="slide-inner">
+    <div class="slide-label">Before — 5 Frictions</div>
+    <h2 class="slide-title">家族の情報共有のフリクション</h2>
+    <div class="grid-5 stagger" style="margin-top:32px;">
+      <div class="card card--photo">
+        <img class="card-img" src="./image-set01/P1_LivingHome/P1-image03_pain-recipe-app.webp" alt="Recipe app pain">
+        <div class="card-body">
+          <div class="card-number">01</div>
+          <div class="card-title">判断疲れ</div>
+          <div class="card-desc">「今夜何食べる？」が毎晩。選択肢が多すぎて誰も決められない。</div>
+        </div>
+      </div>
+      <div class="card card--photo">
+        <img class="card-img" src="./image-set01/P1_LivingHome/P1-IP02_before-cluttered-kitchen.webp" alt="Cluttered">
+        <div class="card-body">
+          <div class="card-number">02</div>
+          <div class="card-title">Decision Debt</div>
+          <div class="card-desc">松葉杖が3ヶ月放置。先送りが蓄積する。</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-number">03</div>
+        <div class="card-title">医療情報のグラデーション不在</div>
+        <div class="card-desc">娘の「お腹痛い」パターン。共有したいが全部は見せたくない。</div>
+      </div>
+      <div class="card">
+        <div class="card-number">04</div>
+        <div class="card-title">Disclosure ON/OFF問題</div>
+        <div class="card-desc">現実の情報共有は ON か OFF ではない。粒度が必要。</div>
+      </div>
+      <div class="card">
+        <div class="card-number">05</div>
+        <div class="card-title">家族の関心事が見えない</div>
+        <div class="card-desc">息子の新しい趣味、妻のダンス。偶然でしか発見できていない。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S4 — Vision Question
+     ============================================================= -->
+<section class="slide slide--dark slide-dark slide--v-center" id="s4">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:rgba(255,255,255,0.35);">Vision</div>
+      <h2 class="slide-title" style="font-size:clamp(28px,3.5vw,48px);line-height:1.5;max-width:100%;">
+        もし AI が家族の<span class="accent">文脈</span>を理解したら、<br>
+        情報共有の<span class="accent-coral">粒度</span>を<br>
+        家族ごとに変えられるとしたら？
+      </h2>
+      <p class="slide-subtitle" style="margin:24px auto 0;text-align:center;max-width:500px;font-size:16px;">
+        Context Grammar は「誰に、何を、どこまで」を設計する言語。<br>
+        Brain がコンテキストを記憶し、Grammar がUIに変換する。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S5 — Home Brain (Progressive Reveal)
+     ============================================================= -->
+<section class="slide" id="s5" data-substeps="4">
+  <div class="slide-inner">
+    <div style="text-align:center;margin-bottom:40px;">
+      <div class="slide-label">Below — Memory Architecture</div>
+      <h2 class="slide-title" style="text-align:center;">Home Brain</h2>
+      <p class="slide-subtitle" style="text-align:center;margin:0 auto;max-width:640px;">
+        AIが家族を理解するための3層メモリ構造。<br>
+        <span style="color:var(--text-3);">スペースキーで1層ずつ表示</span>
+      </p>
+    </div>
+
+    <div class="brain-two-col">
+
+      <!-- Left: Layer cards (revealed one by one) -->
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <!-- Layer 1: Identity -->
+        <div class="brain-step" data-brain-step="1">
+          <div class="brain-layer brain-layer--identity">
+            <div class="brain-layer-header">
+              <span class="brain-layer-num brain-layer-num--identity">1</span>
+              <div>
+                <div class="brain-layer-label brain-layer-label--identity">Layer 1 — Identity</div>
+                <div class="brain-layer-title">不変の基盤</div>
+              </div>
+            </div>
+            <div class="brain-layer-desc">
+              一生変わらない、またはほぼ変わらない情報。<br>
+              名前、家族構成、アレルギー、血液型、宗教、言語。
+            </div>
+            <div class="brain-layer-chips">
+              <span class="brain-layer-chip brain-layer-chip--identity">名前</span>
+              <span class="brain-layer-chip brain-layer-chip--identity">血液型 A+</span>
+              <span class="brain-layer-chip brain-layer-chip--identity">ナッツアレルギー</span>
+              <span class="brain-layer-chip brain-layer-chip--identity">家族4人</span>
+            </div>
+            <div class="brain-layer-insight brain-layer-insight--identity">
+              → これがあるから、AIはナッツ入りレシピを絶対に提案しない。
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 2: Accumulated -->
+        <div class="brain-step" data-brain-step="2" style="margin-top:-8px;margin-left:16px;">
+          <div class="brain-layer brain-layer--accumulated">
+            <div class="brain-layer-header">
+              <span class="brain-layer-num brain-layer-num--accumulated">2</span>
+              <div>
+                <div class="brain-layer-label brain-layer-label--accumulated">Layer 2 — Accumulated</div>
+                <div class="brain-layer-title">蓄積される学習</div>
+              </div>
+            </div>
+            <div class="brain-layer-desc">
+              時間とともに変化しうるデータ。好み、行動パターン、<br>
+              ヘルスデータ、代替品の許容範囲。AIが日々学習する層。
+            </div>
+            <div class="brain-layer-chips">
+              <span class="brain-layer-chip brain-layer-chip--accumulated">牛乳 = Exact (いつものブランド)</span>
+              <span class="brain-layer-chip brain-layer-chip--accumulated">おやつ = Exploring</span>
+              <span class="brain-layer-chip brain-layer-chip--accumulated">睡眠パターン</span>
+              <span class="brain-layer-chip brain-layer-chip--accumulated">娘の腹痛記録</span>
+            </div>
+            <div class="brain-layer-insight brain-layer-insight--accumulated">
+              → これがあるから、「いつもの牛乳」と「新しいおやつ」を区別できる。
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 3: Right Now -->
+        <div class="brain-step" data-brain-step="3" style="margin-top:-8px;margin-left:32px;">
+          <div class="brain-layer brain-layer--rightnow">
+            <div class="brain-layer-header">
+              <span class="brain-layer-num brain-layer-num--rightnow">3</span>
+              <div>
+                <div class="brain-layer-label brain-layer-label--rightnow">Layer 3 — Right Now</div>
+                <div class="brain-layer-title">今この瞬間</div>
+              </div>
+            </div>
+            <div class="brain-layer-desc">
+              リアルタイムの状況。天気、体調、冷蔵庫の中身、<br>
+              今夜の予定、今の所在地、今の認知負荷。
+            </div>
+            <div class="brain-layer-chips">
+              <span class="brain-layer-chip brain-layer-chip--rightnow">雨</span>
+              <span class="brain-layer-chip brain-layer-chip--rightnow">冷蔵庫: サーモン, ブロッコリー</span>
+              <span class="brain-layer-chip brain-layer-chip--rightnow">母: 帰宅 18:30</span>
+              <span class="brain-layer-chip brain-layer-chip--rightnow">疲労度: 高</span>
+            </div>
+            <div class="brain-layer-insight brain-layer-insight--rightnow">
+              → これがあるから、「雨の日に疲れた母に簡単な夕食」を提案できる。
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Animated diagram + Conclusion -->
+      <div class="brain-right-col">
+
+        <!-- Brain Diagram (layers reveal with substeps) -->
+        <div class="brain-diagram">
+          <!-- Layer 3: Right Now (top — rendered last in column-reverse) -->
+          <div class="brain-diagram-layer brain-diagram-layer--rightnow" data-diagram-layer="3">
+            <div class="brain-diagram-icon">⚡</div>
+            <div class="brain-diagram-content">
+              <div class="brain-diagram-name">Right Now — 今この瞬間</div>
+              <div class="brain-diagram-chips">
+                <span class="brain-diagram-chip">現在地</span>
+                <span class="brain-diagram-chip">天気</span>
+                <span class="brain-diagram-chip">認知負荷</span>
+              </div>
+            </div>
+          </div>
+          <div class="brain-diagram-connector" data-diagram-connector="3"></div>
+
+          <!-- Layer 2: Accumulated (middle) -->
+          <div class="brain-diagram-layer brain-diagram-layer--accumulated" data-diagram-layer="2">
+            <div class="brain-diagram-icon">📈</div>
+            <div class="brain-diagram-content">
+              <div class="brain-diagram-name">Accumulated — 蓄積された学習</div>
+              <div class="brain-diagram-chips">
+                <span class="brain-diagram-chip">購買パターン</span>
+                <span class="brain-diagram-chip">好み</span>
+                <span class="brain-diagram-chip">代替品許容</span>
+              </div>
+            </div>
+          </div>
+          <div class="brain-diagram-connector" data-diagram-connector="2"></div>
+
+          <!-- Layer 1: Identity (bottom — rendered first in column-reverse) -->
+          <div class="brain-diagram-layer brain-diagram-layer--identity" data-diagram-layer="1">
+            <div class="brain-diagram-icon">🧬</div>
+            <div class="brain-diagram-content">
+              <div class="brain-diagram-name">Identity — 不変の基盤</div>
+              <div class="brain-diagram-chips">
+                <span class="brain-diagram-chip">家族構成</span>
+                <span class="brain-diagram-chip">アレルギー</span>
+                <span class="brain-diagram-chip">言語</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conclusion (appears after all 3 layers) -->
+        <div class="brain-step" data-brain-step="4">
+          <div class="brain-conclusion">
+            <div style="font-family:var(--font-sans);font-weight:500;font-size:15px;color:var(--text);margin-bottom:8px;">
+              3層があるからこそ
+            </div>
+            <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.7;">
+              Identity（不変）× Accumulated（学習）× Right Now（状況）——<br>
+              3層の交差点でAIは判断する。<br><br>
+              <strong style="color:var(--text);">だから「アレルギーのある子に危険なレシピ」も、「疲れている日に手の込んだ料理」も、「嫌いなブランドの代替品」も提案しない。</strong><br><br>
+              <span style="color:var(--text-3);font-size:12px;">層が1つでも欠ければ、AIは「便利だが的外れな提案」を繰り返す。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S6 — Disclosure Dial
+     ============================================================= -->
+<section class="slide slide--dim" id="s6">
+  <div class="slide-inner">
+    <div class="slide-label">Core Mechanism</div>
+    <h2 class="slide-title">Disclosure Dial — 情報の流れを2方向で制御する</h2>
+
+    <p class="disclosure-intro" style="margin-top:20px;">
+      AIに何でも知ってもらいたいわけではない。<strong>人によって、分野ごとに、知らせたい範囲は違う。</strong><br>
+      父は音楽の好みをAIに知ってほしいが、健康データは知られたくない。母は子供の教育には提案がほしいが、音楽は自分で探したい。<br>
+      Disclosure Dialは、この<strong>「どこまで知らせるか」を、ドメインごと・人ごとに調整するダイヤル</strong>だ。
+    </p>
+
+    <div class="disclosure-why">
+      <span class="why-icon">?</span>
+      <div>
+        <strong style="font-size:15px;">なぜ2方向あるのか？</strong><br>
+        情報は2つの方向に流れる。<strong>あなたからAIへ</strong>と、<strong>AIからあなた以外の人へ</strong>。<br>
+        例：娘の腹痛パターンを「AIには全部記録させる」が、「父にはサマリーだけ見せる」「学校には存在だけ通知する」。<br>
+        入口と出口を分けて制御することで、初めて粒度のある情報管理が成り立つ。
+      </div>
+    </div>
+
+    <div class="disclosure-diagram">
+      <!-- Connective (You -> AI) -->
+      <div class="disclosure-col col-connective stagger">
+        <div class="disclosure-col-header">
+          <span class="icon" style="background:var(--chip-amber-bg);color:var(--chip-amber-text);">&#x1F517;</span>
+          つなげる — Connective
+        </div>
+        <div class="disclosure-direction-label">YOU &#x2192; AI &emsp; あなたの情報をAIに渡す度合い</div>
+        <div class="disclosure-step"><span class="step-name">PUSH</span> 積極的に共有する（新しい情報を自動で渡す）</div>
+        <div class="disclosure-step"><span class="step-name">DIGEST</span> まとめて定期配信する</div>
+        <div class="disclosure-step"><span class="step-name">AVAILABLE</span> 聞かれたら答える（AIから取りに来る）</div>
+        <div class="disclosure-step"><span class="step-name">OFF</span> 共有しない（AIはこの領域を知らない）</div>
+      </div>
+
+      <!-- Protective (AI -> Others) -->
+      <div class="disclosure-col col-protective stagger">
+        <div class="disclosure-col-header">
+          <span class="icon" style="background:var(--chip-purple-bg);color:var(--chip-purple-text);">&#x1F6E1;</span>
+          守る — Protective
+        </div>
+        <div class="disclosure-direction-label">AI &#x2192; OTHERS &emsp; AIが他者に見せる度合い</div>
+        <div class="disclosure-step"><span class="step-name">FULL</span> すべて見える（詳細データごと共有）</div>
+        <div class="disclosure-step"><span class="step-name">SUMMARY</span> 要約のみ（「体調に注意」程度）</div>
+        <div class="disclosure-step"><span class="step-name">EXISTENCE</span> 存在だけ通知（「記録あり」のみ）</div>
+        <div class="disclosure-step"><span class="step-name">HIDDEN</span> 完全に非表示（他者からは見えない）</div>
+      </div>
+    </div>
+
+    <div class="disclosure-callout">
+      Disclosure は Autonomy の前提条件。AIは、知らないものを自動化できない。<br>
+      「知らせない × 任せる」は論理的に不可能。知らせる範囲を決めて初めて、任せる度合いが設計できる。
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S7 — Disclosure x Autonomy Matrix
+     ============================================================= -->
+<section class="slide" id="s7">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="slide-label">Coupling</div>
+    <h2 class="slide-title" style="text-align:center;">Disclosure × Autonomy — 論理的前提</h2>
+    <p style="font-family:var(--font-jp);font-size:14px;color:var(--text-2);margin-top:-8px;margin-bottom:8px;">
+      2つのダイヤルの組み合わせで、AIの振る舞いが決まる。
+    </p>
+
+    <div style="display:flex;align-items:stretch;justify-content:center;gap:0;max-width:700px;margin:0 auto;">
+      <div class="da-y-axis">Autonomy（どこまで任せるか）</div>
+      <div class="da-matrix">
+        <div class="da-matrix-corner"></div>
+        <div class="da-axis-x" style="grid-column:2/4;">Disclosure（どこまで知らせるか）</div>
+
+        <div class="da-matrix-corner"></div>
+        <div class="da-col-header">
+          <span class="da-header-jp">知らせない</span>
+          <span class="da-header-en">Don't share</span>
+        </div>
+        <div class="da-col-header">
+          <span class="da-header-jp">知らせる</span>
+          <span class="da-header-en">Share</span>
+        </div>
+
+        <div class="da-row-header">
+          <span class="da-header-jp">任せない</span>
+          <span class="da-header-en">Don't delegate</span>
+        </div>
+        <div class="da-cell da-cell--neutral">
+          <div class="da-cell-icon">--</div>
+          <div class="da-cell-title">AI関与なし</div>
+          <div class="da-cell-desc">手動で管理する</div>
+        </div>
+        <div class="da-cell da-cell--suggest">
+          <div class="da-cell-icon">💡</div>
+          <div class="da-cell-title">提案のみ</div>
+          <div class="da-cell-desc">知っているが、決めるのは人</div>
+        </div>
+
+        <div class="da-row-header">
+          <span class="da-header-jp">任せる</span>
+          <span class="da-header-en">Delegate</span>
+        </div>
+        <div class="da-cell da-cell--impossible">
+          <div class="da-cell-icon">&#10005;</div>
+          <div class="da-cell-title">不可能</div>
+          <div class="da-cell-desc">知らないものは<br>任せられない</div>
+        </div>
+        <div class="da-cell da-cell--auto">
+          <div class="da-cell-icon">&#10003;</div>
+          <div class="da-cell-title">自動実行</div>
+          <div class="da-cell-desc">知っていて、判断も任せる</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="da-prerequisite">
+      <div class="da-prerequisite-flow">
+        <span class="da-pill da-pill--disclosure">Disclosure</span>
+        <span class="da-arrow-icon">→</span>
+        <span class="da-pill da-pill--autonomy">Autonomy</span>
+      </div>
+      <div class="da-prerequisite-label">
+        知らせる（Disclosure）は、任せる（Autonomy）の<strong>論理的前提条件</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S8 — Phase 1 Photo Transition
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--photo slide--photo-dark" id="s8"
+  style="background-image:url('presentation-images/kitchen-morning-week1-setup.png');">
+  <div class="slide-inner" style="max-width:800px;">
+    <div class="slide-label" style="color:var(--color-success);">Phase 1 — Week 1</div>
+    <h2 class="slide-title" style="font-size:clamp(36px,5vw,60px);">まずは夕食から。</h2>
+    <p class="slide-subtitle">最小限のDisclosureで、最大限の価値を証明する。</p>
+  </div>
+  <div class="phase-number">01</div>
+</section>
+
+
+<!-- =============================================================
+     S23 — Device Role Map (Compact 4-device)
+     ============================================================= -->
+<section class="slide slide--dim" id="s23">
+  <div class="slide-inner">
+    <div class="slide-label label-grammar">System Architecture</div>
+    <h2 class="slide-title">Device Role Map — Home Brainが統合制御する4つのサーフェス</h2>
+    <p class="slide-subtitle" style="margin-bottom:32px;">同じHome Brainが、デバイスごとに異なる役割とUIを出し分ける。</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      <!-- Nest Hub -->
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">🖥</div>
+        <div style="font-family:var(--font-sans);font-weight:500;font-size:15px;color:var(--text);margin-bottom:4px;">Nest Hub</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);letter-spacing:0.04em;margin-bottom:12px;">AMBIENT DASHBOARD</div>
+        <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+          常時表示。食事提案カード、家族のスケジュール。<br>
+          <span style="font-size:12px;color:var(--text-3);">Cognitive Load → 情報量を自動調整</span>
+        </div>
+      </div>
+      <!-- Phone -->
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">📱</div>
+        <div style="font-family:var(--font-sans);font-weight:500;font-size:15px;color:var(--text);margin-bottom:4px;">Phone</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);letter-spacing:0.04em;margin-bottom:12px;">PERSONAL CONTROL</div>
+        <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+          個人の設定、Disclosure調整、Substitution Mode変更。<br>
+          <span style="font-size:12px;color:var(--text-3);">Disclosure Dial → 人ごとに表示が変わる</span>
+        </div>
+      </div>
+      <!-- TV -->
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">📺</div>
+        <div style="font-family:var(--font-sans);font-weight:500;font-size:15px;color:var(--text);margin-bottom:4px;">TV</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);letter-spacing:0.04em;margin-bottom:12px;">SHARED SURFACE</div>
+        <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+          家族共有の表示。ハイライト映像、Connective Discovery。<br>
+          <span style="font-size:12px;color:var(--text-3);">Social Exposure → ゲスト時に自動切替</span>
+        </div>
+      </div>
+      <!-- Doorbell -->
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">🔔</div>
+        <div style="font-family:var(--font-sans);font-weight:500;font-size:15px;color:var(--text);margin-bottom:4px;">Doorbell</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);letter-spacing:0.04em;margin-bottom:12px;">CONTEXT TRIGGER</div>
+        <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+          来客検知がSocial Exposureトークンを発火させる。<br>
+          <span style="font-size:12px;color:var(--text-3);">トリガー専用 → 他デバイスのUIが連動変形</span>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;">
+      <span class="chip chip-blue">⑤ Form Factor</span>
+      <span class="chip chip-purple">⑧ Disclosure Dial</span>
+      <span class="chip chip-blue">③ Social Exposure</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S9 — Dinner Suggestion + UI
+     ============================================================= -->
+<section class="slide" id="s9">
+  <div class="slide-inner">
+    <div class="phase-content">
+      <div class="phase-text">
+        <div class="slide-label">Phase 1 — Dinner</div>
+        <h2 class="slide-title">食事の判断疲れ軽減</h2>
+        <p class="slide-subtitle">毎晩の「何食べる？」を3択カードに変換。家族の好みと冷蔵庫の状態から提案。</p>
+        <div class="token-row" style="margin-top:24px;">
+          <span class="chip chip-blue">② Cognitive Load: depleted</span>
+          <span class="chip chip-amber">④ Priority Weight</span>
+          <span class="chip chip-green">⑥ Feasibility</span>
+        </div>
+        <div class="autonomy-bar" style="margin-top:20px;">
+          <div class="autonomy-stage autonomy-stage--active">Suggest</div>
+          <div class="autonomy-stage autonomy-stage--active">Confirm</div>
+          <div class="autonomy-stage">Notify</div>
+          <div class="autonomy-stage">Auto</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:8px;">Suggest → Confirm in ~2 weeks</div>
+      </div>
+      <div class="phase-ui">
+        <iframe class="ui-embed" src="../../ui-screens/p1/p1-02-dinner.html" loading="lazy" title="P1-02 Dinner Suggestion Card"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S10 — Substitution Modes + UI
+     ============================================================= -->
+<section class="slide slide--dim" id="s10">
+  <div class="slide-inner">
+    <div class="phase-content">
+      <div class="phase-text">
+        <div class="slide-label">Phase 1 — Substitution</div>
+        <h2 class="slide-title">Substitution Modes</h2>
+        <span class="chip chip--amber" style="margin-bottom:12px;display:inline-block;">DELEGATION</span>
+        <p class="slide-subtitle">家族の好み構造化。代替品の許容範囲を4つのモードで表現。<br>任せていい範囲を、少しずつ広げていく。</p>
+        <div class="sub-modes" style="margin-top:28px;">
+          <div class="sub-mode sub-mode--exact">Exact</div>
+          <div class="sub-mode sub-mode--flexible">Flexible</div>
+          <div class="sub-mode sub-mode--exploring">Exploring</div>
+          <div class="sub-mode sub-mode--surprise">Surprise</div>
+        </div>
+        <p style="font-family:var(--font-jp);font-size:14px;color:var(--text-2);margin-top:16px;line-height:1.7;">
+          牛乳は Exact（いつものブランド）。<br>
+          おやつは Exploring（新しいものを試したい）。<br>
+          メンバーごとに異なる粒度。<br>
+          <span style="color:var(--text-3);font-size:13px;">Exactは「いつもの」。Flexibleは「同じジャンルならお任せ」。Exploringは「シェフの気まぐれ」。SurpriseはOmakaseそのもの。</span>
+        </p>
+      </div>
+      <div class="phase-ui">
+        <iframe class="ui-embed" src="../../ui-screens/p1/p1-03-substitution.html" loading="lazy" title="P1-03 Substitution Mode Settings"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S11 — Decision Debt + UI
+     ============================================================= -->
+<section class="slide" id="s11">
+  <div class="slide-inner">
+    <div class="phase-content">
+      <div class="phase-text">
+        <div class="slide-label">Phase 1 — Decision Debt</div>
+        <h2 class="slide-title">松葉杖の処分</h2>
+        <p class="slide-subtitle">3ヶ月放置された松葉杖。AIが処分タイミングを提案し、リセールまで代行。</p>
+        <p class="slide-subtitle" style="margin-top:16px;font-weight:500;color:var(--color-success);">30秒の作業。Decision Debtが1つ消えた。</p>
+      </div>
+      <div class="phase-ui">
+        <iframe class="ui-embed" src="../../ui-screens/p1/p1-04-decision-debt.html" loading="lazy" title="P1-04 Decision Debt Notification"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S12 — Phase 2 Photo Transition
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--photo slide--photo-dark" id="s12"
+  style="background-image:url('./image-set01/P1_LivingHome/P1-IP05_month3-salmon-prepared.webp');">
+  <div class="slide-inner" style="max-width:800px;">
+    <div class="slide-label" style="color:var(--color-success);">Phase 2 — Month 3</div>
+    <h2 class="slide-title" style="font-size:clamp(36px,5vw,60px);">信頼が育つ。</h2>
+    <p class="slide-subtitle">Brainが家族のパターンを学び、Disclosureの粒度が動き始める。</p>
+  </div>
+  <div class="phase-number">02</div>
+</section>
+
+
+<!-- =============================================================
+     S13 — Medical Log + UI
+     ============================================================= -->
+<section class="slide slide--dim" id="s13">
+  <div class="slide-inner">
+    <div class="phase-content">
+      <div class="phase-text">
+        <div class="slide-label">Phase 2 — Medical</div>
+        <h2 class="slide-title">娘の医療ログ</h2>
+        <span class="chip chip--blue" style="margin-bottom:12px;display:inline-block;">ESCALATION</span>
+        <p class="slide-subtitle">「お腹痛い」のパターンを記録。Disclosureが家族内で異なる粒度で動く。<br>AIは診断しない。パターンを見つけ、医師への橋渡しをする。<br><span style="font-size:13px;color:var(--text-3);">「ここまでは私の仕事、ここからは人間の仕事」と線を引く設計。</span></p>
+        <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="chip chip-green">母 = FULL表示</span>
+            <span style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);">タイムライン・頻度・推定パターン</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="chip chip-purple">父 = SUMMARY</span>
+            <span style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);">「今週2回あった」のみ</span>
+          </div>
+        </div>
+        <div style="margin-top:20px;padding:16px 20px 16px 24px;border-radius:12px;background:var(--chip-green-bg);font-family:var(--font-jp);font-size:14px;color:var(--chip-green-text);position:relative;overflow:hidden;">
+          <span style="position:absolute;top:0;left:0;bottom:0;width:4px;background:var(--illust-green);"></span>
+          「パターンはありますが、診断はできません。小児科への相談をおすすめします。」
+        </div>
+      </div>
+      <div class="phase-ui">
+        <iframe class="ui-embed ui-embed--phone" src="../../ui-screens/p1/p1-05-medical.html" loading="lazy" title="P1-05 Medical Pattern Timeline"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S14 — Guest Mode
+     ============================================================= -->
+<section class="slide" id="s14">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label">Phase 2 — Guest Mode</div>
+        <h2 class="slide-title">ゲストモード — 3トークン同時発火</h2>
+        <span class="chip chip--green" style="margin-bottom:12px;display:inline-block;">ADAPTATION</span>
+        <p style="font-family:var(--font-jp);font-size:14px;color:var(--text-2);line-height:1.7;margin-bottom:16px;">
+          環境の変化に応じてUIが自動で変形する。Doorbell検知でSocial Exposureが変化し、TV・Phone・Nestが同時に切り替わる。
+        </p>
+        <div class="token-row" style="margin-bottom:28px;">
+          <span class="chip chip-purple">⑧ Disclosure</span>
+          <span class="chip chip-blue">③ Social Exposure</span>
+          <span class="chip chip-amber">⑤ Form Factor</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="ba-panel ba-panel--before" style="padding:18px;">
+            <div class="ba-label">Family View</div>
+            <div class="ba-content" style="font-size:13px;">
+              娘：ピアノ 16:00 / 父：1on1 14:00<br>
+              息子：サッカー 15:30 / 母：ダンス 19:00
+            </div>
+          </div>
+          <div style="text-align:center;font-size:20px;color:var(--text-3);">↓</div>
+          <div class="ba-panel ba-panel--after" style="padding:18px;">
+            <div class="ba-label">Guest View</div>
+            <div class="ba-content" style="font-size:13px;">
+              ☀ 72°F / Wi-Fi: GuestNetwork<br>
+              <span style="color:var(--text-3);">家族の予定は非表示</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="image-col">
+        <img src="presentation-images/guest-gathering-doorway.png" alt="Family welcoming guests at doorway">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S15 — Connective Disclosure
+     ============================================================= -->
+<section class="slide slide--dim" id="s15">
+  <div class="slide-inner">
+    <div class="slide-label label-intent">Connective</div>
+    <h2 class="slide-title">Connective Disclosure</h2>
+    <p class="slide-subtitle" style="margin-bottom:32px;">守るだけでなく、つなげる。家族の関心事を自然に共有する。</p>
+    <div class="grid-3 stagger">
+      <div class="conn-card">
+        <div class="conn-card-title">妻のダンスInstagramハイライト</div>
+        <div class="conn-card-desc">10投稿を30秒の要約映像に。TVで夕食時に「今週のハイライト」として流れる。</div>
+      </div>
+      <div class="conn-card">
+        <div class="conn-card-title">息子のMinecraft BGM → 父のSpotify</div>
+        <div class="conn-card-desc">息子がゲーム中にハマった曲をDigestとして父のDiscoverに追加。共通の話題が生まれる。</div>
+      </div>
+      <div class="conn-card">
+        <div class="conn-card-title">フリーレンの双方向共有</div>
+        <div class="conn-card-desc">父が観始めたアニメを娘も追っていた。双方の視聴状況がお互いに見える。ネタバレ防止付き。</div>
+      </div>
+    </div>
+    <div class="photo-strip">
+      <img src="presentation-images/connective-tv-living-room.png" alt="Father and son watching dance highlight on TV">
+      <img src="./image-set01/P1_LivingHome/P1-IP06_month6-yuki-fridge-yogurt.webp" alt="Yuki smiling">
+      <img src="./image-set01/P1_LivingHome/P1-IP08_month9-hana-welcome-card.webp" alt="Hana drawing">
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S16 — Phase 3 Photo Transition
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--photo slide--photo-dark" id="s16"
+  style="background-image:url('presentation-images/pronoun-daughter-quiet-moment.png');">
+  <div class="slide-inner" style="max-width:800px;">
+    <div class="slide-label" style="color:var(--color-brain);">Phase 3 — Month 9</div>
+    <h2 class="slide-title" style="font-size:clamp(36px,5vw,60px);">家族が変わる瞬間。</h2>
+    <p class="slide-subtitle">AIは「決定を加速する」のではない。本人のペースを守る環境を提供する。</p>
+  </div>
+  <div class="phase-number">03</div>
+</section>
+
+
+<!-- =============================================================
+     S17 — Pronoun Change (Climax)
+     ============================================================= -->
+<section class="slide" id="s17">
+  <div class="slide-inner">
+    <div class="phase-content" style="gap:72px;">
+      <div class="phase-text">
+        <div class="slide-label label-brain">Phase 3 — Emotional Peak</div>
+        <h2 class="slide-title" style="font-size:clamp(28px,3.5vw,44px);">娘のジェンダー</h2>
+        <p class="slide-subtitle" style="font-size:clamp(15px,1.4vw,18px);">GeminiプロファイルでPronounを変更。<br>「誰に、いつ、どこまで」の選択画面が現れる。</p>
+        <div class="climax-quote">
+          AIは「決定を加速する」のではない。「本人のペースで、本人が望む順序で共有できる環境」を提供した。
+        </div>
+      </div>
+      <div class="phase-ui">
+        <iframe class="ui-embed ui-embed--phone" src="../../ui-screens/p1/p1-07-pronoun.html" loading="lazy" title="P1-07 Pronoun Change Sharing Settings" style="box-shadow:0 8px 40px rgba(139,92,246,0.15),0 2px 8px rgba(0,0,0,0.12);"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S18 — Disclosure Map Evolution
+     ============================================================= -->
+<section class="slide slide--dim" id="s18">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="slide-label">Evolution</div>
+    <h2 class="slide-title" style="text-align:center;">Disclosure Map — 初日 vs 12ヶ月後</h2>
+    <div class="map-compare" style="margin-top:40px;">
+      <div class="map-panel">
+        <div class="map-panel-label">Month 0</div>
+        <div class="mini-grid mini-grid--simple">
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:12px;">4 domains × 4 members<br>ほぼデフォルト</div>
+      </div>
+      <div class="map-arrow">→</div>
+      <div class="map-panel">
+        <div class="map-panel-label">Month 12</div>
+        <div class="mini-grid mini-grid--complex">
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+          <div class="mini-cell" style="background:var(--chip-purple-bg);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--chip-green-bg);"></div>
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+          <div class="mini-cell" style="background:var(--chip-purple-bg);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:var(--chip-green-bg);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--chip-purple-bg);"></div>
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+          <div class="mini-cell" style="background:var(--chip-amber-bg);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+          <div class="mini-cell" style="background:var(--chip-green-bg);"></div>
+          <div class="mini-cell" style="background:var(--chip-purple-bg);"></div>
+          <div class="mini-cell" style="background:var(--chip-blue-bg);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+          <div class="mini-cell" style="background:var(--chip-green-bg);"></div>
+          <div class="mini-cell" style="background:var(--bg-3);"></div>
+          <div class="mini-cell" style="background:var(--chip-amber-bg);"></div>
+          <div class="mini-cell" style="background:rgba(59,130,246,0.25);"></div>
+          <div class="mini-cell" style="background:var(--illust-blue);"></div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:12px;">6 domains × 6 people<br>domain × person × granularity</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S19 — Autonomy Timeline
+     ============================================================= -->
+<section class="slide" id="s19">
+  <div class="slide-inner">
+    <div class="slide-label">Progression</div>
+    <h2 class="slide-title">Autonomy Dial — 1年間の進化</h2>
+    <div class="timeline-rows stagger" style="margin-top:36px;">
+      <div class="timeline-row">
+        <div class="timeline-label">食材注文</div>
+        <div class="timeline-bar">
+          <div class="timeline-stage timeline-stage--active">Suggest</div>
+          <div class="timeline-stage timeline-stage--active">Confirm</div>
+          <div class="timeline-stage timeline-stage--active">Notify</div>
+          <div class="timeline-stage timeline-stage--active">Auto</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-label">処分提案</div>
+        <div class="timeline-bar">
+          <div class="timeline-stage timeline-stage--active">Suggest</div>
+          <div class="timeline-stage timeline-stage--cap">Confirm ●</div>
+          <div class="timeline-stage timeline-stage--inactive">Notify</div>
+          <div class="timeline-stage timeline-stage--inactive">Auto</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-label">医療</div>
+        <div class="timeline-bar">
+          <div class="timeline-stage timeline-stage--active">Suggest</div>
+          <div class="timeline-stage timeline-stage--cap">Always Confirm ●</div>
+          <div class="timeline-stage timeline-stage--inactive">—</div>
+          <div class="timeline-stage timeline-stage--inactive">—</div>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-label">ゲストモード</div>
+        <div class="timeline-bar">
+          <div class="timeline-stage timeline-stage--active">—</div>
+          <div class="timeline-stage timeline-stage--active">—</div>
+          <div class="timeline-stage timeline-stage--active">—</div>
+          <div class="timeline-stage timeline-stage--active" style="background:var(--illust-green);color:#FFF;">Always Auto</div>
+        </div>
+      </div>
+    </div>
+    <p style="font-family:var(--font-jp);font-size:14px;color:var(--text-3);margin-top:24px;">● = 天井。すべてが Auto に向かうわけではない。</p>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S24 — Error Recovery: Autonomy Dial Downgrade Flow
+     ============================================================= -->
+<section class="slide" id="s24">
+  <div class="slide-inner">
+    <div class="slide-label label-intent">Trust Recovery</div>
+    <h2 class="slide-title">壊れ方にこそ信頼が現れる</h2>
+    <span class="chip chip--blue" style="margin-bottom:16px;display:inline-block;">ESCALATION</span>
+    <p class="slide-subtitle" style="margin-bottom:32px;">AIが間違えた後、どう信頼を取り戻すか。Autonomy Dialの自動降格と段階的回復。</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;max-width:900px;">
+      <!-- Step 1: Error -->
+      <div style="background:var(--chip-red-bg);border:1px solid rgba(220,38,38,0.15);border-radius:16px;padding:24px;position:relative;overflow:hidden;">
+        <span style="position:absolute;top:0;left:0;bottom:0;width:4px;background:var(--illust-red,#dc2626);"></span>
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:0.08em;color:var(--chip-red-text);margin-bottom:12px;">STEP 1 — ERROR</div>
+        <div style="font-size:24px;margin-bottom:8px;">⚠️</div>
+        <div style="font-family:var(--font-jp);font-weight:500;font-size:15px;color:var(--text);margin-bottom:8px;">全部無糖ヨーグルトが届いた</div>
+        <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+          娘はストロベリー味が好き。Substitution Modeの判断ミス。
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(220,38,38,0.08);font-family:var(--font-mono);font-size:11px;color:var(--chip-red-text);">
+          Autonomy: Confirm → <strong>Suggest</strong> に自動降格
+        </div>
+      </div>
+      <!-- Step 2: Recovery -->
+      <div style="background:var(--chip-amber-bg);border:1px solid rgba(217,119,6,0.15);border-radius:16px;padding:24px;position:relative;overflow:hidden;">
+        <span style="position:absolute;top:0;left:0;bottom:0;width:4px;background:var(--illust-amber,#D97706);"></span>
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:0.08em;color:var(--chip-amber-text);margin-bottom:12px;">STEP 2 — LEARN</div>
+        <div style="font-size:24px;margin-bottom:8px;">🔄</div>
+        <div style="font-family:var(--font-jp);font-weight:500;font-size:15px;color:var(--text);margin-bottom:8px;">ユーザーが修正を教える</div>
+        <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+          「娘のヨーグルトはストロベリー味 = Exact」<br>
+          Brain Accumulated層が更新される。
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;border-radius:8px;background:rgba(217,119,6,0.08);font-family:var(--font-mono);font-size:11px;color:var(--chip-amber-text);">
+          Autonomy: Suggest（慎重モード継続）
+        </div>
+      </div>
+      <!-- Step 3: Trust restored -->
+      <div style="background:var(--chip-green-bg);border:1px solid rgba(5,150,105,0.15);border-radius:16px;padding:24px;position:relative;overflow:hidden;">
+        <span style="position:absolute;top:0;left:0;bottom:0;width:4px;background:var(--illust-green);"></span>
+        <div style="font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:0.08em;color:var(--chip-green-text);margin-bottom:12px;">STEP 3 — RECOVER</div>
+        <div style="font-size:24px;margin-bottom:8px;">✓</div>
+        <div style="font-family:var(--font-jp);font-weight:500;font-size:15px;color:var(--text);margin-bottom:8px;">次回成功 → Dial再上昇</div>
+        <div style="font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+          「前回のご注文を確認してよろしいですか？」<br>
+          成功が続けばConfirmへ復帰。
+        </div>
+        <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(5,150,105,0.05);font-family:var(--font-mono);font-size:11px;color:var(--chip-green-text);">
+          3週間、毎回ワンタップで確認してくれた
+        </div>
+        <div style="margin-top:8px;padding:10px 14px;border-radius:8px;background:rgba(5,150,105,0.08);font-family:var(--font-mono);font-size:11px;color:var(--chip-green-text);">
+          Autonomy: Suggest → <strong>Confirm</strong> に回復
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;padding:16px 24px;border-radius:12px;background:var(--bg-2);border:1px solid var(--border);font-family:var(--font-jp);font-size:14px;color:var(--text-2);line-height:1.7;max-width:900px;">
+      注文と違うものが出てきた。お店が「すみません、すぐ作り直します」と対応する。次回来た時「前回のご注文を確認してよろしいですか？」と慎重になる。<strong style="color:var(--text);">これが信頼回復の設計。</strong>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S20 — Context Token Firing Map
+     ============================================================= -->
+<section class="slide slide--dim" id="s20">
+  <div class="slide-inner">
+    <div class="slide-label">Token Activity</div>
+    <h2 class="slide-title">Context Token 発火マップ</h2>
+    <div style="overflow-x:auto;margin-top:28px;">
+      <table class="token-map-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>夕食提案</th>
+            <th>Decision<br>Debt</th>
+            <th>代替品</th>
+            <th>医療ログ</th>
+            <th>ゲスト</th>
+            <th>Connective</th>
+            <th>Pronoun</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Intent</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-low">○</td><td class="tm-low">○</td><td class="tm-high">●</td></tr>
+          <tr><td>① Physical State</td><td class="tm-low">○</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-high">●</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-none">—</td></tr>
+          <tr><td>② Cognitive Load</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-low">○</td><td class="tm-low">○</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-none">—</td></tr>
+          <tr><td>③ Social Exposure</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-low">○</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-high">●</td></tr>
+          <tr><td>④ Priority Weight</td><td class="tm-med">●</td><td class="tm-low">○</td><td class="tm-med">●</td><td class="tm-high">●</td><td class="tm-none">—</td><td class="tm-low">○</td><td class="tm-med">●</td></tr>
+          <tr><td>⑤ Form Factor</td><td class="tm-low">○</td><td class="tm-low">○</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-low">○</td></tr>
+          <tr><td>⑥ Feasibility</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-high">●</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-low">○</td><td class="tm-none">—</td></tr>
+          <tr><td>⑦ Autonomy Dial</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-med">●</td><td class="tm-med">●</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-high">●</td></tr>
+          <tr><td>⑧ Disclosure Dial</td><td class="tm-low">○</td><td class="tm-none">—</td><td class="tm-none">—</td><td class="tm-high">●</td><td class="tm-high">●</td><td class="tm-high">●</td><td class="tm-high">●</td></tr>
+          <tr><td>Brain</td><td class="tm-high">●</td><td class="tm-high">●</td><td class="tm-high">●</td><td class="tm-med">●</td><td class="tm-low">○</td><td class="tm-high">●</td><td class="tm-med">●</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:16px;font-family:var(--font-mono);font-size:11px;">
+      <span><span class="chip chip-blue" style="padding:3px 10px;">●</span> High</span>
+      <span><span style="display:inline-block;width:20px;height:16px;background:var(--chip-blue-bg);border-radius:4px;vertical-align:middle;"></span> Med</span>
+      <span><span style="display:inline-block;width:20px;height:16px;background:var(--bg-3);border-radius:4px;vertical-align:middle;"></span> Low</span>
+      <span><span style="display:inline-block;width:20px;height:16px;background:var(--bg-2);border-radius:4px;vertical-align:middle;"></span> None</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S25 — Week 1 vs Month 6: Temporal Arc Before/After
+     ============================================================= -->
+<section class="slide slide--dim" id="s25">
+  <div class="slide-inner">
+    <div class="slide-label label-intent">Temporal Arc</div>
+    <h2 class="slide-title" style="text-align:center;">Week 1 vs Month 6 — 信頼は時間をかけて育つ</h2>
+    <p class="slide-subtitle" style="text-align:center;margin:0 auto 36px;max-width:640px;">
+      初めてのお店では「何がおすすめですか？」。常連になると「いつもので」。この変化に6ヶ月かかる。AIも同じ。
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch;max-width:900px;margin:0 auto;">
+      <!-- Week 1 -->
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:16px;padding:32px 28px;">
+        <div style="font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:0.08em;color:var(--text-3);margin-bottom:8px;">WEEK 1</div>
+        <div style="font-family:var(--font-jp);font-weight:500;font-size:18px;color:var(--text);margin-bottom:20px;">はじめまして</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="autonomy-bar" style="margin:0;flex:1;">
+              <div class="autonomy-stage autonomy-stage--active" style="flex:none;padding:8px 14px;">Suggest</div>
+              <div class="autonomy-stage" style="flex:none;padding:8px 14px;">Confirm</div>
+              <div class="autonomy-stage" style="flex:none;padding:8px 14px;">Notify</div>
+              <div class="autonomy-stage" style="flex:none;padding:8px 14px;">Auto</div>
+            </div>
+          </div>
+          <div style="font-family:var(--font-jp);font-size:14px;color:var(--text-2);line-height:1.7;">
+            毎回確認が必要。AIは3択を提案し、ユーザーが選ぶ。
+          </div>
+          <div style="background:var(--bg-3);border-radius:12px;padding:16px;font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+            🍽 「今夜の夕食、3つ候補があります」<br>
+            🛒 「サーモンを注文しますか？」<br>
+            📋 「アレルギー情報を確認してください」
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div style="display:flex;align-items:center;justify-content:center;">
+        <div style="font-size:28px;color:var(--text-3);">→</div>
+      </div>
+
+      <!-- Month 6 -->
+      <div style="background:var(--chip-green-bg);border:2px solid var(--illust-green);border-radius:16px;padding:32px 28px;">
+        <div style="font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:0.08em;color:var(--chip-green-text);margin-bottom:8px;">MONTH 6</div>
+        <div style="font-family:var(--font-jp);font-weight:500;font-size:18px;color:var(--text);margin-bottom:20px;">いつもの</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="autonomy-bar" style="margin:0;flex:1;">
+              <div class="autonomy-stage autonomy-stage--active" style="flex:none;padding:8px 14px;">Suggest</div>
+              <div class="autonomy-stage autonomy-stage--active" style="flex:none;padding:8px 14px;">Confirm</div>
+              <div class="autonomy-stage autonomy-stage--active" style="flex:none;padding:8px 14px;">Notify</div>
+              <div class="autonomy-stage" style="flex:none;padding:8px 14px;">Auto</div>
+            </div>
+          </div>
+          <div style="font-family:var(--font-jp);font-size:14px;color:var(--text-2);line-height:1.7;">
+            ワンタップ確認。学習済みパターンで先回り。
+          </div>
+          <div style="background:rgba(5,150,105,0.06);border-radius:12px;padding:16px;font-family:var(--font-jp);font-size:13px;color:var(--text-2);line-height:1.6;">
+            🍽 「いつものサーモン、注文しました」<br>
+            🛒 通知のみ — ワンタップで変更可<br>
+            📋 アレルギーチェック自動完了
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;">
+      <span class="chip chip--amber">DELEGATION</span>
+      <span class="chip chip-blue">⑦ Autonomy Dial</span>
+      <span class="chip chip-purple">Brain Accumulated</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S21 — Epilogue (Warm Family Photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--photo slide--photo-dark" id="s21"
+  style="background-image:url('presentation-images/family-dinner-epilogue-warmth.png');">
+  <div class="slide-inner" style="max-width:700px;">
+    <div class="slide-label" style="color:var(--color-intent);">Epilogue — Year 1</div>
+    <div class="epilogue-text">
+      1年後。<br><br>
+      冷蔵庫は「何を買うか」を知っている。<br>
+      息子の掃除機ミッションは自動で始まる。<br>
+      娘のpronounは、彼女が選んだ順序で家族に届いた。<br><br>
+      <strong>AIは静かに裏で動いている。<br>
+      家族はただ、一緒に夕食を囲んでいる。</strong>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S22 — Summary
+     ============================================================= -->
+<section class="slide" id="s22">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="slide-label">Summary</div>
+    <h2 class="slide-title" style="text-align:center;">設計の見どころ</h2>
+    <div class="hero-grid stagger" style="margin-top:36px;">
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-purple-bg);">🗺</div>
+        <div class="hero-card-label">Disclosure Map<br><span style="font-size:11px;color:var(--text-3);">domain × person × granularity</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-purple-bg);">🏳️‍🌈</div>
+        <div class="hero-card-label">Pronoun変更<br><span style="font-size:11px;color:var(--text-3);">Emotional Peakの設計</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-green-bg);">🏥</div>
+        <div class="hero-card-label">医療ログ<br><span style="font-size:11px;color:var(--text-3);">粒度が異なるDisclosure</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-amber-bg);">💃</div>
+        <div class="hero-card-label">ダンスハイライト<br><span style="font-size:11px;color:var(--text-3);">Connective Discovery</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-red-bg);">🧭</div>
+        <div class="hero-card-label">Connective<br><span style="font-size:11px;color:var(--text-3);">守る + つなげる</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-green-bg);">♻️</div>
+        <div class="hero-card-label">リセール代行<br><span style="font-size:11px;color:var(--text-3);">Decision Debt解消</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-blue-bg);">🔄</div>
+        <div class="hero-card-label">Substitution Mode<br><span style="font-size:11px;color:var(--text-3);">4段階の好み構造化</span></div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-icon" style="background:var(--chip-amber-bg);">👤</div>
+        <div class="hero-card-label">ゲストモード<br><span style="font-size:11px;color:var(--text-3);">3トークン同時発火</span></div>
+      </div>
+    </div>
+    <!-- 3 Directions Summary -->
+    <div style="margin-top:40px;max-width:800px;margin-left:auto;margin-right:auto;text-align:left;">
+      <div style="font-family:var(--font-mono);font-size:12px;font-weight:500;letter-spacing:0.1em;color:var(--text-3);margin-bottom:16px;text-align:center;">3 DIRECTIONS IN THIS PROJECT</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 20px;border-radius:12px;background:var(--chip-amber-bg);">
+          <span class="chip chip--amber" style="flex-shrink:0;margin-top:2px;">DELEGATION</span>
+          <div style="font-family:var(--font-jp);font-size:13px;color:var(--text);line-height:1.6;">
+            Substitution Modes（Exact→Surprise） / 松葉杖の処分（Proactive Nudge） / Week 1のSuggest→Month 6のNotifyへの進化
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 20px;border-radius:12px;background:var(--chip-blue-bg);">
+          <span class="chip chip--blue" style="flex-shrink:0;margin-top:2px;">ESCALATION</span>
+          <div style="font-family:var(--font-jp);font-size:13px;color:var(--text);line-height:1.6;">
+            医療ログ（AIが診断を拒否、医師への橋渡し） / ヨーグルト失敗（信頼降格→回復）
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 20px;border-radius:12px;background:var(--chip-green-bg);">
+          <span class="chip chip--green" style="flex-shrink:0;margin-top:2px;">ADAPTATION</span>
+          <div style="font-family:var(--font-jp);font-size:13px;color:var(--text);line-height:1.6;">
+            ゲストモード（Doorbell→TV/Phone/Nest同時変形） / Cognitive Load対応（疲れた夜→3択に絞る）
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;border-radius:16px;overflow:hidden;max-width:800px;margin-left:auto;margin-right:auto;height:200px;">
+      <img src="presentation-images/family-dinner-epilogue-warmth.png" alt="Family dinner" style="width:100%;height:100%;object-fit:cover;">
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /#deck -->
+
+<!-- Reveal observer for slide-inner + stagger -->
+<script>
+(function() {
+  var deck = document.getElementById('deck');
+  if (!deck) return;
+  // Make all slide-inners visible immediately — deck-nav.js handles scroll-based reveal
+  deck.querySelectorAll('.slide-inner').forEach(function(el) { el.classList.add('visible'); });
+  deck.querySelectorAll('.stagger').forEach(function(el) { el.classList.add('visible'); });
+})();
+</script>
+
+<!-- Brain progressive reveal (substep support for deck-nav.js) -->
+<script>
+window.deckNavBeforeAdvance = function(slide, idx) {
+  var maxSub = parseInt(slide.getAttribute('data-substeps') || '0', 10);
+  if (maxSub === 0) return true;
+
+  if (!slide._substep) slide._substep = 0;
+  if (slide._substep >= maxSub) return true;
+
+  slide._substep++;
+  var step = slide._substep;
+
+  // Reveal brain step
+  var el = slide.querySelector('[data-brain-step="' + step + '"]');
+  if (el) { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }
+
+  // Reveal diagram layer + connector
+  var dl = slide.querySelector('[data-diagram-layer="' + step + '"]');
+  if (dl) dl.classList.add('visible');
+  var dc = slide.querySelector('[data-diagram-connector="' + step + '"]');
+  if (dc) dc.classList.add('visible');
+
+  return false; // consume the advance
+};
+</script>
+
+<!-- Unified deck navigation -->
+<script src="../../assets/js/deck-nav.js"></script>
+
+</body>
+</html>

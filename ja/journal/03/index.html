@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>30年前のリサーチフレームワークが、いまAIの「指示書」を書いている。ほとんどのチームはその存在を知らない。 — intentfirst.ai</title>
+<meta name="description" content="フレームワークは30年前から存在していた。その「出番」が、いま来た。">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(253,252,250,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--color-grammar); }
+.nav-links a[href="../../journal/index.html"] { color: var(--color-grammar); }
+
+@media (max-width: 768px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+.lang-switch {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: rgba(253,252,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
+}
+.lang-switch a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 6px;
+  transition: color 0.3s var(--ease);
+  line-height: 1;
+}
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+.lang-switch-divider {
+  width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+@media (max-width: 768px) {
+  .lang-switch {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .lang-switch-divider {
+    width: 1px;
+    height: 14px;
+  }
+}
+
+/* ═══ ARTICLE HERO ═══ */
+.article-hero {
+  padding-top: 56px;
+}
+.article-hero-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-meta {
+  padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 48px) clamp(32px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.article-hero-meta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article-hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.15s forwards;
+}
+.article-hero-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.25s forwards;
+}
+.article-hero-subtitle {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.35s forwards;
+}
+.article-hero-date {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.8vw, 13px);
+  letter-spacing: 1px;
+  color: var(--text-3);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.45s forwards;
+}
+
+/* ═══ ARTICLE BODY ═══ */
+.article-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  font-size: clamp(16px, 1.1vw, 18px);
+  line-height: 1.8;
+  color: var(--text);
+}
+.article-body p {
+  margin-bottom: 1.6em;
+}
+.article-body h2 {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  margin-top: 2.8em;
+  margin-bottom: 1em;
+}
+.article-body h3 {
+  font-weight: 400;
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-top: 2.2em;
+  margin-bottom: 0.8em;
+}
+.article-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.article-body em {
+  font-style: italic;
+  color: var(--text-2);
+}
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.4em 0;
+}
+.article-body ul {
+  margin-bottom: 1.6em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+.article-body ul li {
+  position: relative;
+  padding-left: 1em;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grammar);
+}
+.article-body ol {
+  margin-bottom: 1.6em;
+  padding-left: 1.5em;
+}
+.article-body ol li {
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body a {
+  color: var(--color-grammar);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s var(--ease);
+}
+.article-body a:hover {
+  border-bottom-color: var(--color-grammar);
+}
+.article-body .closing-note {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin-top: 2em;
+}
+.article-body .closing-note p {
+  margin-bottom: 0.8em;
+}
+.article-body .closing-note p:last-child {
+  margin-bottom: 0;
+}
+
+/* ═══ ARTICLE NAV ═══ */
+.article-nav {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.article-nav a {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+.article-nav a:hover {
+  color: var(--color-grammar);
+  border-color: var(--color-grammar);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(104,137,180,0.15);
+}
+
+/* ═══ SUBSCRIBE CTA ═══ */
+.subscribe-cta {
+  background: var(--bg-inverse);
+  color: #fff;
+  text-align: center;
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+}
+.subscribe-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.subscribe-sub {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+.subscribe-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--color-grammar);
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s var(--ease);
+  box-shadow: 0 4px 24px rgba(104,137,180,0.25);
+}
+.subscribe-btn:hover {
+  filter: brightness(0.85);
+  box-shadow: 0 6px 32px rgba(104,137,180,0.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 580px) {
+  .article-hero-title {
+    letter-spacing: -0.8px;
+  }
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article-nav a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo"><img src="../../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../../context-grammar/index.html">Context Grammar</a>
+      <a href="../../../projects/index.html">Projects</a>
+      <a href="../../industry/index.html">Industry</a>
+      <a href="../../about/index.html">About</a>
+      <a href="../../about/index.html#contact" class="nav-cta">Contact</a>
+    </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../../context-grammar/index.html">Context Grammar</a>
+    <a href="../../../projects/index.html">Projects</a>
+    <a href="../../industry/index.html">Industry</a>
+    <a href="../../about/index.html">About</a>
+    <a href="../../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../../journal/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../../journal/index.html">EN</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE HERO
+     ═══════════════════════════════════════ -->
+<section class="article-hero">
+  <img src="../../../assets/img/journal/03.webp" alt="30年前のリサーチ手法が、いまAIの設計言語になっている。" class="article-hero-img">
+  <div class="article-hero-meta">
+    <div class="article-hero-meta-inner">
+      <p class="article-hero-label">エッセイ &mdash; 03</p>
+      X年前のリサーチフレームワークが、いまAIの「指示書」を書いている。ほとんどのチームはその存在を知らない。</h1>
+      <p class="article-hero-subtitle">フレームワークは30年前から存在していた。その「出番」が、いま来た。</p>
+      <p class="article-hero-date">2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE BODY
+     ═══════════════════════════════════════ -->
+<article class="article-body">
+  <div class="reveal">
+    <p>マクドナルドの朝。通勤途中の男性が、ミルクシェイクを買う。</p>
+
+    <p>空腹だからではない。</p>
+
+    <p>長い退屈な通勤を少しだけ楽しくしたい。片手で持てる。時間をかけて飲める。昼まで腹が持つ。朝の自分への小さなご褒美。</p>
+
+    <p>ジョブは「ミルクシェイクを飲む」ではなかった。ジョブは<strong>「退屈な通勤を生き延びて、自分にちょっといいことをした気分で職場に着く」</strong>だった。</p>
+
+    <p>この発見が、マクドナルドの商品開発の考え方を根本から変えた。</p>
+
+    <p>そしてこの「ジョブ」という発見の仕方が——30年の時を経て——いまAIの時代に、全く新しい重要性を帯びている。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>JTBDの本当の起源——ほとんどの人が知らない事実</h2>
+
+    <p>Jobs-to-be-Doneは新しいアイデアではない。</p>
+
+    <p>そして、それを本当に生み出した人物は、多くの人が思っている人物ではない。</p>
+
+    <p><strong>Tony Ulwick</strong>——<a href="https://strategyn.com" target="_blank">Strategyn</a>の創設者であり、Outcome-Driven Innovation（ODI）の考案者——が、1980年代後半にCordis Corporationなどの企業と仕事をする中でコアコンセプトを開発した。彼はこれを、顧客の未充足ニーズをイノベーション戦略に接続するための、厳密で再現可能な方法論に仕上げ、ODIプロセスの特許を保有している。私は彼の仕事を深く研究してきた。人々が実際に必要としていること——言っていることでも、していることでもなく、その根底にある「前進しようとしていること」——を理解するためのフレームワークとして、最も精密で実用的なものの一つだ。</p>
+
+    <p>多くの人はClayton ChristensenがJTBDの創始者だと認識している。これは誤帰属だ。ChristensenはUlwickの仕事に関わり、その思考を自身のイノベーション理論に取り込み、特に有名なミルクシェイク・マーケティングの話と後の著書 <em>Competing Against Luck</em>（2016年）を通じて大きく普及させた。この思考を広めた彼の貢献は本物であり重要だ。しかし起源はUlwickにある。</p>
+
+    <p>両者が指し示すコアインサイトは同じだ——人は製品を「買う」のではなく、人生の中のジョブを遂行するために「雇う」。このインサイトは数十年にわたってプロダクトデザインの語彙の一部であり続けてきた。経験豊富なデザイナーの多くはこれに出会っている。多くが使ってきた。</p>
+
+    <p>では、なぜ私はいま、緊急であるかのようにこれについて書いているのか？</p>
+
+    <p>その歴史のほとんどの期間、JTBDはリサーチのインプットだった——ユーザーを理解する方法であり、その理解はインターフェースデザインに翻訳されていた。有用で、時に変革的だったが、プロダクトそのものから一歩離れていた。</p>
+
+    <p>AIの時代、その一歩が消える。JTBDはリサーチのインプットであることをやめ、<strong>システム設計言語</strong>になる。ジョブの理解とシステムの定義の間のギャップが、ほぼ完全に閉じる。</p>
+
+    <p>だからいまより重要なのだ。フレームワークが変わったからではない。それを使って何をするかが変わったからだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>Jobs-to-be-Doneとは実際に何か</h2>
+
+    <p>初めて触れる人のために。Jobs-to-be-Doneフレームワークは、ユーザーはあなたのプロダクトを欲しがっているのではなく、人生の特定の状況で前進を遂げたいのだと言う。その前進を助けるために、あなたのプロダクトを「雇う」のだ。</p>
+
+    <p>ジョブには3つの構成要素がある：</p>
+
+    <p><strong>機能的ジョブ：</strong> ユーザーが文字通り達成しようとしていること。フライトを予約する。レポートを書く。プロジェクトを整理する。</p>
+
+    <p><strong>感情的ジョブ：</strong> それをしている間、またはその結果として、ユーザーがどう感じたいか。自信がある。コントロールできている。他者に印象を与える。安堵する。</p>
+
+    <p><strong>社会的ジョブ：</strong> その結果として、ユーザーが他者からどう見られたいか。有能だ。思慮深い。良い親だ。信頼できる同僚だ。</p>
+
+    <p>3つとも現実だ。3つとも行動に影響する。機能的ジョブだけのためにデザインすることは、技術的に正しいが誰にも愛されないものを作る最も一般的な方法だ。</p>
+
+    <p>先ほどのミルクシェイクの例がそれを証明している。ジョブは「ミルクシェイクを消費する」ではなかった。ジョブは「退屈な通勤を生き延びて、自分にちょっといいことをした気分で職場に着く」だった。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>2.0時代、JTBDはなぜ重要だったか</h2>
+
+    <p>UX 2.0時代、JTBDリサーチはより良いインターフェースを生み出した。</p>
+
+    <p>ユーザーがアプリを「タスク完了」のために雇っているのではなく、「混沌とした状況のコントロール感」のために雇っていると理解したなら、デザインは変わった。スピードより自信。機能より明快さ。システムにできることより、ユーザーが理解し信頼できること。</p>
+
+    <p>これは価値があった。デザインを「フローを動かす」から「フローの背後にある人間の目標に仕える」へと引き上げた。</p>
+
+    <p>しかし、常に翻訳ステップがあった。</p>
+
+    <p>```</p>
+
+    <p>ジョブを理解する</p>
+
+    <p>→ インターフェースにとってそれが何を意味するか決める</p>
+
+    <p>→ インターフェースをデザインする</p>
+
+    <p>→ ユーザーがそれを通じてジョブを達成することを祈る</p>
+
+    <p>```</p>
+
+    <p>ジョブがデザインに情報を与えた。しかしユーザーがまだ仕事をした。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>3.0時代に変わること——翻訳ステップの圧縮</h2>
+
+    <p>AIがユーザーに代わって行動するとき、翻訳ステップは劇的に圧縮される。</p>
+
+    <p>AIはジョブを知る必要がある——デザイン決定のインスピレーションとしてではなく、<strong>動作指示として</strong>。ジョブの構造がシステムの意思決定フレームワークそのものになる。</p>
+
+    <p>具体例で見せる。</p>
+
+    <p><strong>シナリオ：</strong> ユーザーがAIアシスタントに、仕事量についてマネージャーとの難しい会話の準備を手伝ってほしいと頼む。</p>
+
+    <p><strong>表面のリクエスト：</strong> 「ミーティングの準備を手伝って。」</p>
+
+    <p><strong>実際のジョブの分解：</strong></p>
+
+    <p><em>機能的：</em> 会話がまずい方向に行かずに済むこと。明確にコミュニケーションすること。解決策にたどり着くこと。</p>
+
+    <p><em>感情的：</em> 不安ではなく準備ができていると感じること。聞いてもらえたと感じること。愚痴を言っているのではなく問題解決をしていると感じること。</p>
+
+    <p><em>社会的：</em> うまく上方管理できる有能なプロフェッショナルとして見られること。仕事量をさばけない人間としてではなく。</p>
+
+    <p><strong>成功基準：</strong> 過負荷に対処する具体的な計画か、現状がなぜ必要でいつまで続くかの明確な理解を持って、ミーティングを終えること。</p>
+
+    <p><strong>コントロールしたいこと：</strong> 具体的な発言内容。問題のフレーミング。</p>
+
+    <p><strong>委任して構わないこと：</strong> この種の会話に適したフレームワークの発見。マネージャーの反応の予測。論点の構造化。</p>
+
+    <p>では、このジョブ構造があるときとないときで、AIが何をできるか見てみよう。</p>
+
+    <p><strong>ジョブ構造なし：</strong> 「難しい職場の会話のためのヒントです。1. 問題を具体的に。2. 解決策に焦点を...」</p>
+
+    <p>汎用的。おそらく使える。しかしこの人の実際の状況のためにデザインされていない。</p>
+
+    <p><strong>ジョブ構造あり：</strong> AIは、この人が準備ができていてプロフェッショナルだと感じたい——愚痴を言っているようには感じたくない——と知っている。成功とは計画か説明を持って終えることだと知っている。具体的な言葉遣いは自分で決めたいが、構造と予測の助けは欲しいと知っている。</p>
+
+    <p>いまやAIは、会話を苦情ではなく問題解決としてフレーミングする手助けができる。マネージャーの起こりうる反応を予測できる。防衛的に聞こえずに押し返す必要がある瞬間の準備ができる。</p>
+
+    <p>JTBDの理解はインターフェースに情報を与えたのではない。<strong>システムの動作指示そのものになった。</strong></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>最も重要な4つの問い——標準を超える深さ</h2>
+
+    <p>AIシステム設計に情報を与えるJTBDリサーチを行うとき、私は標準的なフレームワークよりも深い4つの問いに焦点を当てる。</p>
+
+    <h3>1. 成功は「見た目」ではなく「感覚」としてどう見えるか？</h3>
+
+    <p>機能的な成功基準は簡単だ。フライトが予約された、レポートが書かれた、ミーティングがスケジュールされた。しかし純粋に機能的成功を最適化するAIシステムは、しばしば空虚に感じられる。</p>
+
+    <p>重要な問い：このジョブがうまく行われたとき、ユーザーは何を感じるか。何をもはや心配しなくなるか。以前はできなかった何ができるようになるか。</p>
+
+    <p>これはAIのコミュニケーション方法を形作る——何をするかだけでなく。フライトを予約して「完了」と言うAIと、「会議の2時間前に到着でき、夜10時までに帰宅できる便が見つかりました。予約しますか？」と言うAIでは、同じ機能的ジョブに全く異なる形で仕えている。</p>
+
+    <h3>2. ユーザーは何のコントロールを手放したくないか？</h3>
+
+    <p>これはオートノミー設計——AIがどこまでやり、どこから人間の判断に委ねるか——に最も直接的に影響する問いだ。</p>
+
+    <p>ほぼすべてのジョブには、ユーザーが自分で所有したい部分がある。重要なメールの具体的な言葉遣い。大きな購入の最終判断。子どもに何を伝えるかの決断。</p>
+
+    <p>この理解はUXの好みの問題だけではない。「委任する価値のあるジョブ」と「自分で所有する価値のある決断」の境界を尊重することだ。これを間違えること——ユーザーがコントロールしたかったことをAIがやってしまうこと——は、信頼を壊す最速の方法の一つだ。</p>
+
+    <h3>3. 技術的に正しくても「間違っている」と感じるのはどんなときか？</h3>
+
+    <p>この問いは、機能的分析が見落とす感情的・社会的次元のジョブを浮かび上がらせる。</p>
+
+    <p>最安値のオプションを予約する旅行AIは技術的に正しいかもしれない。しかしユーザーがAIを雇った理由の一部が、賢く考慮された選択をしたと感じること——ただ最も安いだけではなく——だったなら、技術的に正しいアウトカムが間違った感情を生む。</p>
+
+    <p>この問いへの答えは、しばしばAIの振る舞いの制約条件になる：「トレードオフを提示せずに純粋に価格だけで最適化するな。」</p>
+
+    <h3>4. どんな文脈がジョブを根本から変えるか？</h3>
+
+    <p>同じユーザー、同じリクエストでも、文脈次第で全く異なるジョブになりうる。</p>
+
+    <p>「チームへのメッセージのドラフトを手伝って」——普通の月曜日なら生産性のジョブだ。同じリクエストが、大きな組織変更の翌日には感情的リーダーシップのジョブになる——ユーザーは明確にコミュニケーションしながら、自分自身の感情とチームの不確実性も管理する必要がある。</p>
+
+    <p>文脈のシグナルを検出し、ジョブの理解を調整できるAIシステムは、同じリクエストのすべてのインスタンスを同一に扱うシステムより、劇的に有用だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>AIのためのJTBDリサーチは何が違うか——同じインタビュー、異なるアウトプット</h2>
+
+    <p>インタビューは同じに見える。分析が異なる。</p>
+
+    <p>標準的なJTBDリサーチセッションでは、ユーザーの苦闘の瞬間と、遂げようとしている前進に耳を傾ける。問う：これが必要だと最初に気づいたとき、何をしていたか。それ以前に何を試したか。何がやめようとさせかけたか。</p>
+
+    <p>AIのためにデザインするとき、同じことに耳を傾けるが、同時に、<strong>運用可能にできるほど具体的なジョブのモデル</strong>を構築している。</p>
+
+    <p>リサーチの後、ペルソナドキュメントやジャーニーマップを作る代わりに——あるいはそれらに加えて——生み出すのはこれだ：</p>
+
+    <p><strong>ジョブ・ステートメント：</strong> ユーザーが達成しようとしているジョブの明確で構造化された記述。フォーマットは「[状況]のとき、[動機]をしたい、それにより[成果]を得る」。</p>
+
+    <p><strong>成功基準：</strong> 「うまくいった」がどう見えるかの具体的でテスト可能な定義——機能的、感情的、社会的に。</p>
+
+    <p><strong>オートノミー・マップ：</strong> ジョブのどの部分をユーザーが委任したく、どの部分を自分で所有したいかの分解図。</p>
+
+    <p><strong>コンテキスト・トリガー：</strong> ジョブがシフトしたことを示すシグナル——同じ表面のリクエストが異なる根底のニーズを表していること。</p>
+
+    <p>これらの成果物はAIシステム設計に直接供給される。インスピレーションではない。仕様書だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>より深い論点——フレームワークは同じ、ステークスが上がった</h2>
+
+    <p>Jobs-to-be-Doneは常に、一見シンプルなインサイトについてだった。人はあなたが思っていることをしていない。あなたのプロダクトを使っているのではない——人生の中で前進しようとしていて、あなたのプロダクトはそのために使おうとしている一つの手段にすぎない。</p>
+
+    <p>Ulwickが<a href="https://strategyn.com" target="_blank">Strategyn</a>で構築したもの——そして私が実践で適用してきたもの——は、このインサイトを運用可能にする方法だ。マインドセットの転換だけではなく、未充足ニーズを、実際のプロダクト決定を駆動できるほどの具体性で浮かび上がらせる厳密なプロセス。</p>
+
+    <p>このインサイトに基づいて行動するには、常に表面レベルのタスク分析以上のものがデザイナーに求められてきた。人間の動機への本物の好奇心、曖昧さに留まる意志、ユーザーが直接言語化できる以下のレベルで行動のモデルを構築するスキル。</p>
+
+    <p>それは何も変わらない。変わるのは、構築したモデルが自分の頭の中やリサーチドキュメントにとどまらないということだ。<strong>システムに入る。</strong> AIの行動を形作る。自律型システムがリクエストそのものだけでなく、リクエストの背後にいる人間に仕えるかどうかを決定する。</p>
+
+    <p>だからJTBDはいまより重要なのだ。フレームワークは同じ。それをうまく適用するステークスが上がった。</p>
+
+    <p>オリジナルの方法論を深く知りたいなら、Tony Ulwickの<a href="https://strategyn.com" target="_blank">Strategyn</a>での仕事から始めるべきだ。この思考の最も厳密なバージョンがそこにある。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>この記事は、[インターフェースは「盾」だった。AIがそれを取り去った。→]のコンパニオンピースだ。そこで「意図＝システムパラメータ」というフレーミングが有用だと感じたなら、この記事はその背後にあるリサーチ手法をより深く掘り下げる。</em></p>
+
+    <p><em>AIプロダクトに取り組んでいて、自分の文脈で意図リサーチをどう構造化するか考えたいなら——その会話こそ、私が最も価値を見出すものだ。気軽に連絡してほしい。</em></p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>P.S. 私自身の失敗について書いておく。以前、あるAIプロダクトのデザインで、私はユーザーの機能的ジョブだけを精密に定義した。「会議のスケジュールを最適化する」。AIは完璧に動いた。カレンダーの空きを見つけ、参加者の都合を調整し、最も効率的な時間を提案した。技術的に非の打ち所がなかった。しかしユーザーは使わなくなった。なぜか。そのユーザーにとって、会議のスケジューリングは「自分がチームを大切にしていると示す行為」だった。感情的ジョブと社会的ジョブを完全に見落としていた。AIが効率を最適化するほど、ユーザーは「冷たい上司」になった気がした。それ以来、私は機能的ジョブだけでは動作指示の半分にもならないと、身をもって知っている。</p>
+
+    <p>#JTBD #UXResearch #AIDesign #ProductDesign #IntentFirst #DesignThinking #FutureOfDesign</p>
+  </div>
+
+</article>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="article-nav reveal">
+  <a href="../02/index.html">&larr; 前の記事</a>
+  <a href="../index.html">一覧に戻る</a>
+  <a href="../04/index.html">次の記事 &rarr;</a>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     SUBSCRIBE
+     ═══════════════════════════════════════ -->
+<section class="subscribe-cta">
+  <div style="max-width: var(--max-w); margin: 0 auto;">
+    <h2 class="subscribe-title reveal">最新のエッセイを、<br>受信箱へ。</h2>
+    <p class="subscribe-sub reveal d1">Context Grammarは進化を続けています。その過程をお届けします。</p>
+    <a href="https://intentfirst.substack.com" target="_blank" class="subscribe-btn reveal d2">Substackで購読</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+</body>
+</html>

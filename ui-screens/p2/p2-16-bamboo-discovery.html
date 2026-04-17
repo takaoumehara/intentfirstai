@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-16 Bamboo Craft Discovery</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8EAED;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 20px;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: #1A1A2E;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+.status-bar {
+  height: 54px;
+  padding: 14px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.status-bar .time { font-size: 15px; font-weight: 600; color: #FFFFFF; }
+.status-bar .icons { display: flex; gap: 6px; align-items: center; }
+.status-bar .icons span { font-size: 17px; color: #FFFFFF; }
+
+/* Lock screen background — bamboo grove atmosphere */
+.lock-screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, #1B3A2D 0%, #2D5A3D 30%, #3A6B4A 60%, #2D5A3D 100%);
+}
+
+/* Bamboo stalks decorative background */
+.bamboo-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  opacity: 0.12;
+}
+.bamboo-stalk {
+  position: absolute;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to top, #4A8B5C, #7BC88C);
+  border-radius: 2px;
+}
+.bamboo-stalk:nth-child(1) { left: 30px; height: 100%; }
+.bamboo-stalk:nth-child(2) { left: 70px; height: 90%; }
+.bamboo-stalk:nth-child(3) { left: 120px; height: 95%; }
+.bamboo-stalk:nth-child(4) { left: 180px; height: 85%; }
+.bamboo-stalk:nth-child(5) { left: 240px; height: 100%; }
+.bamboo-stalk:nth-child(6) { left: 290px; height: 92%; }
+.bamboo-stalk:nth-child(7) { left: 340px; height: 88%; }
+.bamboo-stalk:nth-child(8) { left: 55px; height: 78%; width: 3px; }
+.bamboo-stalk:nth-child(9) { left: 155px; height: 82%; width: 3px; }
+.bamboo-stalk:nth-child(10) { left: 310px; height: 96%; width: 3px; }
+
+/* Dappled light effect */
+.light-dapple {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at 60% 20%, rgba(255,255,200,0.06) 0%, transparent 50%),
+              radial-gradient(ellipse at 30% 50%, rgba(255,255,200,0.04) 0%, transparent 40%);
+}
+
+.lock-info {
+  position: absolute;
+  top: 70px;
+  left: 0; right: 0;
+  text-align: center;
+  color: #FFFFFF;
+  z-index: 2;
+}
+.lock-date { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+.lock-time-display { font-size: 64px; font-weight: 300; letter-spacing: -2px; }
+
+/* Location pulse indicator */
+.location-pulse {
+  position: absolute;
+  top: 160px;
+  right: 24px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  animation: fadeIn 300ms ease 200ms forwards;
+}
+.location-dot {
+  width: 8px; height: 8px;
+  background: #81C995;
+  border-radius: 50%;
+  position: relative;
+}
+.location-dot::after {
+  content: '';
+  position: absolute;
+  top: -4px; left: -4px;
+  width: 16px; height: 16px;
+  background: rgba(129,201,149,0.3);
+  border-radius: 50%;
+  animation: locPulse 2s ease-in-out infinite;
+}
+@keyframes locPulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.8); opacity: 0; }
+}
+.location-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+}
+
+/* Notification card */
+.notification-card {
+  position: absolute;
+  top: 190px;
+  left: 14px;
+  right: 14px;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-40px);
+  animation: notifSlide 400ms var(--ease-out-expo) 400ms forwards;
+  z-index: 5;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+@keyframes notifSlide {
+  0% { opacity: 0; transform: translateY(-40px); }
+  70% { opacity: 1; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.notif-header {
+  padding: 14px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notif-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, #4285F4, #1A73E8);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 700;
+}
+.notif-app { font-size: 13px; color: #5F6368; font-weight: 500; }
+.notif-time-ago { font-size: 12px; color: #9AA0A6; margin-left: auto; }
+
+.notif-body {
+  padding: 0 16px 4px;
+}
+.notif-discovery {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #1E8E3E;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.notif-discovery .material-symbols-outlined { font-size: 16px; }
+.notif-title {
+  font-size: 18px; font-weight: 700; color: #202124; margin-bottom: 2px;
+}
+.notif-subtitle {
+  font-size: 13px; color: #5F6368; margin-bottom: 12px;
+}
+
+/* Key info grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #3C4043;
+  padding: 8px 10px;
+  background: #F8F9FA;
+  border-radius: 10px;
+}
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+.info-item .emoji { font-size: 15px; flex-shrink: 0; }
+.info-item .value { font-weight: 500; color: #202124; }
+.info-item.available {
+  background: #E6F4EA;
+  color: #1E8E3E;
+}
+.info-item.available .value { color: #1E8E3E; }
+
+/* Schedule fit section — THE MAGIC */
+.schedule-fit {
+  background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
+  border: 1.5px solid #A5D6A7;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: magicReveal 500ms var(--ease-out-expo) 900ms forwards;
+}
+@keyframes magicReveal {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.schedule-fit-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.schedule-fit-header .material-symbols-outlined {
+  font-size: 18px;
+  color: #2E7D32;
+}
+.schedule-fit-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2E7D32;
+  letter-spacing: 0.3px;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #3C4043;
+  margin-bottom: 6px;
+}
+.schedule-row:last-child { margin-bottom: 0; }
+.schedule-row .emoji { font-size: 14px; flex-shrink: 0; }
+.schedule-row .highlight { font-weight: 600; color: #2E7D32; }
+
+/* Time gap visualization */
+.time-gap-bar {
+  margin: 10px 0;
+  position: relative;
+}
+.time-gap-track {
+  height: 6px;
+  background: #C8E6C9;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.time-gap-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #66BB6A, #43A047);
+  border-radius: 3px;
+  animation: gapFill 800ms var(--ease-out-expo) 1200ms forwards;
+}
+@keyframes gapFill {
+  to { width: 66%; } /* 90 min out of 135 min */
+}
+.time-gap-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #5F6368;
+}
+.time-gap-labels .current { color: #1A73E8; font-weight: 500; }
+.time-gap-labels .next { color: #5F6368; }
+.time-gap-workshop {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 66%;
+  height: 10px;
+  display: flex;
+  justify-content: center;
+}
+.time-gap-workshop-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #2E7D32;
+  background: #E8F5E9;
+  padding: 1px 6px;
+  border-radius: 4px;
+  transform: translateY(-14px);
+  white-space: nowrap;
+}
+
+/* Budget line */
+.budget-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #3C4043;
+  padding: 8px 10px;
+  background: #F8F9FA;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.budget-line .emoji { font-size: 15px; }
+.budget-line .value { font-weight: 500; color: #202124; }
+.budget-line .ok { color: #1E8E3E; font-weight: 500; font-size: 12px; }
+
+/* OK badge */
+.ok-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: #E6F4EA;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  opacity: 0;
+  animation: badgePop 400ms var(--ease-out-expo) 1500ms forwards;
+}
+@keyframes badgePop {
+  0% { opacity: 0; transform: scale(0.9); }
+  60% { transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.ok-badge .material-symbols-outlined {
+  font-size: 20px;
+  color: #1E8E3E;
+}
+.ok-badge-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E8E3E;
+}
+
+/* Action buttons */
+.notif-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+.btn-primary {
+  width: 100%;
+  height: 50px;
+  background: #1A73E8;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 200ms, transform 100ms;
+}
+.btn-primary:active { background: #1557B0; transform: scale(0.98); }
+.btn-primary .material-symbols-outlined { font-size: 20px; }
+.btn-row {
+  display: flex;
+  gap: 8px;
+}
+.btn-outline {
+  flex: 1;
+  height: 44px;
+  background: #FFFFFF;
+  color: #1A73E8;
+  border: 1px solid #DADCE0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background 200ms;
+}
+.btn-outline:active { background: #F1F3F4; transform: scale(0.97); }
+.btn-text {
+  flex: 1;
+  height: 44px;
+  background: none;
+  color: #9AA0A6;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 200ms;
+}
+.btn-text:active { color: #5F6368; transform: scale(0.97); }
+
+/* Trip Brain indicator */
+.trip-brain {
+  position: absolute;
+  bottom: 28px;
+  left: 14px;
+  right: 14px;
+  z-index: 4;
+  opacity: 0;
+  animation: brainFadeIn 500ms ease 1800ms forwards;
+}
+@keyframes brainFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.trip-brain-inner {
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(12px);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.trip-brain-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.trip-brain-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.5;
+}
+.trip-brain-text .factor {
+  color: #81C995;
+  font-weight: 500;
+}
+.trip-brain-text .arrow {
+  color: rgba(255,255,255,0.4);
+  margin: 0 2px;
+}
+
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: rgba(255,255,255,0.3);
+  z-index: 20;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="lock-screen"></div>
+  <div class="bamboo-bg">
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+    <div class="bamboo-stalk"></div>
+  </div>
+  <div class="light-dapple"></div>
+
+  <div class="status-bar">
+    <span class="time">12:45</span>
+    <div class="icons">
+      <span class="material-symbols-outlined" style="font-size:16px">signal_cellular_alt</span>
+      <span class="material-symbols-outlined" style="font-size:16px">wifi</span>
+      <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+    </div>
+  </div>
+
+  <div class="lock-info">
+    <div class="lock-date">3月27日（木）</div>
+    <div class="lock-time-display">12:45</div>
+  </div>
+
+  <div class="location-pulse">
+    <div class="location-dot"></div>
+    <span class="location-text">嵐山・竹林の小径</span>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification-card">
+    <div class="notif-header">
+      <div class="notif-icon">&#10022;</div>
+      <span class="notif-app">Gemini</span>
+      <span class="notif-time-ago">たった今</span>
+    </div>
+
+    <div class="notif-body">
+      <div class="notif-discovery">
+        <span class="material-symbols-outlined">location_on</span>
+        近くの体験を発見
+      </div>
+      <div class="notif-title">嵐山竹細工工房</div>
+      <div class="notif-subtitle">竹かご編み体験 — 徒歩2分</div>
+
+      <!-- Key info grid -->
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="emoji">💰</span>
+          <span><span class="value">¥2,500</span> ×4人 = ¥10,000</span>
+        </div>
+        <div class="info-item">
+          <span class="emoji">⏱</span>
+          <span>所要時間: <span class="value">90分</span></span>
+        </div>
+        <div class="info-item available full-width">
+          <span class="emoji">🟢</span>
+          <span class="value">今すぐ入れます（空きあり）</span>
+        </div>
+      </div>
+
+      <!-- Schedule fit — THE MAGIC -->
+      <div class="schedule-fit">
+        <div class="schedule-fit-header">
+          <span class="material-symbols-outlined">event_available</span>
+          <span class="schedule-fit-label">スケジュール適合チェック</span>
+        </div>
+        <div class="schedule-row">
+          <span class="emoji">📅</span>
+          <span>次の予定: <span style="font-weight:500">錦市場</span> 15:00</span>
+        </div>
+        <div class="schedule-row">
+          <span class="emoji">⏰</span>
+          <span>現在: <span style="font-weight:500;color:#1A73E8">12:45</span></span>
+        </div>
+        <div class="schedule-row">
+          <span class="emoji">✅</span>
+          <span class="highlight">時間に余裕あり（2時間15分の空き）</span>
+        </div>
+        <!-- Time gap visualization -->
+        <div class="time-gap-bar">
+          <div class="time-gap-workshop">
+            <span class="time-gap-workshop-label">90分（体験）</span>
+          </div>
+          <div class="time-gap-track">
+            <div class="time-gap-fill"></div>
+          </div>
+          <div class="time-gap-labels">
+            <span class="current">12:45 現在</span>
+            <span class="next">15:00 錦市場</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget -->
+      <div class="budget-line">
+        <span class="emoji">💰</span>
+        <span>今日の残り予算: <span class="value">¥22,000</span></span>
+        <span class="ok">（余裕あり）</span>
+      </div>
+
+      <!-- OK badge -->
+      <div class="ok-badge">
+        <span class="material-symbols-outlined">verified</span>
+        <span class="ok-badge-text">スケジュール・予算ともにOK</span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="notif-action-buttons">
+      <button class="btn-primary" id="bookBtn">
+        <span class="material-symbols-outlined">event_available</span>
+        予約する
+      </button>
+      <div class="btn-row">
+        <button class="btn-outline" id="detailBtn">詳細を見る</button>
+        <button class="btn-text" id="skipBtn">今日はスキップ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trip Brain indicator -->
+  <div class="trip-brain">
+    <div class="trip-brain-inner">
+      <div class="trip-brain-label">Trip Brain</div>
+      <div class="trip-brain-text">
+        <span class="factor">Miaのものづくり嗜好(Home Brain)</span>
+        <span class="arrow">×</span>
+        <span class="factor">現在地(嵐山)</span>
+        <span class="arrow">×</span>
+        <span class="factor">空き時間</span>
+        <span class="arrow">→</span>
+        提案
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const bookBtn = document.getElementById('bookBtn');
+  const detailBtn = document.getElementById('detailBtn');
+  const skipBtn = document.getElementById('skipBtn');
+
+  bookBtn.addEventListener('click', function() {
+    this.innerHTML = '<span class="material-symbols-outlined">check_circle</span> 予約完了！';
+    this.style.background = '#1E8E3E';
+  });
+
+  detailBtn.addEventListener('click', function() {
+    this.innerHTML = '読み込み中...';
+    this.style.borderColor = '#1A73E8';
+  });
+
+  skipBtn.addEventListener('click', function() {
+    const card = document.querySelector('.notification-card');
+    card.style.transition = 'opacity 300ms, transform 300ms';
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(-20px)';
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Spec — Context Grammar 公開仕様</title>
+<meta name="description" content="Context Grammarの機械可読YAML仕様。Intent + 8 Context Tokens、Brain Schema、33のDesign Rules。CC BY 4.0。">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* NAV */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; background: rgba(253,252,250,0.92); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all 0.4s ease; }
+.nav-inner { width: var(--max-w); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(24px, 4vw, 48px); }
+.nav-logo { text-decoration: none; } .nav-logo-img { height: 22px; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a { font-size: 13px; font-weight: 400; color: var(--text-3); text-decoration: none; transition: color 0.4s ease; }
+.nav-links a:hover { color: var(--text); }
+.nav-links a.active { color: var(--text); font-weight: 500; }
+@media (max-width: 768px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+/* LANGUAGE SWITCHER */
+.lang-switch { position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 0; background: rgba(253,252,250,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-left: none; border-radius: 0 10px 10px 0; padding: 6px 8px; box-shadow: 2px 2px 16px rgba(0,0,0,0.06); }
+.lang-switch a { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; text-decoration: none; color: var(--text-3); padding: 8px 6px; transition: color 0.3s var(--ease); line-height: 1; }
+.lang-switch a:hover { color: var(--text); }
+.lang-switch a.active { color: var(--text); font-weight: 700; }
+.lang-switch-divider { width: 16px; height: 1px; background: var(--border); }
+@media (max-width: 768px) { .lang-switch { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; border: 1px solid var(--border); border-radius: 10px; padding: 4px 10px; } .lang-switch-divider { width: 1px; height: 14px; } }
+
+/* COMMON */
+.sec-label { font-family: var(--font-mono); font-size: clamp(10px, 0.8vw, 12px); letter-spacing: 3px; text-transform: uppercase; color: var(--color-grammar); margin-bottom: 14px; }
+.sec-title { font-weight: 500; font-size: clamp(28px, 3.2vw, 48px); line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 14px; }
+.sec-title em { font-style: normal; color: var(--color-grammar); }
+.sec-desc { font-size: clamp(15px, 1.15vw, 18px); font-weight: 300; color: var(--text-2); line-height: 1.75; max-width: 620px; }
+
+/* LAYOUT */
+.page-wrap { padding-top: 56px; }
+.section { padding: clamp(48px, 6vw, 96px) clamp(24px, 4vw, 48px); }
+.section-inner { max-width: 1200px; margin: 0 auto; }
+
+/* HERO */
+.hero { background: var(--bg-inverse); color: var(--bg); padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px); position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(104,137,180,0.08), transparent); pointer-events: none; }
+.hero-inner { max-width: 760px; margin: 0 auto; position: relative; z-index: 1; }
+.hero-label { font-family: var(--font-mono); font-size: clamp(11px, 0.9vw, 14px); letter-spacing: 3px; text-transform: uppercase; color: rgba(240,236,228,0.3); margin-bottom: 24px; opacity: 0; animation: fadeUp 0.8s 0.2s forwards; }
+.hero-title { font-weight: 500; font-size: clamp(36px, 5vw, 64px); line-height: 1.08; letter-spacing: -2.5px; margin-bottom: 20px; opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+.hero-title em { font-style: normal; color: var(--color-grammar); }
+.hero-sub { font-size: clamp(15px, 1.15vw, 19px); font-weight: 300; color: rgba(240,236,228,0.45); line-height: 1.85; max-width: 580px; opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; padding: 6px 16px; background: rgba(240,236,228,0.08); border: 1px solid rgba(240,236,228,0.12); border-radius: 100px; font-family: var(--font-mono); font-size: 12px; color: rgba(240,236,228,0.5); letter-spacing: 0.5px; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+
+/* SPEC CARDS */
+.cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 2vw, 24px); margin-top: 32px; }
+@media (max-width: 900px) { .cards-grid { grid-template-columns: 1fr; } }
+.spec-card { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: clamp(24px, 2.5vw, 32px); display: flex; flex-direction: column; gap: 16px; transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+.spec-card:hover { border-color: var(--border-hover); box-shadow: 0 8px 32px rgba(26,24,22,0.06); }
+.spec-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.spec-card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.spec-card-icon.tokens { background: var(--chip-blue-bg); color: var(--color-grammar); }
+.spec-card-icon.brain { background: var(--chip-purple-bg); color: var(--color-brain); }
+.spec-card-icon.rules { background: var(--chip-green-bg); color: var(--color-success); }
+.spec-card-version { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); padding: 3px 8px; background: var(--bg-2); border-radius: 6px; letter-spacing: 0.5px; }
+.spec-card-title { font-size: clamp(18px, 1.5vw, 22px); font-weight: 500; letter-spacing: -0.5px; line-height: 1.2; }
+.spec-card-desc { font-size: clamp(13px, 0.95vw, 15px); font-weight: 300; color: var(--text-2); line-height: 1.7; }
+.spec-card-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.spec-stat { font-family: var(--font-mono); font-size: clamp(10px, 0.75vw, 12px); padding: 4px 10px; border-radius: 100px; background: var(--bg-2); border: 1px solid var(--border); color: var(--text-2); }
+.spec-card-use { font-size: clamp(12px, 0.85vw, 14px); font-weight: 300; color: var(--text-3); line-height: 1.6; font-style: italic; }
+.spec-card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+.spec-btn { font-family: var(--font-sans); font-size: 13px; font-weight: 500; padding: 10px 18px; border-radius: 10px; text-decoration: none; transition: all 0.3s var(--ease); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: none; }
+.spec-btn-primary { background: var(--accent); color: var(--bg); }
+.spec-btn-primary:hover { opacity: 0.85; }
+.spec-btn-secondary { background: var(--bg-2); color: var(--text-2); border: 1px solid var(--border); }
+.spec-btn-secondary:hover { border-color: var(--border-hover); color: var(--text); }
+
+/* HOW TO USE */
+.use-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 2vw, 24px); margin-top: 32px; }
+@media (max-width: 900px) { .use-grid { grid-template-columns: 1fr; } }
+.use-card { padding: clamp(20px, 2vw, 28px); border-radius: 14px; background: var(--bg); border: 1px solid var(--border); }
+.use-card-num { font-family: var(--font-mono); font-size: clamp(32px, 3vw, 44px); font-weight: 500; color: var(--color-grammar); line-height: 1; margin-bottom: 12px; letter-spacing: -1px; }
+.use-card-title { font-size: clamp(16px, 1.2vw, 20px); font-weight: 500; letter-spacing: -0.3px; margin-bottom: 8px; }
+.use-card-desc { font-size: clamp(13px, 0.9vw, 15px); font-weight: 300; color: var(--text-2); line-height: 1.7; }
+
+/* CODE BLOCK */
+.code-block { background: var(--bg-inverse); border-radius: 14px; overflow: hidden; margin-top: 32px; }
+.code-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid rgba(240,236,228,0.08); }
+.code-header-label { font-family: var(--font-mono); font-size: 11px; color: rgba(240,236,228,0.35); letter-spacing: 1px; }
+.code-copy { font-family: var(--font-mono); font-size: 11px; color: rgba(240,236,228,0.3); background: rgba(240,236,228,0.06); border: 1px solid rgba(240,236,228,0.1); border-radius: 6px; padding: 4px 12px; cursor: pointer; transition: all 0.3s; }
+.code-copy:hover { color: rgba(240,236,228,0.6); background: rgba(240,236,228,0.1); }
+.code-body { padding: 20px 24px; overflow-x: auto; }
+.code-body pre { font-family: var(--font-mono); font-size: clamp(12px, 0.85vw, 14px); color: rgba(240,236,228,0.6); line-height: 1.7; white-space: pre; margin: 0; }
+.code-body .hl { color: var(--color-grammar); }
+.code-body .cm { color: rgba(240,236,228,0.25); }
+.code-body .str { color: #fbbf24; }
+.code-body .key { color: #34d399; }
+
+/* CTA */
+.cta-section { background: var(--bg-2); }
+.cta-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.cta-link { font-size: 14px; font-weight: 400; padding: 12px 24px; border-radius: 10px; text-decoration: none; background: var(--bg); border: 1px solid var(--border); color: var(--text); transition: all 0.3s var(--ease); display: inline-flex; align-items: center; gap: 8px; }
+.cta-link:hover { border-color: var(--border-hover); color: var(--text); }
+
+/* TUTORIALS */
+.tutorial-grid { display: grid; grid-template-columns: 1fr; gap: clamp(24px, 3vw, 40px); margin-top: 40px; }
+.tutorial-card { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--bg); }
+.tutorial-header { padding: clamp(20px, 2vw, 28px) clamp(24px, 2.5vw, 32px); border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 16px; }
+.tutorial-num { font-family: var(--font-mono); font-size: clamp(28px, 2.5vw, 36px); font-weight: 500; color: var(--color-grammar); line-height: 1; flex-shrink: 0; letter-spacing: -1px; }
+.tutorial-meta { flex: 1; }
+.tutorial-title { font-size: clamp(17px, 1.3vw, 21px); font-weight: 500; letter-spacing: -0.3px; margin-bottom: 4px; }
+.tutorial-audience { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); letter-spacing: 0.5px; }
+.tutorial-body { padding: clamp(20px, 2vw, 28px) clamp(24px, 2.5vw, 32px); }
+.tutorial-steps { list-style: none; padding: 0; margin: 0 0 20px; counter-reset: step; }
+.tutorial-steps li { counter-increment: step; padding: 10px 0 10px 40px; position: relative; font-size: clamp(13px, 0.95vw, 15px); font-weight: 300; color: var(--text-2); line-height: 1.7; border-bottom: 1px solid var(--border); }
+.tutorial-steps li:last-child { border-bottom: none; }
+.tutorial-steps li::before { content: counter(step); position: absolute; left: 0; top: 10px; width: 26px; height: 26px; border-radius: 50%; background: var(--chip-blue-bg); color: var(--color-grammar); font-family: var(--font-mono); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+.tutorial-prompt { background: var(--bg-inverse); border-radius: 10px; padding: 16px 20px; margin: 12px 0; }
+.tutorial-prompt pre { font-family: var(--font-mono); font-size: clamp(12px, 0.8vw, 13px); color: rgba(240,236,228,0.6); line-height: 1.7; white-space: pre-wrap; word-wrap: break-word; margin: 0; }
+.tutorial-prompt .hl { color: var(--color-grammar); }
+.tutorial-response { background: var(--bg-2); border-radius: 10px; padding: 16px 20px; margin: 12px 0; border-left: 3px solid var(--color-grammar); }
+.tutorial-response p { font-size: clamp(12px, 0.85vw, 14px); font-weight: 300; color: var(--text-2); line-height: 1.7; margin: 0; }
+.tutorial-response strong { font-weight: 500; color: var(--text); }
+.tutorial-benefit { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; background: var(--chip-green-bg); border-radius: 10px; margin-top: 12px; font-size: clamp(12px, 0.85vw, 14px); font-weight: 400; color: var(--color-success); line-height: 1.6; }
+
+/* YAML MODAL */
+.yaml-modal-overlay { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 24px; }
+.yaml-modal-overlay.open { display: flex; }
+.yaml-modal { background: var(--bg-inverse); border-radius: 16px; width: 100%; max-width: 800px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.4); }
+.yaml-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid rgba(240,236,228,0.08); flex-shrink: 0; }
+.yaml-modal-title { font-family: var(--font-mono); font-size: 13px; color: rgba(240,236,228,0.5); letter-spacing: 0.5px; }
+.yaml-modal-close { background: rgba(240,236,228,0.08); border: 1px solid rgba(240,236,228,0.12); border-radius: 8px; color: rgba(240,236,228,0.5); font-size: 13px; padding: 6px 14px; cursor: pointer; font-family: var(--font-sans); transition: all 0.3s; }
+.yaml-modal-close:hover { background: rgba(240,236,228,0.15); color: rgba(240,236,228,0.8); }
+.yaml-modal-body { overflow: auto; padding: 24px; flex: 1; }
+.yaml-modal-body pre { font-family: var(--font-mono); font-size: clamp(11px, 0.75vw, 13px); color: rgba(240,236,228,0.6); line-height: 1.7; white-space: pre; margin: 0; }
+.yaml-modal-loading { color: rgba(240,236,228,0.3); font-family: var(--font-mono); font-size: 13px; padding: 40px; text-align: center; }
+
+/* FOOTER */
+.footer { background: var(--bg-inverse); color: rgba(240,236,228,0.3); padding: 40px clamp(24px, 4vw, 48px); text-align: center; font-size: 14px; font-weight: 300; }
+.footer a { color: rgba(240,236,228,0.5); text-decoration: none; }
+.footer a:hover { color: var(--color-grammar); }
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--text); background: rgba(26,24,22,0.04); }
+.mobile-menu-nav a.mobile-active { color: var(--text); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--text); }
+.mobile-menu-lang a.active { color: var(--text); font-weight: 700; background: rgba(26,24,22,0.06); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav"><div class="nav-inner">
+  <a href="../../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentfirst" class="nav-logo-img"></a>
+  <div class="nav-links">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="../industry/index.html">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact" class="nav-cta">Contact</a>
+  </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</div></nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="../industry/index.html">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../spec/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../spec/index.html">EN</a>
+</div>
+
+<div class="page-wrap">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Open Specification</div>
+    <h1 class="hero-title">The <em>Spec</em></h1>
+    <p class="hero-sub">AIに渡せるオープン仕様。コードベースにインポートしてもいい。デザインチェックリストとして手元に置いてもいい。</p>
+    <div class="hero-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9.354a4 4 0 1 0-2.646 7.013"/></svg>
+      CC BY 4.0 &middot; v1.0 &middot; 2026-04-09
+    </div>
+  </div>
+</section>
+
+<!-- 3 SPEC CARDS -->
+<section class="section" style="background: var(--bg-2);">
+  <div class="section-inner">
+    <div class="sec-label reveal">3つのファイル、1つの文法</div>
+    <h2 class="sec-title reveal d1">中身を<em>見る</em></h2>
+    <p class="sec-desc reveal d2">それぞれのファイルがContext Grammarの異なる層を定義する。3つ合わせて、AIシステムがパースできる完全なデザイン言語になる。</p>
+
+    <div class="cards-grid">
+      <!-- Card 1: Context Tokens -->
+      <div class="spec-card reveal d2">
+        <div class="spec-card-header">
+          <div class="spec-card-icon tokens">T</div>
+          <span class="spec-card-version">v1.0 &middot; 904行</span>
+        </div>
+        <h3 class="spec-card-title">Context Tokens Spec</h3>
+        <p class="spec-card-desc">Intent + 8つのContext Token。すべての値、シグナル源、デザインルール。AIが「いま、この人はどういう状況か」を理解するための語彙体系。</p>
+        <div class="spec-card-stats">
+          <span class="spec-stat">Intent + 8 tokens</span>
+          <span class="spec-stat">7 cross-token rules</span>
+          <span class="spec-stat">4 substitution modes</span>
+        </div>
+        <p class="spec-card-use">AIに渡せば、Token-awareなデザインレビューが即座に返ってくる。</p>
+        <div class="spec-card-actions">
+          <a href="../../spec/context-tokens-spec.yaml" class="spec-btn spec-btn-primary" download>YAML DL</a>
+          <button class="spec-btn spec-btn-secondary" onclick="openYaml('../../spec/context-tokens-spec.yaml','Context Tokens Spec')">Raw表示</button>
+        </div>
+      </div>
+
+      <!-- Card 2: Brain Schema -->
+      <div class="spec-card reveal d3">
+        <div class="spec-card-header">
+          <div class="spec-card-icon brain">B</div>
+          <span class="spec-card-version">v1.0 &middot; 1,147行</span>
+        </div>
+        <h3 class="spec-card-title">Brain Schema</h3>
+        <p class="spec-card-desc">3層メモリ構造、使い捨てBrainのライフサイクル、マルチパーソン・オーケストレーション。「知っている」だけでなく「動ける」AIのためのデータモデル。</p>
+        <div class="spec-card-stats">
+          <span class="spec-stat">3つのメモリ層</span>
+          <span class="spec-stat">105の型定義</span>
+          <span class="spec-stat">Disposable Brain</span>
+        </div>
+        <p class="spec-card-use">ユーザーコンテキストモデルのテンプレートとして使える。</p>
+        <div class="spec-card-actions">
+          <a href="../../spec/brain-schema.yaml" class="spec-btn spec-btn-primary" download>YAML DL</a>
+          <button class="spec-btn spec-btn-secondary" onclick="openYaml('../../spec/brain-schema.yaml','Brain Schema')">Raw表示</button>
+        </div>
+      </div>
+
+      <!-- Card 3: Design Rules -->
+      <div class="spec-card reveal d4">
+        <div class="spec-card-header">
+          <div class="spec-card-icon rules">R</div>
+          <span class="spec-card-version">v1.0 &middot; 33 rules</span>
+        </div>
+        <h3 class="spec-card-title">Design Rules</h3>
+        <p class="spec-card-desc">Token x Brainの状態をUI挙動に変換する33のルール。3つのプロジェクトの実シナリオから導出。意見ではなく、条件分岐のロジック。</p>
+        <div class="spec-card-stats">
+          <span class="spec-stat">P1から9ルール</span>
+          <span class="spec-stat">P2から7</span>
+          <span class="spec-stat">P3から7</span>
+          <span class="spec-stat">汎用10</span>
+        </div>
+        <p class="spec-card-use">コンテキスト適応インターフェースの条件ロジックとしてインポート可能。</p>
+        <div class="spec-card-actions">
+          <a href="../../spec/design-rules.yaml" class="spec-btn spec-btn-primary" download>YAML DL</a>
+          <button class="spec-btn spec-btn-secondary" onclick="openYaml('../../spec/design-rules.yaml','Design Rules')">Raw表示</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO USE -->
+<section class="section">
+  <div class="section-inner">
+    <div class="sec-label reveal">実践的な使い方</div>
+    <h2 class="sec-title reveal d1">どう<em>使う</em>か</h2>
+    <p class="sec-desc reveal d2">今日から始められる3つの活用法。</p>
+
+    <div class="use-grid">
+      <div class="use-card reveal d2">
+        <div class="use-card-num">01</div>
+        <h3 class="use-card-title">AIデザインレビュー</h3>
+        <p class="use-card-desc">Token Specを任意のAI会話に貼り付ける。通知フロー、チェックアウト画面、オンボーディング体験をContext Grammarの観点で評価させる。AIは見落としを指摘する。「このフローは認知負荷を無視している。ユーザーが疲弊しているときはどうなる？」</p>
+      </div>
+      <div class="use-card reveal d3">
+        <div class="use-card-num">02</div>
+        <h3 class="use-card-title">データアーキテクチャ</h3>
+        <p class="use-card-desc">brain-schema.yamlをユーザープロファイルシステムの出発点にする。3層モデル（Identity / Accumulated Learning / Right Now）は、安定した事実、学習されたパターン、今この瞬間の状態を分離する。フォークして、不要な部分を削り、必要な部分を拡張する。</p>
+      </div>
+      <div class="use-card reveal d4">
+        <div class="use-card-num">03</div>
+        <h3 class="use-card-title">条件分岐UIロジック</h3>
+        <p class="use-card-desc">33のデザインルールは「Xのとき、Yする」の条件式。そのまま実装の参照仕様になる。すべてのルールが実際のシナリオに遡れる。認知負荷が枯渇した状態で帰宅中の運転、子どもがテレビを見ている横での買い物。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICK START: 3 TUTORIALS -->
+<section class="section" style="background: var(--bg-2);">
+  <div class="section-inner">
+    <div class="sec-label reveal">Quick Start</div>
+    <h2 class="sec-title reveal d1"><em>2分</em>で試す</h2>
+    <p class="sec-desc reveal d2">チュートリアルを選んで、AI会話を1つ開くだけ。インストール不要、セットアップ不要。YAMLファイルとプロンプトだけで始められる。</p>
+
+    <div class="tutorial-grid">
+
+      <!-- Tutorial 1: デザインレビュー -->
+      <div class="tutorial-card reveal d2">
+        <div class="tutorial-header">
+          <div class="tutorial-num">01</div>
+          <div class="tutorial-meta">
+            <h3 class="tutorial-title">Context GrammarでUIをレビューする</h3>
+            <span class="tutorial-audience">デザイナー向け</span>
+          </div>
+        </div>
+        <div class="tutorial-body">
+          <ol class="tutorial-steps">
+            <li><strong>Claude.ai</strong>、<strong>ChatGPT</strong>、<strong>Gemini</strong>のいずれかを開く。どのAIチャットでも動く。</li>
+            <li><strong>context-tokens-spec.yaml</strong>を会話に添付する（ファイルをドラッグするか、中身を貼り付ける）。</li>
+            <li>自分のアプリ画面のスクリーンショットをアップロードするか、フローを数行で説明する。</li>
+            <li>このプロンプトを送る:
+              <div class="tutorial-prompt">
+<pre><span class="hl">Context Grammar Specに基づいて、この画面をレビューしてください。
+考慮できていないTokenはどれですか？
+ユーザーの認知負荷が高い場合、公共の場にいる場合、
+小さい画面で見ている場合に何が壊れますか？</span></pre>
+              </div>
+            </li>
+            <li>AIの回答を読む。自分が設計時に見落としていた盲点を指摘してくれる。</li>
+          </ol>
+          <div class="tutorial-response">
+            <p><strong>AIの回答例:</strong> 「この決済フローはCognitive Loadを無視している。ユーザーが疲弊しているとき、12個の支払い方法は選択麻痺を引き起こす。よく使う3つに絞るべきだ。また、Social Exposureも見落としている。注文合計が大きなテキストで表示されるため、電車の中では隣の乗客から丸見えになる。」</p>
+          </div>
+          <div class="tutorial-benefit">自力でエッジケースを洗い出すと数時間かかる。Specを渡せば、AIが30秒で指摘する。</div>
+        </div>
+      </div>
+
+      <!-- Tutorial 2: UIバリエーション生成 -->
+      <div class="tutorial-card reveal d3">
+        <div class="tutorial-header">
+          <div class="tutorial-num">02</div>
+          <div class="tutorial-meta">
+            <h3 class="tutorial-title">コンテキスト適応UIのバリエーションを生成する</h3>
+            <span class="tutorial-audience">開発者向け</span>
+          </div>
+        </div>
+        <div class="tutorial-body">
+          <ol class="tutorial-steps">
+            <li>AIチャットを開き、<strong>design-rules.yaml</strong>を添付する。</li>
+            <li>自分の機能を2〜3文で説明する（例: 「キュー管理とソーシャル共有を持つ音楽プレイヤー」）。</li>
+            <li>このプロンプトを送る:
+              <div class="tutorial-prompt">
+<pre><span class="hl">Design Rules Specを使って、この機能の
+UIバリエーションを3つ生成してください。
+
+1. cognitive_load: high, physical_state: driving
+2. social_exposure: public, form_factor: smartwatch
+3. cognitive_load: low, autonomy_dial: Suggest
+
+各バリエーションで、どのルールが適用されるかを説明し、
+具体的なUI変更を示してください。</span></pre>
+              </div>
+            </li>
+            <li>各コンテキストに対応した具体的なUI仕様が返ってくる。汎用的な提案ではなく、ルールに裏打ちされた適応設計。</li>
+          </ol>
+          <div class="tutorial-response">
+            <p><strong>AIの回答例:</strong> 「バリエーション1（運転中 + 疲弊）: ルールDR-003を適用。キューを『次の1曲』に折りたたむ。共有ボタンは完全に非表示。音声操作のみ。バリエーション2（公共 + スマートウォッチ）: ルールDR-017。パーソナルコンテンツを含むアルバムアートを非表示。再生コントロールのみ表示、ソーシャル機能なし。音声確認の代わりにハプティクス。」</p>
+          </div>
+          <div class="tutorial-benefit">1つのUIを作って「どこでも使えますように」と祈る代わりに、テスト済みルールに基づいたコンテキスト別バリエーションが手に入る。</div>
+        </div>
+      </div>
+
+      <!-- Tutorial 3: ユーザーコンテキストモデル構築 -->
+      <div class="tutorial-card reveal d4">
+        <div class="tutorial-header">
+          <div class="tutorial-num">03</div>
+          <div class="tutorial-meta">
+            <h3 class="tutorial-title">ユーザーコンテキストモデルを構築する</h3>
+            <span class="tutorial-audience">エンジニア向け</span>
+          </div>
+        </div>
+        <div class="tutorial-body">
+          <ol class="tutorial-steps">
+            <li>AIチャットを開き、<strong>brain-schema.yaml</strong>を添付する。</li>
+            <li>自分のアプリとユーザーを説明する（例: 「食事制限のある忙しい家族向けのレシピアプリ」）。</li>
+            <li>このプロンプトを送る:
+              <div class="tutorial-prompt">
+<pre><span class="hl">このBrain Schemaを私のレシピアプリ用に
+カスタマイズしてください。
+
+3つのメモリ層にそれぞれ何を入れるべきですか？
+- Identity: 各ユーザーについてどんな安定した事実？
+- Accumulated: 時間をかけて何を学習すべき？
+- Right Now: レシピに関連する一時的な状態は？
+
+また、「ディナーパーティー」シナリオの
+Disposable Brainはどんな形になりますか？</span></pre>
+              </div>
+            </li>
+            <li>ドメインに特化したデータモデルが返ってくる。具体的なフィールド、型、ライフサイクルのルール付き。</li>
+          </ol>
+          <div class="tutorial-response">
+            <p><strong>AIの回答例:</strong> 「Identity層: アレルギー（家族メンバーごと）、キッチン器具リスト、料理の好み、スキルレベル。Accumulated層: 曜日別の調理頻度、食材の代用履歴、レシピの途中離脱パターン。Right Now: パントリーの在庫（直近の買い物レシートから）、今夜の調理時間、食事する人数。ディナーパーティーのDisposable Brain: ユーザーが『ディナーパーティーを計画する』と言った時に生成。ゲストの食事制限、コース計画、準備タイムラインを追跡。学習したホスティングパターンをAccumulatedに戻してから消滅する。」</p>
+          </div>
+          <div class="tutorial-benefit">データモデリングの議論に何週間も費やす代わりに、フォークできるテスト済みの構造が手に入る。白紙を見つめる必要はない。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section cta-section">
+  <div class="section-inner">
+    <div class="sec-label reveal">さらに深く</div>
+    <h2 class="sec-title reveal d1"><em>思想</em>を理解する</h2>
+    <p class="sec-desc reveal d2">Specは構造を定義する。その背景にある思想は、以下のページで。</p>
+    <div class="cta-grid reveal d3">
+      <a href="../context-grammar/index.html" class="cta-link">Context Grammar &rarr;</a>
+      <a href="../../brain-explainer/index.html" class="cta-link">Brain &rarr;</a>
+      <a href="../trust-design/index.html" class="cta-link">Trust Design &rarr;</a>
+      <a href="../applied/index.html" class="cta-link">Projects &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <a href="../about/index.html">Takao Umehara</a> &middot; 2025
+</footer>
+
+</div><!-- END .page-wrap -->
+
+<!-- YAML MODAL -->
+<div class="yaml-modal-overlay" id="yamlModal">
+  <div class="yaml-modal">
+    <div class="yaml-modal-header">
+      <span class="yaml-modal-title" id="yamlModalTitle">読み込み中...</span>
+      <button class="yaml-modal-close" onclick="closeYaml()">閉じる</button>
+    </div>
+    <div class="yaml-modal-body" id="yamlModalBody">
+      <div class="yaml-modal-loading">読み込み中...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// Reveal on scroll
+var reveals = document.querySelectorAll('.reveal');
+var io = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.15 });
+reveals.forEach(function(el) { io.observe(el); });
+
+// Copy code
+window.copyCode = function(btn) {
+  var pre = btn.closest('.code-block').querySelector('pre');
+  var text = pre.textContent || pre.innerText;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+  });
+};
+
+// YAML modal
+window.openYaml = function(file, title) {
+  var overlay = document.getElementById('yamlModal');
+  var body = document.getElementById('yamlModalBody');
+  var titleEl = document.getElementById('yamlModalTitle');
+  titleEl.textContent = title;
+  body.innerHTML = '<div class="yaml-modal-loading">読み込み中...</div>';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  fetch(file)
+    .then(function(r) { return r.text(); })
+    .then(function(text) {
+      var pre = document.createElement('pre');
+      pre.textContent = text;
+      body.innerHTML = '';
+      body.appendChild(pre);
+    })
+    .catch(function() {
+      body.innerHTML = '<div class="yaml-modal-loading">ファイルの読み込みに失敗しました。</div>';
+    });
+};
+window.closeYaml = function() {
+  document.getElementById('yamlModal').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.getElementById('yamlModal').addEventListener('click', function(e) {
+  if (e.target === this) closeYaml();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeYaml();
+});
+})();
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+
+</body>
+</html>

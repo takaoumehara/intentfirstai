@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 2 — The Family Trip to Japan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/slide-layouts.css">
+<style>
+/* ═══ Page-specific overrides only ═══ */
+
+/* ── Photo break (centered quote over photo) ── */
+.photo-break .slide-inner { text-align: center; }
+.break-quote {
+  font-family: var(--font-jp); font-weight: 500;
+  font-size: clamp(22px, 2.8vw, 36px); line-height: 1.8;
+  color: #fff; letter-spacing: -0.01em;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+
+/* ── Photo side panel ── */
+.photo-side {
+  width: 420px; height: 560px; border-radius: 20px;
+  overflow: hidden; flex-shrink: 0;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+}
+.photo-side img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 1200px) { .photo-side { width: 340px; height: 450px; } }
+@media (max-width: 900px)  { .photo-side { width: 100%; height: 300px; } }
+
+/* ── Embedded UI: phone ── */
+.ui-embed-phone {
+  width: 390px; height: 760px; border-radius: 24px; overflow: hidden;
+  border: 1px solid var(--border); box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  flex-shrink: 0; background: var(--bg-2);
+}
+.ui-embed-phone iframe {
+  width: 390px; height: 760px; border: none; display: block; pointer-events: none;
+}
+@media (max-width: 1200px) {
+  .ui-embed-phone { width: 320px; height: 624px; }
+  .ui-embed-phone iframe { width: 390px; height: 760px; transform: scale(0.82); transform-origin: top left; }
+}
+@media (max-width: 900px) {
+  .ui-embed-phone { width: 280px; height: 546px; }
+  .ui-embed-phone iframe { width: 390px; height: 760px; transform: scale(0.718); transform-origin: top left; }
+}
+
+/* ── Embedded UI: TV ── */
+.ui-embed-tv {
+  width: 640px; height: 400px; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border); box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  flex-shrink: 0; background: var(--bg-2);
+}
+.ui-embed-tv iframe {
+  width: 1280px; height: 800px; border: none; display: block;
+  transform: scale(0.5); transform-origin: top left; pointer-events: none;
+}
+@media (max-width: 768px) {
+  .ui-embed-tv { width: 100%; height: 240px; }
+  .ui-embed-tv iframe { transform: scale(0.3); }
+  .ui-embed-phone { width: 100%; max-width: 320px; margin: 0 auto; }
+  .photo-side { width: 100%; height: 260px; }
+}
+
+/* ── Friction cards ── */
+.friction-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--illust-amber); color: white;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+  margin-right: 12px; flex-shrink: 0;
+}
+.friction-card {
+  display: flex; align-items: flex-start; padding: 16px 20px;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
+}
+.friction-card .friction-text strong {
+  display: block; font-weight: 500; font-size: 14px; margin-bottom: 2px; color: var(--text);
+}
+.friction-card .friction-text span { font-size: 13px; color: var(--text-2); }
+.card-grid { display: grid; gap: 16px; }
+.card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 768px) { .card-grid-2 { grid-template-columns: 1fr; } }
+
+/* ── Callout ── */
+.callout {
+  background: var(--chip-blue-bg); border-radius: 12px;
+  padding: 20px 28px 20px 31px; margin-top: 28px;
+  font-size: 15px; line-height: 1.7; color: var(--text-2);
+  position: relative; overflow: hidden;
+}
+.callout::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px; background: var(--color-grammar);
+}
+.callout-red { background: var(--chip-red-bg); }
+.callout-red::before { background: var(--illust-red); }
+.callout-teal { background: var(--chip-green-bg); }
+.callout-teal::before { background: var(--illust-green); }
+.callout-purple { background: var(--chip-purple-bg); }
+.callout-purple::before { background: var(--color-brain); }
+
+/* ── Layer stack (Trip Brain) ── */
+.layer-stack { display: flex; flex-direction: column; gap: 0; max-width: 540px; }
+.layer-block { padding: 28px 32px; border: 1px solid var(--border); position: relative; }
+.layer-block:first-child { border-radius: 16px 16px 0 0; }
+.layer-block:last-child  { border-radius: 0 0 16px 16px; }
+.layer-block:not(:first-child) { border-top: none; }
+.layer-label {
+  font-family: var(--font-mono); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 6px;
+}
+.layer-title { font-weight: 500; font-size: 17px; margin-bottom: 4px; }
+.layer-desc  { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+/* ── Lifecycle flow ── */
+.lifecycle-flow {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 20px; font-family: var(--font-mono); font-size: 13px; color: var(--text-2);
+}
+.lifecycle-flow .flow-node {
+  padding: 8px 16px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--bg-2); font-size: 12px;
+}
+.lifecycle-flow .flow-arrow { color: var(--color-grammar); font-size: 18px; }
+
+/* ── Dial phase cards ── */
+.dial-phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.dial-phase-card {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px; text-align: center;
+}
+.dial-phase-card .phase-label {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;
+}
+.dial-meter {
+  width: 100%; height: 6px; background: var(--bg-3);
+  border-radius: 3px; margin: 16px 0; overflow: hidden;
+}
+.dial-meter-fill { height: 100%; border-radius: 3px; transition: width 1s var(--ease-out); }
+.dial-level { font-weight: 500; font-size: 15px; margin-top: 8px; }
+@media (max-width: 1024px) { .dial-phases { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px)  { .dial-phases { grid-template-columns: 1fr; } }
+
+/* ── Disclosure cards ── */
+.disclosure-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.disclosure-card {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px 24px;
+}
+.disclosure-card h4 {
+  font-size: 16px; font-weight: 500; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px; color: var(--text);
+}
+.disclosure-card ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.disclosure-card li {
+  font-size: 13px; line-height: 1.6; color: var(--text-2);
+  padding-left: 16px; position: relative;
+}
+.disclosure-card li::before {
+  content: ''; position: absolute; left: 0; top: 8px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--border);
+}
+.disclosure-card li.open::before    { background: var(--illust-green); }
+.disclosure-card li.closed::before  { background: var(--illust-red); }
+.disclosure-card li.partial::before { background: var(--illust-amber); }
+@media (max-width: 1024px) { .disclosure-grid { grid-template-columns: 1fr; } }
+
+/* ── Key scene badge ── */
+.key-scene-badge {
+  display: inline-block; font-family: var(--font-ui); font-size: 11px; font-weight: 500;
+  padding: 4px 12px; border-radius: 100px; margin-bottom: 16px; letter-spacing: 0.04em; color: white;
+}
+.key-scene-badge.blue { background: var(--illust-blue); }
+.key-scene-badge.red  { background: var(--illust-red); }
+
+/* ── Photo strip ── */
+.photo-strip {
+  width: 100%; height: 200px; border-radius: 16px; overflow: hidden;
+  margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.photo-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ── Surface variants ── */
+.slide--surface-dim { background: var(--bg-2); }
+.slide--surface-red { background: var(--chip-red-bg); }
+
+/* ── Dark centered quote ── */
+.dark-quote {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: clamp(36px, 5.5vw, 68px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.dark-quote em {
+  font-style: normal;
+  color: var(--color-grammar);
+}
+
+/* ── 3-direction grid responsive ── */
+.direction-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 1024px) { .direction-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div id="deck">
+
+
+<!-- =============================================================
+     S1 — HERO (dark, full-bleed photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s1"
+  style="background-image: url('presentation-images/hero-rain-temple.jpg');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:var(--text-3);">Context Grammar Portfolio</div>
+      <h1 class="slide-title" style="font-size:clamp(36px,4.5vw,64px);max-width:100%;">
+        Project 2 &mdash; The Family Trip
+      </h1>
+      <p class="slide-subtitle" style="max-width:680px;margin:0 auto;">
+        &laquo;雨だ&raquo;とTakeshiが言った。10秒後、京都の1日が再構成された&mdash;&mdash;家族みんなで選び直した。
+      </p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
+        <span class="chip chip-blue">Brain</span>
+        <span class="chip chip-amber">8 Tokens</span>
+        <span class="chip chip-green">Multi-Person</span>
+        <span class="chip chip-purple">Disposable Brain</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S2 — SCENE (text + photo)
+     ============================================================= -->
+<section class="slide" id="s2">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-default">3&#12534;&#26376;&#21069;</div>
+        <h2 class="slide-title">深夜11時。Sarahは<br>5つのタブと戦っている。</h2>
+        <p class="slide-subtitle">Nakamura-Andersen家。Takeshi（父・40・日本人）、Sarah（母・38・アメリカ人）、Kai（息子・12）、Mia（娘・9）。</p>
+        <p class="slide-subtitle" style="margin-top: 16px;">京都への3週間の帰省。Google Docsの比較表。移動時間は計算できていない。雨のプランBはない。</p>
+        <div class="callout" style="margin-top: 24px;">
+          Google Docsに旅行の比較表を自作する行為が、システムに欠けている構造的役割を示している。
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;">
+        <div class="photo-side">
+          <img src="presentation-images/planning-sarah-laptop.webp" alt="Sarah planning the trip on her laptop at night">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S3 — PAIN (friction cards)
+     ============================================================= -->
+<section class="slide" id="s3">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <h2 class="slide-title">Before &mdash; 毎年繰り返される7つの壁</h2>
+      <div class="card-grid card-grid-2" style="gap: 12px; margin-bottom: 24px;">
+        <div class="friction-card"><span class="friction-num">1</span><div class="friction-text"><strong>情報の散乱</strong><span>Instagram保存、友人推薦、過去の記録が全部別</span></div></div>
+        <div class="friction-card"><span class="friction-num">2</span><div class="friction-text"><strong>予約の困難</strong><span>チケット取り方すらわからない</span></div></div>
+        <div class="friction-card"><span class="friction-num">3</span><div class="friction-text"><strong>毎日の「明日どうする？」</strong><span>3週間 &times; 毎晩の家族会議</span></div></div>
+        <div class="friction-card"><span class="friction-num">4</span><div class="friction-text"><strong>4人の好みの衝突</strong><span>子供の体力 vs 大人の興味</span></div></div>
+        <div class="friction-card"><span class="friction-num">5</span><div class="friction-text"><strong>お土産の迷走</strong><span>去年何買ったっけ？</span></div></div>
+        <div class="friction-card"><span class="friction-num">6</span><div class="friction-text"><strong>持ち帰りロジスティクス</strong><span>ワインの税関ルール</span></div></div>
+        <div class="friction-card"><span class="friction-num">7</span><div class="friction-text"><strong>帰国後の散逸</strong><span>写真3,000枚散乱</span></div></div>
+      </div>
+      <div class="callout" style="margin-top:auto;">
+        計画フェーズは旅行の<strong style="color: var(--color-grammar);">15%</strong>。残り<strong style="color: var(--color-grammar);">85%</strong>がライブオーケストレーション &mdash; 「今この瞬間」の判断の連続。
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S4 — THESIS (text + photo)
+     ============================================================= -->
+<section class="slide" id="s4">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <h2 class="slide-title" style="font-size: clamp(24px, 2.8vw, 38px);">Home Brain &rarr; Disposable Layer</h2>
+        <p class="slide-subtitle">P1で紹介した家族の知識基盤（Home Brain）から、旅行専用の一時的なレイヤーが子プロセスとして生まれる。アレルギー、好み、予算感覚&mdash;&mdash;すべてを継承して、旅行のためだけに生きる。</p>
+        <div class="lifecycle-flow" style="margin-top: 28px;">
+          <div class="flow-node" style="border-color: var(--color-grammar); color: var(--color-grammar); font-weight: 500;">Home Brain（永続）</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node" style="border-color: var(--color-success); color: var(--color-success); font-weight: 500;">Trip Layer（一時的）</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node" style="border-color: var(--color-grammar); color: var(--color-grammar); font-weight: 500;">Home Brain（学びを還元）</div>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;">
+        <div class="photo-side" style="height: 480px;">
+          <img src="presentation-images/hotel-window-rainy-kyoto.webp" alt="Family looking out ryokan window at rainy Kyoto">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S5 — ARCHITECTURE (text + layer stack)
+     ============================================================= -->
+<section class="slide" id="s5">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">Disposable Surface OS</div>
+        <h2 class="slide-title">Trip Brain &mdash; 使い捨ての知識体</h2>
+        <p class="slide-subtitle">帰省のたびに生まれ、学び、記憶を返して消える。</p>
+        <div class="lifecycle-flow" style="margin-top: 16px;">
+          <div class="flow-node">生まれる</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node">学習する</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node">Home Brainに返す</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node" style="border-color: var(--illust-red); color: var(--illust-red);">消える</div>
+        </div>
+        <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-purple">DISPOSABLE BRAIN</span>
+          <span class="chip chip-blue">Brain</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;">
+        <div class="layer-stack">
+          <div class="layer-block" style="background: var(--chip-blue-bg);">
+            <div class="layer-label">Trip Context</div>
+            <div class="layer-title" style="color: var(--color-grammar);">Home Brainから継承</div>
+            <div class="layer-desc">アレルギー、好み、家族構成</div>
+          </div>
+          <div class="layer-block" style="background: var(--chip-green-bg);">
+            <div class="layer-label">Trip Learning</div>
+            <div class="layer-title" style="color: var(--color-success);">旅行中に蓄積</div>
+            <div class="layer-desc">「Kaiはラーメンに目覚めた」「Miaは午後3時に疲れる」</div>
+          </div>
+          <div class="layer-block" style="background: var(--chip-amber-bg);">
+            <div class="layer-label">Today</div>
+            <div class="layer-title" style="color: var(--color-intent);">毎朝リセット</div>
+            <div class="layer-desc">天気、今日の予定、予約、残り予算、体調</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S5b — DISCLOSURE SETTINGS: Multi-Person Disclosure UI Concept
+     ============================================================= -->
+<section class="slide" id="s5b">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div class="slide-label label-default">Pre-Trip &mdash; Disclosure Settings</div>
+      <h2 class="slide-title">誰に、何を見せるか。<br>旅行の前に決めておく。</h2>
+      <p class="slide-subtitle" style="margin-bottom: 28px;">帰省中のDisclosure設定は、人間関係ごとに粒度が異なる。「知らせない &times; 任せる」は論理的に不可能&mdash;&mdash;Disclosure &ge; Autonomyの設計制約。</p>
+      <div class="disclosure-grid">
+        <div class="disclosure-card" style="border-top: 3px solid var(--color-brain);">
+          <h4><span style="font-size: 20px;">&#127471;&#127477;</span> 京都の祖父母</h4>
+          <ul>
+            <li class="open">写真 = 自動共有</li>
+            <li class="open">動画クリップ = Open</li>
+            <li class="closed">予算 = 非開示</li>
+            <li class="partial">体調 = 簡略化（「少し疲れた程度」）</li>
+          </ul>
+        </div>
+        <div class="disclosure-card" style="border-top: 3px solid var(--color-intent);">
+          <h4><span style="font-size: 20px;">&#128118;</span> 子供（Kai &amp; Mia）</h4>
+          <ul>
+            <li class="closed">予算 = 非表示</li>
+            <li class="closed">スケジュール管理 = 非表示</li>
+            <li class="open">アクティビティ = ワクワクだけ</li>
+            <li class="open">写真 = 閲覧OK</li>
+          </ul>
+        </div>
+        <div class="disclosure-card" style="border-top: 3px solid var(--color-success);">
+          <h4><span style="font-size: 20px;">&#127482;&#127480;</span> アメリカのGrandparents</h4>
+          <ul>
+            <li class="partial">写真 = ベスト5枚のみ</li>
+            <li class="partial">キャプション = 英語自動翻訳</li>
+            <li class="closed">予算 = 非開示</li>
+            <li class="closed">詳細スケジュール = 非開示</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout callout-purple" style="max-width: 640px; margin-top: 24px;">
+        家族旅行でお店に入る。子供には値段を見せない。祖父母には「美味しかったよ」だけ伝える。同じ食事でも、誰に何を見せるかが違う。
+      </div>
+      <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+        <span class="chip chip-purple">Disclosure Dial</span>
+        <span class="chip chip-amber">Multi-Person</span>
+        <span class="chip chip-amber">DELEGATION</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S5c — DISCLOSURE DIAL: Concept + P2 Example
+     ============================================================= -->
+<section class="slide" id="s5c">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div class="slide-label label-default">Token &#9319; &mdash; Disclosure Dial</div>
+      <h2 class="slide-title">Disclosure Dial &mdash;<br>「何を知らせるか」の設計言語</h2>
+      <p class="slide-subtitle" style="margin-bottom: 28px;">プライバシー設定ではない。情報が流れる<strong>3つの方向</strong>を、人間関係ごとに制御する仕組み。</p>
+
+      <!-- 3 Flows -->
+      <div class="direction-grid" style="margin-bottom: 28px;">
+        <div style="background: var(--chip-blue-bg); border-radius: 16px; padding: 24px 20px; border-top: 3px solid var(--color-grammar);">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-grammar); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">Flow 1 &mdash; Human &rarr; AI</div>
+          <p style="font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 8px;">自分がAIに何を教えるか</p>
+          <p style="font-size: 13px; color: var(--text-2); line-height: 1.7;">Sarahは食事制限をAIに共有する。でも家計の詳細は共有しない。ドメインごとに粒度が異なる。</p>
+        </div>
+        <div style="background: var(--chip-purple-bg); border-radius: 16px; padding: 24px 20px; border-top: 3px solid var(--color-brain);">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-brain); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">Flow 2 &mdash; AI &rarr; Human (Connective)</div>
+          <p style="font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 8px;">AIが家族間の興味をつなげる</p>
+          <p style="font-size: 13px; color: var(--text-2); line-height: 1.7;">Kaiが嵐山の竹林に興味を持った。AIが祖父母に「お孫さん、竹細工に夢中でしたよ」と伝える&mdash;&mdash;Kaiの許可範囲内で。</p>
+        </div>
+        <div style="background: var(--chip-amber-bg); border-radius: 16px; padding: 24px 20px; border-top: 3px solid var(--color-intent);">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-intent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">Flow 3 &mdash; AI &rarr; Others (Selective)</div>
+          <p style="font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 8px;">AIが外部に何を共有するか</p>
+          <p style="font-size: 13px; color: var(--text-2); line-height: 1.7;">アメリカのGrandparentsには英語でベスト写真だけ。京都の祖父母には全写真。同じ旅行でも、相手によって共有の形が変わる。</p>
+        </div>
+      </div>
+
+      <!-- Autonomy prerequisite -->
+      <div style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; padding: 24px 28px; max-width: 720px;">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--illust-red); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Design Constraint</div>
+        <p style="font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 8px;">Disclosure &ge; Autonomy &mdash; 知らせない &times; 任せるは不可能</p>
+        <p style="font-size: 13px; color: var(--text-2); line-height: 1.7;">AIにアレルギー情報を教えていなければ、レストランの自動予約は任せられない。Disclosureが低いドメインでは、Autonomy Dialも上がらない。これは設計上の制約であり、信頼構築の出発点。</p>
+        <div style="margin-top: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px;">
+          <div style="padding: 6px 14px; border: 1px solid var(--illust-red); border-radius: 8px; color: var(--illust-red);">Disclosure = Low</div>
+          <span style="color: var(--text-3); font-size: 16px;">&rarr;</span>
+          <div style="padding: 6px 14px; border: 1px solid var(--illust-red); border-radius: 8px; color: var(--illust-red);">Autonomy = Suggest止まり</div>
+        </div>
+        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px;">
+          <div style="padding: 6px 14px; border: 1px solid var(--illust-green); border-radius: 8px; color: var(--color-success);">Disclosure = High</div>
+          <span style="color: var(--text-3); font-size: 16px;">&rarr;</span>
+          <div style="padding: 6px 14px; border: 1px solid var(--illust-green); border-radius: 8px; color: var(--color-success);">Autonomy = Notify / Auto可能</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;">
+        <span class="chip chip-purple">Disclosure Dial</span>
+        <span class="chip chip-green">Autonomy Dial</span>
+        <span class="chip chip-amber">3 Flows</span>
+        <span class="chip chip-blue">Per-Domain</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S6 — LIFECYCLE (timeline)
+     ============================================================= -->
+<section class="slide" id="s6">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <h2 class="slide-title">Disposable UIのライフサイクル</h2>
+      <div class="timeline-horizontal" style="margin-top:auto;">
+        <div class="timeline-node timeline-node--active">
+          <div class="timeline-dot" style="background:var(--illust-blue);box-shadow:0 0 0 2px var(--illust-blue);"></div>
+          <div class="timeline-node-label">出発2週間前</div>
+          <div class="timeline-node-text">Trip Planning UI<br>生成</div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-green);box-shadow:0 0 0 2px var(--illust-green);"></div>
+          <div class="timeline-node-label">出発前日</div>
+          <div class="timeline-node-text">Planning &rarr;<br>Travel Mode UI</div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-amber);box-shadow:0 0 0 2px var(--illust-amber);"></div>
+          <div class="timeline-node-label">帰省中 (3週間)</div>
+          <div class="timeline-node-text">Travel Mode<br>が生きている</div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-purple);box-shadow:0 0 0 2px var(--illust-purple);"></div>
+          <div class="timeline-node-label">帰国翌日</div>
+          <div class="timeline-node-text">&rarr; Post-Trip UI</div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-red);box-shadow:0 0 0 2px var(--illust-red);"></div>
+          <div class="timeline-node-label">帰国1週間後</div>
+          <div class="timeline-node-text">Post-Trip UI<br>消滅</div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--text-3);box-shadow:0 0 0 2px var(--text-3);"></div>
+          <div class="timeline-node-label">来年</div>
+          <div class="timeline-node-text">新しいTrip Brain<br>(記憶を継承)</div>
+        </div>
+      </div>
+      <div class="callout" style="max-width: 600px; margin-top: 24px;">
+        UIは永続しない。目的が終われば消える。しかし学んだことはHome Brainに残る。
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S7 — Planning: 4つの方向性 (text + phone)
+     ============================================================= -->
+<section class="slide" id="s7">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-default">Phase 1 &mdash; Planning</div>
+        <h2 class="slide-title">旅行を宣言した瞬間、<br>UIが生まれる</h2>
+        <p class="slide-subtitle">Takeshi: 「日本旅行を計画して。2週間。家族4人。予算$6,000。京都と大阪。」</p>
+        <p class="slide-subtitle" style="margin-top: 12px;">この瞬間、Home Brainから情報を継承してダッシュボードが生まれる。AIは1つの正解ではなく、<strong>4つの方向性</strong>を提示する。</p>
+        <p class="slide-subtitle" style="margin-top: 12px;">UIは旅行のために生まれ、旅行が終われば消える。アプリのインストールではなく、<strong style="color: var(--color-grammar);">Disposable Surface</strong>の生成&mdash;&mdash;ダイナミックレイアウトが目的に応じて出現し、消滅する。</p>
+        <div class="callout" style="margin-top: 20px;">
+          ポップアップレストランのようなもの。京都にいる間だけ開き、帰ったら店じまい。でもレシピ（記憶）は本店に持ち帰る。
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-blue">Brain</span>
+          <span class="chip chip-green">&#9317; Feasibility</span>
+          <span class="chip chip-blue">Disposable Surface</span>
+          <span class="chip chip-amber">Dynamic Layout</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-phone">
+          <iframe src="../../ui-screens/p2/p2-10-plan-directions.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S8 — Planning: ウィッシュリスト (text + phone)
+     ============================================================= -->
+<section class="slide slide--dim" id="s8">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <h2 class="slide-title">子供のワクワクが、<br>旅程を動かす</h2>
+        <p class="slide-subtitle">Kaiのスマホに料金は表示されない。ワクワクだけ。Miaには Home Brainから「ものづくり好き」が反映されて、工芸体験が優先表示される。</p>
+        <div class="callout" style="margin-top: 24px;">
+          同じ旅行情報が、親のスマホ（料金+満足度スコア）と子供のスマホ（写真カードのみ）で異なる。これが<strong style="color: var(--color-grammar);">Multi-Person Orchestration</strong>。
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-amber">Multi-Person</span>
+          <span class="chip chip-purple">Disclosure</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-phone">
+          <iframe src="../../ui-screens/p2/p2-11-kai-wishlist.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S9 — Planning: TVカウントダウン KEY SCENE (text + TV)
+     ============================================================= -->
+<section class="slide slide--dim" id="s9">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="key-scene-badge blue">&#9733;&#9733;&#9733; KEY SCENE</div>
+        <h2 class="slide-title">TVに映る冒険の予告編</h2>
+        <p class="slide-subtitle">料金もロジスティクスもない。子供には「ワクワク」だけが届く。</p>
+        <div class="callout" style="margin-top: 24px;">
+          1つの旅程 &times; 3つのビュー = 3つの異なるUI。<br>
+          <strong style="color: var(--color-grammar);">親のスマホ</strong>（料金・予約管理）、<strong style="color: var(--color-success);">子供のスマホ</strong>（写真カード）、<strong style="color: var(--color-intent);">TV</strong>（冒険の予告編）。
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-tv">
+          <iframe src="../../ui-screens/p2/p2-12-tv-countdown.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S10 — PHOTO BREAK: Arrival (dark, full-bleed)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s10"
+  style="background-image: url('presentation-images/kai-mia-bamboo.webp');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:var(--text-3);">Day 2</div>
+      <p class="break-quote">京都に着いた。<br>計画にない発見が、最高の思い出になる。</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S11 — Discovery: 竹細工工房 KEY SCENE (text + phone)
+     ============================================================= -->
+<section class="slide" id="s11">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="key-scene-badge blue">&#9733;&#9733;&#9733; KEY SCENE</div>
+        <div class="slide-label label-default">Phase 2 &mdash; Day 2 &mdash; Discovery</div>
+        <h2 class="slide-title">Miaが叫んだ。<br>「パパ！あれ見て！」</h2>
+        <p class="slide-subtitle">嵐山の竹林を散策中。路地の竹細工工房を見つけた。予定にない。でもAIが瞬時に答える&mdash;&mdash;時間は余裕がある。予算も大丈夫。</p>
+        <p class="slide-subtitle" style="margin-top: 12px;">Miaのものづくり好き（Home Brain）&times; 現在地（嵐山）&times; 空き時間。<strong>3つが交差した瞬間。</strong></p>
+        <div style="margin-top: 20px; background: var(--chip-green-bg); border-radius: 12px; padding: 16px 20px; border-left: 3px solid var(--illust-green);">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--color-success); font-weight: 500; margin-bottom: 6px;">INSTANT FEASIBILITY CHECK</div>
+          <div style="font-size: 14px; color: var(--text-2); line-height: 1.7;">スケジュール・予算ともにOK &mdash; 体験時間90分 &mdash; 次の予定まで2時間</div>
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-green">Brain L2&times;L3</span>
+          <span class="chip chip-green">&#9317; Feasibility</span>
+          <span class="chip chip-blue">&#9312; Physical</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-phone">
+          <iframe src="../../ui-screens/p2/p2-16-bamboo-discovery.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S12 — Discovery: 竹細工の成果 + 夜のアーカイブ (text + photo)
+     ============================================================= -->
+<section class="slide" id="s12">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <h2 class="slide-title">即興が、記憶になる</h2>
+        <p class="slide-subtitle">Kaiは竹の刀。Miaは竹のブレスレット。</p>
+        <p class="slide-subtitle" style="margin-top: 12px;">夜、その日の写真が自動でアルバムになり、京都のおじいちゃんおばあちゃんとアメリカのGrandparentsに共有される&mdash;&mdash;それぞれ異なる編集で。</p>
+        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 14px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--chip-green-bg); border-radius: 8px; font-size: 16px;">&#127471;&#127477;</span>
+            <span>京都の祖父母 &rarr; 全写真 + 動画クリップ</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 14px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--chip-blue-bg); border-radius: 8px; font-size: 16px;">&#127482;&#127480;</span>
+            <span>アメリカのGrandparents &rarr; ベスト5枚 + 英語キャプション</span>
+          </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-purple">Disclosure</span>
+          <span class="chip chip-amber">Multi-Person</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;">
+        <div class="photo-side" style="height: 480px;">
+          <img src="presentation-images/kai-mia-bamboo.webp" alt="Kai and Mia in bamboo grove">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S13 — PHOTO BREAK: Rain (dark, full-bleed)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s13"
+  style="background-image: url('presentation-images/hotel-window-rainy-kyoto.webp');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <p class="break-quote">3日目の朝。窓の外は雨。<br>でも、AIはもう動いている。</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S14 — Rain: 代替案の構造化 (text + phone)
+     ============================================================= -->
+<section class="slide" id="s14">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-default">Phase 3 &mdash; Day 3-4 &mdash; Rain</div>
+        <h2 class="slide-title">AIは勝手に変えない。<br>選択肢を構造化する。</h2>
+        <p class="slide-subtitle">2日間連続の雨。屋外予定のリスケが必要。AIが屋内アクティビティを一覧化し、料金・予約・所要時間付きで提示。親がフィルタリングし、組み合わせプランを生成する。</p>
+        <p class="slide-subtitle" style="margin-top: 12px;"><strong style="color: var(--color-success);">Adaptation</strong> = 環境変化 &rarr; UIの再構成。天気が変わった。予定が使えなくなった。AIは勝手に変えない。代替案を構造化して、家族が選ぶ。</p>
+        <div style="margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--color-success); padding: 8px 14px; background: var(--chip-green-bg); border-radius: 8px; display: inline-block;">天気の変化が、プランのリコンポーズをトリガーする</div>
+        <div class="callout callout-teal" style="margin-top: 20px;">
+          予約していたメニューの魚が入荷しなかった。シェフが「今日はこの3つから選べます」と代替案を出す。メニューが変わっただけで、食事の体験は守られている。
+        </div>
+        <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-green">ADAPTATION</span>
+          <span class="chip chip-green">&#9317; Feasibility</span>
+          <span class="chip chip-amber">&#9315; Priority Weight</span>
+          <span class="chip chip-amber">&#9313; Cognitive Load</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-phone">
+          <iframe src="../../ui-screens/p2/p2-13-rain-alternatives.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S15 — Rain: 組み合わせプラン (text + phone)
+     ============================================================= -->
+<section class="slide slide--dim" id="s15">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <h2 class="slide-title">2日間の組み合わせプラン</h2>
+        <p class="slide-subtitle">選んだアクティビティから、AIが3つの2日間プランを生成。Plan A: ゆったり。Plan C: マンガを後日に。親がSarahと相談して絞り、TVで子供に見せる。</p>
+        <p class="slide-subtitle" style="margin-top: 12px;"><strong style="color: var(--color-intent);">Delegation</strong> &mdash; AIが選択肢を構造化し、家族が投票で決める。情報整理はDelegate、最終決定はOwn。</p>
+        <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-amber">DELEGATION</span>
+          <span class="chip chip-amber">Multi-Person</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-phone">
+          <iframe src="../../ui-screens/p2/p2-14-rain-combo-plans.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S16 — Rain: TV最終プラン KEY SCENE (text + TV)
+     ============================================================= -->
+<section class="slide slide--dim" id="s16">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="key-scene-badge blue">&#9733;&#9733;&#9733; KEY SCENE</div>
+        <h2 class="slide-title">「マンガも入った！」<br>「食品サンプルも！」<br>&mdash;&mdash;全員Happy</h2>
+        <p class="slide-subtitle">Kaiが2体験。Miaも2体験。公平性をAIが構造化した。</p>
+        <p class="slide-subtitle" style="margin-top: 10px; color: var(--color-intent); font-weight: 500;">AIは選択肢を構造化する。決めるのは家族。</p>
+        <div class="callout callout-teal" style="margin-top: 16px;">
+          シェフが「今日の食材から3つのコースを提案します」と出した。家族で相談して1つを選ぶ。シェフは提案し、家族が決める&mdash;&mdash;これがDelegationの本質。
+        </div>
+        <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-amber">DELEGATION</span>
+          <span class="chip chip-green">Fairness</span>
+          <span class="chip chip-amber">Multi-Person</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-tv">
+          <iframe src="../../ui-screens/p2/p2-15-rain-tv-final.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S17 — PHOTO BREAK: Before crisis (dark, full-bleed)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s17"
+  style="background-image: url('presentation-images/kai-mia-bamboo.webp');">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <p class="break-quote">楽しかった日々。<br>しかし、8日目の朝&mdash;&mdash;</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S18 — Crisis: 発熱 KEY SCENE (text + phone + photo)
+     ============================================================= -->
+<section class="slide slide--surface-red" id="s18">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="key-scene-badge red">&#9733;&#9733;&#9733; KEY SCENE</div>
+        <div class="slide-label" style="color: var(--illust-red);">Phase 4 &mdash; Day 8 &mdash; Escalation</div>
+        <h2 class="slide-title">Kaiが37.8度の熱</h2>
+        <p class="slide-subtitle">AIは「大丈夫です」とは言わない。「医療判断は私にはできません」と正直に認める。</p>
+        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 14px;"><strong style="color: var(--illust-red);">Autonomy Dial 強制降格</strong> &mdash; 医療判断は人間に返す。</div>
+          <div style="font-size: 14px; margin-top: 4px;"><strong style="color: var(--color-brain);">Disclosure差分:</strong></div>
+          <div style="font-size: 13px; color: var(--text-2); padding-left: 20px;">Sarah = FULL（症状・クリニック3件・保険情報）</div>
+          <div style="font-size: 13px; color: var(--text-2); padding-left: 20px;">祖父母 = 簡略（「少し熱がある程度です」）</div>
+        </div>
+        <!-- Autonomy Dial downgrade diagram -->
+        <div style="margin-top: 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px;">
+          <div style="padding: 6px 14px; border: 1px solid var(--illust-green); border-radius: 8px; color: var(--color-success);">旅行中: Notify</div>
+          <span style="color: var(--illust-red); font-size: 16px;">&rarr;</span>
+          <div style="padding: 6px 14px; border: 2px solid var(--illust-red); border-radius: 8px; color: var(--illust-red); font-weight: 600;">医療時: Confirm &#9660;</div>
+          <span style="color: var(--illust-green); font-size: 16px;">&rarr;</span>
+          <div style="padding: 6px 14px; border: 1px solid var(--illust-green); border-radius: 8px; color: var(--color-success);">回復後: Notify復帰</div>
+        </div>
+        <div class="callout callout-red" style="margin-top: 16px;">
+          <strong>Escalationは失敗ではない。システムの正直さの証明。</strong><br>
+          お客さんがアレルギー反応を起こした。シェフは「調理を止めます」と即座に判断し、病院の場所を伝える。料理の説明をしている場合ではない。
+        </div>
+        <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+          <span class="chip chip-red">ESCALATION</span>
+          <span class="chip chip-green">Autonomy &darr;</span>
+          <span class="chip chip-purple">Disclosure</span>
+          <span class="chip chip-green">Medical</span>
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+        <div style="border-radius: 20px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.25); width: 390px;">
+          <img src="presentation-images/ryokan-fever.webp" alt="Sarah caring for sick Kai in ryokan" style="width: 100%; height: 240px; object-fit: cover; display: block;">
+        </div>
+        <div class="ui-embed-phone" style="height: 500px;">
+          <iframe src="../../ui-screens/p2/p2-05-health.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S19 — Post-Trip (text + TV)
+     ============================================================= -->
+<section class="slide" id="s19">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-default">Phase 5 &mdash; Post-Trip</div>
+        <h2 class="slide-title">帰国後 &mdash; 記憶の移行</h2>
+        <div class="photo-strip">
+          <img src="presentation-images/post-trip-morning.webp" alt="Family at breakfast table with KitKat souvenirs">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 14px; font-size: 14px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--chip-blue-bg); font-size: 18px;">&#127909;</span>
+            <span>3週間の動画ダイジェスト（家族用15分、祖父母用5分、SNS用3分）</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; font-size: 14px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--chip-blue-bg); font-size: 18px;">&#128176;</span>
+            <span>費用サマリー（$5,850 / $6,000）</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; font-size: 14px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--chip-blue-bg); font-size: 18px;">&#128161;</span>
+            <span>好み更新（Brain L1に書き戻し）</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; font-size: 14px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--chip-blue-bg); font-size: 18px;">&#127873;</span>
+            <span>お土産記録</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 14px; font-size: 14px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--chip-blue-bg); font-size: 18px;">&#128221;</span>
+            <span>来年メモ</span>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 20px;">
+          Trip Brain &rarr; Home Brainに記憶を移行 &rarr; Trip Brain消滅。来年の旅行は、今年の記憶から始まる。
+        </div>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="ui-embed-tv">
+          <iframe src="../../ui-screens/p2/p2-06-post-trip.html" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S20 — Post-Trip: 朝食テーブル (text + photo)
+     ============================================================= -->
+<section class="slide" id="s20">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <h2 class="slide-title">KitKatが並ぶ朝食テーブル</h2>
+        <p class="slide-subtitle">3週間分の記憶がHome Brainに還元された。Disposable UIは消えた。</p>
+        <p class="slide-subtitle" style="margin-top: 16px;">来年、新しいTrip Brainが生まれるとき、「Kaiは午後3時に疲れる」「Miaは竹細工が好き」という学びが、最初から組み込まれている。</p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;">
+        <div class="photo-side" style="height: 480px;">
+          <img src="presentation-images/post-trip-morning.webp" alt="Family breakfast with KitKat souvenirs">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S21 — Autonomy Dial phases
+     ============================================================= -->
+<section class="slide slide--dim" id="s21">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <h2 class="slide-title">Autonomy Dialの位相変化</h2>
+      <p class="slide-subtitle" style="margin-bottom: 36px;">P1は1年かけて上がる。P2は数日単位で変動する。</p>
+      <div class="dial-phases" style="margin-top:auto;">
+        <div class="dial-phase-card">
+          <div class="phase-label">Phase 1 / 計画</div>
+          <div class="dial-meter"><div class="dial-meter-fill" style="width: 35%; background: var(--illust-blue);"></div></div>
+          <div class="dial-level" style="color: var(--color-grammar);">Confirm</div>
+          <p style="font-size: 12px; color: var(--text-3); margin-top: 8px;">予約など重要判断</p>
+        </div>
+        <div class="dial-phase-card">
+          <div class="phase-label">Phase 2-3 / 滞在</div>
+          <div class="dial-meter"><div class="dial-meter-fill" style="width: 65%; background: var(--illust-green);"></div></div>
+          <div class="dial-level" style="color: var(--color-success);">Notify</div>
+          <p style="font-size: 12px; color: var(--text-3); margin-top: 8px;">日常提案は通知のみ</p>
+        </div>
+        <div class="dial-phase-card">
+          <div class="phase-label">Phase 4 / 体調不良</div>
+          <div class="dial-meter"><div class="dial-meter-fill" style="width: 25%; background: var(--illust-red);"></div></div>
+          <div class="dial-level" style="color: var(--illust-red);">強制Confirm降格</div>
+          <p style="font-size: 12px; color: var(--text-3); margin-top: 8px;">医療判断は人間に返す</p>
+        </div>
+        <div class="dial-phase-card">
+          <div class="phase-label">Phase 5 / 帰国後</div>
+          <div class="dial-meter"><div class="dial-meter-fill" style="width: 90%; background: var(--text-3);"></div></div>
+          <div class="dial-level" style="color: var(--text-2);">Auto</div>
+          <p style="font-size: 12px; color: var(--text-3); margin-top: 8px;">写真整理、記憶移行</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S22 — Disclosure x Social Exposure
+     ============================================================= -->
+<section class="slide" id="s22">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <h2 class="slide-title">Disclosure &times; Social Exposure</h2>
+      <p class="slide-subtitle" style="margin-bottom: 32px;">同じ家族旅行でも、誰に何を見せるかが変わる。</p>
+      <div class="disclosure-grid">
+        <div class="disclosure-card" style="border-top: 3px solid var(--color-brain);">
+          <h4><span style="font-size: 20px;">&#127968;</span> 板橋（義実家）</h4>
+          <ul>
+            <li class="open">写真自動共有</li>
+            <li class="closed">予算非開示</li>
+            <li class="open">娘ジェンダー = Open</li>
+          </ul>
+        </div>
+        <div class="disclosure-card" style="border-top: 3px solid var(--color-success);">
+          <h4><span style="font-size: 20px;">&#127969;</span> 上田（両親）</h4>
+          <ul>
+            <li class="partial">写真手動共有</li>
+            <li class="closed">予算非開示</li>
+            <li class="closed">娘ジェンダー = Non-Disclosure</li>
+          </ul>
+        </div>
+        <div class="disclosure-card" style="border-top: 3px solid var(--color-intent);">
+          <h4><span style="font-size: 20px;">&#128118;</span> 子供</h4>
+          <ul>
+            <li class="closed">予算非表示</li>
+            <li class="closed">スケジュール管理非表示</li>
+            <li class="open">写真閲覧 OK</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout callout-purple" style="max-width: 640px; margin-top: 24px;">
+        Disclosure Dialが人間関係ごとに独立して動く。<br>「知らせない &times; 任せる」は論理的に不可能。
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S22b — DISPOSABLE BRAIN LIFECYCLE (expanded timeline)
+     ============================================================= -->
+<section class="slide slide--dim" id="s22b">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div class="slide-label label-grammar">Disposable Surface Lifecycle</div>
+      <h2 class="slide-title">UIの一生 &mdash; 生まれ、学び、消える</h2>
+      <p class="slide-subtitle" style="margin-bottom: 28px;">アプリのインストールではなく、Surfaceの生成と消滅。これが「新しいパラダイム」の意味。</p>
+      <div class="timeline-horizontal" style="margin-top: auto;">
+        <div class="timeline-node timeline-node--active">
+          <div class="timeline-dot" style="background:var(--illust-blue);box-shadow:0 0 0 2px var(--illust-blue);"></div>
+          <div class="timeline-node-label">出発2週間前</div>
+          <div class="timeline-node-text">Planning Surface<br>生成<br><span style="font-size:11px;color:var(--text-3);">Home Brain &rarr; Trip Layer</span></div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-green);box-shadow:0 0 0 2px var(--illust-green);"></div>
+          <div class="timeline-node-label">出発前日</div>
+          <div class="timeline-node-text">Planning &rarr;<br>Travel Mode<br><span style="font-size:11px;color:var(--text-3);">Disclosure設定確定</span></div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-amber);box-shadow:0 0 0 2px var(--illust-amber);"></div>
+          <div class="timeline-node-label">帰省中 (3週間)</div>
+          <div class="timeline-node-text">Trip Brain<br>が学習<br><span style="font-size:11px;color:var(--text-3);">Kaiはラーメン好き</span></div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-red);box-shadow:0 0 0 2px var(--illust-red);"></div>
+          <div class="timeline-node-label">Day 8 / 危機</div>
+          <div class="timeline-node-text">Escalation<br>Dial強制降格<br><span style="font-size:11px;color:var(--text-3);">医療は人間に返す</span></div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--illust-purple);box-shadow:0 0 0 2px var(--illust-purple);"></div>
+          <div class="timeline-node-label">帰国翌日</div>
+          <div class="timeline-node-text">Post-Trip UI<br>記憶を移行<br><span style="font-size:11px;color:var(--text-3);">Trip &rarr; Home Brain</span></div>
+        </div>
+        <div class="timeline-node">
+          <div class="timeline-dot" style="background:var(--text-3);box-shadow:0 0 0 2px var(--text-3);"></div>
+          <div class="timeline-node-label">来年</div>
+          <div class="timeline-node-text">新Trip Brain<br>記憶を継承<br><span style="font-size:11px;color:var(--text-3);">去年の学びが初期値</span></div>
+        </div>
+      </div>
+      <div class="callout" style="max-width: 640px; margin-top: 24px;">
+        Disposable Surface = 目的のために生まれ、学びを残して消えるUI。来年はゼロからではなく、今年の記憶から始まる。
+      </div>
+      <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;">
+        <span class="chip chip-blue">Disposable Surface</span>
+        <span class="chip chip-amber">Dynamic Layout</span>
+        <span class="chip chip-purple">New Paradigm</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S22c — THREE DIRECTIONS OVERVIEW
+     ============================================================= -->
+<section class="slide" id="s22c">
+  <div class="slide-inner">
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <div class="slide-label label-default">Design Decisions</div>
+      <h2 class="slide-title">3つの方向 &mdash; P2 全シーンのマッピング</h2>
+      <p class="slide-subtitle" style="margin-bottom: 32px;">Context Grammarは3つの方向でAIの振る舞いを設計する。</p>
+      <div class="direction-grid" style="margin-top: auto;">
+        <!-- Delegation -->
+        <div style="background: var(--chip-amber-bg); border-radius: 16px; padding: 28px 24px; border-top: 3px solid var(--color-intent);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <span class="chip chip-amber" style="font-size: 12px;">DELEGATION</span>
+          </div>
+          <p style="font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 12px;">AIが構造化し、人間が決める</p>
+          <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>家族投票（AIが構造化、家族が決定）</li>
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>旅行宣言 &rarr; 4方向提示（Exploring Mode）</li>
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>Post-Trip自動整理</li>
+          </ul>
+        </div>
+        <!-- Escalation -->
+        <div style="background: var(--chip-red-bg); border-radius: 16px; padding: 28px 24px; border-top: 3px solid var(--illust-red);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <span class="chip chip-red" style="font-size: 12px;">ESCALATION</span>
+          </div>
+          <p style="font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 12px;">AIが限界を認め、人間に返す</p>
+          <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>体調不良（強制Confirm降格）</li>
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>AIが医療限界を認める</li>
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>連日の雨（「休息日」も選択肢に）</li>
+          </ul>
+        </div>
+        <!-- Adaptation -->
+        <div style="background: var(--chip-green-bg); border-radius: 16px; padding: 28px 24px; border-top: 3px solid var(--color-success);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <span class="chip chip-green" style="font-size: 12px;">ADAPTATION</span>
+          </div>
+          <p style="font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 12px;">環境が変わり、UIが再構成される</p>
+          <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>Rain Arc（天気変化 &rarr; プラン再構成）</li>
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>竹細工のInstant Feasibility Check</li>
+            <li style="font-size: 13px; color: var(--text-2); padding-left: 16px; position: relative;"><span style="position: absolute; left: 0;">&#8226;</span>TVカウントダウン &rarr; Phone管理の同時表示</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S23 — AGENTIC FUTURE (dark, full-bleed photo)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s23"
+  style="background-image: url('presentation-images/agentic-future.png');">
+  <div class="slide-inner" style="display:flex;flex-direction:column;justify-content:center;padding:var(--slide-pad-x);">
+    <h2 class="slide-title" style="color:#f0ece4;font-size:clamp(28px,3vw,42px);max-width:100%;text-shadow:0 2px 24px rgba(0,0,0,0.3);">Context Grammarが描く未来</h2>
+    <p class="slide-subtitle" style="color:rgba(240,236,228,0.7);font-size:clamp(18px,2vw,26px);max-width:700px;margin-bottom:40px;">AIは家族の一員ではない。だが、最高の執事になれる。</p>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 720px;">
+      <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+        <div style="font-family: var(--font-ui); font-size: 11px; color: rgba(240,236,228,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">Brain</div>
+        <p style="font-size: 14px; color: rgba(240,236,228,0.7); line-height: 1.7;">旅行のたびにDisposable Layerが生まれ、学び、消える</p>
+      </div>
+      <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+        <div style="font-family: var(--font-ui); font-size: 11px; color: rgba(240,236,228,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">8 Tokens</div>
+        <p style="font-size: 14px; color: rgba(240,236,228,0.7); line-height: 1.7;">家族の「今」をリアルタイムで読む</p>
+      </div>
+      <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+        <div style="font-family: var(--font-ui); font-size: 11px; color: rgba(240,236,228,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">Autonomy</div>
+        <p style="font-size: 14px; color: rgba(240,236,228,0.7); line-height: 1.7;">信頼は日単位で変動し、危機で即座に降格する</p>
+      </div>
+      <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px;">
+        <div style="font-family: var(--font-ui); font-size: 11px; color: rgba(240,236,228,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;">Disclosure</div>
+        <p style="font-size: 14px; color: rgba(240,236,228,0.7); line-height: 1.7;">誰に何を見せるかは、関係性ごとに異なる</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S24 — CLOSING (dark, centered)
+     ============================================================= -->
+<section class="slide slide--dark slide-dark slide--v-center" id="s24">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:var(--text-3);">Context Grammar Portfolio</div>
+      <h2 class="slide-title" style="font-size:clamp(28px,3vw,44px);max-width:100%;color:#f0ece4;text-shadow:0 2px 32px rgba(0,0,0,0.4);">
+        Project 2 &mdash; The Family Trip
+      </h2>
+      <p class="slide-subtitle" style="color:rgba(240,236,228,0.5);margin-bottom:48px;">Takao Umehara</p>
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <span class="chip chip-blue">Disposable Brain</span>
+        <span class="chip chip-amber">8 Context Tokens</span>
+        <span class="chip chip-green">Multi-Person</span>
+        <span class="chip chip-purple">Autonomy Dial</span>
+        <span class="chip chip-blue">Disclosure Dial</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /#deck -->
+
+<!-- Reveal observer for slide-inner + stagger -->
+<script>
+(function() {
+  var deck = document.getElementById('deck');
+  if (!deck) return;
+  // Make all slide-inners visible immediately — deck-nav.js handles scroll-based reveal
+  deck.querySelectorAll('.slide-inner').forEach(function(el) { el.classList.add('visible'); });
+  deck.querySelectorAll('.stagger').forEach(function(el) { el.classList.add('visible'); });
+})();
+</script>
+
+<!-- Unified deck navigation -->
+<script src="../../assets/js/deck-nav.js"></script>
+
+</body>
+</html>

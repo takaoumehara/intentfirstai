@@ -1,0 +1,2487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3-02 Commute — Swipe Review on Train</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+html { overflow: hidden; height: 100%; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* embed mode: phone-frame becomes transparent, phone-screen fills viewport */
+body.embed-mode {
+  align-items: flex-start;
+}
+body.embed-mode .phone-frame {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  width: 390px;
+  height: 844px;
+  max-height: 844px;
+}
+body.embed-mode .phone-frame::before,
+body.embed-mode .phone-frame::after { display: none; }
+body.embed-mode .phone-screen {
+  border-radius: 0;
+  background: #fff;
+}
+
+/* ── Phone Frame (iPhone 15 Pro) ── */
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  max-height: 844px;
+  background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+  border-radius: 48px;
+  padding: 11px;
+  position: relative;
+  /* No external box-shadow — prevents flex layout from adding extra width */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+  /* Clip pseudo-elements that extend beyond frame edges */
+  overflow: visible;
+}
+/* Side button — power (inset so it doesn't escape iframe boundary) */
+.phone-frame::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 130px;
+  width: 3px;
+  height: 52px;
+  background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+  border-radius: 0 2px 2px 0;
+}
+/* Side buttons — volume + mute (inset so it doesn't escape iframe boundary) */
+.phone-frame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 110px;
+  width: 3px;
+  height: 30px;
+  background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+  border-radius: 2px 0 0 2px;
+  box-shadow: 0 42px 0 #2a2a2c, 0 72px 0 #2a2a2c;
+}
+
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Dynamic Island ── */
+.notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 34px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 100;
+}
+
+/* ── Status Bar ── */
+.status-bar {
+  height: 54px;
+  padding: 14px 28px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #202124;
+  position: relative;
+  z-index: 50;
+  background: #FFFFFF;
+}
+.status-bar-right {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.status-bar-right .material-symbols-outlined { font-size: 17px; }
+
+/* ── Home Indicator ── */
+.home-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+  z-index: 50;
+  pointer-events: none;
+}
+.home-indicator-bar {
+  width: 134px;
+  height: 5px;
+  background: #202124;
+  border-radius: 100px;
+}
+
+/* ── Phase Container ── */
+.phase-container {
+  position: absolute;
+  top: 54px;
+  left: 0;
+  right: 0;
+  bottom: 34px;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════
+   PHASE 1: FULL BROWSE
+   ══════════════════════════════════ */
+.phase-1 {
+  position: absolute;
+  inset: 0;
+  background: #F8F9FA;
+  overflow-y: auto;
+  transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1), transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+}
+.phase-1::-webkit-scrollbar { width: 0; }
+.phase-1.hidden {
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+/* Header */
+.browse-header {
+  height: 56px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border-bottom: 1px solid #F1F3F4;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.browse-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.browse-header-left .material-symbols-outlined {
+  font-size: 24px;
+  color: #5F6368;
+}
+.gemini-badge {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1A73E8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.gemini-star {
+  background: linear-gradient(135deg, #4285F4, #9B72CB, #D96570);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  font-size: 18px;
+}
+.browse-title {
+  font-size: 13px;
+  color: #5F6368;
+  margin-left: 4px;
+}
+
+.browse-content { padding: 16px; }
+
+/* Summary Card */
+.summary-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.summary-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #3C4043;
+}
+.summary-card p strong {
+  color: #202124;
+}
+.summary-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #E8F0FE;
+  color: #1A73E8;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+/* Filter Chips Row */
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #E6F4EA;
+  color: #1E8E3E;
+  border: 1px solid #C8E6C9;
+}
+
+/* Category Tabs */
+.category-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #E8EAED;
+  margin-bottom: 12px;
+}
+.category-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5F6368;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.category-tab.active {
+  color: #1A73E8;
+  border-bottom-color: #1A73E8;
+}
+.category-tab .tab-count {
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+/* Product Card List */
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.product-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+.product-card:active {
+  transform: scale(0.98);
+}
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+}
+.product-card-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #F1F3F4;
+  flex-shrink: 0;
+}
+.product-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+.product-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.product-card-brand {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9AA0A6;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.product-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.product-card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.product-card-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: #202124;
+}
+.product-card-conf {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1E8E3E;
+  background: #E6F4EA;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.product-card-tags {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.product-card-tag {
+  font-size: 10px;
+  color: #5F6368;
+  background: #F1F3F4;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Inline card actions (Phase 1) */
+.card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.card-action {
+  flex: 1;
+  height: 32px;
+  border-radius: 100px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.12s, transform 0.12s;
+}
+.card-action:active { transform: scale(0.95); }
+.card-action.ca-skip  { background: #FDE7E5; color: #D93025; }
+.card-action.ca-hold  { background: #FEF7E0; color: #E37400; }
+.card-action.ca-keep  { background: #E6F4EA; color: #1E8E3E; }
+/* Status badge on card */
+.card-status-badge {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 100px;
+  width: fit-content;
+}
+.card-status-badge.show { display: inline-flex; }
+.card-status-badge.kept  { background: #E6F4EA; color: #1E8E3E; }
+.card-status-badge.held  { background: #FEF7E0; color: #E37400; }
+.card-status-badge.skipped { background: #FDE7E5; color: #D93025; }
+
+/* CTA */
+.cta-section {
+  text-align: center;
+  padding: 8px 0 24px;
+}
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #FFFFFF;
+  background: #1A73E8;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 150ms ease-out, transform 100ms ease-out, box-shadow 150ms ease-out;
+  box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+}
+.cta-btn:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cta-btn:hover { background: #1765CC; box-shadow: 0 4px 16px rgba(26,115,232,0.4); }
+}
+.cta-hint {
+  font-size: 13px;
+  color: #9AA0A6;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+/* ══════════════════════════════════
+   PHASE 2: SWIPE MODE
+   ══════════════════════════════════ */
+.phase-2 {
+  position: absolute;
+  inset: 0;
+  background: #F8F9FA;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1);
+}
+.phase-2.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Top region */
+.swipe-top {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 16px 8px;
+}
+.progress-counter {
+  font-size: 28px;
+  font-weight: 700;
+  color: #202124;
+  letter-spacing: -0.5px;
+}
+.progress-counter span {
+  color: #9AA0A6;
+  font-weight: 400;
+}
+.badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kept-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: #E6F4EA;
+  color: #1E8E3E;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+.kept-badge.bump {
+  transform: scale(1.08);
+}
+.hold-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: #FEF7E0;
+  color: #E37400;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+.hold-badge.bump {
+  transform: scale(1.08);
+}
+.progress-track {
+  width: 200px;
+  height: 4px;
+  background: #E8EAED;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progress-fill {
+  height: 100%;
+  background: #1A73E8;
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.2, 0, 0, 1);
+  width: 0%;
+}
+
+/* Card stack area */
+.swipe-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px 4px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.card-stack {
+  position: relative;
+  width: 300px;
+  height: 420px;
+}
+
+.swipe-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 420px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  will-change: transform;
+  transition: none;
+}
+.swipe-card.behind {
+  transform: scale(0.95) translateY(12px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  pointer-events: none;
+  transition: transform 400ms var(--ease-out-expo), box-shadow 400ms var(--ease-out-expo);
+}
+.swipe-card.animating {
+  transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1), opacity 0.4s cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+}
+.swipe-card.springback {
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card-image {
+  width: 100%;
+  height: 50%;
+  background: #F1F3F4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 12px;
+}
+
+.card-body {
+  padding: 12px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.card-product-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #202124;
+  margin-bottom: 3px;
+  padding-right: 52px;
+}
+.card-feature {
+  font-size: 13px;
+  color: #5F6368;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-confidence {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.conf-label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.conf-track {
+  flex: 1;
+  height: 6px;
+  background: #E8EAED;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.conf-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.card-price {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #202124;
+}
+
+/* Drag overlays */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity 0.05s;
+  z-index: 5;
+}
+.card-overlay-keep {
+  background: linear-gradient(90deg, transparent 30%, rgba(30,142,62,0.15));
+  color: #1E8E3E;
+}
+.card-overlay-skip {
+  background: linear-gradient(-90deg, transparent 30%, rgba(217,48,37,0.15));
+  color: #D93025;
+}
+.card-overlay-hold {
+  background: linear-gradient(0deg, rgba(227,116,0,0.18) 0%, transparent 60%);
+  color: #E37400;
+}
+
+/* ── Exit button (Phase 2 → Phase 1) ── */
+.swipe-exit-btn {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 100px;
+  border: 1px solid #DADCE0;
+  background: #FFFFFF;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5F6368;
+  cursor: pointer;
+  z-index: 20;
+  transition: background 0.15s;
+}
+.swipe-exit-btn:active { background: #F1F3F4; }
+.swipe-exit-btn .material-symbols-outlined { font-size: 16px; }
+
+/* Action buttons — wide pill style */
+.swipe-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px 12px;
+}
+.action-btn {
+  flex: 1;
+  height: 52px;
+  border-radius: 100px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  transition: transform 0.12s, opacity 0.12s;
+}
+.action-btn .btn-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.action-btn .btn-icon {
+  font-size: 17px;
+}
+.action-btn:active { transform: scale(0.96); opacity: 0.85; }
+.action-btn.skip {
+  background: #FDE7E5;
+  color: #D93025;
+  flex: 1.3;
+}
+.action-btn.hold {
+  background: #FEF7E0;
+  color: #E37400;
+  flex: 0.7;
+}
+.action-btn.keep {
+  background: #E6F4EA;
+  color: #1E8E3E;
+  flex: 1.3;
+}
+
+/* ── Review Tab Pill ── */
+.review-tab-pill {
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  padding: 6px 12px;
+  background: #FFFFFF;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5F6368;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.15s, transform 0.15s;
+}
+.review-tab-pill:active {
+  transform: scale(0.95);
+}
+
+/* ── Undo Pill ── */
+.undo-pill {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  background: #FFFFFF;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A73E8;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  cursor: pointer;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.undo-pill.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.undo-pill:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+/* ══════════════════════════════════
+   DETAIL BOTTOM SHEET
+   ══════════════════════════════════ */
+.detail-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.detail-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.detail-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70%;
+  background: #FFFFFF;
+  border-radius: 20px 20px 0 0;
+  z-index: 31;
+  transform: translateY(100%);
+  transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1);
+  overflow-y: auto;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+}
+.detail-sheet.open {
+  transform: translateY(0);
+}
+.detail-sheet::-webkit-scrollbar { width: 0; }
+
+.detail-handle {
+  width: 32px;
+  height: 4px;
+  background: #DADCE0;
+  border-radius: 2px;
+  margin: 10px auto 0;
+}
+.detail-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #F1F3F4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #5F6368;
+  z-index: 2;
+}
+.detail-close:active { transform: scale(0.95); }
+
+.detail-content {
+  padding: 20px 20px 32px;
+}
+.detail-image {
+  width: 100%;
+  height: 200px;
+  background: #F1F3F4;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.detail-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 12px;
+}
+.detail-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #202124;
+  margin-bottom: 4px;
+}
+.detail-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #202124;
+  margin-bottom: 14px;
+}
+.detail-confidence {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.detail-conf-track {
+  flex: 1;
+  height: 8px;
+  background: #E8EAED;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.detail-conf-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+.detail-conf-label {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.detail-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5F6368;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.detail-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin-bottom: 16px;
+}
+.detail-spec {
+  font-size: 13px;
+  color: #3C4043;
+  line-height: 1.6;
+}
+.detail-spec strong {
+  color: #202124;
+}
+.detail-review {
+  font-size: 13px;
+  color: #3C4043;
+  line-height: 1.5;
+  background: #F8F9FA;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.detail-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.detail-chip.in-stock {
+  background: #E6F4EA;
+  color: #1E8E3E;
+}
+.detail-chip.shipping {
+  background: #E8F0FE;
+  color: #1A73E8;
+}
+
+/* ══════════════════════════════════
+   REVIEW DRAWER
+   ══════════════════════════════════ */
+.review-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.review-drawer-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.review-drawer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  background: #FFFFFF;
+  z-index: 41;
+  transform: translateY(100%);
+  transition: transform 350ms cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px 20px 0 0;
+}
+.review-drawer.open {
+  transform: translateY(0);
+}
+.review-drawer-header {
+  padding: 12px 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.review-drawer-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202124;
+}
+.review-drawer-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #F1F3F4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #5F6368;
+}
+.review-drawer-close:active { transform: scale(0.95); }
+
+.review-tabs {
+  display: flex;
+  padding: 12px 16px 0;
+  gap: 0;
+  border-bottom: 1px solid #E8EAED;
+  flex-shrink: 0;
+}
+.review-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5F6368;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.review-tab.active {
+  color: #1A73E8;
+  border-bottom-color: #1A73E8;
+}
+.review-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+}
+.review-list::-webkit-scrollbar { width: 0; }
+.review-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #F1F3F4;
+}
+.review-item:last-child { border-bottom: none; }
+.review-item-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #F1F3F4;
+  flex-shrink: 0;
+}
+.review-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.review-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.review-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.review-item-conf {
+  font-size: 12px;
+  color: #5F6368;
+}
+.review-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.review-action-btn {
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.review-action-btn:active { transform: scale(0.97); }
+.review-action-btn.recover { color: #1A73E8; }
+.review-action-btn.move-keep { color: #1E8E3E; }
+.review-action-btn.delete-perm { color: #D93025; }
+
+.review-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  font-size: 14px;
+  color: #9AA0A6;
+}
+
+/* ══════════════════════════════════
+   PHASE 3: DONE
+   ══════════════════════════════════ */
+.phase-3 {
+  position: absolute;
+  inset: 0;
+  background: #F8F9FA;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.2, 0, 0, 1);
+  padding: 40px;
+}
+.phase-3.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.done-check {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #E6F4EA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.done-check .material-symbols-outlined {
+  font-size: 42px;
+  color: #1E8E3E;
+}
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.done-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #202124;
+  animation: fadeUp 0.5s 0.2s cubic-bezier(0.2, 0, 0, 1) both;
+}
+.done-subtitle {
+  font-size: 15px;
+  color: #5F6368;
+  text-align: center;
+  line-height: 1.5;
+  animation: fadeUp 0.5s 0.3s cubic-bezier(0.2, 0, 0, 1) both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Thumbnail fan */
+.done-fan {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
+  animation: fadeUp 0.5s 0.4s cubic-bezier(0.2, 0, 0, 1) both;
+}
+.done-fan-item {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-left: -12px;
+  background: #F1F3F4;
+}
+.done-fan-item:first-child { margin-left: 0; }
+.done-fan-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.done-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #FFFFFF;
+  background: #1A73E8;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+  animation: fadeUp 0.5s 0.5s cubic-bezier(0.2, 0, 0, 1) both;
+  transition: background 0.15s;
+}
+.done-cta:active { transform: scale(0.97); }
+
+.done-link {
+  font-size: 14px;
+  color: #1A73E8;
+  text-decoration: none;
+  cursor: pointer;
+  animation: fadeUp 0.5s 0.6s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* Confetti */
+.confetti-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: confettiFall 1.5s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(120px) scale(0.3); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cta-btn:hover {
+    background: #1557B0;
+    box-shadow: 0 4px 16px rgba(26,115,232,0.4);
+  }
+  .action-btn.skip:hover {
+    background: #FDE7E5;
+    box-shadow: 0 4px 12px rgba(217,48,37,0.2);
+  }
+  .action-btn.hold:hover {
+    background: #FEF7E0;
+    box-shadow: 0 4px 12px rgba(227,116,0,0.2);
+  }
+  .action-btn.keep:hover {
+    background: #E6F4EA;
+    box-shadow: 0 4px 12px rgba(30,142,62,0.2);
+  }
+  .review-tab-pill:hover { background: #F1F3F4; }
+  .review-action-btn.recover:hover { background: #E8F0FE; }
+  .review-action-btn.move-keep:hover { background: #E6F4EA; }
+  .review-action-btn.delete-perm:hover { background: #FDE7E5; }
+  .done-cta:hover { background: #1557B0; }
+  .done-link:hover { text-decoration: underline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Scene Badge ── */
+.scene-badge { display: none; }
+.scene-badge {
+  position: fixed;
+  bottom: 32px; left: 32px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 9999px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+  text-transform: uppercase; z-index: 200; pointer-events: none;
+}
+.scene-badge--02 { background: #E6F4EA; color: #1E8E3E; border: 1px solid #B2DFDB; }
+
+/* ── One-hand hint ── */
+.one-hand-hint {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 500; color: #9AA0A6;
+  padding: 2px 10px; border-radius: 9999px;
+  background: #F1F3F4;
+}
+</style>
+</head>
+<body>
+
+<div class="phone-frame" id="phoneFrame">
+  <div class="phone-screen">
+    <div class="notch"></div>
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-bar-right">
+        <span class="material-symbols-outlined">signal_cellular_alt</span>
+        <span class="material-symbols-outlined">wifi</span>
+        <span class="material-symbols-outlined">battery_full</span>
+      </div>
+    </div>
+
+    <div class="phase-container">
+      <!-- ═══ PHASE 1: Full Browse ═══ -->
+      <div class="phase-1" id="phase1">
+        <div class="browse-header">
+          <div class="browse-header-left">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <div class="gemini-badge">
+              <span class="gemini-star">&#10022;</span> Gemini
+              <span class="browse-title">&middot; Marcus's Winter Shoes</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined" style="font-size:24px;color:#5F6368;">more_vert</span>
+        </div>
+
+        <div class="browse-content">
+          <div class="summary-card">
+            <div style="font-size:11px;font-weight:600;color:#1A73E8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">
+              <span class="material-symbols-outlined" style="font-size:14px">auto_awesome</span>
+              AI narrowed 847 → 20 candidates
+            </div>
+            <p>Gemini filtered by waterproof, black, no fluffy lining, size US 3Y. <strong>20 candidates</strong> ready — swipe to narrow down to your shortlist.</p>
+            <div class="summary-highlight">
+              <span class="material-symbols-outlined" style="font-size:16px;">swipe</span>
+              One hand · on the train · 3 min review
+            </div>
+          </div>
+
+          <button class="cta-btn" id="startSwipeBtnTop" style="width:100%;margin-bottom:12px;" onclick="document.getElementById('startSwipeBtn').click()">
+            Start Quick Review
+            <span class="material-symbols-outlined" style="font-size:20px;">swipe</span>
+          </button>
+
+          <div class="filter-chips">
+            <span class="filter-chip">&#10003; Waterproof</span>
+            <span class="filter-chip">&#10003; Black</span>
+            <span class="filter-chip">&#10003; No fluffy lining</span>
+            <span class="filter-chip">&#10003; Size US 3Y</span>
+          </div>
+
+          <div class="category-tabs">
+            <div class="category-tab active">Candidates<span class="tab-count" id="candidateCount">20</span></div>
+            <div class="category-tab">Kept<span class="tab-count" id="keptTabCount">0</span></div>
+            <div class="category-tab">Hold<span class="tab-count" id="holdTabCount">0</span></div>
+            <div class="category-tab">Skipped<span class="tab-count" id="skippedTabCount">0</span></div>
+          </div>
+
+          <div class="product-list" id="productList">
+            <!-- JS fills this -->
+          </div>
+
+          <div class="cta-section">
+            <button class="cta-btn" id="startSwipeBtn">
+              Start Quick Review
+              <span class="material-symbols-outlined" style="font-size:20px;">swipe</span>
+            </button>
+            <div class="cta-hint">Swipe through 20 shoes on the train — keep, hold, or skip</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PHASE 2: Swipe Mode ═══ -->
+      <div class="phase-2" id="phase2">
+        <!-- Exit → back to list, preserving state -->
+        <button class="swipe-exit-btn" id="exitSwipeBtn">
+          <span class="material-symbols-outlined">list</span>
+          List view
+        </button>
+
+        <div class="swipe-top">
+          <div class="progress-counter">
+            <span id="currentIndex">1</span> <span style="color:#9AA0A6;font-weight:400;">of <span id="totalDisplay">20</span></span>
+          </div>
+          <div class="badges-row">
+            <div class="kept-badge" id="keptBadge">
+              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
+              Kept: <strong id="keptCount">0</strong>
+            </div>
+            <div class="hold-badge" id="holdBadge">
+              <span class="material-symbols-outlined" style="font-size:18px;">pause_circle</span>
+              On hold: <strong id="holdCount">0</strong>
+            </div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="one-hand-hint">
+            <span class="material-symbols-outlined" style="font-size:14px">back_hand</span>
+            One-handed mode · holding strap
+          </div>
+        </div>
+
+        <div class="swipe-area" id="swipeArea">
+          <div class="undo-pill" id="undoPill">&#8617; Undo</div>
+          <div class="card-stack" id="cardStack">
+            <!-- JS builds cards here -->
+          </div>
+          <div class="review-tab-pill" id="reviewTabPill">&#128203; Review (0)</div>
+        </div>
+
+        <div class="swipe-actions">
+          <button class="action-btn skip" id="btnSkip" aria-label="Skip">
+            <span class="btn-icon">&#8592;</span>
+            <span class="btn-label">SKIP</span>
+          </button>
+          <button class="action-btn hold" id="btnHold" aria-label="Hold">
+            <span class="btn-label">HOLD</span>
+          </button>
+          <button class="action-btn keep" id="btnKeep" aria-label="Keep">
+            <span class="btn-label">KEEP</span>
+            <span class="btn-icon">&#8594;</span>
+          </button>
+        </div>
+
+        <!-- Detail Bottom Sheet -->
+        <div class="detail-backdrop" id="detailBackdrop"></div>
+        <div class="detail-sheet" id="detailSheet">
+          <div class="detail-handle"></div>
+          <button class="detail-close" id="detailClose">&#10005;</button>
+          <div class="detail-content" id="detailContent">
+            <!-- JS fills this -->
+          </div>
+        </div>
+
+        <!-- Review Drawer -->
+        <div class="review-drawer-backdrop" id="reviewDrawerBackdrop"></div>
+        <div class="review-drawer" id="reviewDrawer">
+          <div class="review-drawer-header">
+            <div class="review-drawer-title">Review</div>
+            <button class="review-drawer-close" id="reviewDrawerClose">&#10005;</button>
+          </div>
+          <div class="review-tabs">
+            <div class="review-tab active" data-tab="hold" id="tabHold">On Hold (0)</div>
+            <div class="review-tab" data-tab="skipped" id="tabSkipped">Skipped (0)</div>
+          </div>
+          <div class="review-list" id="reviewList">
+            <!-- JS fills -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PHASE 3: Done ═══ -->
+      <div class="phase-3" id="phase3">
+        <div class="done-check">
+          <span class="material-symbols-outlined">check</span>
+        </div>
+        <div class="done-title">All done!</div>
+        <div class="done-subtitle" id="doneSummary">Reviewing 20 candidates...</div>
+        <div class="done-fan" id="doneFan"></div>
+        <button class="done-cta">
+          Review at home on TV
+          <span class="material-symbols-outlined" style="font-size:18px;">tv</span>
+        </button>
+        <a class="done-link" onclick="resetDemo()">Continue browsing</a>
+      </div>
+    </div>
+
+    <div class="home-indicator">
+      <div class="home-indicator-bar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Shoe Data — 8 correct black waterproof winter shoes ──
+const shoes = [
+  {
+    name: 'Fastpack Hiker Mid WP',
+    brand: 'The North Face',
+    feature: 'Waterproof · Flexible sole · PE-compatible · 312g',
+    confidence: 94,
+    color: '#1E8E3E',
+    price: '$69',
+    img: '../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp',
+    specs: { material: 'Ripstop + FUTURELIGHT membrane', weight: '312g', waterproof: 'Yes (FUTURELIGHT)', sole: 'Rubber lug' },
+    reviews: { count: 541, snippet: 'Best waterproofing in class, flexible enough for PE, lightweight mid-cut' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Friday',
+    tags: ['Waterproof', 'No fluffy lining', 'PE-safe']
+  },
+  {
+    name: 'SFB 6" NSW Leather',
+    brand: 'Nike',
+    feature: 'Full leather · Waterproof · Smooth lining · 380g',
+    confidence: 91,
+    color: '#1E8E3E',
+    price: '$120',
+    img: '../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif',
+    specs: { material: 'Full-grain leather', weight: '380g', waterproof: 'Yes', sole: 'Rubber lug' },
+    reviews: { count: 312, snippet: 'Solid build, keeps feet dry, runs slightly narrow but breaks in well' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Friday',
+    tags: ['Waterproof', 'No fluffy lining', 'Leather']
+  },
+  {
+    name: 'Cloudrock Mid WP',
+    brand: 'On',
+    feature: 'CloudTec sole · Waterproof · Breathable · 340g',
+    confidence: 88,
+    color: '#1A73E8',
+    price: '$190',
+    img: '../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif',
+    specs: { material: 'Engineered mesh + waterproof shell', weight: '340g', waterproof: 'Yes', sole: 'Missiongrip rubber' },
+    reviews: { count: 367, snippet: 'Ultra-light, bouncy cushion, modern look kids love, great for active use' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Friday',
+    tags: ['Waterproof', 'No fluffy lining', 'CloudTec']
+  },
+  {
+    name: 'RS-X Mid Black Ice',
+    brand: 'Puma',
+    feature: 'Water-resistant · Cushioned · Athletic sole · 295g',
+    confidence: 85,
+    color: '#1A73E8',
+    price: '$100',
+    img: '../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png',
+    specs: { material: 'Synthetic mesh + PU coating', weight: '295g', waterproof: 'Water-resistant', sole: 'RS cushion rubber' },
+    reviews: { count: 198, snippet: 'Good cushioning, athletic feel, handles light rain well, kids love the style' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Saturday',
+    tags: ['Water-resistant', 'No fluffy lining', 'Athletic']
+  },
+  {
+    name: 'XA Pro V8 Mid',
+    brand: 'Salomon',
+    feature: 'Contagrip sole · Water-resistant · Lightweight · 290g',
+    confidence: 82,
+    color: '#1A73E8',
+    price: '$75',
+    img: '../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp',
+    specs: { material: 'Synthetic mesh', weight: '290g', waterproof: 'Water-resistant', sole: 'Contagrip MA' },
+    reviews: { count: 398, snippet: 'Trail legend, excellent stability, great for active kids and PE class' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Friday',
+    tags: ['Water-resistant', 'No fluffy lining', 'Trail']
+  },
+  {
+    name: 'Terrex Anylander Mid',
+    brand: 'Adidas',
+    feature: 'Climaproof · Leather upper · Sturdy · 350g',
+    confidence: 80,
+    color: '#1A73E8',
+    price: '$85',
+    img: '../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif',
+    specs: { material: 'Leather + Climaproof', weight: '350g', waterproof: 'Yes (Climaproof)', sole: 'Traxion rubber' },
+    reviews: { count: 156, snippet: 'Sturdy leather build, good for rainy school days, runs true to size' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Saturday',
+    tags: ['Waterproof', 'No fluffy lining', 'Leather']
+  },
+  {
+    name: 'Sk8-Hi GORE-TEX',
+    brand: 'Vans',
+    feature: 'GORE-TEX · High-top · Skate-style · 420g',
+    confidence: 79,
+    color: '#F9AB00',
+    price: '$140',
+    img: '../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif',
+    specs: { material: 'Canvas + GORE-TEX lining', weight: '420g', waterproof: 'Yes (GTX)', sole: 'Vulcanized waffle' },
+    reviews: { count: 89, snippet: 'Cool skate style, GORE-TEX keeps dry, heavier but kids love the look' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Monday',
+    tags: ['Waterproof', 'GORE-TEX', 'High-top']
+  },
+  {
+    name: 'Mid Boot GTX',
+    brand: 'Ecco',
+    feature: 'GORE-TEX · Leather · Premium · 390g',
+    confidence: 71,
+    color: '#F9AB00',
+    price: '$125',
+    img: '../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif',
+    specs: { material: 'Nubuck leather + GORE-TEX', weight: '390g', waterproof: 'Yes (GTX)', sole: 'Direct-inject PU' },
+    reviews: { count: 154, snippet: 'Premium feel, dressy enough for school, breaks in fast, excellent warmth' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Monday',
+    tags: ['Waterproof', 'GORE-TEX', 'Leather']
+  },
+  // ── AI-selected candidates 9-20 (lower confidence tiers) ──
+  {
+    name: 'Pehuea Hulu',
+    brand: 'OluKai',
+    feature: 'Water-resistant · Wool blend · Slip-on · 260g',
+    confidence: 68,
+    color: '#F9AB00',
+    price: '$110',
+    img: '../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif',
+    specs: { material: 'Wool blend + DWR coating', weight: '260g', waterproof: 'Water-resistant', sole: 'Drop-in rubber' },
+    reviews: { count: 72, snippet: 'Cozy slip-on, good for light rain, not for heavy downpours' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Monday',
+    tags: ['Water-resistant', 'Slip-on']
+  },
+  {
+    name: 'Kootenay IV WP',
+    brand: 'Keen',
+    feature: 'Waterproof · Insulated · Pull-on · 365g',
+    confidence: 66,
+    color: '#F9AB00',
+    price: '$80',
+    img: '../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif',
+    specs: { material: 'Leather + KEEN.DRY membrane', weight: '365g', waterproof: 'Yes', sole: 'Non-marking rubber' },
+    reviews: { count: 203, snippet: 'Easy pull-on, warm but not bulky, good playground boot' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Saturday',
+    tags: ['Waterproof', 'Insulated', 'Pull-on']
+  },
+  {
+    name: 'Ankeny II Mid',
+    brand: 'Sorel',
+    feature: 'Waterproof · Leather · Warm · 510g',
+    confidence: 64,
+    color: '#F9AB00',
+    price: '$140',
+    img: '../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif',
+    specs: { material: 'Full-grain leather', weight: '510g', waterproof: 'Yes', sole: 'Rubber lug' },
+    reviews: { count: 187, snippet: 'Tank-like build, very warm, heavier than others but lasts years' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Monday',
+    tags: ['Waterproof', 'Leather', 'Heavy']
+  },
+  {
+    name: 'Torrent 2 Mid WP',
+    brand: 'Hoka',
+    feature: 'Waterproof · Trail · Cushioned · 318g',
+    confidence: 62,
+    color: '#F9AB00',
+    price: '$155',
+    img: '../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png',
+    specs: { material: 'Recycled mesh + eVent membrane', weight: '318g', waterproof: 'Yes', sole: 'Vibram Megagrip' },
+    reviews: { count: 95, snippet: 'Amazing cushion, a bit wide for narrow feet, trail-focused' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Saturday',
+    tags: ['Waterproof', 'Trail', 'Cushioned']
+  },
+  {
+    name: 'Hikeport 2 Sport Mid',
+    brand: 'Keen',
+    feature: 'Waterproof · Lightweight · Sporty · 283g',
+    confidence: 59,
+    color: '#9AA0A6',
+    price: '$75',
+    img: '../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp',
+    specs: { material: 'Performance mesh + KEEN.DRY', weight: '283g', waterproof: 'Yes', sole: 'Non-marking rubber' },
+    reviews: { count: 134, snippet: 'Light and sporty, kids love the look, decent waterproofing' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Friday',
+    tags: ['Waterproof', 'Lightweight']
+  },
+  {
+    name: 'Woodland Mid WP',
+    brand: 'Merrell',
+    feature: 'Waterproof · Durable · Flex · 330g',
+    confidence: 57,
+    color: '#9AA0A6',
+    price: '$65',
+    img: '../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif',
+    specs: { material: 'Synthetic + bellows tongue', weight: '330g', waterproof: 'Yes', sole: 'Merrell rubber' },
+    reviews: { count: 211, snippet: 'Budget-friendly, surprisingly durable, runs slightly large' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Saturday',
+    tags: ['Waterproof', 'Budget']
+  },
+  {
+    name: 'Rally Mid GTX',
+    brand: 'FitFlop',
+    feature: 'GORE-TEX · Knit · Urban · 305g',
+    confidence: 54,
+    color: '#9AA0A6',
+    price: '$170',
+    img: '../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif',
+    specs: { material: 'Knit + GORE-TEX', weight: '305g', waterproof: 'Yes (GTX)', sole: 'Dynamicush midsole' },
+    reviews: { count: 43, snippet: 'Stylish urban boot, very comfortable, less rugged than hiking options' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Monday',
+    tags: ['Waterproof', 'GORE-TEX', 'Urban']
+  },
+  {
+    name: 'Moab Speed Mid',
+    brand: 'Merrell',
+    feature: 'Water-resistant · Trail · Breathable · 298g',
+    confidence: 51,
+    color: '#9AA0A6',
+    price: '$90',
+    img: '../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp',
+    specs: { material: 'Recycled mesh + TPU overlay', weight: '298g', waterproof: 'Water-resistant', sole: 'Vibram TC5+' },
+    reviews: { count: 176, snippet: 'Fast trail shoe, great grip, not fully waterproof in heavy rain' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Friday',
+    tags: ['Water-resistant', 'Trail', 'Breathable']
+  },
+  {
+    name: 'Targhee Mid WP',
+    brand: 'Keen',
+    feature: 'Waterproof · Wide fit · Stable · 355g',
+    confidence: 48,
+    color: '#9AA0A6',
+    price: '$85',
+    img: '../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif',
+    specs: { material: 'Leather + mesh + KEEN.DRY', weight: '355g', waterproof: 'Yes', sole: 'Non-marking rubber' },
+    reviews: { count: 289, snippet: 'Wide toe box, very stable, slightly clunky look but kids dont mind' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Saturday',
+    tags: ['Waterproof', 'Wide fit']
+  },
+  {
+    name: 'Childrens Bugaboot',
+    brand: 'Columbia',
+    feature: 'Waterproof · Omni-Heat · Warm · 395g',
+    confidence: 45,
+    color: '#9AA0A6',
+    price: '$70',
+    img: '../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif',
+    specs: { material: 'Synthetic + Omni-Tech', weight: '395g', waterproof: 'Yes', sole: 'Omni-Grip rubber' },
+    reviews: { count: 312, snippet: 'Warm and waterproof, heavy for active play, great snow boot' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Friday',
+    tags: ['Waterproof', 'Insulated']
+  },
+  {
+    name: 'Thermoball Lifty II',
+    brand: 'The North Face',
+    feature: 'Water-resistant · ThermoBall · Lace · 370g',
+    confidence: 42,
+    color: '#9AA0A6',
+    price: '$95',
+    img: '../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif',
+    specs: { material: 'Synthetic + ThermoBall insulation', weight: '370g', waterproof: 'Water-resistant', sole: 'TNF Winter Grip' },
+    reviews: { count: 88, snippet: 'Warm lace-up, looks cool, water-resistant but not waterproof' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Monday',
+    tags: ['Water-resistant', 'Insulated']
+  },
+  {
+    name: 'Camden Mid Zip WP',
+    brand: 'Timberland',
+    feature: 'Waterproof · Zip · Leather · 410g',
+    confidence: 40,
+    color: '#9AA0A6',
+    price: '$90',
+    img: '../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png',
+    specs: { material: 'Leather + ReBOTL fabric', weight: '410g', waterproof: 'Yes', sole: 'Rubber lug' },
+    reviews: { count: 167, snippet: 'Classic Timberland look in black, side zip makes it easy on/off' },
+    size: 'Size US 6: In stock',
+    shipping: 'Arrives Saturday',
+    tags: ['Waterproof', 'Leather', 'Zip']
+  }
+];
+
+// ── Preload images ──
+shoes.forEach(s => { const i = new Image(); i.src = s.img; });
+
+// ── Phase 1: Build product card list ──
+const productList = document.getElementById('productList');
+// cardEls[idx] → DOM element for updating status badge
+const cardEls = [];
+
+function getCardStatus(idx) {
+  if (keptItems.some(s => s === shoes[idx])) return 'kept';
+  if (holdItems.some(s => s === shoes[idx])) return 'held';
+  if (skippedItems.some(s => s === shoes[idx])) return 'skipped';
+  return null;
+}
+
+function refreshCardBadge(idx) {
+  const el = cardEls[idx];
+  if (!el) return;
+  const badge = el.querySelector('.card-status-badge');
+  const actions = el.querySelector('.card-actions');
+  const status = getCardStatus(idx);
+  badge.className = 'card-status-badge' + (status ? ' show ' + status : '');
+  if (status === 'kept')    badge.textContent = '✓ Kept';
+  else if (status === 'held')   badge.textContent = '⏸ On hold';
+  else if (status === 'skipped') badge.textContent = '✕ Skipped';
+  else badge.textContent = '';
+  // Dim actions row when already actioned
+  if (actions) actions.style.opacity = status ? '0.4' : '1';
+}
+
+function cardInlineAction(idx, type) {
+  const shoe = shoes[idx];
+  // Remove from all lists first
+  keptItems    = keptItems.filter(s => s !== shoe);
+  holdItems    = holdItems.filter(s => s !== shoe);
+  skippedItems = skippedItems.filter(s => s !== shoe);
+  if (type === 'keep')  keptItems.push(shoe);
+  if (type === 'hold')  holdItems.push(shoe);
+  if (type === 'skip')  skippedItems.push(shoe);
+  refreshCardBadge(idx);
+}
+
+shoes.forEach((shoe, idx) => {
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.innerHTML = `
+    <div class="product-card-img"><img src="${shoe.img}" alt="${shoe.name}" loading="eager"></div>
+    <div class="product-card-info">
+      <div class="product-card-brand">${shoe.brand}</div>
+      <div class="product-card-name">${shoe.name}</div>
+      <div class="product-card-row">
+        <span class="product-card-price">${shoe.price}</span>
+        <span class="product-card-conf">${shoe.confidence}%</span>
+      </div>
+      <div class="product-card-tags">
+        ${shoe.tags.map(t => `<span class="product-card-tag">${t}</span>`).join('')}
+      </div>
+      <div class="card-status-badge"></div>
+      <div class="card-actions">
+        <button class="card-action ca-skip">✕ Skip</button>
+        <button class="card-action ca-hold">⏸ Hold</button>
+        <button class="card-action ca-keep">✓ Keep</button>
+      </div>
+    </div>
+  `;
+  // Wire up inline action buttons
+  card.querySelector('.ca-skip').addEventListener('click', e => { e.stopPropagation(); cardInlineAction(idx, 'skip'); });
+  card.querySelector('.ca-hold').addEventListener('click', e => { e.stopPropagation(); cardInlineAction(idx, 'hold'); });
+  card.querySelector('.ca-keep').addEventListener('click', e => { e.stopPropagation(); cardInlineAction(idx, 'keep'); });
+  productList.appendChild(card);
+  cardEls[idx] = card;
+});
+
+// ── Phase transitions ──
+const phase1 = document.getElementById('phase1');
+const phase2 = document.getElementById('phase2');
+const phase3 = document.getElementById('phase3');
+const phoneFrame = document.getElementById('phoneFrame');
+
+document.getElementById('startSwipeBtn').addEventListener('click', () => {
+  phase1.classList.add('hidden');
+  setTimeout(() => {
+    phase2.classList.add('active');
+    buildCardStack();
+  }, 200);
+});
+
+// Exit swipe mode → back to Phase 1, preserving selections
+document.getElementById('exitSwipeBtn').addEventListener('click', () => {
+  phase2.classList.remove('active');
+  setTimeout(() => {
+    phase1.classList.remove('hidden');
+    // Refresh all card badges to reflect any swipe decisions made
+    cardEls.forEach((_, idx) => refreshCardBadge(idx));
+  }, 200);
+});
+
+// ── Swipe State ──
+let currentIdx = 0;
+let keptItems = [];
+let holdItems = [];
+let skippedItems = [];
+let lastAction = null; // { type: 'keep'|'hold'|'skip', shoe, index }
+let detailOpen = false;
+let reviewDrawerOpen = false;
+let activeReviewTab = 'hold';
+const TOTAL = shoes.length;
+
+function buildCardStack() {
+  renderTopCards();
+}
+
+function renderTopCards() {
+  const stack = document.getElementById('cardStack');
+  stack.innerHTML = '';
+
+  if (currentIdx + 1 < TOTAL) {
+    stack.appendChild(createCard(currentIdx + 1, true));
+  }
+  if (currentIdx < TOTAL) {
+    const topCard = createCard(currentIdx, false);
+    stack.appendChild(topCard);
+    requestAnimationFrame(() => attachDrag(topCard));
+  }
+  updateUI();
+}
+
+function createCard(idx, isBehind) {
+  const shoe = shoes[idx];
+  const card = document.createElement('div');
+  card.className = 'swipe-card' + (isBehind ? ' behind' : '');
+  card.dataset.index = idx;
+  card.innerHTML = `
+    <div class="card-overlay card-overlay-keep">KEEP</div>
+    <div class="card-overlay card-overlay-skip">SKIP</div>
+    <div class="card-overlay card-overlay-hold">HOLD</div>
+    <div class="card-image">
+      <img src="${shoe.img}" alt="${shoe.name}" draggable="false">
+    </div>
+    <div class="card-body">
+      <div class="card-product-name" style="font-size:15px;">${shoe.brand} <span style="font-weight:400;color:#5F6368;">·</span> ${shoe.name}</div>
+      <div class="card-feature">${shoe.feature}</div>
+      <div class="card-confidence">
+        <span class="conf-label" style="color:${shoe.color}">${shoe.confidence}%</span>
+        <div class="conf-track">
+          <div class="conf-fill" style="width:${shoe.confidence}%;background:${shoe.color}"></div>
+        </div>
+      </div>
+      <div class="card-price">${shoe.price}</div>
+    </div>
+  `;
+  return card;
+}
+
+const DISPLAY_TOTAL = shoes.length; // AI filtered 847→20, user reviews all 20
+
+function updateUI() {
+  const displayIdx = Math.min(currentIdx + 1, DISPLAY_TOTAL);
+  document.getElementById('currentIndex').textContent = displayIdx;
+  document.getElementById('keptCount').textContent = keptItems.length;
+  document.getElementById('holdCount').textContent = holdItems.length;
+  document.getElementById('progressFill').style.width = ((currentIdx) / TOTAL * 100) + '%';
+  const reviewCount = holdItems.length + skippedItems.length;
+  document.getElementById('reviewTabPill').textContent = '\u{1F4CB} Review (' + reviewCount + ')';
+  // Sync Phase 1 card badges with current swipe state
+  cardEls.forEach((_, idx) => refreshCardBadge(idx));
+}
+
+// ── Detail Bottom Sheet ──
+const detailBackdrop = document.getElementById('detailBackdrop');
+const detailSheet = document.getElementById('detailSheet');
+const detailContent = document.getElementById('detailContent');
+const detailClose = document.getElementById('detailClose');
+
+function openDetail(shoeIdx) {
+  const shoe = shoes[shoeIdx];
+  detailOpen = true;
+  detailContent.innerHTML = `
+    <div class="detail-image">
+      <img src="${shoe.img}" alt="${shoe.name}">
+    </div>
+    <div style="font-size:13px;font-weight:500;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:2px;">${shoe.brand}</div>
+    <div class="detail-name">${shoe.name}</div>
+    <div class="detail-price">${shoe.price}</div>
+    <div class="detail-confidence">
+      <span class="detail-conf-label" style="color:${shoe.color}">${shoe.confidence}% match</span>
+      <div class="detail-conf-track">
+        <div class="detail-conf-fill" style="width:${shoe.confidence}%;background:${shoe.color}"></div>
+      </div>
+    </div>
+    <div class="detail-section-title">Key Specs</div>
+    <div class="detail-specs">
+      <div class="detail-spec"><strong>Material:</strong> ${shoe.specs.material}</div>
+      <div class="detail-spec"><strong>Weight:</strong> ${shoe.specs.weight}</div>
+      <div class="detail-spec"><strong>Waterproof:</strong> ${shoe.specs.waterproof}</div>
+      <div class="detail-spec"><strong>Sole:</strong> ${shoe.specs.sole}</div>
+    </div>
+    <div class="detail-section-title">Reviews</div>
+    <div class="detail-review">From ${shoe.reviews.count} reviews: "${shoe.reviews.snippet}"</div>
+    <div class="detail-chips">
+      <span class="detail-chip in-stock">${shoe.size}</span>
+      <span class="detail-chip shipping">\u{1F69A} ${shoe.shipping}</span>
+    </div>
+  `;
+  detailBackdrop.classList.add('visible');
+  detailSheet.classList.add('open');
+}
+
+function closeDetail() {
+  detailOpen = false;
+  detailBackdrop.classList.remove('visible');
+  detailSheet.classList.remove('open');
+}
+
+detailClose.addEventListener('click', closeDetail);
+detailBackdrop.addEventListener('click', closeDetail);
+
+// Detail sheet swipe-down to close
+(function() {
+  let sy = 0, draggingSheet = false;
+  detailSheet.addEventListener('touchstart', (e) => {
+    sy = e.touches[0].clientY;
+    draggingSheet = true;
+  }, { passive: true });
+  detailSheet.addEventListener('touchmove', (e) => {
+    if (!draggingSheet) return;
+    const dy = e.touches[0].clientY - sy;
+    if (dy > 60) {
+      draggingSheet = false;
+      closeDetail();
+    }
+  }, { passive: true });
+  detailSheet.addEventListener('touchend', () => { draggingSheet = false; });
+})();
+
+// ── Review Drawer ──
+const reviewDrawerBackdrop = document.getElementById('reviewDrawerBackdrop');
+const reviewDrawer = document.getElementById('reviewDrawer');
+const reviewList = document.getElementById('reviewList');
+const reviewDrawerClose = document.getElementById('reviewDrawerClose');
+const tabHold = document.getElementById('tabHold');
+const tabSkipped = document.getElementById('tabSkipped');
+
+document.getElementById('reviewTabPill').addEventListener('click', openReviewDrawer);
+
+function openReviewDrawer() {
+  reviewDrawerOpen = true;
+  reviewDrawerBackdrop.classList.add('visible');
+  reviewDrawer.classList.add('open');
+  renderReviewList();
+}
+
+function closeReviewDrawer() {
+  reviewDrawerOpen = false;
+  reviewDrawerBackdrop.classList.remove('visible');
+  reviewDrawer.classList.remove('open');
+}
+
+reviewDrawerClose.addEventListener('click', closeReviewDrawer);
+reviewDrawerBackdrop.addEventListener('click', closeReviewDrawer);
+
+tabHold.addEventListener('click', () => {
+  activeReviewTab = 'hold';
+  tabHold.classList.add('active');
+  tabSkipped.classList.remove('active');
+  renderReviewList();
+});
+tabSkipped.addEventListener('click', () => {
+  activeReviewTab = 'skipped';
+  tabSkipped.classList.add('active');
+  tabHold.classList.remove('active');
+  renderReviewList();
+});
+
+function renderReviewList() {
+  tabHold.textContent = 'On Hold (' + holdItems.length + ')';
+  tabSkipped.textContent = 'Skipped (' + skippedItems.length + ')';
+
+  const items = activeReviewTab === 'hold' ? holdItems : skippedItems;
+  if (items.length === 0) {
+    reviewList.innerHTML = '<div class="review-empty">No items yet</div>';
+    return;
+  }
+
+  reviewList.innerHTML = '';
+  items.forEach((shoe, i) => {
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    let actionsHtml = `<button class="review-action-btn recover" data-tab="${activeReviewTab}" data-idx="${i}">Recover</button>`;
+    if (activeReviewTab === 'hold') {
+      actionsHtml += `<button class="review-action-btn move-keep" data-tab="hold" data-idx="${i}">Move to Keep</button>`;
+    } else {
+      actionsHtml += `<button class="review-action-btn delete-perm" data-tab="skipped" data-idx="${i}">Delete</button>`;
+    }
+    div.innerHTML = `
+      <div class="review-item-thumb"><img src="${shoe.img}" alt="${shoe.name}"></div>
+      <div class="review-item-info">
+        <div class="review-item-name">${shoe.brand} ${shoe.name}</div>
+        <div class="review-item-conf">${shoe.confidence}% match · ${shoe.price}</div>
+      </div>
+      <div class="review-item-actions">${actionsHtml}</div>
+    `;
+    reviewList.appendChild(div);
+  });
+
+  // Attach actions
+  reviewList.querySelectorAll('.recover').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      const idx = parseInt(btn.dataset.idx);
+      const arr = tab === 'hold' ? holdItems : skippedItems;
+      const shoe = arr.splice(idx, 1)[0];
+      // Find original index in shoes array
+      const origIdx = shoes.indexOf(shoe);
+      // Insert back into the swipe stack as the next card
+      recoverToStack(origIdx);
+      updateUI();
+      renderReviewList();
+    });
+  });
+  reviewList.querySelectorAll('.move-keep').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      const shoe = holdItems.splice(idx, 1)[0];
+      keptItems.push(shoe);
+      const badge = document.getElementById('keptBadge');
+      badge.classList.add('bump');
+      setTimeout(() => badge.classList.remove('bump'), 300);
+      updateUI();
+      renderReviewList();
+    });
+  });
+  reviewList.querySelectorAll('.delete-perm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      skippedItems.splice(idx, 1);
+      updateUI();
+      renderReviewList();
+    });
+  });
+}
+
+// Insert a recovered shoe as the next card to swipe
+let recoveredQueue = [];
+function recoverToStack(origIdx) {
+  recoveredQueue.push(origIdx);
+  // If we're in the middle of swiping, the next renderTopCards will pick it up
+  // If all cards were done, re-enter swipe mode
+  if (currentIdx >= TOTAL && recoveredQueue.length === 1) {
+    renderRecoveredCard();
+  }
+}
+
+function renderRecoveredCard() {
+  if (recoveredQueue.length === 0) return;
+  const idx = recoveredQueue.shift();
+  const stack = document.getElementById('cardStack');
+  stack.innerHTML = '';
+  const card = createCard(idx, false);
+  card.dataset.recovered = 'true';
+  stack.appendChild(card);
+  requestAnimationFrame(() => attachDrag(card));
+}
+
+// ── Undo ──
+const undoPill = document.getElementById('undoPill');
+let undoTimer = null;
+
+function showUndo() {
+  if (!lastAction) return;
+  undoPill.classList.add('visible');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => {
+    undoPill.classList.remove('visible');
+    lastAction = null;
+  }, 3000);
+}
+
+undoPill.addEventListener('click', () => {
+  if (!lastAction) return;
+  undoPill.classList.remove('visible');
+  clearTimeout(undoTimer);
+
+  const { type, shoe, index, direction } = lastAction;
+
+  // Remove from the list it was added to
+  if (type === 'keep') {
+    const i = keptItems.indexOf(shoe);
+    if (i !== -1) keptItems.splice(i, 1);
+  } else if (type === 'hold') {
+    const i = holdItems.indexOf(shoe);
+    if (i !== -1) holdItems.splice(i, 1);
+  } else if (type === 'skip') {
+    const i = skippedItems.indexOf(shoe);
+    if (i !== -1) skippedItems.splice(i, 1);
+  }
+
+  // Decrement currentIdx so this card comes back
+  currentIdx = index;
+  lastAction = null;
+  renderTopCards();
+
+  // Animate card flying back in
+  const topCard = document.querySelector('.swipe-card:not(.behind)');
+  if (topCard) {
+    let fromX = 0, fromY = 0;
+    if (direction === 'right') fromX = 500;
+    else if (direction === 'left') fromX = -500;
+    else if (direction === 'down') fromY = 500;
+    topCard.style.transform = `translateX(${fromX}px) translateY(${fromY}px) rotate(${fromX > 0 ? 30 : fromX < 0 ? -30 : 0}deg)`;
+    topCard.style.opacity = '0';
+    requestAnimationFrame(() => {
+      topCard.classList.add('animating');
+      topCard.style.transform = 'translateX(0) translateY(0) rotate(0deg)';
+      topCard.style.opacity = '1';
+      setTimeout(() => {
+        topCard.classList.remove('animating');
+        topCard.style.transition = 'none';
+      }, 400);
+    });
+  }
+});
+
+// ── Drag Logic ──
+function attachDrag(card) {
+  let startX = 0, startY = 0, dx = 0, dy = 0, isDragging = false, totalMovement = 0;
+  const threshold = 100;
+  const overlayKeep = card.querySelector('.card-overlay-keep');
+  const overlaySkip = card.querySelector('.card-overlay-skip');
+  const overlayHold = card.querySelector('.card-overlay-hold');
+
+  function onStart(e) {
+    if (detailOpen || reviewDrawerOpen) return;
+    const pt = e.touches ? e.touches[0] : e;
+    startX = pt.clientX;
+    startY = pt.clientY;
+    dx = 0;
+    dy = 0;
+    totalMovement = 0;
+    isDragging = true;
+    card.style.transition = 'none';
+    card.style.cursor = 'grabbing';
+  }
+
+  function onMove(e) {
+    if (!isDragging || detailOpen) return;
+    e.preventDefault();
+    const pt = e.touches ? e.touches[0] : e;
+    dx = pt.clientX - startX;
+    dy = pt.clientY - startY;
+    totalMovement = Math.abs(dx) + Math.abs(dy);
+
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    // Determine dominant direction
+    if (absX >= absY) {
+      // Horizontal drag
+      const rotation = dx * 0.08;
+      const opacity = Math.min(absX / threshold, 1);
+      card.style.transform = `translateX(${dx}px) rotate(${rotation}deg)`;
+      overlayHold.style.opacity = 0;
+      if (dx > 0) {
+        overlayKeep.style.opacity = opacity;
+        overlaySkip.style.opacity = 0;
+      } else {
+        overlaySkip.style.opacity = opacity;
+        overlayKeep.style.opacity = 0;
+      }
+    } else if (dy > 0) {
+      // Downward drag = HOLD
+      const opacity = Math.min(dy / threshold, 1);
+      card.style.transform = `translateY(${dy}px)`;
+      overlayHold.style.opacity = opacity;
+      overlayKeep.style.opacity = 0;
+      overlaySkip.style.opacity = 0;
+    } else {
+      // Upward drag — ignore / minimal
+      card.style.transform = `translateY(${dy * 0.3}px)`;
+      overlayHold.style.opacity = 0;
+      overlayKeep.style.opacity = 0;
+      overlaySkip.style.opacity = 0;
+    }
+  }
+
+  function onEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    card.style.cursor = 'grab';
+
+    // Tap detection: total movement < 10px = TAP
+    if (totalMovement < 10) {
+      const idx = parseInt(card.dataset.index);
+      if (!isNaN(idx)) openDetail(idx);
+      dx = 0;
+      dy = 0;
+      return;
+    }
+
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    if (absX >= absY && absX > threshold) {
+      // Horizontal swipe
+      flyOff(card, dx > 0 ? 'keep' : 'skip');
+    } else if (dy > threshold && absY > absX) {
+      // Down swipe = hold
+      flyOff(card, 'hold');
+    } else {
+      // Spring back
+      card.classList.add('springback');
+      card.style.transform = 'translateX(0) translateY(0) rotate(0deg)';
+      overlayKeep.style.opacity = 0;
+      overlaySkip.style.opacity = 0;
+      overlayHold.style.opacity = 0;
+      setTimeout(() => card.classList.remove('springback'), 500);
+    }
+    dx = 0;
+    dy = 0;
+  }
+
+  card.addEventListener('mousedown', onStart);
+  card.addEventListener('touchstart', onStart, { passive: true });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+
+  card._cleanup = () => {
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('touchmove', onMove);
+    window.removeEventListener('mouseup', onEnd);
+    window.removeEventListener('touchend', onEnd);
+  };
+}
+
+function flyOff(card, action) {
+  if (card._cleanup) card._cleanup();
+
+  const idx = parseInt(card.dataset.index);
+  const isRecovered = card.dataset.recovered === 'true';
+  const shoe = shoes[idx];
+
+  card.classList.add('animating');
+
+  let direction;
+  if (action === 'keep') {
+    card.style.transform = 'translateX(500px) rotate(30deg)';
+    direction = 'right';
+    keptItems.push(shoe);
+    const badge = document.getElementById('keptBadge');
+    badge.classList.add('bump');
+    setTimeout(() => badge.classList.remove('bump'), 300);
+  } else if (action === 'skip') {
+    card.style.transform = 'translateX(-500px) rotate(-30deg)';
+    direction = 'left';
+    skippedItems.push(shoe);
+  } else if (action === 'hold') {
+    card.style.transform = 'translateY(500px)';
+    direction = 'down';
+    holdItems.push(shoe);
+    const badge = document.getElementById('holdBadge');
+    badge.classList.add('bump');
+    setTimeout(() => badge.classList.remove('bump'), 300);
+  }
+  card.style.opacity = '0';
+
+  // Save for undo (capture index before currentIdx is incremented)
+  const savedIndex = isRecovered ? shoes.indexOf(shoe) : currentIdx;
+  lastAction = { type: action, shoe: shoe, index: savedIndex, direction: direction, wasRecovered: isRecovered };
+
+  if (!isRecovered) {
+    currentIdx++;
+  }
+  updateUI();
+
+  setTimeout(() => {
+    // Show undo
+    showUndo();
+
+    // Handle recovered cards
+    if (isRecovered) {
+      if (recoveredQueue.length > 0) {
+        renderRecoveredCard();
+      } else if (currentIdx >= TOTAL) {
+        showDone();
+      } else {
+        renderTopCards();
+      }
+      return;
+    }
+
+    if (currentIdx >= TOTAL) {
+      showDone();
+      return;
+    }
+    renderTopCards();
+  }, 350);
+}
+
+// Button handlers
+document.getElementById('btnSkip').addEventListener('click', () => {
+  const top = document.querySelector('.swipe-card:not(.behind)');
+  if (top && !detailOpen && !reviewDrawerOpen) flyOff(top, 'skip');
+});
+document.getElementById('btnHold').addEventListener('click', () => {
+  const top = document.querySelector('.swipe-card:not(.behind)');
+  if (top && !detailOpen && !reviewDrawerOpen) flyOff(top, 'hold');
+});
+document.getElementById('btnKeep').addEventListener('click', () => {
+  const top = document.querySelector('.swipe-card:not(.behind)');
+  if (top && !detailOpen && !reviewDrawerOpen) flyOff(top, 'keep');
+});
+
+// ── Phase 3: Done ──
+function showDone() {
+  phase2.classList.remove('active');
+  /* phone stays upright */
+
+  setTimeout(() => {
+    document.getElementById('doneSummary').textContent = `${keptItems.length} saved \u00b7 ${holdItems.length} on hold \u00b7 ${skippedItems.length} removed from ${TOTAL} candidates`;
+
+    const fan = document.getElementById('doneFan');
+    fan.innerHTML = '';
+    keptItems.slice(0, 8).forEach(shoe => {
+      const item = document.createElement('div');
+      item.className = 'done-fan-item';
+      item.innerHTML = `<img src="${shoe.img}" alt="${shoe.name}">`;
+      fan.appendChild(item);
+    });
+
+    phase3.classList.add('active');
+    spawnConfetti();
+  }, 300);
+}
+
+function spawnConfetti() {
+  const colors = ['#4285F4', '#EA4335', '#FBBC04', '#34A853', '#9B72CB', '#D96570'];
+  const container = document.querySelector('.phase-3');
+  for (let i = 0; i < 6; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'confetti-dot';
+    dot.style.background = colors[i];
+    dot.style.left = (20 + Math.random() * 60) + '%';
+    dot.style.top = (10 + Math.random() * 30) + '%';
+    dot.style.animationDelay = (i * 0.1) + 's';
+    container.appendChild(dot);
+    setTimeout(() => dot.remove(), 2000);
+  }
+}
+
+// ── Reset ──
+function resetDemo() {
+  currentIdx = 0;
+  keptItems = [];
+  holdItems = [];
+  skippedItems = [];
+  lastAction = null;
+  recoveredQueue = [];
+  activeReviewTab = 'hold';
+  phase3.classList.remove('active');
+  phase2.classList.remove('active');
+  phase1.classList.remove('hidden');
+  /* phone stays upright */
+  closeDetail();
+  closeReviewDrawer();
+  undoPill.classList.remove('visible');
+  updateUI();
+}
+
+// ── URL param: ?embed=1 → remove phone frame, show content only ──
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('embed') === '1') {
+    document.body.classList.add('embed-mode');
+  }
+})();
+
+// ── URL param: ?phase=3 → jump directly to Done screen ──
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('phase') === '3') {
+    // Populate keptItems with all shoes so the fan shows
+    keptItems = shoes.slice(0, 5);
+    phase1.classList.add('hidden');
+    phase2.classList.remove('active');
+    // Set summary text
+    document.getElementById('doneSummary').textContent = 'Reviewing 20 candidates...';
+    // Build fan
+    const fan = document.getElementById('doneFan');
+    keptItems.slice(0, 5).forEach(shoe => {
+      const item = document.createElement('div');
+      item.className = 'done-fan-item';
+      item.innerHTML = `<img src="${shoe.img}" alt="${shoe.name}">`;
+      fan.appendChild(item);
+    });
+    phase3.classList.add('active');
+  }
+})();
+</script>
+</body>
+</html>

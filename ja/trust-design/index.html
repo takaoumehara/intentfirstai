@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trust Design — Context Grammar</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* NAV */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom: 1px solid transparent; display: flex; align-items: center; justify-content: center; transition: background 0.4s ease, border-color 0.3s ease, backdrop-filter 0.4s ease; }
+.nav.scrolled { background: rgba(253,252,250,0.92); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-bottom-color: rgba(0,0,0,0.06); }
+.nav-inner { width: var(--max-w); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(24px, 4vw, 48px); }
+.nav-logo { text-decoration: none; } .nav-logo-img { height: 22px; transition: filter 0.4s ease; }
+.nav:not(.scrolled) .nav-logo-img { filter: brightness(0) invert(1); }
+.nav:not(.scrolled) .hamburger-btn span { background: #fff; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.4s ease; }
+.nav-links a:hover { color: #fff; }
+.nav-links a.active { color: #fff; font-weight: 500; }
+.nav.scrolled .nav-links a { color: var(--text-3); }
+.nav.scrolled .nav-links a:hover { color: var(--color-grammar); }
+.nav.scrolled .nav-links a.active { color: var(--text); }
+@media (max-width: 768px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+/* LANG SWITCH */
+.lang-switch { position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border); border-left: none; border-radius: 0 10px 10px 0; padding: 6px 8px; box-shadow: 2px 2px 16px rgba(0,0,0,0.06); }
+.lang-switch a { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 1px; text-decoration: none; color: var(--text-3); padding: 8px 6px; transition: color 0.3s var(--ease); line-height: 1; }
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active { color: var(--text); font-weight: 700; }
+.lang-switch-divider { width: 16px; height: 1px; background: var(--border); }
+@media (max-width: 768px) { .lang-switch { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); flex-direction: row; border: 1px solid var(--border); border-radius: 10px; padding: 4px 10px; } .lang-switch-divider { width: 1px; height: 14px; } }
+
+/* COMMON */
+.sec-label { font-family: var(--font-mono); font-size: clamp(10px, 0.8vw, 13px); letter-spacing: 3px; text-transform: uppercase; color: var(--color-grammar); margin-bottom: 10px; }
+.sec-title { font-weight: 500; font-size: clamp(26px, 3.2vw, 50px); line-height: 1.2; letter-spacing: -1px; margin-bottom: 10px; }
+.sec-title em { font-style: normal; color: var(--color-grammar); }
+.sec-title .amber { font-style: normal; color: var(--color-intent); }
+.sec-desc { font-size: clamp(14px, 1.1vw, 18px); font-weight: 300; color: var(--text-2); line-height: 1.8; max-width: 620px; }
+
+/* DECK */
+#deck { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+.slide { height: 100vh; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+.slide-inner { width: min(1200px, 88vw); max-height: 92vh; overflow: hidden; padding: clamp(24px, 2vh, 40px) clamp(32px, 3vw, 48px); }
+
+
+/* HERO */
+.slide-hero { background: var(--bg-inverse); color: #fff; text-align: center; position: relative; overflow: hidden; }
+.slide-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(104,137,180,0.06), transparent); pointer-events: none; }
+.hero-label { font-family: var(--font-mono); font-size: clamp(11px, 0.9vw, 14px); letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 32px; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+.hero-title { font-weight: 500; font-size: clamp(32px, 4.5vw, 72px); line-height: 1.15; letter-spacing: -2px; margin-bottom: 28px; opacity: 0; animation: fadeUp 0.8s 0.5s forwards; max-width: 880px; }
+.hero-title em { font-style: normal; color: var(--color-grammar); }
+.hero-title .amber { color: var(--color-intent); }
+.hero-sub { font-size: clamp(14px, 1.1vw, 20px); font-weight: 300; color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.85; margin: 0 auto; opacity: 0; animation: fadeUp 0.8s 0.7s forwards; }
+
+/* STATEMENT */
+.slide-statement { background: var(--bg-inverse); text-align: center; color: #fff; position: relative; overflow: hidden; }
+.slide-statement::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(104,137,180,0.04), transparent); pointer-events: none; }
+.stmt-inner { max-width: 680px; margin: 0 auto; position: relative; z-index: 1; }
+.stmt-badge { font-family: var(--font-mono); font-size: clamp(11px, 0.85vw, 13px); letter-spacing: 3px; text-transform: uppercase; font-weight: 500; margin-bottom: 24px; display: inline-block; padding: 8px 20px; border-radius: 100px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); }
+.stmt-headline { font-size: clamp(24px, 3vw, 48px); font-weight: 500; letter-spacing: -1.5px; line-height: 1.2; margin-bottom: 14px; color: #fff; }
+.stmt-headline em { font-style: normal; color: var(--color-grammar); }
+.stmt-headline .amber { color: var(--color-intent); }
+.stmt-sub { font-size: clamp(14px, 1vw, 18px); font-weight: 350; line-height: 1.75; color: rgba(255,255,255,0.45); max-width: 520px; margin: 0 auto; }
+
+/* TWO-COL */
+.sl-2col { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; width: min(1200px, 88vw); padding: clamp(24px, 2vh, 40px) clamp(32px, 3vw, 48px); }
+.sl-2col.reverse { direction: rtl; }
+.sl-2col.reverse > * { direction: ltr; }
+@media (max-width: 900px) { .sl-2col { grid-template-columns: 1fr; } .sl-2col.reverse { direction: ltr; } }
+.sl-illu { border-radius: 16px; overflow: hidden; aspect-ratio: 3/2; max-height: 65vh; background: var(--bg-2); border: 1px solid var(--border); }
+.sl-illu img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sl-content { display: flex; flex-direction: column; gap: clamp(6px, 1vw, 12px); }
+
+/* SLIDE BG */
+.slide-white { background: var(--bg); }
+.slide-cool { background: var(--bg-2); }
+
+/* CALLOUT */
+.callout { padding: 10px 14px; border-radius: 10px; }
+.callout.blue { background: rgba(104,137,180,0.04); border: 1px solid rgba(104,137,180,0.12); }
+.callout.amber { background: rgba(160,112,64,0.04); border: 1px solid rgba(160,112,64,0.12); }
+.callout.red { background: rgba(220,38,38,0.04); border: 1px solid rgba(220,38,38,0.12); }
+.callout p { font-size: clamp(12px, 0.85vw, 15px); font-weight: 300; color: var(--text-2); line-height: 1.6; margin: 0; }
+.callout em { font-style: normal; font-weight: 400; }
+.callout.blue em { color: var(--color-grammar); }
+.callout.amber em { color: var(--color-intent); }
+.callout.red em { color: var(--illust-red); }
+
+/* DIAL */
+.dial-stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+@media (max-width: 700px) { .dial-stages { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
+.dial-stage { padding: clamp(12px, 1.2vw, 18px); border-radius: 12px; background: var(--bg); border: 1px solid var(--border); text-align: center; transition: all 0.3s var(--ease); }
+.dial-stage:hover { border-color: var(--color-grammar); }
+.dial-stage-num { font-family: var(--font-mono); font-size: clamp(24px, 2.5vw, 36px); font-weight: 500; color: var(--color-grammar); line-height: 1; margin-bottom: 6px; }
+.dial-stage-name { font-size: clamp(13px, 1vw, 16px); font-weight: 500; margin-bottom: 4px; letter-spacing: -0.3px; }
+.dial-stage-desc { font-size: clamp(10px, 0.75vw, 12px); font-weight: 300; color: var(--text-2); line-height: 1.5; }
+
+/* FORCE CARDS */
+.force-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+@media (max-width: 700px) { .force-cards { grid-template-columns: 1fr; } }
+.force-card { padding: clamp(14px, 1.5vw, 20px); border-radius: 14px; background: var(--bg); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.force-card-icon { font-size: 24px; }
+.force-card-title { font-size: clamp(14px, 1.1vw, 18px); font-weight: 500; letter-spacing: -0.3px; }
+.force-card-desc { font-size: clamp(11px, 0.85vw, 14px); font-weight: 300; color: var(--text-2); line-height: 1.7; }
+.force-card-example { font-family: var(--font-mono); font-size: 10px; color: var(--color-grammar); background: rgba(104,137,180,0.06); padding: 6px 10px; border-radius: 8px; line-height: 1.5; }
+
+/* QUADRANT */
+.quadrant-wrap { position: relative; max-width: min(560px, 80vw); margin: 0 auto; }
+.quadrant-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; margin-left: 28px; }
+.q-cell { padding: clamp(14px, 1.5vw, 22px); border-radius: 12px; text-align: center; border: 1px solid var(--border); }
+.q-cell.impossible { background: rgba(220,38,38,0.03); border-color: rgba(220,38,38,0.15); }
+.q-cell.butler { background: rgba(160,112,64,0.04); border-color: var(--color-intent); }
+.q-cell.dim { opacity: 0.55; }
+.q-icon { font-size: clamp(24px, 2.5vw, 36px); margin-bottom: 4px; }
+.q-cell h4 { font-size: clamp(12px, 0.9vw, 15px); font-weight: 500; margin-bottom: 2px; }
+.q-cell p { font-size: clamp(10px, 0.75vw, 12px); color: var(--text-2); margin: 0; font-weight: 300; line-height: 1.5; }
+.q-y-label { position: absolute; left: -8px; top: 50%; transform: rotate(-90deg) translateX(-50%); transform-origin: 0 0; font-family: var(--font-mono); font-size: clamp(8px, 0.6vw, 10px); letter-spacing: 2px; text-transform: uppercase; color: var(--color-intent); white-space: nowrap; }
+.q-x-label { text-align: center; margin-top: 8px; margin-left: 28px; font-family: var(--font-mono); font-size: clamp(8px, 0.6vw, 10px); letter-spacing: 2px; text-transform: uppercase; color: var(--color-grammar); }
+
+/* TRUST TIMELINE */
+.trust-timeline { display: flex; gap: 0; margin-top: 24px; position: relative; width: 100%; }
+.trust-timeline::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--border), var(--color-grammar), var(--color-success)); transform: translateY(-50%); z-index: 0; }
+.trust-stage { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; position: relative; z-index: 1; }
+.trust-stage-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-2); border: 2px solid var(--color-grammar); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.trust-stage-label { font-family: var(--font-mono); font-size: clamp(9px, 0.7vw, 11px); color: var(--color-grammar); letter-spacing: 0.5px; font-weight: 500; }
+.trust-stage-time { font-family: var(--font-mono); font-size: clamp(8px, 0.6vw, 10px); color: var(--text-3); }
+.trust-stage-desc { font-size: clamp(10px, 0.75vw, 12px); font-weight: 300; color: var(--text-2); line-height: 1.5; max-width: 140px; }
+@media (max-width: 800px) { .trust-timeline { flex-direction: column; gap: 16px; padding-left: 24px; } .trust-timeline::before { width: 3px; height: 100%; top: 0; left: 12px; right: auto; background: linear-gradient(180deg, var(--border), var(--color-grammar), var(--color-success)); } .trust-stage { flex-direction: row; text-align: left; gap: 12px; } .trust-stage-desc { max-width: none; } }
+
+/* REGRESSION FLOW */
+.regression-flow { display: flex; align-items: center; justify-content: center; gap: clamp(6px, 1vw, 14px); flex-wrap: wrap; margin-top: 16px; }
+.rf-node { padding: clamp(10px, 1.2vw, 16px) clamp(12px, 1.5vw, 20px); border-radius: 14px; text-align: center; min-width: clamp(80px, 10vw, 130px); }
+.rf-node-label { font-family: var(--font-mono); font-size: clamp(8px, 0.7vw, 10px); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.rf-node-val { font-size: clamp(11px, 0.85vw, 14px); font-weight: 300; line-height: 1.5; }
+.rf-node--normal { background: var(--chip-green-bg); border: 1px solid rgba(5,150,105,0.15); }
+.rf-node--normal .rf-node-label { color: var(--color-success); }
+.rf-node--crisis { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.15); }
+.rf-node--crisis .rf-node-label { color: var(--illust-red); }
+.rf-node--rollback { background: var(--chip-amber-bg); border: 1px solid rgba(160,112,64,0.15); }
+.rf-node--rollback .rf-node-label { color: var(--color-intent); }
+.rf-node--rebuild { background: var(--chip-blue-bg); border: 1px solid rgba(104,137,180,0.15); }
+.rf-node--rebuild .rf-node-label { color: var(--color-grammar); }
+.rf-arrow { font-size: clamp(16px, 1.5vw, 22px); color: var(--text-3); flex-shrink: 0; }
+
+/* PERSON CARDS */
+.person-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 700px) { .person-grid { grid-template-columns: repeat(2, 1fr); } }
+.person-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: clamp(12px, 1.4vw, 20px); text-align: center; }
+.person-card.accent-border { border-color: var(--color-intent); box-shadow: 0 2px 12px rgba(160,112,64,0.06); }
+.person-emoji { font-size: clamp(24px, 2.5vw, 36px); margin-bottom: 4px; }
+.person-name { font-weight: 500; font-size: clamp(13px, 1vw, 16px); margin-bottom: 4px; }
+.person-mock { background: var(--bg-2); border-radius: 8px; padding: 8px; margin-top: 6px; text-align: left; }
+.person-card.accent-border .person-mock { background: rgba(160,112,64,0.04); }
+.person-mock-label { font-size: clamp(8px, 0.55vw, 9px); font-family: var(--font-mono); color: var(--text-3); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
+.person-mock-text { font-size: clamp(11px, 0.8vw, 14px); font-weight: 300; color: var(--text); line-height: 1.5; }
+.tag { font-family: var(--font-mono); font-size: clamp(9px, 0.7vw, 12px); padding: 3px 8px; border-radius: 100px; display: inline-block; }
+.tag.blue { background: var(--chip-blue-bg); color: var(--color-grammar); }
+.tag.amber { background: var(--chip-amber-bg); color: var(--color-intent); }
+.tag.green { background: var(--chip-green-bg); color: var(--color-success); }
+.tag.red { background: rgba(220,38,38,0.08); color: var(--illust-red); }
+
+/* FORMULA BAR */
+.formula-bar { background: var(--bg-inverse); color: #fff; padding: clamp(10px, 1.2vw, 16px) clamp(16px, 2vw, 28px); border-radius: 10px; text-align: center; font-family: var(--font-mono); font-size: clamp(12px, 0.9vw, 15px); letter-spacing: 0.02em; }
+.formula-bar .op { color: var(--text-3); }
+.formula-bar .accent { color: var(--color-grammar); }
+.formula-bar .amber { color: var(--color-intent); }
+
+/* FOOTER */
+.slide-footer { background: var(--bg-inverse); color: rgba(255,255,255,0.3); }
+.footer-text { font-size: 14px; font-weight: 300; text-align: center; }
+.footer-text a { color: rgba(255,255,255,0.5); text-decoration: none; } .footer-text a:hover { color: var(--color-grammar); }
+
+/* PS BLOCK */
+.ps-block { max-width: 580px; margin: 0 auto; padding: clamp(16px, 2vw, 28px); }
+.ps-label { font-family: var(--font-mono); font-size: clamp(10px, 0.8vw, 12px); letter-spacing: 2px; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; }
+.ps-text { font-size: clamp(13px, 1vw, 16px); font-weight: 300; color: var(--text-2); line-height: 1.85; font-style: italic; }
+
+/* LARGE SCREEN */
+@media (min-width: 1200px) {
+  html { font-size: clamp(16px, 1.1vw, 19px); }
+  .person-grid { gap: 14px; }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav"><div class="nav-inner">
+  <a href="../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentfirst" class="nav-logo-img"></a>
+  <div class="nav-links">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="../industry/index.html">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact" class="nav-cta">Contact</a>
+  </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</div></nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../context-grammar/index.html">Context Grammar</a>
+    <a href="../../projects/index.html">Projects</a>
+    <a href="../industry/index.html">Industry</a>
+    <a href="../about/index.html">About</a>
+    <a href="../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../trust-design/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../trust-design/index.html">EN</a>
+</div>
+
+<!-- DECK -->
+<div id="deck">
+
+<!-- S1: HERO -->
+<section class="slide slide-hero" id="s1">
+  <div class="hero-label">Context Grammar &middot; Trust Design</div>
+  <h1 class="hero-title">AIが勝手に<br>夕飯を<em>注文した</em>。</h1>
+  <p class="hero-sub">先週なら不気味だった。今日は、ありがたい。AIは変わっていない。変わったのは、その下にある信頼の設計。</p>
+</section>
+
+<!-- S2: THE SCENE -->
+<section class="slide slide-white" id="s2">
+  <div class="sl-2col">
+    <div class="sl-content">
+      <div class="sec-label reveal">火曜の夕方</div>
+      <h2 class="sec-title reveal d1">午後6時47分。<br>車で<em>帰宅中</em>。</h2>
+      <p class="sec-desc reveal d2">スマホは冷蔵庫がほぼ空だと知っている。娘が乳製品を食べられないことも。火曜の夕方、長い通勤、詰まったカレンダー――あなたが疲れていることも。</p>
+      <p class="sec-desc reveal d3" style="margin-top:8px;">通知が1つ。<strong>「Honey-Garlic Salmon、20分。TaskRabbitで食材配達中。$15。」</strong></p>
+      <div class="callout blue reveal d4">
+        <p>ちらっと見る。何もタップしない。サーモンはあなたより先に届く。6ヶ月前、このシステムは全てに許可を求めていた。<em>何が変わったのか？</em></p>
+      </div>
+    </div>
+    <div class="sl-illu reveal d2">
+      <img src="../../brain-explainer/images/brain-disclosure-autonomy.png" alt="開示と自律の関係">
+    </div>
+  </div>
+</section>
+
+<!-- S3: TWO DIALS INTRO -->
+<section class="slide slide-statement" id="s3">
+  <div class="stmt-inner">
+    <div class="stmt-badge reveal">設計思想</div>
+    <h2 class="stmt-headline reveal d1">信頼は<br><em>2つのダイヤル</em>に宿る。</h2>
+    <p class="stmt-sub reveal d2">Autonomy Dialは「AIがどこまで勝手にやるか」。Disclosure Dialは「AIにどこまで知らせるか」。この2つは切り離せない。</p>
+  </div>
+</section>
+
+<!-- S4: AUTONOMY DIAL -->
+<section class="slide slide-white" id="s4">
+  <div class="slide-inner">
+    <div class="sec-label reveal">Dial 1</div>
+    <h2 class="sec-title reveal d1"><em>Autonomy</em> Dial</h2>
+    <p class="sec-desc reveal d2" style="margin-bottom:16px;">4つのステージ。スイッチではなく、ダイヤル。前に進むこともあれば、戻ることもある。</p>
+    <div class="dial-stages reveal d3">
+      <div class="dial-stage">
+        <div class="dial-stage-num">1</div>
+        <div class="dial-stage-name">Suggest</div>
+        <div class="dial-stage-desc">AIは選択肢を見せるだけ。全てあなたが決める。引っ越してきたばかりのルームメイト。</div>
+      </div>
+      <div class="dial-stage">
+        <div class="dial-stage-num">2</div>
+        <div class="dial-stage-name">Confirm</div>
+        <div class="dial-stage-desc">AIがプランを用意。実行前に承認を求める。「サーモン注文する？」「うん」</div>
+      </div>
+      <div class="dial-stage">
+        <div class="dial-stage-num">3</div>
+        <div class="dial-stage-name">Notify</div>
+        <div class="dial-stage-desc">AIが実行してから報告。「サーモン注文済。7:15到着。」ちらっと見て、終わり。</div>
+      </div>
+      <div class="dial-stage">
+        <div class="dial-stage-num">4</div>
+        <div class="dial-stage-name">Auto</div>
+        <div class="dial-stage-desc">AIが静かに処理。通知すら見ない。冷蔵庫はいつの間にか満たされている。</div>
+      </div>
+    </div>
+    <div class="callout blue reveal d4" style="margin-top:16px;max-width:640px;">
+      <p>多くの人はこのダイヤルが前にしか進まないと思っている。違う。<em>サーモンが$22――上限$20を超えた？ダイヤルはNotifyからConfirmに自動で戻る。</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- S5: DISCLOSURE DIAL + QUADRANT -->
+<section class="slide slide-cool" id="s5">
+  <div class="sl-2col">
+    <div class="sl-content">
+      <div class="sec-label reveal">Dial 2</div>
+      <h2 class="sec-title reveal d1"><span class="amber">Disclosure</span> Dial</h2>
+      <p class="sec-desc reveal d2">AIにどこまで知らせるか。ドメインごと。人ごと。健康データと買い物リストに、同じプライバシーレベルは必要ない。</p>
+      <div class="callout amber reveal d3" style="margin-top:8px;">
+        <p>これが全ての前提条件。<em>知らせないのに任せる――それは論理的に不可能。</em>アレルギーを隠したまま食事管理を任せるのは、目隠しをしたシェフを雇うようなものだ。</p>
+      </div>
+      <div class="callout red reveal d4" style="margin-top:8px;">
+        <p><em>高い自律性 + 低い開示 = 論理的に成立しない。</em>システムは、Disclosure Dialが支える以上にAutonomy Dialを上げることを許さない。</p>
+      </div>
+    </div>
+    <div class="reveal d2">
+      <div class="quadrant-wrap">
+        <div class="q-y-label">Autonomy &uarr;</div>
+        <div class="quadrant-grid">
+          <div class="q-cell impossible">
+            <div class="q-icon">&#x1F6AB;</div>
+            <h4 style="color:var(--illust-red);">不可能</h4>
+            <p>知らないことは自動化できない。</p>
+          </div>
+          <div class="q-cell butler">
+            <div class="q-icon">&#x2728;</div>
+            <h4 style="color:var(--color-intent);">執事ゾーン</h4>
+            <p>AIが知り、AIが動く。完全な信頼。</p>
+          </div>
+          <div class="q-cell dim">
+            <div class="q-icon">&#x1F507;</div>
+            <h4>AI不介入</h4>
+            <p>プライベートはプライベートのまま。</p>
+          </div>
+          <div class="q-cell">
+            <div class="q-icon">&#x1F9E0;</div>
+            <h4 style="color:var(--color-grammar);">AIが助言</h4>
+            <p>AIが選択肢を出す。決めるのはあなた。</p>
+          </div>
+        </div>
+        <div class="q-x-label">Disclosure &rarr;</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S6: THREE FORCES -->
+<section class="slide slide-white" id="s6">
+  <div class="slide-inner">
+    <div class="sec-label reveal">あなただけじゃない</div>
+    <h2 class="sec-title reveal d1"><em>3つの力</em>が<br>ダイヤルを回す。</h2>
+    <p class="sec-desc reveal d2" style="margin-bottom:12px;">Autonomy Dialはユーザーだけが動かすものではない。3つの力が、その瞬間のポジションを決める。</p>
+    <div class="force-cards reveal d3">
+      <div class="force-card">
+        <div class="force-card-icon">&#x1F3ED;</div>
+        <div class="force-card-title">サービスのデフォルト</div>
+        <div class="force-card-desc">すべてのサービスには初期値がある。Netflixは高い自律性で始まる――次のエピソードを聞かずに再生する。医療アプリはSuggestから始まる。</div>
+        <div class="force-card-example">Netflix: Auto &middot; 銀行: Suggest &middot; 食料品: Confirm</div>
+      </div>
+      <div class="force-card">
+        <div class="force-card-icon">&#x1F916;</div>
+        <div class="force-card-title">AIの実績</div>
+        <div class="force-card-desc">AIは一貫した正確な行動で信頼を獲得する。食料品の注文を5回連続で正確にこなした？システムがNotifyへの移行を提案する。</div>
+        <div class="force-card-example">5回連続正解 &rarr; Notify提案</div>
+      </div>
+      <div class="force-card">
+        <div class="force-card-icon">&#x270B;</div>
+        <div class="force-card-title">ユーザーの上書き</div>
+        <div class="force-card-desc">最終決定権は常にあなたにある。上限：「$20以上の自動注文は禁止」。下限：「寿司は必ず確認して」。この上書きは絶対。</div>
+        <div class="force-card-example">ルール: "FreshDirect = 禁止" &rarr; 完全ブロック</div>
+      </div>
+    </div>
+    <div class="formula-bar reveal d4" style="margin-top:16px;max-width:640px;">
+      <span class="accent">サービス初期値</span> <span class="op">&times;</span> <span class="accent">AIの実績</span> <span class="op">&times;</span> <span class="amber">ユーザーの上書き</span> <span class="op">=</span> 現在のポジション
+    </div>
+  </div>
+</section>
+
+<!-- S7: TRUST TIMELINE -->
+<section class="slide slide-cool" id="s7">
+  <div class="slide-inner">
+    <div class="sec-label reveal">一方通行ではない</div>
+    <h2 class="sec-title reveal d1"><em>数ヶ月</em>かけて築き、<br><em>数秒</em>で崩れる。</h2>
+    <p class="sec-desc reveal d2" style="margin-bottom:8px;">Project 1（Living Home）では、信頼は6ヶ月かけて育つ。AIは他人として始まり、少しずつ執事になる。</p>
+    <div class="trust-timeline reveal d3">
+      <div class="trust-stage">
+        <div class="trust-stage-dot">&#x1F331;</div>
+        <div class="trust-stage-label">Suggest</div>
+        <div class="trust-stage-time">1週目</div>
+        <div class="trust-stage-desc">空の冷蔵庫。AIは何も知らない。全ての提案に承認が必要。</div>
+      </div>
+      <div class="trust-stage">
+        <div class="trust-stage-dot">&#x1F4D6;</div>
+        <div class="trust-stage-label">Confirm</div>
+        <div class="trust-stage-time">3ヶ月目</div>
+        <div class="trust-stage-desc">パターンを学習。「今夜はサーモンとブロッコリー？」承認して実行。</div>
+      </div>
+      <div class="trust-stage">
+        <div class="trust-stage-dot">&#x1F514;</div>
+        <div class="trust-stage-label">Notify</div>
+        <div class="trust-stage-time">6ヶ月目</div>
+        <div class="trust-stage-desc">ヨーグルトは自動注文。サーモンは準備済。通知を見るだけ。</div>
+      </div>
+      <div class="trust-stage">
+        <div class="trust-stage-dot">&#x2728;</div>
+        <div class="trust-stage-label">Auto</div>
+        <div class="trust-stage-time">9ヶ月以降</div>
+        <div class="trust-stage-desc">冷蔵庫はただ満たされている。買い物のことを考えなくなった。</div>
+      </div>
+    </div>
+    <div class="callout amber reveal d4" style="margin-top:16px;max-width:640px;">
+      <p><em>しかし、旅行中に息子が37.8度の熱を出す。</em>旅行プランはNotifyだった。即座にConfirmに降格。医療判断は常にSuggest――AIは「3つの選択肢を用意しました。判断はあなたです」と言う。</p>
+    </div>
+  </div>
+</section>
+
+<!-- S8: REGRESSION -->
+<section class="slide slide-white" id="s8">
+  <div class="slide-inner">
+    <div class="sec-label reveal">後退という設計</div>
+    <h2 class="sec-title reveal d1">AIが言える最も勇敢な一言：<br><em>「わかりません。」</em></h2>
+    <p class="sec-desc reveal d2" style="margin-bottom:16px;">信頼は正解を出すことだけで生まれるのではない。引き際を知っていることで生まれる。</p>
+    <div class="regression-flow reveal d3">
+      <div class="rf-node rf-node--normal">
+        <div class="rf-node-label">通常</div>
+        <div class="rf-node-val">Notify</div>
+      </div>
+      <div class="rf-arrow">&#x2192;</div>
+      <div class="rf-node rf-node--crisis">
+        <div class="rf-node-label">危機</div>
+        <div class="rf-node-val">子供の発熱</div>
+      </div>
+      <div class="rf-arrow">&#x2192;</div>
+      <div class="rf-node rf-node--rollback">
+        <div class="rf-node-label">後退</div>
+        <div class="rf-node-val">Confirm</div>
+      </div>
+      <div class="rf-arrow">&#x2192;</div>
+      <div class="rf-node rf-node--rebuild">
+        <div class="rf-node-label">再構築</div>
+        <div class="rf-node-val">段階的に回復</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px;max-width:640px;" class="reveal d4">
+      <div class="callout blue">
+        <p><em>エスカレーションが信頼を深める。</em>「息子が37.8度。15分のクリニックを見つけました。保険証番号は準備済み。でも、判断はあなたです。」AIが限界を認める正直さ――それが次の信頼を獲得する。</p>
+      </div>
+      <div class="callout amber">
+        <p><em>異常値が後退を起動する。</em>サーモンが$22、普段は$12？ルールを超えた。ダイヤルが1段下がる。「今日サーモンは$22です。注文しますか？」小さな揺り戻しがシステムの誠実さを保つ。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S9: MULTI-PERSON -->
+<section class="slide slide-cool" id="s9">
+  <div class="slide-inner">
+    <div class="sec-label reveal">マルチパーソンの信頼</div>
+    <h2 class="sec-title reveal d1">同じ家。<br><em>違う</em>信頼レベル。</h2>
+    <p class="sec-desc reveal d2" style="margin-bottom:16px;">信頼は世帯設定ではない。家族の一人ひとりが、自分のAutonomy DialとDisclosure Dialを持っている。同時に動いている。</p>
+    <div class="person-grid reveal d3">
+      <div class="person-card accent-border">
+        <div class="person-emoji">&#x1F468;</div>
+        <div class="person-name">Kenji（父）</div>
+        <span class="tag amber" style="margin-bottom:4px;">Notify</span>
+        <div class="person-mock">
+          <div class="person-mock-label">自律性</div>
+          <div class="person-mock-text">食料品は自動注文。通知を受け取るだけ。</div>
+        </div>
+        <div class="person-mock" style="margin-top:4px;">
+          <div class="person-mock-label">開示</div>
+          <div class="person-mock-text">健康: オープン。金融: 一部。仕事: 非公開。</div>
+        </div>
+      </div>
+      <div class="person-card">
+        <div class="person-emoji">&#x1F469;</div>
+        <div class="person-name">Yuki（母）</div>
+        <span class="tag blue" style="margin-bottom:4px;">Confirm</span>
+        <div class="person-mock">
+          <div class="person-mock-label">自律性</div>
+          <div class="person-mock-text">すべての注文を確認。承認してから実行。</div>
+        </div>
+        <div class="person-mock" style="margin-top:4px;">
+          <div class="person-mock-label">開示</div>
+          <div class="person-mock-text">健康: オープン。その他: すべてオープン。</div>
+        </div>
+      </div>
+      <div class="person-card">
+        <div class="person-emoji">&#x1F466;</div>
+        <div class="person-name">Ren（10歳）</div>
+        <span class="tag green" style="margin-bottom:4px;">親が管理</span>
+        <div class="person-mock">
+          <div class="person-mock-label">自律性</div>
+          <div class="person-mock-text">ミッションを受け取る。「リビングに掃除機かけて。」</div>
+        </div>
+        <div class="person-mock" style="margin-top:4px;">
+          <div class="person-mock-label">開示</div>
+          <div class="person-mock-text">親が管理する範囲。金融データなし。</div>
+        </div>
+      </div>
+      <div class="person-card">
+        <div class="person-emoji">&#x1F467;</div>
+        <div class="person-name">Hana（7歳）</div>
+        <span class="tag green" style="margin-bottom:4px;">親が管理</span>
+        <div class="person-mock">
+          <div class="person-mock-label">自律性</div>
+          <div class="person-mock-text">簡単なタスクのみ。「おもちゃを箱に入れて。」</div>
+        </div>
+        <div class="person-mock" style="margin-top:4px;">
+          <div class="person-mock-label">開示</div>
+          <div class="person-mock-text">最小限。アレルギー情報は安全のため共有。</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout blue reveal d4" style="margin-top:16px;max-width:640px;">
+      <p>KenjiがNotifyなのは、好みを開示し、AIが6ヶ月間正確だったから。YukiがConfirmのままなのは、AIが失敗したからではない。<em>彼女がコントロールを好むから。</em>どちらも正しい。信頼の設計は、両方を尊重する。</p>
+    </div>
+  </div>
+</section>
+
+<!-- S10: P.S. + FOOTER -->
+<section class="slide slide-footer" id="s10">
+  <div class="ps-block">
+    <div class="ps-label">P.S.</div>
+    <p class="ps-text" style="color:rgba(255,255,255,0.5);">信頼は二択だと思っていた。AIを信じるか、信じないか。でも自分の行動を観察して気づいた。食料品の配達アプリで、玉ねぎの代替品は許す。ヨーグルトの代替品は絶対に許さない。同じアプリ。同じAI。でも信頼のレベルが違う。信頼は「設定」ではない。「地形」だ――毎日、山と谷が少しずつ動いている。</p>
+  </div>
+  <div class="footer-text" style="margin-top:24px;">
+    <p style="margin-bottom:8px;"><a href="../context-grammar/index.html">&larr; Context Grammar</a> &nbsp;&middot;&nbsp; <a href="../../brain-explainer/index.html">Brain &rarr;</a></p>
+    <p>intentfirst.ai &middot; Takao Umehara &middot; 2026</p>
+  </div>
+</section>
+
+</div><!-- /deck -->
+
+<script>
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+<script src="../../assets/js/deck-nav.js"></script>
+</body>
+</html>

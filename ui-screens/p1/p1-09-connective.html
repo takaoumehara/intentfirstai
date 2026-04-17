@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1-09 Connective Disclosure</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+:root {
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8EAED;
+  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 20px;
+}
+
+.phone-frame {
+  width: 390px; height: 844px;
+  background: #FFFFFF; border-radius: 40px;
+  overflow: hidden; position: relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+.status-bar {
+  height: 54px; padding: 14px 24px 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.status-bar .time { font-size: 15px; font-weight: 600; color: #202124; }
+.status-bar .icons { display: flex; gap: 6px; }
+.status-bar .icons span { font-size: 17px; color: #202124; }
+
+.header {
+  padding: 8px 16px 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.header .material-symbols-outlined { font-size: 24px; color: #202124; cursor: pointer; }
+.header h1 { font-size: 18px; font-weight: 500; color: #202124; }
+
+.scroll-content {
+  height: calc(844px - 54px - 48px - 20px);
+  overflow-y: auto; padding: 0 20px 32px;
+}
+.scroll-content::-webkit-scrollbar { width: 0; }
+
+/* Featured Card */
+.featured-card {
+  border-left: 4px solid #E8710A;
+  background: #FFFFFF;
+  border-radius: 0 16px 16px 0;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  opacity: 0;
+  animation: fadeUp 500ms cubic-bezier(0.2, 0, 0, 1) 200ms forwards;
+}
+.featured-label {
+  font-size: 12px; font-weight: 500; color: #E8710A;
+  letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px;
+}
+.featured-title {
+  font-size: 18px; font-weight: 500; color: #202124; margin-bottom: 16px;
+}
+
+/* Video Player */
+.video-player {
+  width: 100%; aspect-ratio: 16/9;
+  background: #000; border-radius: 12px;
+  position: relative; overflow: hidden;
+  margin-bottom: 16px; cursor: pointer;
+}
+.video-player .play-btn {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(255,255,255,0.9); display: flex;
+  align-items: center; justify-content: center;
+  transition: transform 200ms var(--ease-out-expo);
+}
+.play-btn .material-symbols-outlined { font-size: 28px; color: #202124; margin-left: 2px; }
+.progress-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: rgba(255,255,255,0.2);
+}
+.progress-fill { height: 100%; width: 40%; background: #EA4335; border-radius: 0 2px 2px 0; }
+.video-time {
+  position: absolute; bottom: 10px; right: 12px;
+  font-size: 12px; color: rgba(255,255,255,0.8);
+}
+
+.featured-desc {
+  font-size: 14px; color: #5F6368; line-height: 1.5; margin-bottom: 4px;
+}
+.featured-meta {
+  font-size: 12px; color: #9AA0A6; margin-bottom: 16px;
+}
+
+.action-btns {
+  display: flex; gap: 10px;
+}
+.action-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 16px; border-radius: 9999px;
+  font-size: 14px; font-weight: 500;
+  border: 1.5px solid #E8EAED; background: #FFFFFF;
+  color: #5F6368; cursor: pointer; font-family: inherit;
+  transition: background-color 200ms var(--ease-out-expo), color 200ms var(--ease-out-expo), border-color 200ms var(--ease-out-expo), transform 200ms var(--ease-out-expo);
+}
+.action-btn:active { transform: scale(0.97); }
+.action-btn .material-symbols-outlined { font-size: 20px; }
+.action-btn.liked { border-color: #EA4335; color: #EA4335; background: #FEE8E6; }
+.action-btn.liked .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
+
+/* Section Label */
+.section-label {
+  font-size: 13px; font-weight: 500; color: #9AA0A6;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  margin-bottom: 12px; margin-top: 8px;
+}
+
+/* Update Cards */
+.update-card {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(8px);
+}
+.update-card:nth-of-type(1) { animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 500ms forwards; }
+.update-card:nth-of-type(2) { animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 600ms forwards; }
+
+.update-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.update-emoji { font-size: 24px; }
+.update-info h4 { font-size: 14px; font-weight: 500; color: #202124; }
+.update-info p { font-size: 13px; color: #5F6368; line-height: 1.4; margin-top: 2px; }
+.update-link {
+  display: block; text-align: right;
+  font-size: 13px; color: #1A73E8; font-weight: 500;
+  text-decoration: none; margin-top: 8px;
+}
+
+/* Disclosure Footer */
+.disclosure-footer {
+  background: #F8F9FA;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 24px;
+  opacity: 0;
+  animation: fadeUp 400ms cubic-bezier(0.2, 0, 0, 1) 800ms forwards;
+}
+.disclosure-footer-title {
+  font-size: 12px; font-weight: 500; color: #9AA0A6;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.granularity-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0;
+}
+.granularity-label { font-size: 13px; color: #5F6368; }
+.granularity-level {
+  font-size: 12px; font-weight: 500;
+  padding: 3px 10px; border-radius: 9999px;
+}
+.granularity-level.digest { background: #FFF3E0; color: #E8710A; }
+.granularity-level.push { background: #FFF3E0; color: #E8710A; }
+.granularity-level.available { background: #FFF3E0; color: #E8710A; }
+
+/* Heart particles */
+.heart-particle {
+  position: fixed;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 100;
+  animation: particleFloat 800ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+@keyframes particleFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.5); }
+}
+
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; border-radius: 2.5px; background: #202124;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .action-btn:hover { background: #F8F9FA; }
+  .video-player:hover .play-btn { transform: translate(-50%, -50%) scale(1.1); }
+  .update-link:hover { text-decoration: underline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="icons">
+      <span class="material-symbols-outlined" style="font-size:16px">signal_cellular_alt</span>
+      <span class="material-symbols-outlined" style="font-size:16px">wifi</span>
+      <span class="material-symbols-outlined" style="font-size:16px">battery_full</span>
+    </div>
+  </div>
+  <div class="header">
+    <span class="material-symbols-outlined">arrow_back</span>
+    <h1>Home Brain</h1>
+  </div>
+
+  <div class="scroll-content">
+    <!-- Featured: Wife Dance -->
+    <div class="featured-card">
+      <div class="featured-label">Connect</div>
+      <div class="featured-title">Wife's Dance This Week</div>
+
+      <div class="video-player" onclick="this.querySelector('.play-btn').style.display='none'" style="background: #000;">
+        <img src="https://images.unsplash.com/photo-1771191135700-c625bd684e9d?w=800&h=450&fit=crop&q=80" alt="Dance performance" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+        <div class="play-btn">
+          <span class="material-symbols-outlined">play_arrow</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <div class="video-time">0:12 / 0:30</div>
+      </div>
+
+      <div class="featured-desc">Most-played post this week. "Trying new choreography!"</div>
+      <div class="featured-meta">♡ 234 likes · Instagram</div>
+
+      <div class="action-btns">
+        <button class="action-btn" id="likeBtn" onclick="handleLike(this, event)">
+          <span class="material-symbols-outlined">favorite</span>
+          Like
+        </button>
+        <button class="action-btn" onclick="void(0)">
+          <span class="material-symbols-outlined">open_in_new</span>
+          View on Instagram
+        </button>
+      </div>
+    </div>
+
+    <!-- Other Updates -->
+    <div class="section-label">Other Connective Updates</div>
+
+    <div class="update-card">
+      <div class="update-top">
+        <div class="update-emoji" style="width:40px; height:40px; background:#E3F2FD; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">🎹</div>
+        <div class="update-info">
+          <h4>Son played piano</h4>
+          <p>"Wet Hands — C418"</p>
+        </div>
+      </div>
+      <a href="#" class="update-link">Listen on Spotify →</a>
+    </div>
+
+    <div class="update-card">
+      <div class="update-top">
+        <div class="update-emoji" style="width:40px; height:40px; background:#EDE7F6; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">📚</div>
+        <div class="update-info">
+          <h4>Daughter started reading</h4>
+          <p>"Frieren Vol. 3" — "Read it soon!"</p>
+        </div>
+      </div>
+      <a href="#" class="update-link">Open in Kindle →</a>
+    </div>
+
+    <!-- Disclosure Granularity -->
+    <div class="disclosure-footer">
+      <div class="disclosure-footer-title">Disclosure Granularity</div>
+      <div class="granularity-row">
+        <span class="granularity-label">💃 Wife Dance</span>
+        <span class="granularity-level digest">DIGEST weekly</span>
+      </div>
+      <div class="granularity-row">
+        <span class="granularity-label">🎹 Son Music</span>
+        <span class="granularity-level push">PUSH</span>
+      </div>
+      <div class="granularity-row">
+        <span class="granularity-label">📚 Daughter Kindle</span>
+        <span class="granularity-level available">AVAILABLE</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+function handleLike(btn, event) {
+  const isLiked = btn.classList.toggle('liked');
+
+  if (isLiked) {
+    btn.innerHTML = '<span class="material-symbols-outlined">favorite</span> Liked';
+
+    // Heart scale animation
+    const icon = btn.querySelector('.material-symbols-outlined');
+    icon.style.transform = 'scale(1.3)';
+    icon.style.transition = 'transform 200ms cubic-bezier(0.2, 0, 0, 1)';
+    setTimeout(() => { icon.style.transform = 'scale(1)'; }, 200);
+
+    // Tiny heart particles
+    const rect = btn.getBoundingClientRect();
+    for (let i = 0; i < 5; i++) {
+      const particle = document.createElement('span');
+      particle.className = 'heart-particle';
+      particle.textContent = '♡';
+      particle.style.left = (rect.left + rect.width * 0.3 + Math.random() * 30) + 'px';
+      particle.style.top = (rect.top - 5) + 'px';
+      particle.style.color = '#EA4335';
+      particle.style.animationDelay = (i * 60) + 'ms';
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 900);
+    }
+  } else {
+    btn.innerHTML = '<span class="material-symbols-outlined">favorite</span> Like';
+  }
+}
+</script>
+</body>
+</html>

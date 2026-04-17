@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>あなたの会社は、自分が知っていることを知らない。いや、アクセスできないだけだ。 — intentfirst.ai</title>
+<meta name="description" content="ほとんどのAI導入が失敗するのは、モデルのせいではない。モデルの「前」にあるものが壊れているからだ。">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<style>
+
+/* ═══ NAV ═══ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px;
+  background: rgba(253,252,250,0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.5s var(--ease);
+}
+.nav-inner {
+  width: var(--max-w);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px, 4vw, 48px);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-logo-img { height: 22px; width: auto; }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
+.nav-links a {
+  font-size: 13px; font-weight: 400; color: var(--text-3);
+  text-decoration: none; transition: color 0.3s var(--ease);
+}
+.nav-links a:hover { color: var(--color-grammar); }
+.nav-links a[href="../../journal/index.html"] { color: var(--color-grammar); }
+
+@media (max-width: 768px) {
+  .nav-links { gap: 12px; }
+  .nav-links a { font-size: 12px; }
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ═══ LANGUAGE SWITCHER — vertical left side ═══ */
+.lang-switch {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: rgba(253,252,250,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  padding: 6px 8px;
+  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
+}
+.lang-switch a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 6px;
+  transition: color 0.3s var(--ease);
+  line-height: 1;
+}
+.lang-switch a:hover { color: var(--color-grammar); }
+.lang-switch a.active {
+  color: var(--text);
+  font-weight: 700;
+}
+.lang-switch-divider {
+  width: 16px;
+  height: 1px;
+  background: var(--border);
+}
+@media (max-width: 768px) {
+  .lang-switch {
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .lang-switch-divider {
+    width: 1px;
+    height: 14px;
+  }
+}
+
+/* ═══ ARTICLE HERO ═══ */
+.article-hero {
+  padding-top: 56px;
+}
+.article-hero-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-meta {
+  padding: clamp(40px, 5vw, 64px) clamp(24px, 4vw, 48px) clamp(32px, 4vw, 48px);
+  background: var(--bg-2);
+}
+.article-hero-meta-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.article-hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.85vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.15s forwards;
+}
+.article-hero-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 52px);
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.25s forwards;
+}
+.article-hero-subtitle {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text-2);
+  font-weight: 400;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.35s forwards;
+}
+.article-hero-date {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.8vw, 13px);
+  letter-spacing: 1px;
+  color: var(--text-3);
+  opacity: 0;
+  animation: fadeUp 0.6s var(--ease) 0.45s forwards;
+}
+
+/* ═══ ARTICLE BODY ═══ */
+.article-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  font-size: clamp(16px, 1.1vw, 18px);
+  line-height: 1.8;
+  color: var(--text);
+}
+.article-body p {
+  margin-bottom: 1.6em;
+}
+.article-body h2 {
+  font-weight: 500;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: var(--text);
+  margin-top: 2.8em;
+  margin-bottom: 1em;
+}
+.article-body h3 {
+  font-weight: 400;
+  font-size: clamp(18px, 1.4vw, 22px);
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-top: 2.2em;
+  margin-bottom: 0.8em;
+}
+.article-body strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.article-body em {
+  font-style: italic;
+  color: var(--text-2);
+}
+.article-body hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.4em 0;
+}
+.article-body ul {
+  margin-bottom: 1.6em;
+  padding-left: 1.2em;
+  list-style: none;
+}
+.article-body ul li {
+  position: relative;
+  padding-left: 1em;
+  margin-bottom: 0.6em;
+  line-height: 1.75;
+}
+.article-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-grammar);
+}
+.article-body .closing-note {
+  font-style: italic;
+  color: var(--text-2);
+  border-left: 3px solid var(--color-grammar);
+  padding-left: 1.2em;
+  margin-top: 2em;
+}
+.article-body .closing-note p {
+  margin-bottom: 0.8em;
+}
+.article-body .closing-note p:last-child {
+  margin-bottom: 0;
+}
+
+/* ═══ ARTICLE NAV ═══ */
+.article-nav {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 4vw, 48px) clamp(60px, 8vw, 100px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.article-nav a {
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 0.9vw, 14px);
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+.article-nav a:hover {
+  color: var(--color-grammar);
+  border-color: var(--color-grammar);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(104,137,180,0.15);
+}
+
+/* ═══ SUBSCRIBE CTA ═══ */
+.subscribe-cta {
+  background: var(--bg-inverse);
+  color: #fff;
+  text-align: center;
+  padding: clamp(40px, 5vw, 60px) clamp(24px, 4vw, 48px);
+}
+.subscribe-title {
+  font-weight: 500;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+.subscribe-sub {
+  font-size: clamp(14px, 1vw, 16px);
+  color: rgba(255,255,255,0.4);
+  font-weight: 400;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+.subscribe-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  background: var(--color-grammar);
+  color: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s var(--ease);
+  box-shadow: 0 4px 24px rgba(104,137,180,0.25);
+}
+.subscribe-btn:hover {
+  filter: brightness(0.85);
+  box-shadow: 0 6px 32px rgba(104,137,180,0.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  background: var(--bg-inverse);
+  color: rgba(255,255,255,0.3);
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.footer a {
+  color: rgba(255,255,255,0.3); text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer a:hover { color: var(--color-grammar); }
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 580px) {
+  .article-hero-title {
+    letter-spacing: -0.8px;
+  }
+  .article-nav {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article-nav a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ═══ HAMBURGER MENU ═══ */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 350;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s var(--ease);
+}
+.hamburger-btn span:nth-child(2) { margin: 4px 0; }
+@media (max-width: 768px) {
+  .hamburger-btn { display: flex; }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(253,252,250,0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
+}
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobile-menu-close::before,
+.mobile-menu-close::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobile-menu-close::before { transform: rotate(45deg); }
+.mobile-menu-close::after { transform: rotate(-45deg); }
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-menu-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 10px 32px;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-nav a:hover { color: var(--color-grammar); background: rgba(104,137,180,0.06); }
+.mobile-menu-nav a.mobile-active { color: var(--color-grammar); font-weight: 500; }
+.mobile-menu-lang {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mobile-menu-lang a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-decoration: none;
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: color 0.3s var(--ease), background 0.3s var(--ease);
+}
+.mobile-menu-lang a:hover { color: var(--color-grammar); }
+.mobile-menu-lang a.active { color: var(--color-grammar); font-weight: 700; background: rgba(104,137,180,0.08); }
+.mobile-menu-lang-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../../index.html" class="nav-logo"><img src="../../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
+    <div class="nav-links">
+      <a href="../../context-grammar/index.html">Context Grammar</a>
+      <a href="../../../projects/index.html">Projects</a>
+      <a href="../../industry/index.html">Industry</a>
+      <a href="../../about/index.html">About</a>
+      <a href="../../about/index.html#contact" class="nav-cta">Contact</a>
+    </div>
+  <button class="hamburger-btn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+</nav>
+
+<!-- ═══ MOBILE MENU OVERLAY ═══ -->
+<div class="mobile-menu-overlay">
+  <button class="mobile-menu-close" aria-label="Close menu"></button>
+  <nav class="mobile-menu-nav">
+    <a href="../../context-grammar/index.html">Context Grammar</a>
+    <a href="../../../projects/index.html">Projects</a>
+    <a href="../../industry/index.html">Industry</a>
+    <a href="../../about/index.html">About</a>
+    <a href="../../about/index.html#contact">Contact</a>
+  </nav>
+  <div class="mobile-menu-lang">
+    <a href="index.html" class="active">JA</a>
+    <div class="mobile-menu-lang-divider"></div>
+    <a href="../../../journal/index.html">EN</a>
+  </div>
+</div>
+
+<div class="lang-switch">
+  <a href="index.html" class="active">JA</a>
+  <div class="lang-switch-divider"></div>
+  <a href="../../../journal/index.html">EN</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE HERO
+     ═══════════════════════════════════════ -->
+<section class="article-hero">
+  <img src="../../../assets/img/journal/07.webp" alt="だれも本気で解いていない「知識アーキテクチャ問題」と、その解き方" class="article-hero-img">
+  <div class="article-hero-meta">
+    <div class="article-hero-meta-inner">
+      <p class="article-hero-label">エッセイ &mdash; 07</p>
+      <h1 class="article-hero-title">あなたの会社は、自分が知っていることを知らない。いや、アクセスできないだけだ。</h1>
+      <p class="article-hero-subtitle">ほとんどのAI導入が失敗するのは、モデルのせいではない。モデルの「前」にあるものが壊れているからだ。</p>
+      <p class="article-hero-date">2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE BODY
+     ═══════════════════════════════════════ -->
+<article class="article-body">
+  <div class="reveal">
+    <p>月曜の朝。ある大手企業のデザインチームのSlackが静かに動いている。</p>
+
+    <p>新しく導入されたAIツールに、あるシニアデザイナーが質問を投げた。「この製品ラインのデザイン判断の背景にある戦略的意図は何か？」</p>
+
+    <p>AIは即座に応答した。構造は整っていた。段落は美しかった。そして、内容は完全に空虚だった。</p>
+
+    <p>間違ってはいない。ただ、何も知らないのだ。この会社が3年かけて積み上げた議論も、却下された選択肢も、あの四半期に方針が転換した理由も。</p>
+
+    <p>チームの結論はこうだった。「AIにはこの仕事は無理だ。」</p>
+
+    <p>本当の結論はこうだ。<strong>「AIに、何も渡していないだけだ。」</strong></p>
+
+    <p>これがナレッジ・アーキテクチャの問題だ。華やかではない。カンファレンスで語られることもない。だが、AI変革が停滞する最大の原因は、ほぼ確実にこれだ。そして、解決は完全に手の届く範囲にある。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>ナレッジ・アーキテクチャとは何か</h2>
+
+    <p>ほとんどの組織は、膨大な知識を持っている。同時に、使える形の知識はほぼゼロだ。</p>
+
+    <p>知識は存在する。メールのスレッドの中に。Slackの会話の中に。誰も見返さないミーティングの録画の中に。プロジェクト初期からいる一人のベテランの頭の中に。全員が忘れた戦略的根拠を説明するスライドの中に。</p>
+
+    <p>構造化されていない。検索できない。繋がっていない。</p>
+
+    <p>この環境にAIが入ると、貧弱な文脈の上で動き、貧弱なアウトプットを出す。これはモデルの失敗ではない。アーキテクチャの失敗だ。AIが起動するはるか前に、すでに起きていた失敗だ。</p>
+
+    <p>ナレッジ・アーキテクチャとは、この問題を解く設計の規律だ。組織は実際に何を知っているのか。それはどこにあるのか。どうすればアクセス可能になるのか。どうすれば最新の状態を保てるのか。</p>
+
+    <p>これは「ドキュメント整備」とは違う。ドキュメントはスナップショットだ。ナレッジ・アーキテクチャは生きたシステムだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>三層モデル</h2>
+
+    <p>Verizonでこのプロセスを実行した。16人のデザイナーへのインタビュー、40以上の摩擦ポイントの特定、複数のAIシステムの導入を経て、一つのモデルに到達した。</p>
+
+    <p><strong>三層モデル</strong>。あらゆるナレッジ・アーキテクチャ構築の起点として、今もこのモデルを使っている。</p>
+
+    <p>三つの層は、<strong>ブランド</strong>、<strong>リサーチ</strong>、<strong>プロジェクト</strong>。</p>
+
+    <p>それぞれが異なる問いに答える。ソース素材が違う。更新頻度が違う。用途が違う。これらを混同することが、最もよく見る失敗の一つだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>第1層：ブランド・マスターブレイン</h3>
+
+    <p><strong>この層が答える問い：</strong> 私たちは何者で、どう意思決定するのか？</p>
+
+    <p>この層には、組織のアイデンティティ基盤が格納される。プロジェクトが変わっても変わるべきではないもの。新しいチームメンバーが、直接読む代わりに何カ月もかけて空気で吸収するもの。</p>
+
+    <p>ソース素材：</p>
+
+    <ul>
+      <li>ブランドガイドラインとデザイン原則</li>
+      <li>ボイス＆トーンのドキュメント</li>
+      <li>競合ポジショニングと市場コンテキスト</li>
+      <li>戦略的方向性と組織の優先事項</li>
+      <li>過去の意思決定とその根拠</li>
+    </ul>
+
+    <p>ここで最も重要な言葉は「根拠」だ。ほとんどの組織は「何を」決めたかを記録する。「なぜ」を記録する組織はほとんどない。ブランド・マスターブレインには両方が必要だ。AIが（あるいは新しいデザイナーが）ブランドと一貫した判断を下すには、ルールだけでなく推論が必要だからだ。</p>
+
+    <p><strong>構築方法：</strong> まず既存のものから始める。ブランドガイドライン、原則文書、戦略資料。その後、より難しい作業に入る。どこにも書かれていない暗黙知を特定する。最も長くいる人たちにインタビューする。質問はこうだ。「新しい人が、この組織の意思決定について間違えやすいことは何か？」この質問への回答が、最も重要なソース素材になる。</p>
+
+    <p><strong>更新頻度：</strong> 四半期ごとのレビュー。重要な戦略的意思決定時にはトリガー更新。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>第2層：リサーチ・マスターブレイン</h3>
+
+    <p><strong>この層が答える問い：</strong> 私たちがデザインする対象の人々について、何を知っているのか？</p>
+
+    <p>この層には、ユーザーに関する組織の蓄積された理解が格納される。個別のリサーチリポジトリに埋もれるのではなく、統合され、クエリ可能な状態で。</p>
+
+    <p>ソース素材：</p>
+
+    <ul>
+      <li>ユーザーリサーチレポートと統合文書</li>
+      <li>ユーザビリティテストの知見</li>
+      <li>顧客フィードバックとサポートのテーマ</li>
+      <li>行動分析と利用パターン</li>
+      <li>ジャーニーマップとペルソナフレームワーク</li>
+      <li>競合UX分析</li>
+    </ul>
+
+    <p>この層が解決するのは「リサーチ負債」だ。ほとんどの組織では、リサーチが行われ、レポートが書かれ、ミーティングで共有され、そしてどこかのフォルダに消える。6カ月後、チームは仮定に基づいて判断する。リサーチが存在しないからではない。誰もそれを見つけられないからだ。活用できるほど速く統合できないからだ。</p>
+
+    <p>リサーチ・マスターブレインは、そのすべてのリサーチをクエリ可能にする。フォルダを探す代わりに、デザイナーはこう聞ける。「ユーザーがアカウント管理についてどう考えているか、何がわかっている？」すると3つの調査、2つのユーザビリティテスト、6カ月分のサポートデータから統合された回答が返ってくる。</p>
+
+    <p><strong>構築方法：</strong> まず既存リサーチの棚卸しをする。ほぼ確実に、思っている以上の量がある。散在しているだけだ。収集し、タグ付けし、すべてを読み込む。そしてプロトコルを確立する。すべてのリサーチは、プロジェクト終了前にブレインに格納する。</p>
+
+    <p><strong>更新頻度：</strong> 新しいリサーチ完了時に随時。月次の統合レビューでギャップを特定。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h3>第3層：プロジェクト・マスターブレイン</h3>
+
+    <p><strong>この層が答える問い：</strong> この特定のプロジェクトで、今、何が起きているのか？</p>
+
+    <p>最もダイナミックな層。そしてインタビューで最も頻繁に聞いた摩擦ポイントを解決する層だ。デザイナーが、簡単に見つかるはずの文脈を再構築するために何時間も費やしている、という問題。</p>
+
+    <p>ソース素材：</p>
+
+    <ul>
+      <li>プロジェクトブリーフとイニシアチブ文書</li>
+      <li>ミーティング議事録と意思決定ログ</li>
+      <li>ステークホルダーのフィードバックと合意ノート</li>
+      <li>デザインのイテレーションと変更の根拠</li>
+      <li>オープンクエスチョンと既知の未知</li>
+      <li>依存関係とブロッカー</li>
+    </ul>
+
+    <p>プロジェクト・マスターブレインは、本質的にプロジェクトの生きた記憶だ。誰かがプロジェクト途中から参加する時、2時間のオンボーディングコールは不要になる。ブレインにクエリすればいい。3カ月後に意思決定が再検討される時、なぜそう決めたかの文脈が取得可能だ。先週火曜のアラインメントミーティングで何が話されたか思い出す必要がある時、ノートを掘り返す必要はない。聞けばいい。</p>
+
+    <p>ここで最も重要なのは、私が「意思決定の考古学」と呼ぶものを捕捉することだ。何を決めたかだけでなく、どんな選択肢が検討され、却下され、なぜ却下されたか。この情報が最も速く失われ、状況が変わった時に最も重要になる。</p>
+
+    <p><strong>構築方法：</strong> プロジェクト開始時にプロトコルを確立する。すべてのミーティング議事録をアップロード。すべての重要な意思決定に1パラグラフの根拠を記録。すべてのバージョン変更にノートをつける。ブレインは継続的に供給されるべきだ。最後にまとめてクリーンアップするのではなく。</p>
+
+    <p><strong>更新頻度：</strong> プロジェクトのライフサイクルを通じて継続的に。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>決定的な区別：「活動」と「インフラ」</h2>
+
+    <p>組織がやって満足するが、実際には機能しないバージョンがある。</p>
+
+    <p>こういうものだ。チームが共有フォルダを作る。ドキュメントを入れる。「ナレッジベース」と呼ぶ。6カ月後、誰も使っていない。何かを見つけるには、何を探しているか知っている必要があるからだ。フォルダ構造は作った人には合理的だったが、他の誰にも合理的ではない。</p>
+
+    <p>これは「活動」だ。問題を解決した気分を生み出すが、問題は解決していない。</p>
+
+    <p><strong>インフラ</strong>は違う。インフラは自然言語でクエリできる。インフラは、どこを見ればいいか知らなくても、関連する文脈を浮上させる。インフラは最新の状態を保つ。更新プロセスが仕事そのものに組み込まれているからだ。後からクリーンアップタスクとして追加されるのではなく。</p>
+
+    <p>実務的に言えば、ファイリングキャビネットと思考パートナーの違いだ。ファイリングキャビネットは情報を保管する。思考パートナーは洞察を浮上させる。</p>
+
+    <p>NotebookLM（VerizonでMaster Brainシステムを構築する際に使ったツール）は、現在のエンタープライズ環境でアクセス可能なインフラに最も近いものだ。鍵は、正しくロードし、一貫して維持し、チームに「検索」ではなく「クエリ」を訓練することだ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>クエリ・プロトコル</h2>
+
+    <p>ナレッジ・アーキテクチャの最も過小評価されている部分は、使い方を教えることだ。</p>
+
+    <p>ほとんどの人は、AIナレッジシステムに初めて触れる時、クローズドな質問をする。「チェックアウトフローに関するリサーチはあるか？」これではYes/Noの回答しか返ってこない。</p>
+
+    <p>システムが本当に有用になるのは、オープンな質問を学んだ時だ。「チェックアウト時のユーザー行動について何がわかっていて、現在のリサーチにどんなギャップがあるか？」これなら統合、文脈、そしてアクション可能な次のステップが返ってくる。</p>
+
+    <p>この二つのクエリスタイルの差は、検索エンジンを使うことと、システム内のすべてを知っている人と会話することの差だ。どちらも情報を取得する。だが洞察を生み出すのは一方だけだ。</p>
+
+    <p>すべてのチームで、私はこれを明示的にトレーニングする。直感的ではない。自然でもない。特に、長年ナレッジシステムを検索エンジンとして扱ってきた人にとっては。だが学習可能だ。そしてチームがこれを習得すると、システムからのアウトプットの質は目に見えて変わる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>システムが壊れる三つのパターン</h2>
+
+    <p>ナレッジ・アーキテクチャは、三つの予測可能な方法で失敗する。</p>
+
+    <p><strong>1. コールドスタート問題。</strong> システムは、中にあるものの分だけ有用だ。空のブレインは無用だ。「十分な量が溜まるまで待とう」という誘惑がある。だが「十分」は永遠に来ない。今あるもので始める。不完全さを受け入れる。成長させる。</p>
+
+    <p><strong>2. メンテナンスの断絶。</strong> ほとんどのチームは、最初の素材投入には規律的だが、維持には壊滅的だ。1カ月目に最新だったブレインは、4カ月目には古くなっている。修正はモチベーションではなくプロトコルだ。更新プロセスを既存のワークフローに組み込み、別タスクとしてではなく自動的に行われるようにする。</p>
+
+    <p><strong>3. 過度な集中化の罠。</strong> すべてを一箇所に置くべきではない。ブランドガイドラインと5年分のリサーチと過去6カ月のすべてのミーティング議事録を含むプロジェクト・マスターブレインは使えない。ノイズが多すぎてシグナルが浮上しない。三層モデルは、まさにこれを防ぐために存在する。分離は機能だ。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>思っているより小さく始める</h2>
+
+    <p>ナレッジ・アーキテクチャ構築への最も一般的な反論は、「大きなプロジェクトに聞こえる」だ。確かにそうなり得る。</p>
+
+    <p>だが、そこから始める必要はない。</p>
+
+    <p>最小の実行可能バージョンはこうだ。単一のプロジェクトに対する、単一のプロジェクト・マスターブレイン。過去3カ月のミーティング議事録と現在のプロジェクトブリーフを読み込む。それだけだ。構築し、1カ月使い、何が起こるか見る。</p>
+
+    <p>通常、こうなる。チームは、これまで再構築に何時間もかけていた文脈をクエリし始める。新メンバーの立ち上がりが速くなる。以前何が決まり、なぜ決まったかの記憶をもとに、より良い判断が下される。システムは、誰の予想よりも速く不可欠になる。</p>
+
+    <p>そこから自然な次のステップは、リサーチ・マスターブレイン。そしてブランド。アーキテクチャはニーズとともに成長する。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <h2>より深い意味</h2>
+
+    <p>ナレッジ・アーキテクチャの本質は、AIの話ではない。</p>
+
+    <p><strong>組織知性</strong>の話だ。組織が集合的に知っていることに、どれだけアクセスし、活用できるかの度合い。AIがこれをより緊急に、より達成可能にする。だが根本の問題は、AIより数十年前から存在している。</p>
+
+    <p>ほとんどの組織は、自らの知性の天井よりはるかに低いところで動いている。知識は存在する。経験は存在する。苦労して獲得した判断力は存在する。ただアクセスできないだけだ。クエリできない形式に閉じ込められ、見つけられない場所に置かれ、いずれ退職する人の頭の中にある。</p>
+
+    <p>ナレッジ・アーキテクチャを構築するとは、これを変える仕事だ。遅く、地味で、完全にやる価値がある。</p>
+
+    <p>AIが来る時——そして来続ける、より良い形で——最も豊かな文脈の上で動いてほしい。この仕事をした組織は、AIを使って、これまで不可能だったレベルで思考する。していない組織は、AIを使って、これまでと同じ空虚なアウトプットの少し速いバージョンを生成する。</p>
+
+    <p>準備は今だ。リターンは、時間とともに複利で積み上がる。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p>P.S. この記事を読んで「うちにもナレッジはある」と思った方。問いを変えてほしい。「そのナレッジは、今この瞬間、自然言語で引き出せるか？」引き出せないなら、それは知識ではない。ただの記録だ。記録と知識の間にある溝——そこに、あなたの組織のAI変革の成否が眠っている。</p>
+  </div>
+
+  <hr class="reveal">
+
+  <div class="reveal">
+    <p><em>次回：特定の構造的障害に対してAIエージェントをどう設計するか——そして設計の具体性が、エージェントが使われるか放棄されるかを決める理由。</em></p>
+
+    <p>#KnowledgeManagement #EnterpriseAI #AIDesign #DesignOperations #AIWorkflow #UXDesign #ProductDesign</p>
+  </div>
+
+</article>
+
+<!-- ═══════════════════════════════════════
+     ARTICLE NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="article-nav reveal">
+  <a href="../06/index.html">&larr; 前の記事</a>
+  <a href="../index.html">一覧に戻る</a>
+  <a href="../08/index.html">次の記事 &rarr;</a>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     SUBSCRIBE
+     ═══════════════════════════════════════ -->
+<section class="subscribe-cta">
+  <div style="max-width: var(--max-w); margin: 0 auto;">
+    <h2 class="subscribe-title reveal">最新のエッセイを、<br>受信箱へ。</h2>
+    <p class="subscribe-sub reveal d1">Context Grammarは進化を続けています。その過程をお届けします。</p>
+    <a href="https://intentfirst.substack.com" target="_blank" class="subscribe-btn reveal d2">Substackで購読</a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="../../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>&copy; 2026 Creativity is Everywhere, LLC. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/takaou/" target="_blank">LinkedIn</a>
+      <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
+      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script>
+// Scroll reveal
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// ─── Mobile Hamburger Menu ───
+(function(){
+  const btn = document.querySelector('.hamburger-btn');
+  const overlay = document.querySelector('.mobile-menu-overlay');
+  const closeBtn = document.querySelector('.mobile-menu-close');
+  if (!btn || !overlay) return;
+
+  function openMenu() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openMenu);
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
+    link.addEventListener('click', closeMenu);
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
+  });
+})();
+</script>
+
+</body>
+</html>

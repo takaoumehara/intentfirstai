@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Grammar — UI Screen Gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#1A73E8;--primary-light:#E8F0FE;
+  --surface:#FFFFFF;--surface-dim:#F8F9FA;--surface-container:#F1F3F4;
+  --text:#202124;--text-secondary:#5F6368;--text-tertiary:#9AA0A6;
+  --border:#DADCE0;
+  --autonomy:#1E8E3E;--autonomy-light:#E6F4EA;
+  --disclosure:#8E24AA;--disclosure-light:#F3E5F5;
+  --coral:#E8710A;--coral-light:#FFF3E0;
+  --amber:#F9AB00;--amber-light:#FEF7E0;
+  --error:#D93025;
+  --radius-sm:12px;--radius-md:16px;--radius-lg:24px;--radius-full:9999px;
+  --ease:cubic-bezier(0.2,0,0,1);
+  --ease-out-expo:cubic-bezier(0.23,1,0.32,1);
+  --ease-in-out-expo:cubic-bezier(0.77,0,0.175,1);
+  --shadow-1:0 1px 2px 0 rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
+  --shadow-2:0 1px 2px 0 rgba(60,64,67,.3),0 2px 6px 2px rgba(60,64,67,.15);
+}
+body{
+  font-family:'Google Sans','Segoe UI',system-ui,sans-serif;
+  background:#F8F9FA;color:var(--text);line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Hero */
+.hero{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:64px 24px 56px;text-align:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--primary-light);color:var(--primary);
+  border-radius:var(--radius-full);padding:6px 16px;
+  font-size:13px;font-weight:500;letter-spacing:.3px;margin-bottom:20px;
+}
+.hero h1{
+  font-size:clamp(32px,5vw,52px);font-weight:500;
+  letter-spacing:-.5px;line-height:1.15;margin-bottom:12px;
+}
+.hero p{
+  font-size:18px;color:var(--text-secondary);max-width:560px;margin:0 auto 32px;
+}
+.hero-stats{
+  display:flex;justify-content:center;gap:32px;flex-wrap:wrap;
+}
+.stat{text-align:center}
+.stat-num{font-size:32px;font-weight:700;color:var(--primary)}
+.stat-label{font-size:13px;color:var(--text-tertiary);margin-top:2px}
+
+/* Navigation */
+.nav-bar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+}
+.nav-inner{
+  max-width:1200px;margin:0 auto;
+  display:flex;align-items:center;gap:8px;
+  padding:12px 0;overflow-x:auto;
+  scrollbar-width:none;
+}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-btn{
+  padding:8px 20px;border-radius:var(--radius-full);
+  font-size:14px;font-weight:500;font-family:inherit;
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--text-secondary);cursor:pointer;white-space:nowrap;
+  transition:background .2s var(--ease-out-expo),color .2s var(--ease-out-expo),border-color .2s var(--ease-out-expo),transform .15s var(--ease-out-expo);
+}
+.nav-btn:active{transform:scale(0.97)}
+.nav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* Main */
+.main{max-width:1200px;margin:0 auto;padding:40px 24px 120px}
+
+/* Section */
+.section{margin-bottom:56px;display:none}
+.section.visible{display:block}
+.section-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:24px;
+}
+.section-icon{
+  width:40px;height:40px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.section-title{font-size:22px;font-weight:500}
+.section-count{
+  font-size:13px;color:var(--text-tertiary);
+  background:var(--surface-container);border-radius:var(--radius-full);
+  padding:2px 10px;margin-left:auto;
+}
+
+/* Grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:16px;
+}
+
+/* Card */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-md);overflow:hidden;
+  transition:transform 250ms var(--ease-out-expo),box-shadow 250ms var(--ease-out-expo),border-color 250ms var(--ease-out-expo);
+  cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column;
+}
+.card:active{transform:scale(0.97)}
+.card-preview{
+  height:200px;background:var(--surface-dim);
+  position:relative;overflow:hidden;
+  border-bottom:1px solid var(--border);
+}
+.card-preview iframe{
+  width:390%;height:390%;
+  transform:scale(.2564);transform-origin:0 0;
+  border:none;pointer-events:none;
+}
+.card-preview.tv iframe{
+  width:200%;height:200%;
+  transform:scale(.5);transform-origin:0 0;
+}
+.card-preview.diagram iframe{
+  width:250%;height:250%;
+  transform:scale(.4);transform-origin:0 0;
+}
+.card-body{padding:16px;flex:1;display:flex;flex-direction:column}
+.card-id{
+  font-size:11px;font-weight:500;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:4px;
+}
+.card-title{font-size:16px;font-weight:500;margin-bottom:6px;line-height:1.3}
+.card-desc{font-size:13px;color:var(--text-secondary);line-height:1.5;flex:1}
+.card-footer{
+  display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;
+}
+.tag{
+  font-size:11px;font-weight:500;padding:3px 10px;
+  border-radius:var(--radius-full);
+}
+.tag-phone{background:var(--primary-light);color:var(--primary)}
+.tag-tv{background:var(--autonomy-light);color:var(--autonomy)}
+.tag-diagram{background:var(--disclosure-light);color:var(--disclosure)}
+.tag-critical{background:#FCE8E6;color:var(--error)}
+.tag-dual{background:var(--coral-light);color:var(--coral)}
+
+/* Hover — gated for pointer devices only */
+@media(hover:hover) and (pointer:fine){
+  .nav-btn:hover{border-color:var(--primary);color:var(--primary)}
+  .card:hover{
+    border-color:var(--primary);
+    box-shadow:var(--shadow-2);
+    transform:translateY(-2px);
+  }
+}
+
+/* Card stagger entrance on filter */
+@keyframes cardEntrance{
+  from{opacity:0;transform:translateY(12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.card{
+  animation:cardEntrance 400ms var(--ease-out-expo) both;
+}
+.grid .card:nth-child(1){animation-delay:0ms}
+.grid .card:nth-child(2){animation-delay:40ms}
+.grid .card:nth-child(3){animation-delay:80ms}
+.grid .card:nth-child(4){animation-delay:120ms}
+.grid .card:nth-child(5){animation-delay:160ms}
+.grid .card:nth-child(6){animation-delay:200ms}
+.grid .card:nth-child(7){animation-delay:240ms}
+.grid .card:nth-child(8){animation-delay:280ms}
+.grid .card:nth-child(9){animation-delay:320ms}
+.grid .card:nth-child(10){animation-delay:360ms}
+
+/* Hero stats stagger entrance */
+@keyframes statFadeIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.stat{
+  animation:statFadeIn 500ms var(--ease-out-expo) both;
+}
+.hero-stats .stat:nth-child(1){animation-delay:100ms}
+.hero-stats .stat:nth-child(2){animation-delay:200ms}
+.hero-stats .stat:nth-child(3){animation-delay:300ms}
+.hero-stats .stat:nth-child(4){animation-delay:400ms}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+  }
+}
+
+/* Responsive */
+@media(max-width:768px){
+  .hero{padding:48px 20px 40px}
+  .grid{grid-template-columns:1fr}
+  .main{padding:24px 16px 80px}
+  .hero-stats{gap:24px}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">✦ Context Grammar Portfolio</div>
+  <h1>UI Screen Gallery</h1>
+  <p>28 production-quality screens across 3 projects and 5 conceptual diagrams. Click any card to open.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">10</div><div class="stat-label">P1 Living Home</div></div>
+    <div class="stat"><div class="stat-num">8</div><div class="stat-label">P2 Family Trip</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">P3 Fluid Handoff</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Diagrams</div></div>
+  </div>
+</div>
+
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <button class="nav-btn active" data-filter="all">All (28)</button>
+    <button class="nav-btn" data-filter="p1">P1 Living Home (10)</button>
+    <button class="nav-btn" data-filter="p2">P2 Family Trip (8)</button>
+    <button class="nav-btn" data-filter="p3">P3 Fluid Handoff (5)</button>
+    <button class="nav-btn" data-filter="diagrams">Diagrams (5)</button>
+    <button class="nav-btn" data-filter="critical">★ Critical (6)</button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- P1: The Living Home -->
+  <div class="section visible" data-section="p1">
+    <div class="section-header">
+      <div class="section-icon" style="background:#E8F0FE">🏠</div>
+      <div class="section-title">Project 1 — The Living Home</div>
+      <span class="section-count">10 screens</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="p1/p1-01-setup.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-01-setup.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-01</div>
+          <div class="card-title">Home Brain Setup Flow</div>
+          <div class="card-desc">4-step wizard: data sources, family members, disclosure level, autonomy dial with confetti.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-02-dinner.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-02-dinner.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-02</div>
+          <div class="card-title">Dinner Suggestion 3-Choice</div>
+          <div class="card-desc">Lock screen notification → 3 meal cards with feasibility chips and stagger animation.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-03-substitution.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-03-substitution.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-03</div>
+          <div class="card-title">Substitution Mode Settings</div>
+          <div class="card-desc">Per-member food preferences: Exact / Flexible / Exploring / Surprise modes.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-04-decision-debt.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-04-decision-debt.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-04</div>
+          <div class="card-title">Decision Debt + Resale</div>
+          <div class="card-desc">3-state flow: proposal → photo + AI listing → completion with SVG checkmark.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-05-medical.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-05-medical.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-05</div>
+          <div class="card-title">Medical Log Timeline</div>
+          <div class="card-desc">3-month health pattern with timeline, disclosure status, and checkup summary.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-06-calendar-tv.html" target="_blank">
+        <div class="card-preview tv"><iframe src="p1/p1-06-calendar-tv.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-06</div>
+          <div class="card-title">Calendar Guest Mode</div>
+          <div class="card-desc">TV family calendar auto-switches to minimal display when doorbell rings.</div>
+          <div class="card-footer"><span class="tag tag-tv">TV</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-07-pronoun.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-07-pronoun.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--error)">P1-07 ★</div>
+          <div class="card-title">Pronoun Change Sharing</div>
+          <div class="card-desc">Most delicate UI. Gentle sharing options with zero-pressure design.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-08-disclosure-map.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-08-disclosure-map.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--error)">P1-08 ★</div>
+          <div class="card-title">Disclosure Map</div>
+          <div class="card-desc">Per-member, per-domain disclosure visualization with before/after toggle.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-09-connective.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-09-connective.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-09</div>
+          <div class="card-title">Connective Disclosure</div>
+          <div class="card-desc">Wife's dance highlights, son's piano, daughter's reading — family sharing feed.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p1/p1-10-autonomy.html" target="_blank">
+        <div class="card-preview"><iframe src="p1/p1-10-autonomy.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--primary)">P1-10</div>
+          <div class="card-title">Autonomy Dial Dashboard</div>
+          <div class="card-desc">SVG circular dial + category breakdown: Grocery, Disposal, Medical, Guest Mode.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- P2: The Family Trip -->
+  <div class="section visible" data-section="p2">
+    <div class="section-header">
+      <div class="section-icon" style="background:#E6F4EA">✈️</div>
+      <div class="section-title">Project 2 — The Family Trip</div>
+      <span class="section-count">8 screens</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="p2/p2-01-trip-brain.html" target="_blank">
+        <div class="card-preview"><iframe src="p2/p2-01-trip-brain.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--autonomy)">P2-01</div>
+          <div class="card-title">Trip Brain + Booking</div>
+          <div class="card-desc">Trip Brain inherits from Home Brain. Concert, exhibition, PokePark with countdowns.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p2/p2-02-info-map.html" target="_blank">
+        <div class="card-preview"><iframe src="p2/p2-02-info-map.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--autonomy)">P2-02</div>
+          <div class="card-title">Scattered Info Map</div>
+          <div class="card-desc">12 months of saves from Instagram, LINE, Google — organized on map with filters.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p2/p2-03-tomorrow-tv.html" target="_blank">
+        <div class="card-preview tv"><iframe src="p2/p2-03-tomorrow-tv.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--error)">P2-03 ★</div>
+          <div class="card-title">Tomorrow's Recommendations</div>
+          <div class="card-desc">TV display: 3 family-personalized recommendations + route + companion phone budget.</div>
+          <div class="card-footer"><span class="tag tag-tv">TV</span><span class="tag tag-dual">TV+Phone</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+      </a>
+      <a class="card" href="p2/p2-04-shibuya.html" target="_blank">
+        <div class="card-preview"><iframe src="p2/p2-04-shibuya.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--error)">P2-04 ★</div>
+          <div class="card-title">Shibuya Walking Notification</div>
+          <div class="card-desc">Walking context: nearby cafe saved 8 months ago on Instagram. Route animation.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+      </a>
+      <a class="card" href="p2/p2-05-health.html" target="_blank">
+        <div class="card-preview"><iframe src="p2/p2-05-health.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--error)">P2-05 ★</div>
+          <div class="card-title">Health Escalation</div>
+          <div class="card-desc">Son's 37.8°C fever: drugstore, clinic, plan change — with AI scope boundary.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+      </a>
+      <a class="card" href="p2/p2-06-post-trip.html" target="_blank">
+        <div class="card-preview"><iframe src="p2/p2-06-post-trip.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--autonomy)">P2-06</div>
+          <div class="card-title">Post-Trip Synthesis</div>
+          <div class="card-desc">Video, donut chart expenses, preference updates, souvenir records, Brain transfer.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p2/p2-07-souvenir.html" target="_blank">
+        <div class="card-preview"><iframe src="p2/p2-07-souvenir.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--autonomy)">P2-07</div>
+          <div class="card-title">Souvenir Intelligence</div>
+          <div class="card-desc">Last year's feedback → this year's suggestions. Exact/Flexible mode per recipient.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p2/p2-08-wine.html" target="_blank">
+        <div class="card-preview"><iframe src="p2/p2-08-wine.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--autonomy)">P2-08</div>
+          <div class="card-title">Wine Transport Guide</div>
+          <div class="card-desc">Duty-free allowance, packing method, distribution plan, checklist.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- P3: Fluid Handoff -->
+  <div class="section visible" data-section="p3">
+    <div class="section-header">
+      <div class="section-icon" style="background:#FFF3E0">👟</div>
+      <div class="section-title">Project 3 — Fluid Handoff</div>
+      <span class="section-count">5 screens</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="p3/p3-01-browse.html" target="_blank">
+        <div class="card-preview"><iframe src="p3/p3-01-browse.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--coral)">P3-01</div>
+          <div class="card-title">Full Browse (Train Platform)</div>
+          <div class="card-desc">3 shoe candidates with confidence bars, review analysis, delivery dates.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p3/p3-02-commute.html" target="_blank">
+        <div class="card-preview"><iframe src="p3/p3-02-commute.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--coral)">P3-02</div>
+          <div class="card-title">Commute Mode (One-hand)</div>
+          <div class="card-desc">Full → compact transformation. Thumb zone cards with toggle animation.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p3/p3-03-tv-cast.html" target="_blank">
+        <div class="card-preview tv"><iframe src="p3/p3-03-tv-cast.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--error)">P3-03 ★</div>
+          <div class="card-title">TV Cast + Remote</div>
+          <div class="card-desc">Kid-friendly TV grid (no prices) + phone transforms into D-pad remote.</div>
+          <div class="card-footer"><span class="tag tag-tv">TV</span><span class="tag tag-dual">TV+Phone</span><span class="tag tag-critical">Critical</span></div>
+        </div>
+      </a>
+      <a class="card" href="p3/p3-04-purchase.html" target="_blank">
+        <div class="card-preview"><iframe src="p3/p3-04-purchase.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--coral)">P3-04</div>
+          <div class="card-title">Purchase + Disposable UI</div>
+          <div class="card-desc">Checkmark → cards dissolve → ghost outlines → UI vanishes completely.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+      <a class="card" href="p3/p3-05-repurchase.html" target="_blank">
+        <div class="card-preview"><iframe src="p3/p3-05-repurchase.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--coral)">P3-05</div>
+          <div class="card-title">6-Month Repurchase</div>
+          <div class="card-desc">Brain learned: fewer candidates, higher confidence, faster decision.</div>
+          <div class="card-footer"><span class="tag tag-phone">Phone</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Diagrams -->
+  <div class="section visible" data-section="diagrams">
+    <div class="section-header">
+      <div class="section-icon" style="background:#F3E5F5">📐</div>
+      <div class="section-title">Conceptual Diagrams</div>
+      <span class="section-count">5 diagrams</span>
+    </div>
+    <div class="grid">
+      <a class="card" href="diagrams/c-01-disclosure-model.html" target="_blank">
+        <div class="card-preview diagram"><iframe src="diagrams/c-01-disclosure-model.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--disclosure)">C-01</div>
+          <div class="card-title">Disclosure 2-Direction Model</div>
+          <div class="card-desc">Protective (Indigo) vs Connective (Coral) — two sides of the same dial.</div>
+          <div class="card-footer"><span class="tag tag-diagram">Diagram</span></div>
+        </div>
+      </a>
+      <a class="card" href="diagrams/c-02-disclosure-autonomy.html" target="_blank">
+        <div class="card-preview diagram"><iframe src="diagrams/c-02-disclosure-autonomy.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--disclosure)">C-02</div>
+          <div class="card-title">Disclosure × Autonomy Coupling</div>
+          <div class="card-desc">2×2 matrix: "You can't automate what the system doesn't know."</div>
+          <div class="card-footer"><span class="tag tag-diagram">Diagram</span></div>
+        </div>
+      </a>
+      <a class="card" href="diagrams/c-03-trip-brain-lifecycle.html" target="_blank">
+        <div class="card-preview diagram"><iframe src="diagrams/c-03-trip-brain-lifecycle.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--disclosure)">C-03</div>
+          <div class="card-title">Trip Brain Lifecycle</div>
+          <div class="card-desc">Born → Learns → Returns → Dies. Disposable Brain concept.</div>
+          <div class="card-footer"><span class="tag tag-diagram">Diagram</span></div>
+        </div>
+      </a>
+      <a class="card" href="diagrams/c-04-disposable-ui.html" target="_blank">
+        <div class="card-preview diagram"><iframe src="diagrams/c-04-disposable-ui.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--disclosure)">C-04</div>
+          <div class="card-title">Disposable UI Lifecycle</div>
+          <div class="card-desc">Scroll narrative: trigger → born → transform → served → dies → legacy.</div>
+          <div class="card-footer"><span class="tag tag-diagram">Diagram</span></div>
+        </div>
+      </a>
+      <a class="card" href="diagrams/c-05-form-factor.html" target="_blank">
+        <div class="card-preview diagram"><iframe src="diagrams/c-05-form-factor.html" loading="lazy"></iframe></div>
+        <div class="card-body">
+          <div class="card-id" style="color:var(--disclosure)">C-05</div>
+          <div class="card-title">Form Factor Transformation</div>
+          <div class="card-desc">Same data across Phone Full → One-hand → TV+Remote with real product images.</div>
+          <div class="card-footer"><span class="tag tag-diagram">Diagram</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const sections = document.querySelectorAll('.section');
+const navBtns = document.querySelectorAll('.nav-btn');
+const cards = document.querySelectorAll('.card');
+
+navBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const filter = btn.dataset.filter;
+    navBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    if (filter === 'all') {
+      sections.forEach(s => s.classList.add('visible'));
+      cards.forEach(c => c.style.display = '');
+    } else if (filter === 'critical') {
+      sections.forEach(s => s.classList.add('visible'));
+      cards.forEach(c => {
+        const hasCritical = c.querySelector('.tag-critical');
+        c.style.display = hasCritical ? '' : 'none';
+      });
+    } else {
+      sections.forEach(s => {
+        s.classList.toggle('visible', s.dataset.section === filter);
+      });
+      cards.forEach(c => c.style.display = '');
+    }
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Re-trigger stagger animation on visible cards
+    const visibleCards = document.querySelectorAll('.section.visible .card');
+    let idx = 0;
+    visibleCards.forEach(c => {
+      if (c.style.display !== 'none') {
+        c.style.animation = 'none';
+        c.offsetHeight; // force reflow
+        c.style.animation = '';
+        c.style.animationDelay = (idx * 40) + 'ms';
+        idx++;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
