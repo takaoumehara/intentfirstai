@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grammar — The Easy Version | Context Grammar</title>
+  <meta name="description"
+    content="The easy-mode introduction to Context Grammar's 8 tokens. Show before define. One token at a time. Built for first-time readers.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../../assets/css/nav.css">
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ═══ HERO ═══ */
+    .hero-label {
+      font-family: var(--font-sans);
+      font-size: clamp(18px, 1.8vw, 26px);
+      font-weight: 400;
+      letter-spacing: -0.2px;
+      text-transform: none;
+      color: rgba(240, 236, 228, 0.62);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    /* ═══ MODE SWITCHER (top-right ribbon) ═══ */
+    .mode-switch {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 50;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 4px;
+      display: flex;
+      gap: 2px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .mode-switch a {
+      padding: 6px 14px;
+      border-radius: 100px;
+      text-decoration: none;
+      color: var(--text-3);
+      transition: all 0.2s var(--ease);
+      letter-spacing: 0.5px;
+    }
+    .mode-switch a.active {
+      background: var(--text);
+      color: var(--bg);
+    }
+    .mode-switch a:hover:not(.active) { color: var(--text); }
+    @media (max-width: 640px) {
+      .mode-switch { top: 72px; right: 16px; font-size: 11px; }
+      .mode-switch a { padding: 5px 10px; }
+    }
+
+    /* ═══ SCENE BLOCK — Before/After comparison ═══ */
+    .scene {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(16px, 2vw, 32px);
+      margin: clamp(32px, 4vw, 56px) 0;
+    }
+    .scene-card {
+      padding: clamp(28px, 3vw, 40px);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .scene-card--before { background: var(--bg-2); }
+    .scene-card--after  { background: var(--bg); border-color: var(--color-grammar); }
+    .scene-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+    .scene-card--after .scene-tag { color: var(--color-grammar); }
+    .scene-headline {
+      font-size: clamp(18px, 1.6vw, 24px);
+      font-weight: 500;
+      line-height: 1.3;
+      letter-spacing: -0.4px;
+      color: var(--text);
+    }
+    .scene-body {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+    .scene-body em {
+      font-style: normal;
+      background: rgba(74,106,144,0.08);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+    @media (max-width: 768px) {
+      .scene { grid-template-columns: 1fr; }
+    }
+
+    /* ═══ ONE-TOKEN block (introducing token visually) ═══ */
+    .one-token {
+      padding: clamp(40px, 5vw, 72px) clamp(28px, 4vw, 56px);
+      background: var(--bg-2);
+      border-left: 4px solid var(--color-grammar);
+      margin: clamp(32px, 4vw, 56px) 0;
+    }
+    .one-token-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--color-grammar);
+      font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .one-token-headline {
+      font-size: clamp(28px, 3vw, 42px);
+      font-weight: 500;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      color: var(--text);
+      margin-bottom: 16px;
+      max-width: 740px;
+    }
+    .one-token-body {
+      font-size: clamp(16px, 1.2vw, 19px);
+      color: var(--text-2);
+      line-height: 1.75;
+      max-width: 720px;
+    }
+    .one-token-body p { margin-bottom: 1em; }
+    .one-token-body p:last-child { margin-bottom: 0; }
+    .one-token-body strong { font-weight: 600; color: var(--text); }
+
+    /* ═══ Examples row (Restaurant + Phone parallel) ═══ */
+    .examples {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(16px, 2vw, 24px);
+      margin-top: clamp(24px, 3vw, 36px);
+    }
+    .example-card {
+      padding: clamp(20px, 2.5vw, 28px);
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+    .example-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .example-body {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+    @media (max-width: 640px) {
+      .examples { grid-template-columns: 1fr; }
+    }
+
+    /* ═══ Counting indicator (1 / 3 / 6 / 8) ═══ */
+    .count-indicator {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      background: var(--bg);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+    .count-indicator strong {
+      font-size: 16px;
+      color: var(--color-grammar);
+      font-weight: 600;
+    }
+
+    /* ═══ Mini-Token grid (rows 2-3 stacked) ═══ */
+    .mini-tokens {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(12px, 1.5vw, 20px);
+      margin: clamp(24px, 3vw, 32px) 0;
+    }
+    .mini-token {
+      padding: clamp(20px, 2.5vw, 28px);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--color-grammar);
+    }
+    .mini-token-num {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-grammar);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .mini-token-name {
+      font-size: clamp(15px, 1.2vw, 18px);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+    .mini-token-desc {
+      font-size: clamp(13px, 0.9vw, 14px);
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+      .mini-tokens { grid-template-columns: 1fr; }
+    }
+
+    /* ═══ "Now you have X tokens" callout ═══ */
+    .progress-callout {
+      padding: clamp(28px, 3vw, 40px);
+      background: linear-gradient(180deg, rgba(74,106,144,0.04), transparent);
+      border: 1px solid rgba(74,106,144,0.12);
+      margin: clamp(32px, 4vw, 56px) 0;
+      text-align: center;
+    }
+    .progress-callout-headline {
+      font-size: clamp(20px, 2vw, 28px);
+      font-weight: 500;
+      line-height: 1.3;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      max-width: 680px;
+      margin: 0 auto 14px;
+    }
+    .progress-callout-body {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      line-height: 1.7;
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    /* ═══ Question gateway (problem statement before Dials) ═══ */
+    .question {
+      padding: clamp(48px, 6vw, 88px) clamp(28px, 4vw, 56px);
+      background: var(--text);
+      color: var(--bg);
+      text-align: center;
+      margin: clamp(40px, 5vw, 80px) 0 0;
+    }
+    .question-q {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(240,236,228,0.5);
+      margin-bottom: 18px;
+    }
+    .question-text {
+      font-size: clamp(28px, 3.5vw, 48px);
+      font-weight: 500;
+      line-height: 1.15;
+      letter-spacing: -1.5px;
+      color: var(--bg);
+      max-width: 820px;
+      margin: 0 auto 24px;
+    }
+    .question-answer {
+      font-size: clamp(16px, 1.2vw, 19px);
+      color: rgba(240,236,228,0.7);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    .question-answer strong { color: var(--bg); font-weight: 500; }
+
+    /* ═══ Dial cards ═══ */
+    .dials {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(16px, 2vw, 32px);
+      margin: clamp(32px, 4vw, 56px) 0;
+    }
+    .dial-card {
+      padding: clamp(28px, 3vw, 40px);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--color-intent);
+    }
+    .dial-num {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-intent);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .dial-name {
+      font-size: clamp(20px, 2vw, 26px);
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .dial-q {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-3);
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    .dial-stages {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .dial-stage {
+      padding: 10px 6px;
+      background: var(--bg-2);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+    .dial-explain {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+    @media (max-width: 768px) {
+      .dials { grid-template-columns: 1fr; }
+    }
+
+    /* ═══ Substitution example block ═══ */
+    .substitution {
+      padding: clamp(40px, 5vw, 72px) clamp(28px, 4vw, 56px);
+      background: var(--bg-2);
+      margin: clamp(40px, 5vw, 72px) 0 0;
+    }
+    .sub-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 24px;
+      align-items: baseline;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-row:last-child { border-bottom: none; }
+    .sub-label {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-grammar);
+      letter-spacing: 1px;
+    }
+    .sub-text {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+    .sub-text strong { color: var(--text); font-weight: 500; }
+
+    /* ═══ CTA ═══ */
+    .cta {
+      background: #08070b;
+      color: #f0ece4;
+      padding: clamp(80px, 10vh, 120px) clamp(24px, 5vw, 80px);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .cta-title {
+      font-size: clamp(28px, 3vw, 44px);
+      font-weight: 500;
+      letter-spacing: -1.2px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      max-width: 720px;
+    }
+    .cta-sub {
+      font-size: clamp(15px, 1.1vw, 18px);
+      color: rgba(240,236,228,0.5);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ═══ HERO SPLIT LAYOUT ═══ */
+    body[data-dark-nav].nav-has-subnav .hero.hero--split {
+      padding-top: 96px;
+      padding-bottom: 24px;
+      min-height: 100vh;
+    }
+    .hero--split {
+      flex-direction: row !important;
+      align-items: center !important;
+      text-align: left !important;
+      gap: clamp(32px, 5vw, 80px);
+      padding-left: clamp(24px, 5vw, 80px);
+      padding-right: clamp(24px, 5vw, 80px);
+    }
+    .hero--split .hero-title,
+    .hero--split .hero-label,
+    .hero--split .hero-sub { margin-left: 0; margin-right: 0; }
+    .hero-split-text { flex: 0 0 auto; max-width: 460px; }
+    .hero-illu {
+      flex: 1 1 auto;
+      max-width: 620px;
+      height: calc(100vh - 120px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+    .hero-illu img {
+      width: 100%;
+      height: 100%;
+      max-height: calc(100vh - 120px);
+      object-fit: contain;
+      object-position: center center;
+      transform: scale(1.4);
+      display: block;
+    }
+    @media (max-width: 768px) {
+      body[data-dark-nav].nav-has-subnav .hero.hero--split { padding-top: 116px; min-height: 100vh; }
+      .hero--split { flex-direction: column !important; text-align: center !important; justify-content: center; }
+      .hero-illu { width: 90%; max-width: 380px; height: auto; flex: 1 1 auto; }
+      .hero-illu img { height: auto; max-height: 60vh; transform: scale(1.2); }
+    }
+  </style>
+</head>
+
+<body data-dark-nav class="nav-has-subnav">
+
+  <!-- Mode switcher: Easy ↔ Full -->
+  <nav class="mode-switch" aria-label="Reading mode">
+    <a href="easy.html" class="active">EASY MODE</a>
+    <a href="index.html">FULL VERSION</a>
+  </nav>
+
+  <!-- ═══════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════ -->
+  <div class="hero hero--split">
+    <div class="hero-split-text">
+      <p class="hero-label">Grammar — Easy Mode</p>
+      <h1 class="hero-title">What does AI need <em style="color:var(--color-grammar);font-style:normal;">to read the room?</em></h1>
+      <p class="hero-sub">A great waiter notices 8 things before they say a word. AI today notices almost none of them. Let's introduce them, one at a time.</p>
+      <div class="hero-scroll-hint"><span></span></div>
+    </div>
+    <div class="hero-illu">
+      <img src="../images/ISO-GREEN/Context_Tower/2_ContextTokens.png" alt="Context Tower with Grammar floor highlighted">
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+     STEP 1 — SHOW BEFORE DEFINE
+     A scene comparison. No theory yet.
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner">
+      <p class="sec-label" style="color: var(--color-grammar);">Step 1 — Feel it first</p>
+      <h2 class="sec-title reveal">Same person. Same phone. Two different days.</h2>
+      <p class="sec-desc reveal d1">Look at what AI does today (left) versus what it could do (right). The difference isn't more features. It's something simpler.</p>
+
+      <div class="scene reveal d1">
+        <div class="scene-card scene-card--before">
+          <p class="scene-tag">AI today</p>
+          <p class="scene-headline">"Here are your 12 notifications."</p>
+          <p class="scene-body">You're driving. Phone buzzes. <em>"Your mom liked your photo."</em> <em>"15% off shoes today only!"</em> <em>"Time to log your steps."</em> Same notifications you'd get if you were on the couch.</p>
+        </div>
+        <div class="scene-card scene-card--after">
+          <p class="scene-tag">With Context Grammar</p>
+          <p class="scene-headline">"Reading aloud: one urgent message from your daughter's school."</p>
+          <p class="scene-body">Same phone. Same data. But AI noticed: <em>you're driving</em>, <em>your daughter has a school day</em>, <em>everything else can wait</em>. So it spoke instead of buzzed, and only about what mattered.</p>
+        </div>
+      </div>
+
+      <p class="reveal d2" style="margin-top:24px;font-size:clamp(15px,1.1vw,18px);color:var(--text-2);line-height:1.7;max-width:680px;">
+        AI got smarter not because it learned more. It got smarter because it <strong>read the situation</strong>. That's all Context Grammar is — giving AI the words to describe a situation.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     STEP 2 — Introduce ONE token first
+     Don't name it as "Token" yet. Let it land.
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner">
+      <p class="sec-label" style="color: var(--color-grammar);">Step 2 — One thing at a time</p>
+      <h2 class="sec-title reveal">The first thing AI needs to read: <em>your body.</em></h2>
+
+      <div class="one-token reveal d1">
+        <p class="one-token-eyebrow">Reading #1 — Physical State</p>
+        <p class="one-token-headline">Are you running, driving, or sitting still?</p>
+        <div class="one-token-body">
+          <p>That's it. That's the first thing. AI needs to know if you're moving, and how.</p>
+          <p>It sounds obvious. But almost no AI today actually adjusts for it.</p>
+        </div>
+
+        <div class="examples">
+          <div class="example-card">
+            <p class="example-tag">In a restaurant</p>
+            <p class="example-body">A customer rushes in with their coat half-off, scanning for a seat. The waiter brings water before the menu. A couple strolls in on a Saturday night — full welcome, wine list, no rush. <strong>Same restaurant. Same waiter. Different service. The waiter read the body, not the booking.</strong></p>
+          </div>
+          <div class="example-card">
+            <p class="example-tag">On your phone</p>
+            <p class="example-body">If you're walking → notifications appear at eye level. If you're driving → AI reads them aloud. If you're sitting at your desk → AI shows the full message with images. <strong>Same phone. Same data. The phone read your body.</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <p class="reveal d2" style="margin-top:32px;font-size:clamp(15px,1.1vw,18px);color:var(--text-2);line-height:1.7;max-width:680px;">
+        That's <strong>one</strong> reading. Just from your body, AI can already act differently. Now let's add a second.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     STEP 3 — Add 2 more (now you have 3)
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner">
+      <span class="count-indicator reveal"><strong>3</strong> readings</span>
+      <h2 class="sec-title reveal">Add: how busy your mind is, and who is around you.</h2>
+      <p class="sec-desc reveal d1">Two more readings. Each one solves a real situation that today's AI gets wrong every day.</p>
+
+      <div class="mini-tokens reveal d1">
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #1</p>
+          <p class="mini-token-name">Your body</p>
+          <p class="mini-token-desc">Running, driving, sitting still — already covered above.</p>
+        </div>
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #2</p>
+          <p class="mini-token-name">Your mental bandwidth</p>
+          <p class="mini-token-desc">Are you focused on a hard task, or relaxing? AI can guess from your calendar, the time, and how often you switch apps.</p>
+        </div>
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #3</p>
+          <p class="mini-token-name">Who else is around</p>
+          <p class="mini-token-desc">Are you alone, with family, or with your boss in the room? AI can detect this from voice, nearby devices, or the calendar event you're in.</p>
+        </div>
+      </div>
+
+      <div class="progress-callout reveal d2">
+        <p class="progress-callout-headline">With just 3 readings, AI already knows enough to act differently.</p>
+        <p class="progress-callout-body">"Driving + low mental bandwidth + alone" → read aloud only urgent messages. "Sitting + focused + boss in the room" → silence everything except the meeting alarm. Three readings, two completely different behaviors.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     STEP 4 — Now show all 6
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner">
+      <span class="count-indicator reveal"><strong>6</strong> readings</span>
+      <h2 class="sec-title reveal">Three more readings, and AI can read almost any moment.</h2>
+      <p class="sec-desc reveal d1">You don't need to remember these names. Just notice that each one solves a real, everyday problem.</p>
+
+      <div class="mini-tokens reveal d1">
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #1</p>
+          <p class="mini-token-name">Your body</p>
+          <p class="mini-token-desc">Are you moving, and how? (Walking, driving, sitting…)</p>
+        </div>
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #2</p>
+          <p class="mini-token-name">Your mental bandwidth</p>
+          <p class="mini-token-desc">How much room is left in your head for decisions?</p>
+        </div>
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #3</p>
+          <p class="mini-token-name">Who is around</p>
+          <p class="mini-token-desc">Alone? Family? Boss? Strangers in public?</p>
+        </div>
+      </div>
+
+      <div class="mini-tokens reveal d2">
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #4</p>
+          <p class="mini-token-name">What matters most right now</p>
+          <p class="mini-token-desc">If two things compete for your attention — the work email vs. the school nurse calling — which wins? AI needs to know.</p>
+        </div>
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #5</p>
+          <p class="mini-token-name">What screen you're using</p>
+          <p class="mini-token-desc">Watch? Phone? TV? Car dashboard? The same message has to look completely different on each.</p>
+        </div>
+        <div class="mini-token">
+          <p class="mini-token-num">Reading #6</p>
+          <p class="mini-token-name">What's actually possible right now</p>
+          <p class="mini-token-desc">Is the store open? Is the item in stock? Is it raining? AI shouldn't suggest what can't happen.</p>
+        </div>
+      </div>
+
+      <div class="progress-callout reveal d3">
+        <p class="progress-callout-headline">These 6 readings describe almost any moment of your day.</p>
+        <p class="progress-callout-body">Combined, they tell AI everything it needs to know about <em>your situation</em>. But there's still one thing missing — and it's important.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     STEP 5 — The question that introduces the 2 dials
+     ═══════════════════════════════════════ -->
+  <section class="question">
+    <p class="question-q">A natural question</p>
+    <p class="question-text">"But what if I don't want AI doing things for me without permission?"</p>
+    <p class="question-answer">That's exactly the right question. The 6 readings let AI <strong>understand</strong> your situation. But understanding isn't permission to act. So Context Grammar adds 2 more — not readings, but <strong>controls</strong>. Dials that you turn.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     STEP 6 — The 2 dials
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner">
+      <span class="count-indicator reveal"><strong>2</strong> dials (different from the 6 readings)</span>
+      <h2 class="sec-title reveal">Two dials you control. They decide how far AI can go.</h2>
+      <p class="sec-desc reveal d1">Reading is automatic. AI does it on its own. But these two dials? <strong>You decide where they sit.</strong> (And so do the services you use, and so does AI based on its track record. We'll explain that part later.)</p>
+
+      <div class="dials reveal d1">
+        <div class="dial-card">
+          <p class="dial-num">Dial 1</p>
+          <p class="dial-name">Autonomy Dial</p>
+          <p class="dial-q">"How much can AI do on its own?"</p>
+          <div class="dial-stages">
+            <div class="dial-stage">Suggest</div>
+            <div class="dial-stage">Confirm</div>
+            <div class="dial-stage">Notify</div>
+            <div class="dial-stage">Auto</div>
+          </div>
+          <p class="dial-explain"><strong>Like a restaurant regular.</strong> First visit: "Here's the menu, take your time" (Suggest). Third visit: "The usual?" (Confirm). Twentieth visit: the food just appears (Auto). The dial moves slowly, with trust earned over time.</p>
+        </div>
+        <div class="dial-card">
+          <p class="dial-num">Dial 2</p>
+          <p class="dial-name">Disclosure Dial</p>
+          <p class="dial-q">"How much do you let AI know about you?"</p>
+          <div class="dial-stages">
+            <div class="dial-stage">Full</div>
+            <div class="dial-stage">Summary</div>
+            <div class="dial-stage">Existence</div>
+            <div class="dial-stage">Hidden</div>
+          </div>
+          <p class="dial-explain"><strong>Like telling a waiter about your allergies.</strong> Tell them everything — the perfect evening. Tell them nothing — the generic menu. The more you share, the better the service. But sharing is always your choice.</p>
+        </div>
+      </div>
+
+      <div class="progress-callout reveal d2">
+        <p class="progress-callout-headline">A simple rule connects them: you can't say "tell AI nothing" AND "let AI handle everything."</p>
+        <p class="progress-callout-body">If the Disclosure Dial is at "Hidden," the Autonomy Dial can't be at "Auto." That combination is logically dangerous — AI would be acting on guesses about a person it knows nothing about. <strong>Disclosure must come before Autonomy. Always.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     STEP 7 — Show all 8 together (now it makes sense)
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner">
+      <span class="count-indicator reveal"><strong>8</strong> total — the full picture</span>
+      <h2 class="sec-title reveal">Now the whole thing fits together.</h2>
+      <p class="sec-desc reveal d1">Six things AI <em>reads</em>. Two dials <em>you</em> control. That's the complete vocabulary of Context Grammar.</p>
+
+      <div class="token-anatomy reveal d1" style="margin-top:clamp(28px,4vw,48px);">
+        <div class="token-anatomy__total">
+          <div class="token-anatomy__num">8</div>
+          <p class="token-anatomy__lbl">Context Tokens</p>
+        </div>
+        <div class="token-anatomy__eq" aria-hidden="true">=</div>
+        <div class="token-anatomy__split">
+          <div class="token-anatomy__part token-anatomy__part--grammar">
+            <div class="token-anatomy__num token-anatomy__num--sm">6</div>
+            <p class="token-anatomy__part-title">Readings</p>
+            <p class="token-anatomy__part-desc">What AI senses about your situation</p>
+          </div>
+          <div class="token-anatomy__plus" aria-hidden="true">+</div>
+          <div class="token-anatomy__part token-anatomy__part--intent">
+            <div class="token-anatomy__num token-anatomy__num--sm">2</div>
+            <p class="token-anatomy__part-title">Dials</p>
+            <p class="token-anatomy__part-desc">What you (and AI) control about the relationship</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="reveal d2" style="margin-top:32px;font-size:clamp(15px,1.1vw,18px);color:var(--text-2);line-height:1.7;max-width:720px;">
+        The official name for these is <strong>"8 Context Tokens"</strong> — but you don't need the name to understand them. You just saw all 8, one by one, and you understand what each does. That's the point.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     STEP 8 — Substitution Modes (real-world example using all of it)
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner">
+      <p class="sec-label" style="color: var(--color-grammar);">A real example</p>
+      <h2 class="sec-title reveal">"You wanted yogurt, but the store is out. Now what?"</h2>
+      <p class="sec-desc reveal d1">This is when all 8 tokens work together. Your answer to this question is called your <strong>Substitution Mode</strong>. There are four of them.</p>
+
+      <div class="substitution reveal d1">
+        <div class="sub-row">
+          <span class="sub-label">EXACT</span>
+          <p class="sub-text"><strong>"Only what I asked for."</strong> No Meiji Bulgarian yogurt? Then no yogurt today. Use this for medications, allergies, brand loyalty.</p>
+        </div>
+        <div class="sub-row">
+          <span class="sub-label">FLEXIBLE</span>
+          <p class="sub-text"><strong>"Close enough is fine."</strong> Get any other Bulgarian-style yogurt. Use this for routine groceries.</p>
+        </div>
+        <div class="sub-row">
+          <span class="sub-label">EXPLORING</span>
+          <p class="sub-text"><strong>"Show me something new."</strong> What about that new Greek yogurt everyone's talking about? Use this when you're open to discovery.</p>
+        </div>
+        <div class="sub-row">
+          <span class="sub-label">SURPRISE</span>
+          <p class="sub-text"><strong>"Delight me."</strong> AI found an artisan yogurt from a local farm. Want to try it? Use this for gifts, food adventures, when you trust AI deeply.</p>
+        </div>
+      </div>
+
+      <p class="reveal d2" style="margin-top:32px;font-size:clamp(15px,1.1vw,18px);color:var(--text-2);line-height:1.7;max-width:720px;">
+        Notice: <strong>Surprise mode requires high Autonomy.</strong> You can't say "surprise me" while keeping AI on a short leash — that's a contradiction. The 8 tokens work together, not separately.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+     CTA
+     ═══════════════════════════════════════ -->
+  <section class="cta">
+    <h2 class="cta-title reveal">That's the vocabulary.<br>Next: how AI <em style="color:var(--color-brain);font-style:normal;">remembers</em> you.</h2>
+    <p class="cta-sub reveal d1">8 tokens describe the moment. But moments don't add up unless something remembers them. That's what the Brain chapter is about.</p>
+    <div class="cta-buttons reveal d2">
+      <a href="../brain/index.html" class="cta-btn cta-btn--primary">Continue → Brain</a>
+      <a href="index.html" class="cta-btn cta-btn--ghost">Read the full version</a>
+      <a href="../index.html" class="cta-btn cta-btn--ghost">Back to Overview</a>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="footer">
+    <p><a href="../index.html">&larr; Back to Context Grammar</a></p>
+    <p style="margin-top: 8px;">intentfirst.ai &middot; Takao Umehara &middot; 2026</p>
+  </footer>
+
+  <script>
+    (function () {
+      var els = document.querySelectorAll('.reveal');
+      if (!els.length) return;
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+      els.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+  <script src="../../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../../', activePage: 'grammar', lang: 'en' });</script>
+</body>
+
+</html>

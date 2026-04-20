@@ -48,6 +48,29 @@ Design portfolio by Takao. "Context Grammar" is a design language for the post-a
 - Written primarily in Japanese.
 - Takao values intellectual honesty — verify factual claims about industry state before writing. If something is wrong, own it and fix it.
 
+### Editorial rule — Restaurant metaphors are scaffolding, not decoration
+
+The Context Grammar pages target a **"中学生でも分かる" (understandable to a middle schooler)** reader. For that audience, the recurring restaurant/waiter/reservation-book metaphor is the **on-ramp** that lets abstract concepts (Tokens, Brain layers, Disclosure Dial, Trust Breach) land.
+
+When auditing or editing prose:
+- **DO cut prose redundancy** — two paragraphs that say the same conceptual thing in different words.
+- **DO NOT cut metaphor scaffolding** — restaurant examples that ground an abstract concept with a concrete parallel. Cutting these speeds up reading for an expert but breaks comprehension for a first-encounter reader.
+- A subagent that recommends "tighten this metaphor" or "cut this restaurant aside" is optimizing for the wrong reader. Push back.
+- See `context-grammar/_content-audit.md` "復元ログ" section for the case study.
+
+### Knowledge base — `_my-understanding.md` is the source of truth
+
+The file **`context-grammar/_my-understanding.md`** is Claude's structured understanding of the entire Context Grammar framework (5-floor architecture, 8 tokens, Brain, Rule Engine, 23 AX Patterns, Trust Design, Specs, key insights, factual rules). **It is the base reference for every Context Grammar judgment.**
+
+**Required workflow for any Context Grammar–related change:**
+
+1. **Before editing** a Context Grammar page (grammar/brain/trust-design/rule-engine/ax-patterns/specs/intent/ or the context-grammar landing page): read the relevant section of `_my-understanding.md` first to confirm the edit aligns with the framework as documented.
+2. **When a concept is added, renamed, removed, or re-scoped** (e.g. a new AX Pattern, a renamed dial, a new principle, a changed factual claim): update `_my-understanding.md` in the same edit pass — do not leave the knowledge base out of sync with the pages.
+3. **When Takao clarifies or corrects** something about Context Grammar in conversation: update `_my-understanding.md` immediately, including removing any item from the "私がまだ把握しきれていない部分" list that was just resolved.
+4. **When starting a new session** on Context Grammar work: read `_my-understanding.md` first. Do not rebuild understanding from scratch.
+
+The file has a "13. このドキュメントの使い方" section that restates this contract. Keep it in sync.
+
 ## File Structure
 
 ```
@@ -114,6 +137,7 @@ When writing about tokens, be honest about what ships today vs what's speculativ
 - Minimum font size: 12px labels, 15px body text, 17px card body
 - No weight 200 on headings (minimum 500)
 - No single brand accent color; no Tailwind blue; no Material colors
+- **Title > Subtitle > Body hierarchy** — the title must always be the largest text in a block, subtitle smaller than title but larger than body, eyebrow/mono label smallest. See [typography.md](docs/design-system/typography.md#title--subtitle-hierarchy-mandatory).
 
 ## Slide Layout System (MANDATORY)
 

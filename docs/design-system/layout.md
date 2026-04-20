@@ -4,8 +4,8 @@
 
 | Variable | Value | Used for |
 |----------|-------|---------|
-| `--max-w` | `min(1100px, 90vw)` | Standard content |
-| `--max-w-wide` | `min(1400px, 94vw)` | Wide presentations |
+| `--max-w` | `min(1440px, 90vw)` | Standard content (≈5% padding each side) |
+| `--max-w-wide` | `min(1600px, 95vw)` | Wide presentations |
 
 All content sections must use `max-width: var(--max-w); margin: 0 auto;` on the inner wrapper.
 

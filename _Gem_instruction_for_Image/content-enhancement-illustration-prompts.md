@@ -30,7 +30,11 @@ Small labels below each half: "Parallel" under left, "Sequential" under right,
 A thin vertical dotted line separating the two models,
 clean comparative composition showing two ways AI agents coordinate
 ```
+Make background color : #bcbcbc
 
+make all other object, humans fill either pure white #FFFFFF or specified green
+
+```
 ---
 
 ## 2: Substitution Modes — AIの代替行動4パターン (don't include title, no need to include any japanese text in the image)
@@ -58,7 +62,11 @@ to right (low dial on Shelf 1, high dial on Shelf 4),
 A thin arrow running beneath all four shelves labeled "Autonomy Level" pointing right,
 clean progression composition showing four replacement strategies
 ```
+Make background color : #bcbcbc
 
+make all other object, humans fill either pure white #FFFFFF or specified green
+
+```
 ---
 
 ## 3: Beyond Screens — スクリーンを超えたAIの居場所 (don't include title, no need to include any japanese text in the image)
@@ -84,6 +92,12 @@ Green #30c969 accent on the active/communicating elements — the sound waves, t
 bubble, the holographic projections, and the sensor glow ring,
 Tiny labels near each device: "Speaker" "Earbuds" "AR" "Ambient",
 clean radial composition showing diverse AI touchpoints beyond traditional screens
+```
+
+Make background color : #bcbcbc
+
+make all other object, humans fill either pure white #FFFFFF or specified green
+
 ```
 
 ---
@@ -142,6 +156,10 @@ Each person has a small brain icon nearby — mom's fully filled in, dad's three
 filled, daughter's half filled, son's only outlined,
 Green accent on the central hub and the connecting lines,
 clean cross-section composition showing simultaneous different autonomy levels per person
+```Make background color : #bcbcbc
+
+make all other object, humans fill either pure white #FFFFFF or specified green
+
 ```
 
 ---
@@ -172,7 +190,11 @@ Output cards have a subtle green #30c969 left border,
 Small "+" symbol between each pair of input cards,
 clean parallel-flow composition showing if/then rule transformations
 ```
+Make background color : #bcbcbc
 
+make all other object, humans fill either pure white #FFFFFF or specified green
+
+```
 ---
 
 ## 7: Care Architecture — データから思いやりへ (don't include title, no need to include any japanese text in the image)
@@ -202,7 +224,11 @@ Small label below the composition: "Data — Understanding — Care",
 clean left-to-right pipeline composition emphasizing the transformation from raw data
 to empathetic response
 ```
+Make background color : #bcbcbc
 
+make all other object, humans fill either pure white #FFFFFF or specified green
+
+```
 ---
 
 ## 使い方

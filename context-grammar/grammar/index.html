@@ -66,9 +66,9 @@
       transition: box-shadow 0.3s var(--ease);
     }
 
-    /* Two-column when illustration is present */
+    /* Two-column when illustration is present — 50/50 split */
     .token-card:has(> .token-illust) {
-      grid-template-columns: clamp(240px, 42%, 400px) 1fr;
+      grid-template-columns: 1fr 1fr;
     }
 
     .token-card:hover {
@@ -79,12 +79,14 @@
     .token-card > .token-illust {
       border-right: 1px solid var(--border);
       background: var(--bg-2);
-      padding: clamp(24px, 3.5vw, 44px);
-      min-height: 280px;
+      padding: clamp(28px, 3vw, 44px);
+      aspect-ratio: 1; /* square, like specs tutorial-card */
       /* inherits display:flex, align-items/justify-content from base */
     }
     .token-card > .token-illust img {
-      max-height: none;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     /* ── Content wrapper: badge + body stacked vertically ── */
@@ -132,6 +134,49 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
+
+    /* ═══ SUBSTITUTION MODES: 4-column horizontal layout ═══ */
+    .substitution-modes-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(16px, 2vw, 24px);
+      margin-top: clamp(24px, 3vw, 36px);
+    }
+
+    .substitution-mode {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      display: flex;
+      flex-direction: column;
+      padding: clamp(16px, 2vw, 24px);
+      transition: box-shadow 0.3s var(--ease);
+    }
+
+    .substitution-mode:hover {
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .substitution-mode .token-badge {
+      margin-bottom: 12px;
+      align-self: flex-start;
+    }
+
+    .substitution-mode .token-body {
+      gap: 8px;
+    }
+
+    @media (max-width: 1024px) {
+      .substitution-modes-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .substitution-modes-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .token-header {
@@ -495,11 +540,9 @@
       .token-card > .token-illust {
         border-right: none;
         border-bottom: 1px solid var(--border);
-        min-height: auto;
+        aspect-ratio: auto; /* allow flexible height on mobile */
+        min-height: 240px;
         padding: clamp(20px, 3vw, 32px);
-      }
-      .token-card > .token-illust img {
-        max-height: 220px;
       }
     }
 
@@ -518,73 +561,76 @@
     .callout p { font-size: clamp(14px, 1vw, 16px); color: var(--text-2); line-height: 1.7; }
     .callout strong { font-weight: 600; color: var(--text); }
 
-    /* ═══ Rule Engine ═══ */
-    .rules-grid {
-      display: grid;
-      gap: 12px;
-      margin-top: 32px;
-      max-width: 800px;
-    }
-
-    .rule-item {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 20px;
-      flex-wrap: wrap;
-    }
-
-    .rule-item code {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--text-2);
-      background: var(--bg-2, #f7f5f2);
-      padding: 4px 10px;
-      border-radius: 4px;
-      white-space: nowrap;
-    }
-
-    .rule-arrow {
-      font-family: var(--font-mono);
-      font-size: 16px;
-      color: var(--color-grammar, #4a6a90);
-      flex-shrink: 0;
-    }
-
-    .rule-then {
-      color: #3a6a3a !important;
-      background: rgba(58, 106, 58, 0.06) !important;
-    }
+/* ═══ HERO SPLIT LAYOUT ═══ */
+/* Override default dark-nav hero padding so the tower can fill viewport height */
+body[data-dark-nav].nav-has-subnav .hero.hero--split {
+  padding-top: 96px;
+  padding-bottom: 24px;
+  min-height: 100vh;
+}
+.hero--split {
+  flex-direction: row !important;
+  align-items: center !important;
+  text-align: left !important;
+  gap: clamp(32px, 5vw, 80px);
+  padding-left: clamp(24px, 5vw, 80px);
+  padding-right: clamp(24px, 5vw, 80px);
+}
+.hero--split .hero-title,
+.hero--split .hero-label,
+.hero--split .hero-sub { margin-left: 0; margin-right: 0; }
+.hero-split-text { flex: 0 0 auto; max-width: 400px; }
+.hero-illu {
+  flex: 1 1 auto;
+  max-width: 620px;
+  height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s forwards;
+}
+.hero-illu img {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 120px);
+  object-fit: contain;
+  object-position: center center;
+  transform: scale(1.4);
+  display: block;
+}
+@media (max-width: 768px) {
+  body[data-dark-nav].nav-has-subnav .hero.hero--split { padding-top: 116px; min-height: 100vh; }
+  .hero--split { flex-direction: column !important; text-align: center !important; justify-content: center; }
+  .hero-illu { width: 90%; max-width: 380px; height: auto; flex: 1 1 auto; }
+  .hero-illu img { height: auto; max-height: 60vh; transform: scale(1.2); }
+}
 
 </style>
 </head>
 
-<body data-dark-nav>
+<body data-dark-nav class="nav-has-subnav">
+
+  <!-- Mode switcher: Easy ↔ Full -->
+  <nav aria-label="Reading mode" style="position:fixed;top:80px;right:24px;z-index:50;background:var(--bg);border:1px solid var(--border);border-radius:100px;padding:4px;display:flex;gap:2px;font-family:var(--font-mono);font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
+    <a href="easy.html" style="padding:6px 14px;border-radius:100px;text-decoration:none;color:var(--text-3);letter-spacing:0.5px;transition:all 0.2s var(--ease);">EASY MODE</a>
+    <a href="index.html" style="padding:6px 14px;border-radius:100px;text-decoration:none;background:var(--text);color:var(--bg);letter-spacing:0.5px;">FULL VERSION</a>
+  </nav>
 
   <!-- ═══════════════════════════════════════
      HERO
      ═══════════════════════════════════════ -->
-  <section class="hero" style="position: relative;">
-    <img src="../images/ISO-GREEN/IF-04.8tokens.png"
-         alt=""
-         aria-hidden="true"
-         style="position:absolute; bottom:0; right:5%; width:clamp(280px,40vw,520px); opacity:0.06; pointer-events:none; mix-blend-mode:screen;">
-    <h1 class="hero-title">Context Grammar / Grammar</h1>
-    <p class="hero-label">8 Tokens That Teach AI to Read the Room</p>
-    <p class="hero-sub">Every waiter reads the room before speaking. Context Grammar gives AI the same instinct —
-      through 8 measurable dimensions of human state.</p>
-  </section>
-
-  <section class="content-section content-section--light">
-    <div class="content-inner">
-      <div class="why-matters">
-        <p class="why-matters-text">Every AI today responds the same way regardless of whether you're rushing, relaxing, or in a meeting. These 8 tokens give AI the vocabulary to read your situation — like a waiter who notices you're in a hurry.</p>
-      </div>
+  <div class="hero hero--split">
+    <div class="hero-split-text">
+      <p class="hero-label">Context Grammar — Floor 2</p>
+      <h1 class="hero-title">Grammar</h1>
+      <p class="hero-sub">Eight measurable dimensions of human state. The vocabulary AI needs to read the room before it speaks.</p>
+      <div class="hero-scroll-hint"><span></span></div>
     </div>
-  </section>
+    <div class="hero-illu">
+      <img src="../images/ISO-GREEN/Context_Tower/2_ContextTokens.png" alt="Context Tower with Grammar floor (8 Context Tokens) highlighted">
+    </div>
+  </div>
 
   <!-- ═══════════════════════════════════════
      WHY TOKENS?
@@ -606,9 +652,157 @@
 
 
   <!-- ═══════════════════════════════════════
+     8 = 6 + 2 — ANATOMY VISUAL
+     ═══════════════════════════════════════ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner">
+      <div class="token-anatomy reveal">
+        <div class="token-anatomy__total">
+          <div class="token-anatomy__num">8</div>
+          <p class="token-anatomy__lbl">Context Tokens</p>
+        </div>
+        <div class="token-anatomy__eq" aria-hidden="true">=</div>
+        <div class="token-anatomy__split">
+          <div class="token-anatomy__part token-anatomy__part--grammar">
+            <div class="token-anatomy__num token-anatomy__num--sm">6</div>
+            <p class="token-anatomy__part-title">Situation Tokens</p>
+            <p class="token-anatomy__part-desc">What's happening <em>now</em> — signals AI reads</p>
+          </div>
+          <div class="token-anatomy__plus" aria-hidden="true">+</div>
+          <div class="token-anatomy__part token-anatomy__part--intent">
+            <div class="token-anatomy__num token-anatomy__num--sm">2</div>
+            <p class="token-anatomy__part-title">Relationship Dials</p>
+            <p class="token-anatomy__part-desc">How far AI can <em>act</em> — controls the relationship</p>
+          </div>
+        </div>
+      </div>
+      <p class="token-anatomy__note reveal d1">
+        Six <strong>inputs</strong> — raw signals AI reads. Two <strong>controls</strong> — dials that govern what AI knows about you and how far it can act for you.
+      </p>
+    </div>
+  </section>
+
+  <style>
+    .token-anatomy {
+      display: grid;
+      grid-template-columns: 1fr auto 2fr;
+      align-items: center;
+      gap: clamp(20px, 3vw, 40px);
+      padding: clamp(36px, 5vw, 64px) clamp(28px, 4vw, 56px);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      margin: clamp(24px, 3vw, 40px) 0 clamp(20px, 2.5vw, 28px);
+    }
+    .token-anatomy__total {
+      text-align: center;
+    }
+    .token-anatomy__num {
+      font-family: var(--font-sans);
+      font-size: clamp(64px, 10vw, 120px);
+      font-weight: 500;
+      line-height: 0.9;
+      letter-spacing: -3px;
+      color: var(--color-grammar);
+    }
+    .token-anatomy__num--sm {
+      font-size: clamp(48px, 7vw, 88px);
+      letter-spacing: -2px;
+    }
+    .token-anatomy__lbl {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-2);
+      margin-top: 12px;
+      font-weight: 500;
+    }
+    .token-anatomy__eq,
+    .token-anatomy__plus {
+      font-family: var(--font-sans);
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 300;
+      color: var(--text-3);
+      line-height: 1;
+    }
+    .token-anatomy__split {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: clamp(16px, 2vw, 28px);
+    }
+    .token-anatomy__part {
+      text-align: center;
+      padding: clamp(20px, 2.5vw, 32px) clamp(16px, 2vw, 24px);
+      background: var(--bg);
+      border-top: 3px solid;
+    }
+    .token-anatomy__part--grammar {
+      border-color: var(--color-grammar);
+    }
+    .token-anatomy__part--grammar .token-anatomy__num {
+      color: var(--color-grammar);
+    }
+    .token-anatomy__part--intent {
+      border-color: var(--color-intent);
+    }
+    .token-anatomy__part--intent .token-anatomy__num {
+      color: var(--color-intent);
+    }
+    .token-anatomy__part-title {
+      font-family: var(--font-sans);
+      font-size: clamp(15px, 1.2vw, 18px);
+      font-weight: 500;
+      letter-spacing: -0.2px;
+      margin: 10px 0 6px;
+      color: var(--text);
+    }
+    .token-anatomy__part-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-2);
+    }
+    .token-anatomy__part-desc em {
+      font-style: normal;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .token-anatomy__note {
+      font-size: clamp(14px, 1vw, 16px);
+      line-height: 1.7;
+      color: var(--text-2);
+      max-width: 780px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .token-anatomy__note strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+    @media (max-width: 768px) {
+      .token-anatomy {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 32px 24px;
+      }
+      .token-anatomy__eq {
+        transform: rotate(90deg);
+      }
+      .token-anatomy__split {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .token-anatomy__plus {
+        transform: rotate(90deg);
+      }
+    }
+  </style>
+
+
+  <!-- ═══════════════════════════════════════
      PART 1 DIVIDER
      ═══════════════════════════════════════ -->
-  <div class="section-divider section-divider--grammar">Part 1 — The 6 Situation Tokens</div>
+  <div class="section-divider section-divider--grammar">The 6 Situation Tokens</div>
 
 
   <!-- ═══════════════════════════════════════
@@ -617,9 +811,9 @@
   <section class="content-section content-section--alt">
     <div class="content-inner">
       <div class="sec-label" style="color: var(--color-grammar);">Situation Tokens</div>
-      <h2 class="sec-title reveal">Six Sensors for <em>What's Happening</em></h2>
-      <p class="sec-desc reveal d1">These tokens describe the world around the user. They're inputs — raw signals that
-        AI reads, not settings the user controls.</p>
+      <h2 class="sec-title reveal">Six <em>Situation Tokens</em></h2>
+      <p class="sec-desc reveal d1">The first six of the 8 Context Tokens. They describe the world around the user —
+        inputs AI reads, not settings the user controls.</p>
 
       <div class="token-grid">
 
@@ -799,11 +993,6 @@
                   <span class="token-tech-label">Beyond Screens</span>
                   Form Factor isn't just about displays. AI speaks through every surface:
                 </div>
-                <figure class="token-illust token-illust--standalone" style="max-width:100%; margin: 12px 0; padding: clamp(12px,2vw,20px);">
-                  <img src="../images/ISO-GREEN/IF-Token5b-BeyondScreens.png"
-                       alt="Isometric room with multiple non-screen AI surfaces: smart speaker, earbuds, AR glasses, ambient sensors"
-                       loading="lazy">
-                </figure>
                 <div class="surfaces-grid">
                   <div class="surface">
                     <div class="surface-name">Voice-only</div>
@@ -875,16 +1064,17 @@
       <p class="sec-desc reveal d1">You asked for Meiji Bulgarian yogurt, but the store is out. What should AI do? The
         answer depends on your Substitution Mode — a preference that works hand-in-hand with the Autonomy Dial.</p>
 
-      <figure class="token-illust token-illust--standalone reveal d1" style="margin-bottom: clamp(16px, 2vw, 24px);">
-        <img src="images/ISO-GREEN/IF-SubstitutionModes.png"
+      <figure class="token-illust reveal d1" style="background: transparent; border: none; max-width: 100%; margin: clamp(20px, 3vw, 32px) 0; padding: 0;">
+        <img src="../images/ISO-GREEN/IF-SubstitutionModes.png"
           alt="Four substitution modes illustrated — Exact, Flexible, Exploring, Surprise — showing increasing AI creative latitude"
-          loading="lazy">
+          loading="lazy"
+          style="width: 100%; height: auto;">
       </figure>
 
-      <div class="token-grid">
+      <div class="token-grid substitution-modes-grid">
 
         <!-- MODE 1 — EXACT ─────────────────────── -->
-        <div class="token-card reveal d1">
+        <div class="token-card substitution-mode reveal d1">
           <div class="token-badge token-badge--blue">E</div>
           <div class="token-body">
             <div class="token-header">
@@ -909,7 +1099,7 @@
         </div>
 
         <!-- MODE 2 — FLEXIBLE ──────────────────── -->
-        <div class="token-card reveal d2">
+        <div class="token-card substitution-mode reveal d2">
           <div class="token-badge token-badge--blue">F</div>
           <div class="token-body">
             <div class="token-header">
@@ -934,7 +1124,7 @@
         </div>
 
         <!-- MODE 3 — EXPLORING ─────────────────── -->
-        <div class="token-card reveal d3">
+        <div class="token-card substitution-mode reveal d3">
           <div class="token-badge token-badge--blue">X</div>
           <div class="token-body">
             <div class="token-header">
@@ -959,7 +1149,7 @@
         </div>
 
         <!-- MODE 4 — SURPRISE ──────────────────── -->
-        <div class="token-card reveal d4">
+        <div class="token-card substitution-mode reveal d4">
           <div class="token-badge token-badge--blue">S</div>
           <div class="token-body">
             <div class="token-header">
@@ -998,7 +1188,7 @@
   <!-- ═══════════════════════════════════════
      PART 2 DIVIDER
      ═══════════════════════════════════════ -->
-  <div class="section-divider section-divider--intent">Part 2 — The 2 Relationship Dials</div>
+  <div class="section-divider section-divider--intent">The 2 Relationship Dials</div>
 
 
   <!-- ═══════════════════════════════════════
@@ -1015,7 +1205,7 @@
       <div class="token-grid">
 
         <!-- TOKEN 7 ─────────────────────────── -->
-        <div class="token-card token-card--dial reveal d1">
+        <div class="token-card token-card--dial reveal d1" id="autonomy-dial">
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token7-AutonomyDial.png" alt="Four-stage dial from Suggest to Auto — trust building through track record" loading="lazy">
           </figure>
@@ -1062,10 +1252,7 @@
                 </div>
                 <div class="insight insight--amber">
                   <span class="insight-label">Key Insight</span>
-                  <p>The Autonomy Dial is <strong>not purely user-controlled</strong>. Three forces shape it: the
-                    service's default setting (Netflix starts high), AI adjustment based on observed trust patterns, and
-                    the user's active choice. Your Uber Eats doesn't ask permission to reorder — because the service
-                    default already assumed autonomy.</p>
+                  <p>The Autonomy Dial is <strong>not purely user-controlled</strong>. Services set defaults, AI adjusts based on track record, and the user makes the final call — the full three-force model lives in <a href="../trust-design/#autonomy">Trust Design</a>.</p>
                 </div>
               </div>
             </div>
@@ -1073,7 +1260,7 @@
         </div>
 
         <!-- TOKEN 8 ─────────────────────────── -->
-        <div class="token-card token-card--dial reveal d2">
+        <div class="token-card token-card--dial reveal d2" id="disclosure-dial">
           <figure class="token-illust">
             <img src="../images/ISO-GREEN/IF-Token8-DisclosureDial.png" alt="Privacy control panel — per-domain disclosure settings with lock icons" loading="lazy">
           </figure>
@@ -1129,73 +1316,17 @@
           </div>
         </div>
 
+        <!-- Forward pointer to Trust Design -->
+        <div class="dial-forward-pointer reveal d3" style="grid-column: 1 / -1; margin-top: 24px; padding: 20px 24px; border-left: 3px solid var(--color-intent); background: rgba(160, 112, 64, 0.04); border-radius: 2px;">
+          <p style="margin: 0; font-size: 15px; line-height: 1.6; color: var(--color-text-secondary, #666);">
+            These two dials are the vocabulary. How they <strong>couple in real trust relationships</strong> — why Disclosure must enable Autonomy, how Dynamic Friction caps delegation, how trust recovers from breaches — is the subject of <a href="../trust-design/" style="color: var(--color-intent); font-weight: 500;">Trust Design →</a>
+          </p>
+        </div>
+
       </div>
     </div>
   </section>
 
-
-  <!-- ═══════════════════════════════════════
-     RULE ENGINE
-     ═══════════════════════════════════════ -->
-  <div class="part-banner" style="background:var(--color-brain);">
-    <div class="part-banner-inner">
-      <div class="part-banner-tag" style="color:rgba(255,255,255,0.6);">Bridge</div>
-      <div class="part-banner-title" style="color:#fff;">Rule Engine — Translating Context into Action</div>
-    </div>
-  </div>
-  <section class="content-section content-section--light">
-    <div class="content-inner">
-      <div class="sec-label" style="color:var(--color-brain);">Rule Engine</div>
-      <h2 class="sec-title reveal">8 tokens go in.<br>Specific design rules come out.</h2>
-      <p class="sec-desc reveal d1">The Rule Engine transforms the token/brain combination into concrete behavioral
-        rules. Not recommendations — rules. If/then logic at scale, running silently on every interaction.</p>
-
-      <div class="callout" style="margin-bottom: 32px;">
-        <p class="callout-label" style="color: var(--color-label);">Rules in plain English</p>
-        <p style="margin-bottom: 12px;"><strong>Rule 1:</strong> IF cognitive load is high AND social exposure is public → simplify the notification, delay non-urgent items</p>
-        <p style="margin-bottom: 12px;"><strong>Rule 2:</strong> IF autonomy dial is at Confirm AND priority weight is low → suggest but don't act</p>
-        <p><strong>Rule 3:</strong> IF form factor is watch AND physical state is walking → voice-only response, no visual clutter</p>
-      </div>
-
-      <div class="rules-grid reveal d2">
-        <div class="rule-item">
-          <code>if Physical State = driving</code>
-          <span class="rule-arrow">→</span>
-          <code class="rule-then">UI = audio only</code>
-        </div>
-        <div class="rule-item">
-          <code>if Social Exposure = boss_nearby</code>
-          <span class="rule-arrow">→</span>
-          <code class="rule-then">hide personal notifications</code>
-        </div>
-        <div class="rule-item">
-          <code>if Autonomy = Auto AND price &lt; ¥500</code>
-          <span class="rule-arrow">→</span>
-          <code class="rule-then">purchase without confirmation</code>
-        </div>
-        <div class="rule-item">
-          <code>if Cognitive Load = high</code>
-          <span class="rule-arrow">→</span>
-          <code class="rule-then">reduce options to top 3</code>
-        </div>
-        <div class="rule-item">
-          <code>if Autonomy = Auto AND price &gt; ¥15,000</code>
-          <span class="rule-arrow">→</span>
-          <code class="rule-then">always confirm (Dynamic Friction)</code>
-        </div>
-        <div class="rule-item">
-          <code>if Disclosure = hidden AND Autonomy &gt; Confirm</code>
-          <span class="rule-arrow">→</span>
-          <code class="rule-then">constraint violation → reset Autonomy</code>
-        </div>
-      </div>
-
-      <p class="reveal d3"
-        style="margin-top:28px;font-size:clamp(15px,1vw,16px);color:var(--text-2);font-weight:300;line-height:1.7;max-width:620px;font-style:italic;">
-        The restaurant waiter's intuition — "this table needs minimal interruption," "the regular wants their usual,"
-        "check before suggesting the spicy dish" — expressed as computable if/then rules.</p>
-    </div>
-  </section>
 
 
   <!-- ═══════════════════════════════════════
@@ -1245,12 +1376,7 @@
       </div>
 
       <div class="prose reveal d3" style="margin-top: clamp(24px, 3vw, 40px);">
-        <p>The six Situation Tokens declare context. The two Dials set boundaries. The Rule Engine takes both and
-          generates specific design decisions — what to show, when to interrupt, how much detail to include, which
-          device to use.</p>
-        <p>No single token works alone. A rushing user (Physical State) with low cognitive bandwidth (Cognitive Load) at
-          a business dinner (Social Exposure) on a watch (Form Factor) gets a fundamentally different experience than
-          the same person, relaxed at home, on a TV. Same person. Same AI. Different grammar.</p>
+        <p>No token works alone. A rushing user, low bandwidth, business dinner, watch — a fundamentally different experience than the same person, relaxed at home, on a TV. Same person. Same AI. Different grammar.</p>
       </div>
     </div>
   </section>
@@ -1265,12 +1391,19 @@
       Together, they give AI judgment — not just reaction.</p>
     <div class="cta-buttons reveal d2">
       <a href="../brain/index.html" class="cta-btn cta-btn--primary">Explore the Brain &rarr;</a>
-      <a href="../index.html" class="cta-btn cta-btn--ghost">Back to Overview &rarr;</a>
+      <a href="../ax-patterns/index.html" class="cta-btn cta-btn--ghost">See the 23 AX Patterns &rarr;</a>
+      <a href="../specs/index.html" class="cta-btn cta-btn--ghost">YAML Spec &rarr;</a>
     </div>
+    <p class="reveal d3" style="margin-top:28px;font-size:13px;color:rgba(240,236,228,0.4);font-family:var(--font-mono);letter-spacing:1px;">
+      <a href="../index.html" style="color:rgba(240,236,228,0.5);text-decoration:none;border-bottom:1px solid rgba(240,236,228,0.15);padding-bottom:2px;">&larr; Back to Overview</a>
+    </p>
   </section>
 
 
   <!-- ═══ FOOTER ═══ -->
+  <div class="chapter-nav" data-current="grammar" data-base="../"></div>
+  <script src="../../assets/js/chapter-nav.js"></script>
+
   <footer class="footer">
     <p><a href="../index.html">&larr; Back to Context Grammar</a></p>
     <p style="margin-top: 8px;">intentfirst.ai &middot; Takao Umehara &middot; 2026</p>

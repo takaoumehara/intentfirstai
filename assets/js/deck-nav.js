@@ -189,7 +189,8 @@
 
   var home = document.createElement('button');
   home.className = 'dn-home';
-  home.title = 'Back to first slide';
+  var exitUrl = deck.getAttribute('data-exit-url');
+  home.title = exitUrl ? '← Back to projects' : 'Back to first slide';
   home.innerHTML = svgHome;
   document.body.appendChild(home);
 
@@ -275,7 +276,12 @@
   }
 
   function goHome() {
-    goToSlide(0);
+    var exitUrl = deck.getAttribute('data-exit-url');
+    if (exitUrl) {
+      window.location.href = exitUrl;
+    } else {
+      goToSlide(0);
+    }
   }
 
   function enterFreeScroll() {
