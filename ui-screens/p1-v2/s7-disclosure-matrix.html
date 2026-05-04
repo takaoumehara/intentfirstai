@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S7 — Disclosure Matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_tokens.css">
+<style>
+  /* ── Desktop browser frame (inlined) ── */
+  html { overflow: hidden; height: 100%; }
+  body {
+    background: linear-gradient(135deg, #f6f5f0 0%, #ebe9e1 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .browser {
+    width: 100vw; height: 100vh;
+    border-radius: 0; box-shadow: none; transform: none;
+  }
+  body.noframe .chrome { display: none; }
+  body.noframe .content-scroll { top: 0; }
+
+  .browser {
+    width: 1440px;
+    height: 900px;
+    background: var(--bg);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 32px) / 900px), calc((100vw - 32px) / 1440px)));
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.08),
+      0 8px 24px rgba(0,0,0,0.10),
+      0 32px 80px rgba(0,0,0,0.06),
+      inset 0 0 0 1px rgba(0,0,0,0.05);
+  }
+  .chrome {
+    height: 48px;
+    background: #f6f6f6;
+    border-bottom: 1px solid #e1e1e1;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+  }
+  .chrome-lights { display: flex; gap: 8px; align-items: center; }
+  .light { width: 12px; height: 12px; border-radius: 50%; }
+  .light.red { background: #ff5f57; }
+  .light.yellow { background: #febc2e; }
+  .light.green { background: #28c840; }
+  .chrome-nav { display: flex; gap: 2px; color: #8e8e93; font-family: system-ui; font-size: 14px; }
+  .chrome-nav span { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 500; }
+  .chrome-url {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    font-size: 13px;
+    color: #1d1d1f;
+    max-width: 580px;
+    margin: 0 auto;
+    font-family: system-ui;
+  }
+  .chrome-url .lock-icon { width: 12px; height: 12px; color: #8e8e93; }
+  .chrome-url b { font-weight: 500; }
+  .chrome-url .muted { color: #6e6e73; }
+  .chrome-right { width: 60px; }
+
+  .content-scroll {
+    position: absolute;
+    top: 48px; left: 0; right: 0; bottom: 0;
+    overflow: auto;
+    background: var(--bg);
+  }
+
+  /* ── Page layout ── */
+  .page {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    min-height: 100%;
+  }
+  .page-main {
+    padding: 28px 40px 40px;
+    border-right: 1px solid var(--border);
+  }
+  .page-panel {
+    padding: 28px 28px 28px;
+    background: var(--bg-subtle);
+    overflow-y: auto;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+    margin-bottom: 18px;
+  }
+  .breadcrumb svg { width: 12px; height: 12px; color: var(--gray-300); stroke-width: 1.75; }
+  .breadcrumb span:last-child { color: var(--fg); }
+
+  .page-header {
+    margin-bottom: 20px;
+  }
+  .page-title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--fg);
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .page-subtitle {
+    font-size: var(--fs-md);
+    color: var(--fg-muted);
+    line-height: 1.5;
+    max-width: 620px;
+  }
+
+  .status-row {
+    display: flex; gap: 18px;
+    padding: 12px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+  }
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .status-row strong { color: var(--fg); font-weight: var(--fw-medium); }
+
+  /* ── Matrix table ── */
+  .matrix-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .matrix thead th {
+    background: var(--bg-subtle);
+    padding: 14px 12px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--fg-muted);
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .matrix thead th:first-child {
+    text-align: left;
+    padding-left: 20px;
+  }
+  .matrix tbody td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    position: relative;
+  }
+  .matrix tbody tr:last-child td { border-bottom: none; }
+  .matrix tbody td:first-child {
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  .agent-cell {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .agent-icon {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .agent-icon svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .agent-icon.finance { background: var(--agent-finance); }
+  .agent-icon.education { background: var(--agent-education); }
+  .agent-icon.calendar { background: var(--agent-calendar); }
+  .agent-icon.home { background: var(--agent-home); }
+  .agent-icon.travel { background: var(--agent-travel); }
+
+  .agent-name {
+    display: flex; flex-direction: column;
+    gap: 2px;
+  }
+  .agent-name-main {
+    font-size: var(--fs-base);
+    font-weight: var(--fw-medium);
+    color: var(--fg);
+    line-height: 1.2;
+  }
+  .agent-name-status {
+    display: flex; align-items: center; gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+  }
+  .agent-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+
+  /* Cell indicators */
+  .cell-inner {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 44px; height: 30px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    position: relative;
+  }
+  .cell-full {
+    background: rgba(23, 128, 61, 0.08);
+    color: var(--green);
+  }
+  .cell-read {
+    background: rgba(0, 112, 243, 0.06);
+    color: var(--blue);
+  }
+  .cell-none {
+    background: transparent;
+    color: var(--gray-400);
+  }
+  .cell-inner svg { width: 14px; height: 14px; stroke-width: 2; }
+  .cell-inner .dash {
+    width: 14px; height: 2px; background: currentColor; border-radius: 1px;
+  }
+
+  .cell-inner.designed-separation {
+    outline: 1.5px solid var(--red);
+    outline-offset: -1.5px;
+    background: rgba(220, 38, 38, 0.05);
+    color: var(--red);
+  }
+  .cell-inner.designed-separation .dash { background: currentColor; }
+
+  .cell-inner.calendar-special {
+    outline: 1.5px solid var(--blue);
+    outline-offset: -1.5px;
+    background: rgba(0, 112, 243, 0.08);
+    color: var(--blue);
+  }
+
+  .cell-inner.hovered {
+    box-shadow: 0 0 0 2px var(--fg);
+  }
+
+  /* Bottom links */
+  .bottom-links {
+    max-width: 900px;
+    margin: 18px auto 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 4px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+  }
+  .bottom-links a {
+    color: var(--fg-muted);
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .bottom-links a:hover { color: var(--fg); }
+  .bottom-links svg { width: 14px; height: 14px; stroke-width: 1.5; }
+
+  /* ── Panel ── */
+  .panel-header {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--fg-subtle);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .panel-cell-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-semibold);
+    color: var(--fg);
+    letter-spacing: -0.2px;
+    margin-bottom: 4px;
+  }
+  .panel-cell-title svg.x-icon {
+    width: 14px; height: 14px;
+    color: var(--gray-300);
+    stroke-width: 1.75;
+  }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    margin-bottom: 16px;
+    background: rgba(220, 38, 38, 0.08);
+    color: var(--red);
+  }
+  .status-badge .dot-b { width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+
+  .explainer {
+    font-size: var(--fs-sm);
+    color: var(--fg);
+    line-height: 1.55;
+    margin-bottom: 18px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .explainer em {
+    font-style: normal;
+    color: var(--fg-muted);
+    display: block;
+    margin-top: 6px;
+    font-size: var(--fs-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.2px;
+  }
+
+  .form-group {
+    display: flex; flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .form-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+  .select-input {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-base);
+    color: var(--fg);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .select-input svg { width: 14px; height: 14px; color: var(--fg-muted); }
+
+  .audit-card {
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 14px;
+  }
+  .audit-header {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    margin-bottom: 10px;
+  }
+  .audit-header svg { width: 12px; height: 12px; stroke-width: 1.75; }
+
+  .audit-row {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    padding: 6px 0;
+  }
+  .audit-row .k { color: var(--fg-muted); }
+  .audit-row .v { color: var(--fg); }
+
+  .legend-key {
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+  .legend-key-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0;
+    color: var(--fg-muted);
+  }
+  .legend-key-row:last-child { padding-bottom: 0; }
+  .legend-key-row .mini {
+    width: 20px; height: 16px;
+    border-radius: 3px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .legend-key-row .mini svg { width: 10px; height: 10px; stroke-width: 2; }
+  .legend-key-row .mini.full { background: rgba(23, 128, 61, 0.08); color: var(--green); }
+  .legend-key-row .mini.read { background: rgba(0, 112, 243, 0.06); color: var(--blue); }
+  .legend-key-row .mini.none { color: var(--gray-400); }
+  .legend-key-row .mini.separation { background: rgba(220, 38, 38, 0.05); color: var(--red); outline: 1px solid var(--red); outline-offset: -1px; }
+</style>
+</head>
+<body>
+
+<div class="browser">
+  <div class="chrome">
+    <div class="chrome-lights">
+      <span class="light red"></span>
+      <span class="light yellow"></span>
+      <span class="light green"></span>
+    </div>
+    <div class="chrome-nav">
+      <span>‹</span>
+      <span>›</span>
+    </div>
+    <div class="chrome-url">
+      <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span><b>family.brain</b><span class="muted">/disclosure</span></span>
+    </div>
+    <div class="chrome-right"></div>
+  </div>
+
+  <div class="content-scroll">
+    <div class="page">
+
+      <!-- Main -->
+      <div class="page-main">
+        <nav class="breadcrumb">
+          <span>Settings</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <span>Privacy</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <span>Agent Access</span>
+        </nav>
+
+        <header class="page-header">
+          <h1 class="page-title">Agent Access Matrix</h1>
+          <p class="page-subtitle">Control what each agent can read, write, and share. Changes take effect immediately.</p>
+        </header>
+
+        <div class="status-row">
+          <span><span class="status-dot"></span><strong>5</strong> agents</span>
+          <span>&middot;</span>
+          <span><strong>5</strong> data domains</span>
+          <span>&middot;</span>
+          <span><strong>25</strong> access rules</span>
+          <span>&middot;</span>
+          <span>Last audit <strong>Apr 18, 2025</strong></span>
+        </div>
+
+        <div class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Finances</th>
+                <th>Grades</th>
+                <th>Health + Allergies</th>
+                <th>Private notes</th>
+                <th>Schedule</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Finance -->
+              <tr>
+                <td>
+                  <div class="agent-cell">
+                    <span class="agent-icon finance">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                    </span>
+                    <span class="agent-name">
+                      <span class="agent-name-main">Finance Agent</span>
+                      <span class="agent-name-status"><span class="agent-status-dot"></span>Active</span>
+                    </span>
+                  </div>
+                </td>
+                <td><span class="cell-inner cell-full" title="Full access"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-none designed-separation" title="Designed for separation"><span class="dash"></span></span></td>
+                <td><span class="cell-inner cell-read" title="Read only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-none"><span class="dash"></span></span></td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+              </tr>
+
+              <!-- Education -->
+              <tr>
+                <td>
+                  <div class="agent-cell">
+                    <span class="agent-icon education">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </span>
+                    <span class="agent-name">
+                      <span class="agent-name-main">Education Agent</span>
+                      <span class="agent-name-status"><span class="agent-status-dot"></span>Active</span>
+                    </span>
+                  </div>
+                </td>
+                <td><span class="cell-inner cell-none"><span class="dash"></span></span></td>
+                <td><span class="cell-inner cell-full"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-none"><span class="dash"></span></span></td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+              </tr>
+
+              <!-- Calendar (cross-domain) -->
+              <tr>
+                <td>
+                  <div class="agent-cell">
+                    <span class="agent-icon calendar">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </span>
+                    <span class="agent-name">
+                      <span class="agent-name-main">Calendar Agent</span>
+                      <span class="agent-name-status"><span class="agent-status-dot"></span>Cross-domain</span>
+                    </span>
+                  </div>
+                </td>
+                <td><span class="cell-inner cell-read calendar-special"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-read calendar-special"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-read calendar-special"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-read calendar-special"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-full"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg></span></td>
+              </tr>
+
+              <!-- Home -->
+              <tr>
+                <td>
+                  <div class="agent-cell">
+                    <span class="agent-icon home">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 22V12h6v10"/></svg>
+                    </span>
+                    <span class="agent-name">
+                      <span class="agent-name-main">Home Agent</span>
+                      <span class="agent-name-status"><span class="agent-status-dot"></span>Active</span>
+                    </span>
+                  </div>
+                </td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-none"><span class="dash"></span></span></td>
+                <td><span class="cell-inner cell-full"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+              </tr>
+
+              <!-- Travel -->
+              <tr>
+                <td>
+                  <div class="agent-cell">
+                    <span class="agent-icon travel">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+                    </span>
+                    <span class="agent-name">
+                      <span class="agent-name-main">Travel Agent</span>
+                      <span class="agent-name-status"><span class="agent-status-dot"></span>Dormant</span>
+                    </span>
+                  </div>
+                </td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-none"><span class="dash"></span></span></td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+                <td><span class="cell-inner cell-none"><span class="dash"></span></span></td>
+                <td><span class="cell-inner cell-read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bottom-links">
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Learn more about Disclosure Dial
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export current matrix as JSON
+          </a>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <aside class="page-panel">
+        <div class="panel-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
+          Selected cell
+        </div>
+
+        <h2 class="panel-cell-title">
+          <span>Finance Agent</span>
+          <svg class="x-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span>Grades</span>
+        </h2>
+        <span class="status-badge">
+          <span class="dot-b"></span>
+          No access · Designed for separation
+        </span>
+
+        <div class="explainer">
+          Finance Agent handles money decisions. We keep academic data separate so financial priorities can't influence educational choices. You can change this below.
+          <em>Grammar rule · privacy-by-architecture · since Sep 2024</em>
+        </div>
+
+        <div class="form-group">
+          <span class="form-label">Access level</span>
+          <div class="select-input">
+            <span>None</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+
+        <div class="audit-card">
+          <div class="audit-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Audit log
+          </div>
+          <div class="audit-row"><span class="k">Last modified</span><span class="v">Sep 12, 2024</span></div>
+          <div class="audit-row"><span class="k">Modified by</span><span class="v">Mai</span></div>
+          <div class="audit-row"><span class="k">Access attempts</span><span class="v">0</span></div>
+          <div class="audit-row"><span class="k">Blocked reads</span><span class="v">0</span></div>
+        </div>
+
+        <div class="legend-key">
+          <div class="legend-key-row">
+            <span class="mini full"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg></span>
+            <span>Full · read + write</span>
+          </div>
+          <div class="legend-key-row">
+            <span class="mini read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></span>
+            <span>Read only</span>
+          </div>
+          <div class="legend-key-row">
+            <span class="mini none"><span style="width:10px;height:2px;background:currentColor;"></span></span>
+            <span>None</span>
+          </div>
+          <div class="legend-key-row">
+            <span class="mini separation"><span style="width:10px;height:2px;background:currentColor;"></span></span>
+            <span>Designed separation</span>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>s8-6 · Dynamic Friction — Autonomy Dial, one dial, different stakes</title>
+
+<!-- Design tokens -->
+<link rel="stylesheet" href="../../assets/css/tokens.css" />
+
+<!-- Fonts — canonical design system (Geist Sans + Geist Mono via CDN, same as other pages) -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet" />
+
+<style>
+  /* -------------------------------------------------------------
+     Local tokens (fallbacks) — never override tokens.css values
+  ------------------------------------------------------------- */
+  :root{
+    --bg: transparent;
+    --ink: var(--color-text, #1a1816);
+    --ink-soft: var(--color-text-soft, #4a4642);
+    --ink-mute: var(--color-text-mute, #7a7470);
+    --paper: var(--color-surface, #fdfcfa);
+    --paper-2: var(--color-surface-2, #f6f3ee);
+    --line: var(--color-border, #e7e2d9);
+    --line-soft: rgba(26,24,22,0.08);
+
+    --green-ink: #1e6b3a;
+    --green-tint: rgba(48,201,105,0.10);
+    --green-line: rgba(48,201,105,0.45);
+
+    --amber-ink: #8a5a1e;
+    --amber-tint: rgba(214,158,46,0.10);
+    --amber-line: rgba(214,158,46,0.50);
+
+    --neutral-ink: #4a4642;
+    --neutral-tint: rgba(26,24,22,0.04);
+    --neutral-line: rgba(26,24,22,0.22);
+
+    /* DO NOT redefine --font-sans / --font-mono here — they must inherit from tokens.css
+       (Geist Sans + Geist Mono, the canonical design-system pair). Redefining would
+       bypass the system. */
+
+    --radius-card: 14px;
+    --radius-chip: 999px;
+    --shadow-card: 0 1px 2px rgba(26,24,22,.04), 0 8px 24px -16px rgba(26,24,22,.18);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* noframe=1 handler — strip any outer chrome an embedder might apply */
+  body.noframe{ background: transparent; }
+
+  /* ---------------------------------------------------------
+     Figure shell
+  --------------------------------------------------------- */
+  .figure{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 28px 40px;
+  }
+
+  .fig-head{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .fig-eyebrow{
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border: 1px solid var(--line);
+    background: var(--paper);
+    padding: 6px 10px;
+    border-radius: var(--radius-chip);
+  }
+  .fig-title{
+    font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0;
+  }
+  .fig-sub{
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  /* ---------------------------------------------------------
+     Column headers (above the 3-row chart)
+  --------------------------------------------------------- */
+  .col-heads{
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 16px;
+    align-items: end;
+    padding: 0 2px 10px;
+    margin-top: 6px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .col-head{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .col-head::before{
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .col-head--ai::before{
+    background: #8a6ab0;
+    box-shadow: 0 0 0 3px rgba(138,106,176,.18);
+  }
+  .col-head--user::before{
+    background: #30c969;
+    box-shadow: 0 0 0 3px rgba(48,201,105,.18);
+  }
+
+  /* ---------------------------------------------------------
+     Scenario stack
+  --------------------------------------------------------- */
+  .stack{
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 14px;
+  }
+
+  /* A single scenario row — reasoning (left) + notif card (right) */
+  .row{
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 16px;
+    align-items: stretch;
+    background: transparent;
+  }
+
+  /* ---------------------------------------------------------
+     LEFT — AI reasoning box (dashed)
+  --------------------------------------------------------- */
+  .reason{
+    position: relative;
+    border: 1.5px dashed var(--line-soft);
+    border-radius: var(--radius-card);
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 100%;
+  }
+  .reason--auto{
+    border-color: var(--green-line);
+    background: var(--green-tint);
+  }
+  .reason--confirm{
+    border-color: var(--amber-line);
+    background: var(--amber-tint);
+  }
+  .reason--suggest{
+    border-color: var(--neutral-line);
+    background: var(--neutral-tint);
+  }
+
+  .reason-chip{
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .reason-head{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .tier{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 12px;
+    border-radius: var(--radius-chip);
+    border: 1px solid transparent;
+  }
+  .tier--auto{
+    background: #ffffff;
+    color: var(--green-ink);
+    border-color: var(--green-line);
+  }
+  .tier--auto::before{
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #30c969;
+    box-shadow: 0 0 0 3px rgba(48,201,105,.18);
+  }
+  .tier--confirm{
+    background: #ffffff;
+    color: var(--amber-ink);
+    border-color: var(--amber-line);
+  }
+  .tier--confirm::before{
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #d69e2e;
+    box-shadow: 0 0 0 3px rgba(214,158,46,.18);
+  }
+  .tier--suggest{
+    background: #ffffff;
+    color: var(--neutral-ink);
+    border-color: var(--neutral-line);
+  }
+  .tier--suggest::before{
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #8a8580;
+    box-shadow: 0 0 0 3px rgba(26,24,22,.08);
+  }
+
+  .tier-price{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+
+  .reason-list{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .reason-list li{
+    position: relative;
+    padding-left: 14px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .reason-list li::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 6px; height: 1px;
+    background: currentColor;
+    opacity: 0.4;
+  }
+
+  .reason-summary{
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line-soft);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+    line-height: 1.45;
+  }
+  .reason-summary strong{
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* ---------------------------------------------------------
+     Token → Rule → Pattern chain (3 labeled stages)
+  --------------------------------------------------------- */
+  .chain{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .chain-stage{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .chain-label{
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chain-label::before{
+    content: "";
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.55;
+  }
+  .chain-body{
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .chain-body.mono{
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .chain-body .tk{
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(10,10,10,0.05);
+    color: var(--ink);
+    margin: 2px 4px 2px 0;
+    letter-spacing: 0.02em;
+  }
+  .pattern-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    border-radius: var(--radius-chip);
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fff;
+    text-decoration: none;
+    width: fit-content;
+  }
+  .pattern-chip:hover{
+    opacity: 0.88;
+  }
+  .pattern-chip__id{
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .pattern-chip__arrow{
+    opacity: 0.7;
+  }
+
+  /* ---------------------------------------------------------
+     RIGHT — Notification card (flat, no iPhone chrome)
+  --------------------------------------------------------- */
+  .notif{
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    display: grid;
+    grid-template-columns: minmax(150px, 180px) 1fr;
+    overflow: hidden;
+    min-height: 100%;
+  }
+
+  .notif-media{
+    position: relative;
+    background: var(--paper-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+  }
+  .notif-media img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .notif-body{
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .notif-pre{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .notif-title{
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    margin: 0;
+  }
+  .notif-text{
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .chip-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 5px 9px;
+    border-radius: var(--radius-chip);
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .chip--price{
+    background: #111;
+    color: #fff;
+    border-color: #111;
+  }
+  .chip--soft{
+    background: var(--paper-2);
+    color: var(--ink-soft);
+    border-color: var(--line);
+  }
+
+  .btn-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 8px;
+  }
+  .btn{
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: default;
+    white-space: nowrap;
+  }
+  .btn--primary{
+    background: #111;
+    color: #fff;
+    border-color: #111;
+    font-weight: 600;
+  }
+  .btn--ghost{
+    background: transparent;
+    border-color: var(--line);
+    color: var(--ink-soft);
+  }
+  .btn--tiny{
+    font-size: 11.5px;
+    padding: 7px 10px;
+  }
+
+  .aux-line{
+    font-size: 12.5px;
+    color: var(--ink-mute);
+    font-style: italic;
+    padding: 6px 0 0;
+    margin: 0;
+  }
+
+  /* ---------------------------------------------------------
+     Closing line
+  --------------------------------------------------------- */
+  .fig-foot{
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .fig-foot strong{
+    color: var(--ink);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  /* ---------------------------------------------------------
+     Responsive
+  --------------------------------------------------------- */
+  @media (max-width: 900px){
+    .figure{
+      padding: 28px 20px 32px;
+    }
+    .col-heads{ display: none; }
+    .row{
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .reason{
+      padding: 14px 16px 16px;
+    }
+    .reason-summary{ margin-top: 6px; }
+  }
+
+  @media (max-width: 640px){
+    .figure{ padding: 22px 16px 28px; }
+    .fig-title{ font-size: 20px; }
+    .fig-sub{ font-size: 14px; }
+
+    .notif{
+      grid-template-columns: 1fr;
+    }
+    .notif-media{
+      min-height: 200px;
+      aspect-ratio: 4/3;
+    }
+    .reason-list li{ font-size: 13px; }
+    .notif-title{ font-size: 16px; }
+    .notif-text{ font-size: 13px; }
+  }
+
+  /* prefers reduced motion — nothing animates here, but keep honest */
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+
+<body>
+
+<figure class="figure" role="group" aria-labelledby="fig-title">
+
+  <header class="fig-head">
+    <span class="fig-eyebrow">Backstage · Token → Rule → Pattern</span>
+    <h1 id="fig-title" class="fig-title">One dial, different stakes.</h1>
+    <p class="fig-sub">
+      Autonomy isn't one setting you pick once. Each decision is resolved live —
+      the <strong>8 Context Tokens</strong> are read, a <strong>rule fires</strong>,
+      and one of the <strong>AX Patterns</strong> handles the UI. Same preferences, same household — different friction.
+    </p>
+  </header>
+
+  <div class="col-heads" aria-hidden="true">
+    <span class="col-head col-head--ai">Backstage · Token → Rule → Pattern</span>
+    <span class="col-head col-head--user">What the user sees</span>
+  </div>
+
+  <div class="stack">
+
+    <!-- ================================================================
+         ROW 1 · AUTO · $2.40 · pantry refill (green)
+    ================================================================= -->
+    <article class="row" aria-label="Scenario 1: AUTO — pantry refill $2.40">
+
+      <aside class="reason reason--auto" aria-label="Token → Rule → Pattern — AUTO">
+        <span class="reason-chip">Backstage</span>
+        <div class="reason-head">
+          <span class="tier tier--auto">Auto</span>
+          <span class="tier-price">$2.40 · pantry refill</span>
+        </div>
+        <div class="chain">
+          <div class="chain-stage">
+            <span class="chain-label">Token State</span>
+            <div class="chain-body">
+              <span class="tk">Priority Weight=routine</span>
+              <span class="tk">Feasibility=in-stock</span>
+              <span class="tk">Brain.L2=10mo pattern</span>
+              <span class="tk">Autonomy Dial=Auto · groceries</span>
+            </div>
+          </div>
+          <div class="chain-stage">
+            <span class="chain-label">Rule Fired</span>
+            <div class="chain-body mono">
+              IF cost &lt; $10 AND repeat ≥ 8mo AND reversible &lt; 24h<br>
+              THEN tier = AUTO
+            </div>
+          </div>
+          <div class="chain-stage">
+            <span class="chain-label">Pattern Activated</span>
+            <a class="pattern-chip" href="../../context-grammar/ax-patterns/#pattern-D4" target="_parent">
+              <span class="pattern-chip__id">D4</span>
+              <span>Omakase Mode</span>
+              <span class="pattern-chip__arrow">↗</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <div class="notif" role="region" aria-label="Notification card — auto-bought yogurt">
+        <div class="notif-media">
+          <img
+            src="../../projects/project-01/tradejoes/son-loves-blueberry-yogurt.webp"
+            alt="Blueberry yogurt four-pack" loading="lazy" />
+        </div>
+        <div class="notif-body">
+          <span class="notif-pre">Home Brain · Auto-bought · Sun 9:12 AM</span>
+          <h2 class="notif-title">Blueberry Yogurt · 4-pack</h2>
+          <p class="notif-text">Same as last week. Added to Sunday cart. Delivery Monday.</p>
+          <div class="chip-row">
+            <span class="chip chip--price">$2.40 · free delivery</span>
+            <span class="chip chip--soft">Trader Joe's</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn--ghost btn--tiny" type="button">Undo (24h left)</button>
+            <button class="btn btn--tiny" type="button">See cart</button>
+          </div>
+        </div>
+      </div>
+
+    </article>
+
+    <!-- ================================================================
+         ROW 2 · CONFIRM · $48 · Leo's shoes (amber)
+    ================================================================= -->
+    <article class="row" aria-label="Scenario 2: CONFIRM — Leo's shoes $48">
+
+      <aside class="reason reason--confirm" aria-label="Token → Rule → Pattern — CONFIRM">
+        <span class="reason-chip">Backstage</span>
+        <div class="reason-head">
+          <span class="tier tier--confirm">Confirm</span>
+          <span class="tier-price">$48 · Leo's shoes</span>
+        </div>
+        <div class="chain">
+          <div class="chain-stage">
+            <span class="chain-label">Token State</span>
+            <div class="chain-body">
+              <span class="tk">Priority Weight=medium</span>
+              <span class="tk">Feasibility=sized 4Y</span>
+              <span class="tk">Brain.L2=outgrew 3wk ago</span>
+              <span class="tk">Autonomy Dial=Confirm · kids</span>
+            </div>
+          </div>
+          <div class="chain-stage">
+            <span class="chain-label">Rule Fired</span>
+            <div class="chain-body mono">
+              IF $10 ≤ cost &lt; $60 AND child-item AND 30-day-return<br>
+              THEN tier = CONFIRM
+            </div>
+          </div>
+          <div class="chain-stage">
+            <span class="chain-label">Pattern Activated</span>
+            <a class="pattern-chip" href="../../context-grammar/ax-patterns/#pattern-D1" target="_parent">
+              <span class="pattern-chip__id">D1</span>
+              <span>Approval Gate</span>
+              <span class="pattern-chip__arrow">↗</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <div class="notif" role="region" aria-label="Notification card — Leo's new shoes">
+        <div class="notif-media">
+          <img
+            src="../../projects/project-01/image-set03/nike-kids-blue.webp"
+            alt="Blue lightweight Nike kids' sneakers on discount" loading="lazy" />
+        </div>
+        <div class="notif-body">
+          <span class="notif-pre">Home Brain · Suggestion for Leo · Today</span>
+          <h2 class="notif-title">Leo's new shoes · size 4Y</h2>
+          <p class="notif-text">Found 3 in his blue, lightweight, on discount. Tap to approve and ship.</p>
+          <div class="chip-row">
+            <span class="chip chip--price">$38 · 21% off</span>
+            <span class="chip chip--soft">free returns · 30 days</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn--primary btn--tiny" type="button">Yes, go ahead</button>
+            <button class="btn btn--tiny" type="button">Remind me at dinner</button>
+            <button class="btn btn--ghost btn--tiny" type="button">I'll pass</button>
+          </div>
+        </div>
+      </div>
+
+    </article>
+
+    <!-- ================================================================
+         ROW 3 · SUGGEST · $150 · anniversary gift (neutral)
+    ================================================================= -->
+    <article class="row" aria-label="Scenario 3: SUGGEST — 12th anniversary $150">
+
+      <aside class="reason reason--suggest" aria-label="Token → Rule → Pattern — SUGGEST">
+        <span class="reason-chip">Backstage</span>
+        <div class="reason-head">
+          <span class="tier tier--suggest">Suggest</span>
+          <span class="tier-price">$150 · 12th anniversary · Apr 27</span>
+        </div>
+        <div class="chain">
+          <div class="chain-stage">
+            <span class="chain-label">Token State</span>
+            <div class="chain-body">
+              <span class="tk">Priority Weight=high · one-shot</span>
+              <span class="tk">Social Exposure=couple</span>
+              <span class="tk">Brain.L1=18mo memory cue</span>
+              <span class="tk">Autonomy Dial=Suggest · gifts</span>
+            </div>
+          </div>
+          <div class="chain-stage">
+            <span class="chain-label">Rule Fired</span>
+            <div class="chain-body mono">
+              IF cost ≥ $100 AND one-off AND requires-partner-input<br>
+              THEN tier = SUGGEST
+            </div>
+          </div>
+          <div class="chain-stage">
+            <span class="chain-label">Pattern Activated</span>
+            <a class="pattern-chip" href="../../context-grammar/ax-patterns/#pattern-D3" target="_parent">
+              <span class="pattern-chip__id">D3</span>
+              <span>Proactive Nudge</span>
+              <span class="pattern-chip__arrow">↗</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <div class="notif" role="region" aria-label="Notification card — anniversary champagne">
+        <div class="notif-media">
+          <img
+            src="https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=500&q=80"
+            alt="A bottle of champagne with two glasses" loading="lazy" />
+        </div>
+        <div class="notif-body">
+          <span class="notif-pre">Home Brain · For your 12th · Apr 27</span>
+          <h2 class="notif-title">A bottle you'd both remember</h2>
+          <p class="notif-text">
+            Drappier Carte d'Or. You mentioned liking this with Kiran 18 months ago.
+            In stock at your cellar.
+          </p>
+          <div class="chip-row">
+            <span class="chip chip--price">$142 · your cellar</span>
+            <span class="chip chip--soft">in stock</span>
+          </div>
+          <p class="aux-line">Also: anniversary dinner recipes?</p>
+          <div class="btn-row">
+            <button class="btn btn--primary btn--tiny" type="button">See 3 options</button>
+            <button class="btn btn--ghost btn--tiny" type="button">Not this year</button>
+          </div>
+        </div>
+      </div>
+
+    </article>
+
+  </div>
+
+  <footer class="fig-foot">
+    <strong>This isn't storytelling — it's a rule engine.</strong>
+    Every decision in the portfolio resolves the same way: tokens read → rule fires → one of the 23 AX Patterns handles the UI. The dial re-evaluates with every decision, not once per account.
+  </footer>
+
+</figure>
+
+<script>
+  // Respect ?noframe=1 — embedders may strip outer chrome via this flag.
+  (function(){
+    try{
+      var qs = new URLSearchParams(window.location.search);
+      if (qs.get('noframe') === '1'){
+        document.body.classList.add('noframe');
+      }
+    } catch(e){ /* no-op */ }
+  })();
+</script>
+
+</body>
+</html>

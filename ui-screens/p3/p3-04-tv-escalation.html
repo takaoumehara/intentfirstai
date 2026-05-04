@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3-04 TV Escalation — Sold Out Substitution</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  --blue: #4a6a90;
+  --blue-light: #e8f0fe;
+  --blue-dim: #dbeafe;
+  --green: #3a6a3a;
+  --green-light: #ecfdf5;
+  --amber: #7a5520;
+  --amber-light: #fef3e0;
+  --red: #b03030;
+  --red-light: #fde8e8;
+  --copper: #a05c35;
+  --surface: #ffffff;
+  --surface-dim: #fafafa;
+  --surface-container: #f4f4f5;
+  --text: #0a0a0a;
+  --text-2: #525252;
+  --text-3: #737373;
+  --text-4: #a1a1aa;
+  --border: rgba(10,10,10,0.12);
+  --border-light: rgba(10,10,10,0.07);
+}
+body {
+  background: #18181b;
+  font-family: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--text);
+}
+/* noframe mode: transparent body + no glow so parent page owns backdrop */
+body.noframe { background: transparent !important; }
+body.noframe::before { display: none !important; }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 70% at 42% 50%, rgba(255,255,255,0.04) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* ═══ STAGE ═══ */
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 20px 32px;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ═══ TV ═══ */
+.tv-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  opacity: 0;
+  transform: scale(0.94) translateY(16px);
+  transition: opacity 500ms var(--ease-out-expo), transform 600ms var(--ease-out-expo);
+}
+.tv-wrapper.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+.tv-frame {
+  width: min(1100px, calc(100vw - 360px - 32px - 32px));
+  height: calc(min(1100px, calc(100vw - 360px - 32px - 32px)) * 9 / 16);
+  background: var(--surface);
+  border-radius: 10px;
+  overflow: visible;
+  position: relative;
+  border: 12px solid #111113;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.5),
+    0 0 0 2px #4a4b50,
+    0 0 0 4px #2a2b30;
+}
+.tv-bezel { width: 200px; height: 20px; background: #111113; border-radius: 0 0 8px 8px; margin: 0 auto; }
+.tv-stand { width: 300px; height: 4px; background: #222328; border-radius: 2px; margin: -1px auto 0; }
+.tv-frame::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ═══ TV CONTENT ═══ */
+.tv-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 14px;
+  background: var(--surface-dim);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.tv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.tv-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tv-gemini-star {
+  font-size: 16px;
+  color: var(--blue);
+  line-height: 1;
+  animation: geminiPulse 2.4s ease-in-out infinite;
+}
+@keyframes geminiPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(0.88); }
+}
+.tv-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.tv-subtitle {
+  font-size: 14px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ═══ CARD GRID ═══ */
+.tv-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  padding: 4px;
+  margin: -4px;
+}
+
+/* ═══ CARD BASE ═══ */
+.tv-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 3.5px solid transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Confirmed (Marcus's already-bought) cards */
+.tv-card--confirmed {
+  opacity: 0.5;
+}
+.confirmed-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--green-light);
+  color: var(--green);
+  z-index: 5;
+  border: 1px solid rgba(58,106,58,0.2);
+}
+
+/* Sold-out card (Zara's TNF) */
+.tv-card--soldout {
+  opacity: 0.62;
+}
+.soldout-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 8;
+  opacity: 0;
+  transition: opacity 400ms var(--ease-out-expo);
+}
+.soldout-overlay.visible {
+  opacity: 1;
+}
+.soldout-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.94);
+  color: var(--red);
+  border: 2px solid var(--red);
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(176,48,48,0.18);
+}
+
+/* Adidas recommendation card */
+.tv-card--rec {
+  opacity: 0;
+  transform: translateX(40px);
+  transition:
+    opacity 500ms var(--ease-out-expo),
+    transform 500ms var(--ease-out-expo);
+  border-color: transparent;
+}
+.tv-card--rec.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Copper pulse border on Adidas card */
+@keyframes copperPulse {
+  0%, 100% { border-color: rgba(160, 92, 53, 0.5); box-shadow: 0 0 0 0 rgba(160,92,53,0.12), 0 2px 8px rgba(0,0,0,.08); }
+  50% { border-color: rgba(160, 92, 53, 0.9); box-shadow: 0 0 0 4px rgba(160,92,53,0.1), 0 4px 16px rgba(0,0,0,.1); }
+}
+.tv-card--rec.visible {
+  animation: copperPulse 2.2s ease-in-out infinite;
+}
+
+/* Card image */
+.tv-card-img {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background: var(--surface-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.tv-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+/* Card info bar */
+.tv-card-bar {
+  flex-shrink: 0;
+  padding: 8px 10px 9px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 68px;
+}
+.tv-card-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.tv-card-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.tv-card-brand {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.tv-tag {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface-dim);
+  color: var(--text-2);
+  border: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+.tv-tag--blue { background: var(--blue-light); color: var(--blue); border-color: var(--blue-dim); }
+.tv-tag--copper { background: #fdf0e8; color: var(--copper); border-color: rgba(160,92,53,0.25); }
+.conf-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--green-light);
+  color: var(--green);
+  border: 1px solid rgba(58,106,58,0.18);
+  white-space: nowrap;
+}
+
+/* Zara label on cards */
+.zara-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1px;
+}
+
+/* ═══ PHONE ═══ */
+.phone-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 500ms 1100ms var(--ease-out-expo), transform 500ms 1100ms var(--ease-out-expo);
+}
+.phone-wrapper.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.phone-frame {
+  width: 320px;
+  height: 680px;
+  background: #1a1a1c;
+  border-radius: 48px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.45),
+    0 0 0 1px rgba(255,255,255,.14);
+}
+.phone-frame::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 28px;
+  background: #111;
+  border-radius: 18px;
+  z-index: 10;
+}
+.phone-status-bar {
+  height: 52px;
+  padding: 30px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  position: relative;
+  z-index: 5;
+}
+.phone-status-icons {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.phone-body {
+  height: calc(100% - 52px - 30px);
+  overflow: hidden;
+  position: relative;
+  background: var(--surface);
+}
+.phone-home {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-dim);
+}
+.phone-home-bar {
+  width: 110px;
+  height: 4px;
+  background: var(--text);
+  border-radius: 9999px;
+  opacity: .2;
+}
+
+/* ═══ Phone Remote content ═══ */
+.phone-remote {
+  position: absolute;
+  inset: 0;
+  background: var(--surface-dim);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.connected-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--blue-light);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.remote-header {
+  padding: 14px 16px 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+/* Remote item rows */
+.remote-item {
+  margin: 0 14px 6px;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid transparent;
+  flex-shrink: 0;
+}
+.remote-item--soldout {
+  opacity: 0.55;
+}
+.remote-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.remote-item-soldout-text {
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 500;
+}
+.remote-separator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 20px;
+  flex-shrink: 0;
+}
+.remote-sep-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.remote-sep-label {
+  font-size: 11px;
+  color: var(--text-4);
+  font-weight: 500;
+}
+
+.remote-item--rec {
+  border-color: rgba(160,92,53,0.35);
+  background: #fdf8f4;
+}
+.remote-item-rec-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--copper);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 3px;
+}
+.remote-item-meta {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.remote-item-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.remote-item-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+.remote-item-price-delta {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.buy-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 9999px;
+  background: var(--copper);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.1px;
+  transition: background 150ms ease-out, transform 100ms ease-out;
+}
+.buy-btn:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .buy-btn:hover { background: #8a4d28; }
+}
+
+/* ═══ Frame labels ═══ */
+.frame-label {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(255,255,255,.3);
+  letter-spacing: 0.3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- ═══ TV ═══ -->
+  <div class="tv-wrapper" id="tvWrapper">
+    <div class="tv-frame">
+      <div class="tv-content">
+        <div class="tv-header">
+          <div class="tv-header-left">
+            <div class="tv-gemini-star">&#10022;</div>
+            <div class="tv-title">Family Shoe Selection</div>
+          </div>
+          <div class="tv-subtitle">
+            <span>&#9633;</span>
+            Chromecast · Living Room
+          </div>
+        </div>
+
+        <div class="tv-cards">
+
+          <!-- Card 1: Marcus TNF — Confirmed -->
+          <div class="tv-card tv-card--confirmed" id="card1">
+            <div class="confirmed-badge">&#10003; Confirmed</div>
+            <div class="tv-card-img">
+              <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack Hiker Mid WP">
+            </div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">Fastpack Hiker Mid WP</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">The North Face</span>
+                <span class="tv-tag tv-tag--blue">Marcus</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Marcus Nike — Confirmed -->
+          <div class="tv-card tv-card--confirmed" id="card2">
+            <div class="confirmed-badge">&#10003; Confirmed</div>
+            <div class="tv-card-img">
+              <img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB 6 NSW Leather">
+            </div>
+            <div class="tv-card-bar">
+              <div class="tv-card-name">SFB 6" NSW Leather</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Nike</span>
+                <span class="tv-tag tv-tag--blue">Marcus</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Zara TNF — Sold Out -->
+          <div class="tv-card tv-card--soldout" id="card3">
+            <div class="soldout-overlay" id="soldoutOverlay">
+              <div class="soldout-label">
+                <span>&#33;</span>
+                Your size is sold out &middot; UK 5
+              </div>
+            </div>
+            <div class="tv-card-img">
+              <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.33.webp" alt="TNF Fastpack Hiker Mid WP — Zara">
+            </div>
+            <div class="tv-card-bar">
+              <div class="zara-label">Zara</div>
+              <div class="tv-card-name">Fastpack Hiker Mid WP</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">The North Face</span>
+                <span class="conf-badge">91%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Adidas Terrex — Recommendation, slides in -->
+          <div class="tv-card tv-card--rec" id="card4">
+            <div class="tv-card-img">
+              <img src="../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif" alt="Adidas Terrex Free Hiker 2.0 GTX">
+            </div>
+            <div class="tv-card-bar">
+              <div class="zara-label">Zara &middot; Suggested alternative</div>
+              <div class="tv-card-name">Terrex Free Hiker 2.0 GTX</div>
+              <div class="tv-card-meta-row">
+                <span class="tv-card-brand">Adidas</span>
+                <span class="conf-badge">91%</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:2px;">Gore-Tex. Waterproof. Stylish.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="tv-bezel"></div>
+    <div class="tv-stand"></div>
+    <div class="frame-label">Chromecast &mdash; Living Room TV</div>
+  </div>
+
+  <!-- ═══ Phone ═══ -->
+  <div class="phone-wrapper" id="phoneWrapper">
+    <div class="phone-frame">
+      <div class="phone-status-bar">
+        <span>9:41</span>
+        <div class="phone-status-icons">
+          <svg width="15" height="12" viewBox="0 0 15 12" fill="#0a0a0a">
+            <rect x="0" y="8" width="2.5" height="4" opacity="0.25" rx="0.5"/>
+            <rect x="3.5" y="5.5" width="2.5" height="6.5" opacity="0.5" rx="0.5"/>
+            <rect x="7" y="3" width="2.5" height="9" rx="0.5"/>
+            <rect x="10.5" y="0.5" width="2.5" height="11.5" rx="0.5"/>
+          </svg>
+          <svg width="17" height="13" viewBox="0 0 24 18" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round">
+            <path d="M1.5 7C5.8 2.7 12 1 12 1S18.2 2.7 22.5 7"/>
+            <path d="M5 10.5C8 7.5 12 6.5 12 6.5S16 7.5 19 10.5"/>
+            <path d="M8.5 14C10 12.5 12 12 12 12S14 12.5 15.5 14"/>
+            <circle cx="12" cy="17" r="1.5" fill="#0a0a0a" stroke="none"/>
+          </svg>
+          <svg width="22" height="12" viewBox="0 0 28 14" fill="#0a0a0a">
+            <rect x="0.75" y="0.75" width="22.5" height="12.5" rx="2.25" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+            <rect x="23.5" y="3.5" width="3" height="7" rx="1.5"/>
+            <rect x="2.5" y="2.5" width="18" height="9" rx="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="phone-body">
+        <div class="phone-remote">
+          <div class="connected-badge">
+            <span style="display:flex;align-items:center;gap:4px;">
+              <span>&#9633;</span>
+              Connected to Living Room TV
+            </span>
+          </div>
+
+          <div class="remote-header">Zara's Shoes</div>
+
+          <!-- TNF — sold out -->
+          <div class="remote-item remote-item--soldout">
+            <div class="remote-item-name">TNF Fastpack Hiker Mid WP</div>
+            <div class="remote-item-soldout-text">Your size &middot; UK 5 &middot; Sold out</div>
+          </div>
+
+          <!-- Separator -->
+          <div class="remote-separator">
+            <div class="remote-sep-line"></div>
+            <div class="remote-sep-label">Alternative found</div>
+            <div class="remote-sep-line"></div>
+          </div>
+
+          <!-- Adidas recommendation -->
+          <div class="remote-item remote-item--rec">
+            <div class="remote-item-rec-label">91% match &middot; Same confidence</div>
+            <div class="remote-item-name">Adidas Terrex Free Hiker 2.0 GTX</div>
+            <div class="remote-item-meta">
+              <span>UK 5</span>
+              <span style="color:var(--border)">|</span>
+              <span style="color:var(--green);font-weight:600;">Available</span>
+              <span style="color:var(--border)">|</span>
+              <span>Gore-Tex</span>
+            </div>
+            <div class="remote-item-price-row">
+              <span class="remote-item-price">&#163;170</span>
+              <span class="remote-item-price-delta">vs. original &#163;69</span>
+            </div>
+            <button class="buy-btn">Add to Cart &mdash; Adidas</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone-home"><div class="phone-home-bar"></div></div>
+    </div>
+    <div class="frame-label">Pixel 9 Pro &mdash; Remote (Naomi)</div>
+  </div>
+
+</div>
+
+<script>
+// Animation sequence on load
+window.addEventListener('load', function() {
+  // Step 1: TV fades in (Marcus's cards + Zara's TNF appear simultaneously)
+  setTimeout(function() {
+    document.getElementById('tvWrapper').classList.add('visible');
+  }, 80);
+
+  // Step 2: Sold-out label fades in after 800ms
+  setTimeout(function() {
+    document.getElementById('soldoutOverlay').classList.add('visible');
+  }, 800);
+
+  // Step 3: Adidas card slides in from right after 1200ms
+  // Phone wrapper appears simultaneously
+  setTimeout(function() {
+    document.getElementById('card4').classList.add('visible');
+    document.getElementById('phoneWrapper').classList.add('visible');
+  }, 1200);
+});
+if (new URLSearchParams(location.search).get('noframe') === '1') {
+  document.body.classList.add('noframe');
+}
+</script>
+</body>
+</html>

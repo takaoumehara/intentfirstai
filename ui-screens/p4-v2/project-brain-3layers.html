@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Brain · L1/L2/L3 | P4 Project Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding: 48px 40px;
+  }
+  .artifact { width: 100%; max-width: 1200px; margin: 0 auto; }
+
+  .hdr-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+  .hdr-title { font-family: var(--font-sans); font-weight: 500; font-size: 30px; letter-spacing: -0.8px; margin: 0 0 8px; line-height: 1.2; }
+  .hdr-sub { font-family: var(--font-jp); font-size: 15px; color: var(--text-2); max-width: 820px; line-height: 1.7; margin: 0 0 12px; }
+  .hdr-note { font-family: var(--font-jp); font-size: 13px; color: var(--text-3); max-width: 820px; line-height: 1.7; margin: 0 0 36px; }
+  .hdr-note strong { color: var(--text-2); font-weight: 500; }
+
+  /* 3 layer cards stacked */
+  .layers { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+  .layer-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; display: grid; grid-template-columns: 140px 1fr 260px; gap: 22px; align-items: start; border-left-width: 4px; }
+  .layer-card--l1 { border-left-color: var(--illust-purple); }
+  .layer-card--l2 { border-left-color: var(--illust-blue); }
+  .layer-card--l3 { border-left-color: var(--illust-green); }
+
+  .lc-ident { display: flex; flex-direction: column; gap: 4px; }
+  .lc-badge { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.6px; padding: 4px 10px; border-radius: 5px; width: fit-content; }
+  .lc-badge--l1 { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+  .lc-badge--l2 { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .lc-badge--l3 { background: var(--chip-green-bg); color: var(--chip-green-text); }
+  .lc-name { font-family: var(--font-sans); font-size: 18px; font-weight: 500; letter-spacing: -0.3px; margin-top: 4px; }
+  .lc-ja { font-family: var(--font-jp); font-size: 12px; color: var(--text-3); }
+
+  .lc-body { }
+  .lc-q { font-family: var(--font-jp); font-size: 13px; color: var(--text); font-style: italic; margin-bottom: 12px; font-weight: 500; }
+  .lc-contents { display: flex; flex-direction: column; gap: 6px; }
+  .lc-item { display: flex; gap: 10px; align-items: flex-start; font-family: var(--font-jp); font-size: 12px; color: var(--text-2); line-height: 1.5; }
+  .lc-item::before { content: '·'; color: var(--text-3); flex-shrink: 0; font-weight: 700; }
+
+  /* Example sample */
+  .lc-ex { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-family: var(--font-jp); font-size: 11px; line-height: 1.65; color: var(--text-2); }
+  .lc-ex-label { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+  .lc-ex-q { color: var(--text); font-weight: 500; }
+
+  /* Graduation flow section */
+  .grad-section { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 28px; }
+  .grad-hdr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .grad-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-3); }
+  .grad-title { font-family: var(--font-sans); font-size: 18px; font-weight: 500; letter-spacing: -0.3px; margin: 0; }
+
+  .grad-flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grad-item { padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .grad-item__from { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.4px; }
+  .grad-item__arrow { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--text-3); text-align: center; }
+  .grad-item__to { display: flex; align-items: center; gap: 8px; font-family: var(--font-sans); font-size: 13px; font-weight: 500; }
+  .grad-item__desc { font-family: var(--font-jp); font-size: 11px; color: var(--text-2); line-height: 1.6; padding-top: 8px; border-top: 1px solid var(--border); }
+
+  .grad-tag { font-family: var(--font-mono); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.3px; }
+  .grad-tag--evap { background: var(--chip-red-bg); color: var(--chip-red-text); }
+  .grad-tag--merge { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .grad-tag--permanent { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+
+  /* P1 connection */
+  .connection { background: var(--bg-2); border-left: 3px solid var(--color-brain); border-radius: 6px; padding: 18px 22px; }
+  .conn-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+  .conn-text { font-family: var(--font-jp); font-size: 13px; color: var(--text); line-height: 1.8; margin: 0; }
+  .conn-text strong { color: var(--chip-purple-text); font-weight: 600; }
+
+  @media (max-width: 900px) {
+    body { padding: 24px 16px; }
+    .layer-card { grid-template-columns: 1fr; gap: 14px; }
+    .grad-flow { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="artifact">
+
+  <div class="hdr-label">Context Grammar · Project Brain Structure</div>
+  <h1 class="hdr-title">Project Brain · 内部の3層構造</h1>
+  <p class="hdr-sub">
+    Project Brain は単一の箱ではない。<strong>L1 Intent · L2 Learning · L3 Right Now</strong>—3つの層で構成される。各層は持つ情報の性質が違い、プロジェクト終了時に<strong>違う宛先へ卒業する</strong>（Graduated Archive）。
+  </p>
+  <p class="hdr-note">
+    この3層構造は Context Grammar の普遍則—<strong>家族Brain（P1）</strong>も<strong>旅行Brain（P2）</strong>も同じ構造を持つ。P4ではそれが組織の時限Brain に適用される。
+  </p>
+
+  <!-- 3 Layers -->
+  <div class="layers">
+
+    <!-- L1 Intent -->
+    <div class="layer-card layer-card--l1">
+      <div class="lc-ident">
+        <span class="lc-badge lc-badge--l1">L1 · INTENT</span>
+        <span class="lc-name">意図層</span>
+        <span class="lc-ja">Why we're doing this</span>
+      </div>
+      <div class="lc-body">
+        <div class="lc-q">「なぜこのプロジェクトを作ったのか」</div>
+        <div class="lc-contents">
+          <div class="lc-item">プロジェクトの原意 · 根本目的</div>
+          <div class="lc-item">主要な意思決定とその理由</div>
+          <div class="lc-item">スコープの境界線（何を作らないか）</div>
+          <div class="lc-item">譲れない原則 · 守るべき体験</div>
+        </div>
+      </div>
+      <div class="lc-ex">
+        <div class="lc-ex-label">Project Atlas · L1 Example</div>
+        <span class="lc-ex-q">「迷いを歓迎する探索UI」</span>—効率より発見の体験。2026-01 キックオフで Priya が定義。変わらないスコープ境界。
+      </div>
+    </div>
+
+    <!-- L2 Learning -->
+    <div class="layer-card layer-card--l2">
+      <div class="lc-ident">
+        <span class="lc-badge lc-badge--l2">L2 · LEARNING</span>
+        <span class="lc-name">学習層</span>
+        <span class="lc-ja">What we discovered</span>
+      </div>
+      <div class="lc-body">
+        <div class="lc-q">「このプロジェクトで何を学んだか」</div>
+        <div class="lc-contents">
+          <div class="lc-item">ユーザー反応の傾向・発見されたパターン</div>
+          <div class="lc-item">チームの働き方・効果的な協働形式</div>
+          <div class="lc-item">技術的制約と回避策</div>
+          <div class="lc-item">仮説の検証結果（成功 · 失敗の両方）</div>
+        </div>
+      </div>
+      <div class="lc-ex">
+        <div class="lc-ex-label">Project Atlas · L2 Example</div>
+        <span class="lc-ex-q">「ペルソナAは午後3時に離脱率が上がる」</span>—Sprint 2 のユーザーテストから発見。探索UIにはこの時間帯の配慮が必要と判明。
+      </div>
+    </div>
+
+    <!-- L3 Right Now -->
+    <div class="layer-card layer-card--l3">
+      <div class="lc-ident">
+        <span class="lc-badge lc-badge--l3">L3 · RIGHT NOW</span>
+        <span class="lc-name">現在層</span>
+        <span class="lc-ja">What's happening today</span>
+      </div>
+      <div class="lc-body">
+        <div class="lc-q">「今このスプリントで何が起きているか」</div>
+        <div class="lc-contents">
+          <div class="lc-item">今週の優先度 · 未決事項</div>
+          <div class="lc-item">進行中のタスク · ブロッカー</div>
+          <div class="lc-item">直近の会議で出た話題</div>
+          <div class="lc-item">現在のチーム構成 · 役割配分</div>
+        </div>
+      </div>
+      <div class="lc-ex">
+        <div class="lc-ex-label">Project Atlas · L3 Example</div>
+        <span class="lc-ex-q">「Sprint 4 · Intent Fidelity 監視導入中」</span>—今週Priyaが取り組んでいる。Sprint 5 で決着予定。プロジェクト終了と共に意味を失う。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Graduation flow -->
+  <div class="grad-section">
+    <div class="grad-hdr">
+      <div>
+        <div class="grad-label">Graduated Archive · Exit Paths</div>
+        <h2 class="grad-title">プロジェクト終了時—3層は別々の宛先へ卒業する</h2>
+      </div>
+    </div>
+
+    <div class="grad-flow">
+      <!-- L3 → evaporate -->
+      <div class="grad-item">
+        <div class="grad-item__from">
+          <span class="lc-badge lc-badge--l3">L3</span>
+          <span>Right Now</span>
+        </div>
+        <div class="grad-item__arrow">↓</div>
+        <div class="grad-item__to">
+          <span class="grad-tag grad-tag--evap">EVAPORATE</span>
+          <span>蒸発</span>
+        </div>
+        <div class="grad-item__desc">
+          今この瞬間の文脈は、プロジェクト終了の瞬間に意味を失う。保存する価値がない—次のプロジェクトには邪魔になる。だから蒸発する。
+        </div>
+      </div>
+
+      <!-- L2 → merge to Org -->
+      <div class="grad-item">
+        <div class="grad-item__from">
+          <span class="lc-badge lc-badge--l2">L2</span>
+          <span>Learning</span>
+        </div>
+        <div class="grad-item__arrow">↓</div>
+        <div class="grad-item__to">
+          <span class="grad-tag grad-tag--merge">MERGE</span>
+          <span>Org Brain へ統合</span>
+        </div>
+        <div class="grad-item__desc">
+          学びは組織の資産。次のプロジェクトの出発点を底上げする。Atlas で発見された「午後3時離脱」は、Research Brain に流れ込み、Orion のデザイン判断を静かに導く。
+        </div>
+      </div>
+
+      <!-- L1 → compress to archive -->
+      <div class="grad-item">
+        <div class="grad-item__from">
+          <span class="lc-badge lc-badge--l1">L1</span>
+          <span>Intent</span>
+        </div>
+        <div class="grad-item__arrow">↓</div>
+        <div class="grad-item__to">
+          <span class="grad-tag grad-tag--permanent">COMPRESS</span>
+          <span>Atlas Archive へ永続保存</span>
+        </div>
+        <div class="grad-item__desc">
+          意図と主要決定の理由は、圧縮されて永続アーカイブへ。3年後、Priya が去っても「なぜ探索UIにしたか」の答えは残る。Archive Replay でスクラブ可能。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P1 Connection -->
+  <div class="connection">
+    <div class="conn-label">Universal Pattern · P1 との接続</div>
+    <p class="conn-text">
+      この3層構造は Context Grammar の<strong>普遍則</strong>だ。家族Brain（P1）も、旅行Brain（P2）も、Project Brain（P4）も、全て Identity／Accumulated／Right Now の3層を持つ。<strong>何が L1 に入るかがドメインで違うだけ</strong>—家族なら「この家族の価値観」、旅行なら「この旅の目的」、プロジェクトなら「このプロジェクトの意図」。構造は1つ。
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

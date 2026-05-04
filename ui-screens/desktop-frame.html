@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desktop Browser — Device Frame Template</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  /* ===================================================================
+     Desktop Browser Frame — Reusable Template
+     ===================================================================
+     Mimics: Arc / Safari / Chrome on macOS (light mode)
+     Base dimensions: 1440 × 900 (16:10 MacBook common viewport)
+     Chrome height: 48px (single-row URL + traffic lights)
+
+     Usage:
+       1. Copy this entire file
+       2. Replace content inside .content
+       3. Set URL via ?url=example.com
+       4. Add ?noframe=1 for iframe embed
+     =================================================================== */
+
+  html { overflow: hidden; height: 100%; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: linear-gradient(135deg, #f6f5f0 0%, #ebe9e1 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    font-family: -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  /* ── Noframe mode ── */
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .browser {
+    width: 100vw; height: 100vh;
+    border-radius: 0; box-shadow: none; transform: none;
+  }
+  body.noframe .chrome { display: none; }
+
+  /* ── Browser Window ── */
+  .browser {
+    width: 1440px;
+    height: 900px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 32px) / 900px), calc((100vw - 32px) / 1440px)));
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.08),
+      0 8px 24px rgba(0,0,0,0.10),
+      0 32px 80px rgba(0,0,0,0.06),
+      inset 0 0 0 1px rgba(0,0,0,0.05);
+  }
+
+  /* ── Browser Chrome ── */
+  .chrome {
+    height: 48px;
+    background: #f6f6f6;
+    border-bottom: 1px solid #e1e1e1;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  /* Traffic lights */
+  .chrome-lights {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .light.red    { background: #ff5f57; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.1); }
+  .light.yellow { background: #febc2e; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.1); }
+  .light.green  { background: #28c840; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.1); }
+
+  /* Nav arrows */
+  .chrome-nav {
+    display: flex;
+    gap: 2px;
+    color: #8e8e93;
+  }
+  .chrome-nav .material-symbols-outlined {
+    font-size: 18px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  /* URL bar */
+  .chrome-url {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    font-size: 13px;
+    color: #1d1d1f;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+  .chrome-url .material-symbols-outlined {
+    font-size: 14px;
+    color: #8e8e93;
+  }
+  .chrome-url-text {
+    color: #6e6e73;
+    font-family: -apple-system, system-ui, sans-serif;
+  }
+  .chrome-url-text b {
+    color: #1d1d1f;
+    font-weight: 500;
+  }
+
+  /* Right icons */
+  .chrome-right {
+    display: flex;
+    gap: 6px;
+    color: #8e8e93;
+  }
+  .chrome-right .material-symbols-outlined {
+    font-size: 18px;
+    padding: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  /* ── Content Area ── */
+  .content {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: auto;
+    background: #fff;
+  }
+
+  body.noframe .content {
+    top: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="browser">
+  <div class="chrome">
+    <div class="chrome-lights">
+      <span class="light red"></span>
+      <span class="light yellow"></span>
+      <span class="light green"></span>
+    </div>
+    <div class="chrome-nav">
+      <span class="material-symbols-outlined">arrow_back_ios</span>
+      <span class="material-symbols-outlined">arrow_forward_ios</span>
+    </div>
+    <div class="chrome-url">
+      <span class="material-symbols-outlined">lock</span>
+      <span class="chrome-url-text"><b id="chrome-host">family.brain</b><span id="chrome-path">/disclosure</span></span>
+    </div>
+    <div class="chrome-right">
+      <span class="material-symbols-outlined">share</span>
+      <span class="material-symbols-outlined">add</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       YOUR CONTENT GOES HERE
+       ═══════════════════════════════════════ -->
+  <div class="content">
+    <div style="padding:64px 80px;max-width:960px;">
+      <h1 style="font-size:48px;font-weight:600;letter-spacing:-1px;margin-bottom:24px;color:#0a0a0a;">Desktop Browser Frame</h1>
+      <p style="font-size:18px;color:#666;line-height:1.6;margin-bottom:32px;">
+        Device frame template — 1440 × 900 viewport.
+        Replace content inside <code style="font-family:'SF Mono',monospace;background:#f4f4f4;padding:2px 6px;border-radius:4px;font-size:15px;">.content</code>.
+      </p>
+      <p style="font-size:15px;color:#999;line-height:1.6;">
+        URL parameters: <code style="font-family:'SF Mono',monospace;">?url=host/path</code> to set URL bar,
+        <code style="font-family:'SF Mono',monospace;">?noframe=1</code> for iframe embed.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('noframe') === '1') document.body.classList.add('noframe');
+  const urlParam = params.get('url');
+  if (urlParam) {
+    const [host, ...rest] = urlParam.split('/');
+    document.getElementById('chrome-host').textContent = host;
+    document.getElementById('chrome-path').textContent = rest.length ? '/' + rest.join('/') : '';
+  }
+</script>
+</body>
+</html>

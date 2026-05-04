@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Living Home · Screens — Context Grammar</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css" />
+<style>
+  /* ─────────────────────────────────────────────
+     Living Home · Screens showcase
+     A UI-browser for Project 01
+  ───────────────────────────────────────────── */
+
+  :root {
+    --kind-user:      #30c969;
+    --kind-user-bg:   rgba(48, 201, 105, 0.10);
+    --kind-user-br:   rgba(48, 201, 105, 0.35);
+
+    --kind-concept:   #D97706;
+    --kind-concept-bg: rgba(217, 119, 6, 0.10);
+    --kind-concept-br: rgba(217, 119, 6, 0.35);
+
+    --kind-backstage: #8B5CF6;
+    --kind-backstage-bg: rgba(139, 92, 246, 0.10);
+    --kind-backstage-br: rgba(139, 92, 246, 0.35);
+
+    --card-radius: 12px;
+    --card-border: rgba(0, 0, 0, 0.08);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.06);
+    --meta-text: #6b6a67;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg, #fdfcfa);
+    color: var(--text, #1a1816);
+    font-family: var(--font-sans, 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ─── Page shell ─── */
+  .shell {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 40px 32px 96px;
+  }
+
+  /* ─── Header ─── */
+  .crumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono, 'Geist Mono', 'JetBrains Mono', monospace);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--meta-text);
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .crumb:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text, #1a1816);
+  }
+
+  .header {
+    margin-top: 20px;
+    margin-bottom: 36px;
+    max-width: 780px;
+  }
+
+  .header h1 {
+    font-size: clamp(32px, 4.2vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+  }
+
+  .header .subtitle {
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--meta-text);
+    margin: 0 0 24px 0;
+    font-weight: 400;
+  }
+
+  /* ─── Legend ─── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.025);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--meta-text);
+  }
+  .legend-item strong { color: var(--text, #1a1816); font-weight: 600; }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-dot--user      { background: var(--kind-user); }
+  .legend-dot--concept   { background: var(--kind-concept); }
+  .legend-dot--backstage { background: var(--kind-backstage); }
+
+  /* ─── Filter bar ─── */
+  .filter-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: 32px -32px 28px;
+    padding: 14px 32px;
+    background: color-mix(in srgb, var(--bg, #fdfcfa) 92%, transparent);
+    -webkit-backdrop-filter: saturate(160%) blur(10px);
+            backdrop-filter: saturate(160%) blur(10px);
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 100px;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text, #1a1816);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .filter-tab:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+  .filter-tab[aria-pressed="true"] {
+    background: var(--text, #1a1816);
+    color: var(--bg, #fdfcfa);
+    border-color: var(--text, #1a1816);
+  }
+  .filter-tab .count {
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 11px;
+    opacity: 0.65;
+    font-weight: 400;
+  }
+  .filter-tab[aria-pressed="true"] .count { opacity: 0.8; }
+
+  /* ─── Grid ─── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
+  }
+
+  /* ─── Card ─── */
+  .card {
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-hover);
+  }
+  .card.hidden { display: none; }
+
+  /* ─── Thumbnail ─── */
+  .thumb {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #f3f2ee;
+    overflow: hidden;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .thumb-frame {
+    position: absolute;
+    inset: 0;
+    width: 222.22%;            /* 100 / 0.45 */
+    height: 222.22%;
+    transform: scale(0.45);
+    transform-origin: top left;
+    pointer-events: none;
+  }
+  .thumb-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  /* click-through overlay so entire card is clickable */
+  .card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .card > *:not(.card-link) { position: relative; z-index: 2; }
+
+  /* ─── Card body ─── */
+  .card-body {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    width: fit-content;
+    border: 1px solid;
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .badge--user {
+    color: var(--kind-user);
+    background: var(--kind-user-bg);
+    border-color: var(--kind-user-br);
+  }
+  .badge--user .badge-dot { background: var(--kind-user); }
+
+  .badge--concept {
+    color: var(--kind-concept);
+    background: var(--kind-concept-bg);
+    border-color: var(--kind-concept-br);
+  }
+  .badge--concept .badge-dot { background: var(--kind-concept); }
+
+  .badge--backstage {
+    color: var(--kind-backstage);
+    background: var(--kind-backstage-bg);
+    border-color: var(--kind-backstage-br);
+  }
+  .badge--backstage .badge-dot { background: var(--kind-backstage); }
+
+  .card-title {
+    font-size: 17px;
+    line-height: 1.3;
+    font-weight: 600;
+    margin: 2px 0 0;
+    letter-spacing: -0.005em;
+  }
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 13px;
+    color: var(--meta-text);
+    margin-top: 2px;
+  }
+  .meta-row {
+    display: flex;
+    gap: 6px;
+  }
+  .meta-label {
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    min-width: 58px;
+    padding-top: 1px;
+    opacity: 0.75;
+  }
+  .meta-val {
+    color: var(--text, #1a1816);
+    font-weight: 500;
+  }
+  .meta-val--dim {
+    color: var(--meta-text);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .card-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 11px;
+    color: var(--meta-text);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .card-footer a {
+    color: var(--text, #1a1816);
+    position: relative;
+    z-index: 3;
+  }
+  .card-footer a:hover { color: var(--kind-user); }
+
+  /* ─── Empty state ─── */
+  .empty {
+    grid-column: 1 / -1;
+    padding: 80px 32px;
+    text-align: center;
+    color: var(--meta-text);
+    font-size: 15px;
+    border: 1px dashed var(--card-border);
+    border-radius: var(--card-radius);
+    display: none;
+  }
+  .empty.visible { display: block; }
+
+  /* ─── Footer ─── */
+  .page-footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .page-footer a.back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text, #1a1816);
+    font-weight: 500;
+  }
+  .page-footer a.back:hover { color: var(--kind-user); }
+  .footnote {
+    font-family: var(--font-mono, 'Geist Mono', monospace);
+    font-size: 11px;
+    color: var(--meta-text);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 900px) {
+    .shell { padding: 28px 20px 72px; }
+    .filter-bar { margin-left: -20px; margin-right: -20px; padding: 12px 20px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  }
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 30px; }
+    .header .subtitle { font-size: 16px; }
+  }
+
+  /* ─── Prefers dark (optional) ─── */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --card-border: rgba(255, 255, 255, 0.10);
+      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+      --meta-text: #9a9892;
+    }
+    .card { background: #121014; }
+    .thumb { background: #1a181d; }
+    .legend { background: rgba(255, 255, 255, 0.03); }
+    .filter-tab:hover { background: rgba(255, 255, 255, 0.06); }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ─────────────────── Header ─────────────────── -->
+  <header>
+    <a class="crumb" href="../../projects/project-01/p1-scroll.html">
+      <span aria-hidden="true">←</span>
+      <span>Back to Living Home story</span>
+    </a>
+
+    <div class="header">
+      <h1>Living Home · Screens</h1>
+      <p class="subtitle">
+        Every UI built for Project 01 — organized by who actually sees it.
+      </p>
+
+      <div class="legend" role="list">
+        <span class="legend-item" role="listitem">
+          <span class="legend-dot legend-dot--user"></span>
+          <span><strong>User UI</strong> — what a family member sees</span>
+        </span>
+        <span class="legend-item" role="listitem">
+          <span class="legend-dot legend-dot--concept"></span>
+          <span><strong>Concept</strong> — explainer for you (the reader)</span>
+        </span>
+        <span class="legend-item" role="listitem">
+          <span class="legend-dot legend-dot--backstage"></span>
+          <span><strong>Backstage</strong> — AI internals, never shown to users</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─────────────────── Filter bar ─────────────────── -->
+  <nav class="filter-bar" aria-label="Filter screens by classification">
+    <button class="filter-tab" data-filter="all"       aria-pressed="true">
+      All <span class="count" data-count="all">·</span>
+    </button>
+    <button class="filter-tab" data-filter="user"      aria-pressed="false">
+      <span class="legend-dot legend-dot--user" style="width:8px;height:8px;"></span>
+      User UI <span class="count" data-count="user">·</span>
+    </button>
+    <button class="filter-tab" data-filter="concept"   aria-pressed="false">
+      <span class="legend-dot legend-dot--concept" style="width:8px;height:8px;"></span>
+      Concept <span class="count" data-count="concept">·</span>
+    </button>
+    <button class="filter-tab" data-filter="backstage" aria-pressed="false">
+      <span class="legend-dot legend-dot--backstage" style="width:8px;height:8px;"></span>
+      Backstage <span class="count" data-count="backstage">·</span>
+    </button>
+  </nav>
+
+  <!-- ─────────────────── Grid ─────────────────── -->
+  <main class="grid" id="grid">
+
+    <!-- ===== s0 · Family intro ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s0-family-intro.html" aria-label="Open Family intro"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s0-family-intro.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Family intro</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai (admin)</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPad</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 01</span>
+          <a href="../../projects/project-01/p1-scroll.html#intro">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s3 · Identity card ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s3-identity-card.html" aria-label="Open Identity card"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s3-identity-card.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Identity card</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPad</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 03</span>
+          <a href="../../projects/project-01/p1-scroll.html#identity">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s4 · Learning map ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s4-learning-map.html" aria-label="Open Learning map"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s4-learning-map.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Learning map · 11 months</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPad</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 04</span>
+          <a href="../../projects/project-01/p1-scroll.html#learning">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s5 · Token dashboard ===== -->
+    <article class="card" data-kind="backstage">
+      <a class="card-link" href="s5-token-dashboard.html" aria-label="Open Token dashboard"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s5-token-dashboard.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--backstage"><span class="badge-dot"></span>Backstage</span>
+        <h3 class="card-title">8 Context Tokens · Now Layer</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">AI internals</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 05</span>
+          <a href="../../projects/project-01/p1-scroll.html#dashboard">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s7 · Disclosure matrix ===== -->
+    <article class="card" data-kind="concept">
+      <a class="card-link" href="s7-disclosure-matrix.html" aria-label="Open Disclosure matrix"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s7-disclosure-matrix.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--concept"><span class="badge-dot"></span>Concept</span>
+        <h3 class="card-title">Disclosure Matrix · full</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">Reader (designer view)</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 07</span>
+          <a href="../../projects/project-01/p1-scroll.html#matrix">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s7b · Disclosure settings ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s7b-disclosure-settings.html" aria-label="Open Disclosure settings"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s7b-disclosure-settings.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Disclosure Settings · admin</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai (admin)</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPad</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 07</span>
+          <a href="../../projects/project-01/p1-scroll.html#matrix">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s8a · Fridge bento ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s8a-fridge-bento.html" aria-label="Open Fridge lunch planning"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s8a-fridge-bento.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Fridge · lunch planning</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">Samsung Family Hub</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 08</span>
+          <a href="../../projects/project-01/p1-scroll.html#fridge">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s8-5 · Yogurt shopping ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s8-5-yogurt-shopping.html" aria-label="Open Weekly groceries"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s8-5-yogurt-shopping.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Weekly groceries · yogurt</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPhone</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 08</span>
+          <a href="../../projects/project-01/p1-scroll.html#yogurt">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s8-6 · Dynamic friction ===== -->
+    <article class="card" data-kind="concept">
+      <a class="card-link" href="s8-6-dynamic-friction.html" aria-label="Open Dynamic Friction explainer"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s8-6-dynamic-friction.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--concept"><span class="badge-dot"></span>Concept</span>
+        <h3 class="card-title">Dynamic Friction · hybrid</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">Reader (designer view)</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 08</span>
+          <a href="../../projects/project-01/p1-scroll.html#friction">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s8-7 · Cross-media ===== -->
+    <article class="card" data-kind="backstage">
+      <a class="card-link" href="s8-7-cross-media.html" aria-label="Open Cross-Media correlation"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s8-7-cross-media.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--backstage"><span class="badge-dot"></span>Backstage</span>
+        <h3 class="card-title">Cross-Media correlation</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">AI internals</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 08</span>
+          <a href="../../projects/project-01/p1-scroll.html#crossmedia">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s8-8 · Family Brain Shared Interest Graph ===== -->
+    <article class="card" data-kind="backstage">
+      <a class="card-link" href="s8-8-family-brain.html" aria-label="Open Family Brain Shared Interest Graph"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s8-8-family-brain.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--backstage"><span class="badge-dot"></span>Backstage</span>
+        <h3 class="card-title">Family Brain · Shared Interest</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">AI internals</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 08</span>
+          <a href="../../projects/project-01/p1-scroll.html#crossmedia">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s8b · Notification ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s8b-notification.html" aria-label="Open Lock-screen notification"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s8b-notification.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Silent Resolution · one notif</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPhone lock</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 08</span>
+          <a href="../../projects/project-01/p1-scroll.html#phone">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s9a · Emergency ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s9a-emergency.html" aria-label="Open Care Architecture CarPlay"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s9a-emergency.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Care Architecture · CarPlay</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">CarPlay</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 09</span>
+          <a href="../../projects/project-01/p1-scroll.html#care">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s9a · Normal home ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s9a-normal-home.html" aria-label="Open Fridge normal state"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s9a-normal-home.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Fridge · normal</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">Samsung Family Hub</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 09</span>
+          <a href="../../projects/project-01/p1-scroll.html#fridge">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s9b · Approvals ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s9b-approvals.html" aria-label="Open Cascade approvals"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s9b-approvals.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Cascade · 2 drafts</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPhone</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 09</span>
+          <a href="../../projects/project-01/p1-scroll.html#approvals">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s11 · Autonomy timeline ===== -->
+    <article class="card" data-kind="backstage">
+      <a class="card-link" href="s11-autonomy-timeline.html" aria-label="Open Autonomy timeline"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s11-autonomy-timeline.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--backstage"><span class="badge-dot"></span>Backstage</span>
+        <h3 class="card-title">Autonomy timeline</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">Diagnostic view</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 11</span>
+          <a href="../../projects/project-01/p1-scroll.html#timeline">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== s12 · Family archive ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="s12-family-archive.html" aria-label="Open Family Archive"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="s12-family-archive.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Family Archive · 2046</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Aoi (35)</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPad</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Ch 12</span>
+          <a href="../../projects/project-01/p1-scroll.html#archive">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== anim · Autonomy weaver ===== -->
+    <article class="card" data-kind="backstage">
+      <a class="card-link" href="animations/anim-autonomy-weaver.html" aria-label="Open Autonomy Weaver animation"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="animations/anim-autonomy-weaver.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--backstage"><span class="badge-dot"></span>Backstage</span>
+        <h3 class="card-title">Autonomy Weaver · 12 months</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">AI internals</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Animation</span>
+          <a href="../../projects/project-01/p1-scroll.html#timeline">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== anim · Translation morph ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="animations/anim-translation-morph.html" aria-label="Open Translation Morph animation"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="animations/anim-translation-morph.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Translation Morph · one fact</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai, Aoi, Leo</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">iPhones</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Animation</span>
+          <a href="../../projects/project-01/p1-scroll.html#translation">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== anim · Care collapse ===== -->
+    <article class="card" data-kind="user">
+      <a class="card-link" href="animations/anim-care-collapse.html" aria-label="Open Care Architecture animation"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="animations/anim-care-collapse.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--user"><span class="badge-dot"></span>User UI</span>
+        <h3 class="card-title">Care Architecture · animated</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val">Mai</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val">CarPlay</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Animation</span>
+          <a href="../../projects/project-01/p1-scroll.html#care">In story →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- ===== anim · Trust heartbeat ===== -->
+    <article class="card" data-kind="backstage">
+      <a class="card-link" href="animations/anim-trust-heartbeat.html" aria-label="Open Trust heartbeat animation"></a>
+      <div class="thumb">
+        <div class="thumb-frame"><iframe src="animations/anim-trust-heartbeat.html" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
+      </div>
+      <div class="card-body">
+        <span class="badge badge--backstage"><span class="badge-dot"></span>Backstage</span>
+        <h3 class="card-title">Trust heartbeat</h3>
+        <div class="meta">
+          <div class="meta-row"><span class="meta-label">Who sees</span><span class="meta-val meta-val--dim">AI internals</span></div>
+          <div class="meta-row"><span class="meta-label">Surface</span><span class="meta-val meta-val--dim">—</span></div>
+        </div>
+        <div class="card-footer">
+          <span>P1 · Animation</span>
+          <span style="opacity:0.4;">—</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Empty state -->
+    <div class="empty" id="empty" role="status">
+      No screens in this category.
+    </div>
+  </main>
+
+  <!-- ─────────────────── Footer ─────────────────── -->
+  <footer class="page-footer">
+    <a class="back" href="../../projects/project-01/p1-scroll.html">
+      <span aria-hidden="true">←</span>
+      <span>Back to the Living Home story</span>
+    </a>
+    <span class="footnote">Last updated 2026-04-23 · P1 · Living Home · Context Grammar</span>
+  </footer>
+
+</div><!-- /.shell -->
+
+<!-- ─────────────────── Filter script ─────────────────── -->
+<script>
+(function() {
+  'use strict';
+
+  const grid  = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  const tabs  = document.querySelectorAll('.filter-tab');
+  const cards = grid.querySelectorAll('.card[data-kind]');
+
+  // ── Count cards per kind ──────────────────────────────
+  const counts = { all: 0, user: 0, concept: 0, backstage: 0 };
+  cards.forEach(c => {
+    const k = c.getAttribute('data-kind');
+    counts.all += 1;
+    if (counts[k] !== undefined) counts[k] += 1;
+  });
+  Object.keys(counts).forEach(k => {
+    const el = document.querySelector('[data-count="' + k + '"]');
+    if (el) el.textContent = '· ' + counts[k];
+  });
+
+  // ── Filter logic ──────────────────────────────────────
+  function applyFilter(kind) {
+    let shown = 0;
+    cards.forEach(card => {
+      const match = (kind === 'all') || (card.getAttribute('data-kind') === kind);
+      card.classList.toggle('hidden', !match);
+      if (match) shown += 1;
+    });
+    empty.classList.toggle('visible', shown === 0);
+
+    tabs.forEach(t => {
+      const active = t.getAttribute('data-filter') === kind;
+      t.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    if (kind !== 'all') {
+      history.replaceState(null, '', '#' + kind);
+    } else {
+      history.replaceState(null, '', window.location.pathname);
+    }
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const kind = this.getAttribute('data-filter');
+      applyFilter(kind);
+    });
+  });
+
+  // Honor initial hash (#user / #concept / #backstage)
+  const initialHash = window.location.hash.replace('#', '');
+  if (['user', 'concept', 'backstage'].includes(initialHash)) {
+    applyFilter(initialHash);
+  }
+})();
+</script>
+
+</body>
+</html>

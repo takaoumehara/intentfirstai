@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1 · Family Introduction — The Yamashiros</title>
+<link rel="stylesheet" href="_tokens.css">
+<link rel="stylesheet" href="_avatars.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; width: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  /* ── Slide container (16:9) ── */
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 40% 60%;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Left 40% — text ── */
+  .slide__text {
+    padding: 72px 64px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+    position: relative;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .headline {
+    font-size: 48px;
+    font-weight: 500;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    color: var(--fg);
+    margin-top: 32px;
+    margin-bottom: 24px;
+  }
+  .headline em {
+    font-style: normal;
+    font-weight: 600;
+  }
+  .headline .jp {
+    display: block;
+    font-family: 'Noto Sans JP', var(--font-sans);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--fg-muted);
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+
+  .lede {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--fg-muted);
+    max-width: 420px;
+    margin-bottom: 36px;
+  }
+
+  /* ── Family list ── */
+  .fam {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 8px;
+  }
+  .fam__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .fam__row:last-child { border-bottom: 1px solid var(--border); }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(255,255,255,1), 0 0 0 4px var(--border);
+  }
+  .dot--mai   { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+  .dot--kiran { background: linear-gradient(135deg, #6366f1, #4338ca); }
+  .dot--aoi   { background: linear-gradient(135deg, #ec4899, #a855f7); }
+  .dot--leo   { background: linear-gradient(135deg, #10b981, #059669); }
+  .dot--sota  { background: linear-gradient(135deg, #f87171, #dc2626); }
+
+  .fam__name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--fg);
+    min-width: 78px;
+  }
+  .fam__role {
+    font-size: 14px;
+    color: var(--fg-muted);
+    flex: 1;
+  }
+  .fam__age {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-subtle);
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Footer meta ── */
+  .foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    color: var(--fg-subtle);
+    text-transform: uppercase;
+  }
+  .foot__loc {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .foot__loc svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+  }
+
+  /* ── Right 60% — photo ── */
+  .slide__photo {
+    position: relative;
+    background: #ece9e1;
+    overflow: hidden;
+  }
+  .slide__photo img,
+  .slide__photo .placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Placeholder for when image not yet generated */
+  .placeholder {
+    background:
+      linear-gradient(135deg,
+        rgba(255,255,255,0.7) 0%,
+        rgba(230,235,240,0.6) 50%,
+        rgba(245,240,230,0.5) 100%),
+      linear-gradient(180deg, #e7eaee, #dfe3e7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    color: #8d95a0;
+  }
+  .placeholder__mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .placeholder__hint {
+    font-size: 13px;
+    color: #a8afb8;
+    max-width: 320px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* Soft gradient edge to blend text side → photo side */
+  .slide__photo::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 80px;
+    background: linear-gradient(to right, rgba(255,255,255,0.6), transparent);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Caption in corner of photo */
+  .photo-cap {
+    position: absolute;
+    right: 24px;
+    bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    z-index: 3;
+  }
+  .photo-cap__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1100px) {
+    .slide { grid-template-columns: 44% 56%; }
+    .slide__text { padding: 56px 48px; }
+    .headline { font-size: 40px; }
+  }
+  @media (max-width: 800px) {
+    .slide {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+    }
+    .slide__text {
+      padding: 40px 32px;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .headline { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<section class="slide">
+
+  <!-- ═══ LEFT 40% ═══ -->
+  <div class="slide__text">
+    <div>
+      <div class="eyebrow"><span>Project 01 · Living Home</span></div>
+      <h1 class="headline">
+        Meet the <em>Yamashiros</em>.
+        <span class="jp">サンフランシスコ、丘の上の家。5人家族の日曜の朝。</span>
+      </h1>
+      <p class="lede">
+        A family of five in San Francisco. Two parents, three kids, two languages, five very different relationships with the agents living quietly inside their home.
+      </p>
+
+      <div class="fam">
+        <div class="fam__row">
+          <span class="dot dot--mai"></span>
+          <span class="fam__name">Mai</span>
+          <span class="fam__role">mother · primary operator · 沖縄 heritage</span>
+          <span class="fam__age">36</span>
+        </div>
+        <div class="fam__row">
+          <span class="dot dot--kiran"></span>
+          <span class="fam__name">Kiran</span>
+          <span class="fam__role">father · tech, remote · Norwegian × Indian</span>
+          <span class="fam__age">38</span>
+        </div>
+        <div class="fam__row">
+          <span class="dot dot--aoi"></span>
+          <span class="fam__name">Aoi</span>
+          <span class="fam__role">eldest · reader · they / them</span>
+          <span class="fam__age">15</span>
+        </div>
+        <div class="fam__row">
+          <span class="dot dot--leo"></span>
+          <span class="fam__name">Leo</span>
+          <span class="fam__role">middle · math test · he / him</span>
+          <span class="fam__age">9</span>
+        </div>
+        <div class="fam__row">
+          <span class="dot dot--sota"></span>
+          <span class="fam__name">Sota</span>
+          <span class="fam__role">youngest · cat person · 相多 · he / him</span>
+          <span class="fam__age">6</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="foot__loc">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        San Francisco · Sunday · 9 AM
+      </span>
+      <span>A Living Home</span>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT 60% — PHOTO ═══ -->
+  <div class="slide__photo">
+    <!--
+      Family photo: Kuukikan (fresh, airy) style.
+      Generated via kie.ai nano-banana-pro from:
+      _Gem_instruction_for_Image/P1-family-portrait.json
+      Target path: assets/family-portrait.png
+      If image is missing, the placeholder block below is shown.
+    -->
+    <img
+      src="assets/family-portrait.png"
+      alt="The Yamashiro family in their San Francisco kitchen on a Sunday morning — Mai at the island with a mug, Kiran tending a pan, Aoi reading at the counter, Leo pouring granola, Sota on the floor with the cat. Soft morning light, 35mm film, fresh and airy."
+      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+    >
+    <div class="placeholder" style="display:none;">
+      <span class="placeholder__mono">Family Portrait</span>
+      <span class="placeholder__hint">Image generating via kie.ai — check <code>assets/family-portrait.png</code></span>
+    </div>
+    <div class="photo-cap">
+      <span class="photo-cap__dot"></span>
+      35mm · Kodak Portra 400
+    </div>
+  </div>
+
+</section>
+
+<script>
+  if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+    document.body.style.background = 'transparent';
+  }
+</script>
+
+</body>
+</html>

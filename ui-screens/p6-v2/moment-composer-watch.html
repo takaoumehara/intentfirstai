@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moment Composer · Watch | P6 Life Brain</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    padding: 48px 40px;
+  }
+  .artifact { width: 100%; max-width: 1200px; margin: 0 auto; }
+
+  /* Header */
+  .hdr-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--chip-amber-text); margin-bottom: 10px; }
+  .hdr-title { font-family: var(--font-sans); font-weight: 500; font-size: 30px; letter-spacing: -0.8px; margin: 0 0 8px; line-height: 1.2; }
+  .hdr-sub { font-family: var(--font-jp); font-size: 15px; color: var(--text-2); max-width: 760px; line-height: 1.7; margin: 0 0 32px; }
+  .hdr-scene { display: inline-flex; gap: 14px; font-family: var(--font-mono); font-size: 11px; color: var(--text-3); padding: 8px 14px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 36px; }
+  .hdr-scene span strong { color: var(--text); font-weight: 600; margin-left: 4px; }
+
+  .scene { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 24px; align-items: stretch; }
+
+  /* Panels */
+  .panel { background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .panel-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-3); margin-bottom: 16px; }
+
+  .signal-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .signal-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .signal-ico { width: 30px; height: 30px; flex-shrink: 0; border-radius: 7px; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .signal-name { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-3); margin-bottom: 3px; }
+  .signal-val { font-family: var(--font-jp); font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; }
+
+  /* Watch wrap */
+  .watch-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 8px 0; }
+  .watch-round {
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #2d2d2f 0%, #1a1a1c 100%);
+    padding: 10px;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.20), 0 12px 28px rgba(0,0,0,0.18), 0 28px 56px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(0,0,0,0.4);
+  }
+  .watch-round::before {
+    content: ''; position: absolute;
+    right: -4px; top: 100px; width: 6px; height: 38px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+  }
+  .watch-round::after {
+    content: ''; position: absolute;
+    right: -3px; top: 150px; width: 5px; height: 26px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 1px 0 0 1px;
+  }
+  .watch-screen-round {
+    width: 100%; height: 100%;
+    background: #000; border-radius: 50%;
+    padding: 36px 28px 32px;
+    display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden;
+  }
+  .w-weather { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.45); letter-spacing: 0.3px; margin-bottom: 14px; }
+  .w-prompt { font-family: var(--font-jp); font-size: 16px; font-weight: 500; color: #fff; line-height: 1.4; margin-bottom: 12px; }
+  .w-subs { display: flex; gap: 10px; margin-bottom: auto; }
+  .w-sub { font-family: var(--font-mono); font-size: 9.5px; color: rgba(255,255,255,0.70); letter-spacing: 0.2px; padding: 4px 8px; border-radius: 5px; background: rgba(255,255,255,0.08); }
+  .w-swipe { font-family: var(--font-jp); font-size: 10px; color: rgba(251, 191, 36, 0.95); letter-spacing: 0.3px; margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+  .w-swipe::before { content: '↑'; font-size: 12px; }
+
+  .watch-caption { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.5px; text-transform: uppercase; text-align: center; }
+
+  /* Composer panel highlight */
+  .composer-eq { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 11px; color: var(--text-2); line-height: 1.7; margin-bottom: 14px; }
+  .composer-eq .n { color: var(--text-3); }
+  .composer-eq strong { color: var(--chip-amber-text); font-weight: 600; }
+  .composer-arrow { color: var(--text-3); display: block; margin: 6px 0; letter-spacing: 2px; }
+  .composer-out { color: var(--color-success); font-weight: 600; display: block; margin-top: 4px; }
+
+  .composer-stat { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border); font-family: var(--font-jp); font-size: 12px; }
+  .composer-stat-k { color: var(--text-3); }
+  .composer-stat-v { color: var(--text); font-weight: 500; }
+
+  .composer-highlight { margin-top: 14px; padding: 12px 14px; background: var(--chip-amber-bg); border-radius: 8px; font-family: var(--font-jp); font-size: 12px; color: var(--chip-amber-text); font-weight: 500; line-height: 1.6; }
+
+  .caption { margin-top: 36px; text-align: center; font-family: var(--font-jp); font-size: 14px; color: var(--text-2); line-height: 1.8; max-width: 760px; margin-left: auto; margin-right: auto; }
+  .caption strong { color: var(--text); font-weight: 500; }
+
+  @media (max-width: 900px) {
+    body { padding: 24px 16px; }
+    .scene { grid-template-columns: 1fr; }
+    .watch-wrap { order: -1; }
+  }
+  /* iframe embed mode */
+  body.noframe { padding: 0 !important; background: transparent !important; }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+<div class="artifact">
+
+  <div class="hdr-label">Life Brain · Cross-Domain Synthesis</div>
+  <h1 class="hdr-title">Moment Composer · Watch</h1>
+  <p class="hdr-sub">4つのDomain Agent（天気・位置・カレンダー・健康）が別々に通知するのではなく、Life Brainが1つの「今この瞬間の提案」に合成する。Watchで10秒、判断コストほぼゼロ。</p>
+  <div class="hdr-scene">
+    <span>Day <strong>4</strong></span>
+    <span>Time <strong>08:30</strong></span>
+    <span>Loc <strong>池袋 乗り換え駅</strong></span>
+    <span>User <strong>Lena</strong></span>
+  </div>
+
+  <div class="scene">
+
+    <!-- LEFT: 4 Agents -->
+    <div class="panel">
+      <div class="panel-label">4 Agents · Contributing Signals</div>
+      <div class="signal-row">
+        <div class="signal-ico">🌤</div>
+        <div>
+          <div class="signal-name">Weather Agent</div>
+          <div class="signal-val">13℃、風 3m/s、降水ゼロ</div>
+        </div>
+      </div>
+      <div class="signal-row">
+        <div class="signal-ico">📍</div>
+        <div>
+          <div class="signal-name">Location Agent</div>
+          <div class="signal-val">現在地〜池袋駅 徒歩15分</div>
+        </div>
+      </div>
+      <div class="signal-row">
+        <div class="signal-ico">📅</div>
+        <div>
+          <div class="signal-name">Calendar Agent</div>
+          <div class="signal-val">次会議 9:30、ギリギリ可</div>
+        </div>
+      </div>
+      <div class="signal-row">
+        <div class="signal-ico">🏃</div>
+        <div>
+          <div class="signal-name">Health Agent</div>
+          <div class="signal-val">今週歩数 −1,400歩（目標未達）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: Watch -->
+    <div class="watch-wrap">
+      <div class="watch-round">
+        <div class="watch-screen-round">
+          <div class="w-weather">13℃ · 風弱い</div>
+          <div class="w-prompt">1駅早く降りて<br>歩く？</div>
+          <div class="w-subs">
+            <div class="w-sub">+1,200歩</div>
+            <div class="w-sub">9:30間に合う</div>
+          </div>
+          <div class="w-swipe">スワイプで承認</div>
+        </div>
+      </div>
+      <div class="watch-caption">Galaxy Watch · 10s glance</div>
+    </div>
+
+    <!-- RIGHT: Moment Composer -->
+    <div class="panel">
+      <div class="panel-label">Moment Composer · Synthesis</div>
+      <div class="composer-eq">
+        <span class="n">weather</span> + <span class="n">location</span> + <span class="n">calendar</span> + <span class="n">health</span>
+        <span class="composer-arrow">──────────────</span>
+        <strong>4シグナルを合成</strong>
+        <span class="composer-out">→ 1つの10秒提案</span>
+      </div>
+      <div class="composer-stat">
+        <span class="composer-stat-k">Input signals</span>
+        <span class="composer-stat-v">4 agents</span>
+      </div>
+      <div class="composer-stat">
+        <span class="composer-stat-k">Output</span>
+        <span class="composer-stat-v">1 proposal · 10s</span>
+      </div>
+      <div class="composer-stat">
+        <span class="composer-stat-k">Notifications avoided</span>
+        <span class="composer-stat-v">3</span>
+      </div>
+      <div class="composer-stat">
+        <span class="composer-stat-k">User decision</span>
+        <span class="composer-stat-v">swipe up / ignore</span>
+      </div>
+      <div class="composer-highlight">
+        これは4つのアプリの通知ではない。<br>1つの文脈判断。
+      </div>
+    </div>
+
+  </div>
+
+  <p class="caption">
+    従来なら<strong>4つの別々の通知</strong>が届いた—天気アプリ、Maps、Calendar、Healthが各々鳴る。Life Brainは<strong>ドメインをまたいだ1つの提案</strong>に統合する。判断コストはほぼゼロ、Lenaは10秒で決められる。
+  </p>
+
+</div>
+</body>
+</html>

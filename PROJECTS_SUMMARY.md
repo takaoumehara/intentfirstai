@@ -6,7 +6,7 @@
 
 1. **同じ8 Context Tokens（Intent + 6 situation tokens + 2 dials）と Brain（Identity / Accumulated Learning / Right Now の3層）という"文法"が、家庭の冷蔵庫から多エージェント・オーケストレーションまで同じ語彙で記述できる**こと。
 2. **UIはアプリではなくプロジェクトの寿命に合わせて「生まれ・変形し・消える」Disposable な存在**であること（P1 大掃除、P2 旅行、P3 買い物、P4 1日の営業、P5 ピッチ準備）。
-3. **信頼は時間をかけて段階的に構築される（Trust Timeline / Temporal Arc）**——Suggest → Confirm → Notify → Auto への移行は、Implicit Dial（行動からの学習）と Explicit Dial（ユーザーが明示したルール）の両輪で進む。
+3. **信頼は時間をかけて段階的に構築される（Trust Timeline / Temporal Arc）**—Suggest → Confirm → Notify → Auto への移行は、Implicit Dial（行動からの学習）と Explicit Dial（ユーザーが明示したルール）の両輪で進む。
 
 スケールも段階的に拡張する：**P1〜P3 = 家庭 / コンシューマ → P4 = 個人エンタープライズ（営業マネージャー1人 × 1 AI）→ P5 = 多エージェント・オーケストレーション（1人 × 3 AIs）**。同じ文法がスケールを横断して機能することの証明がポートフォリオ全体の構造になっている。
 
@@ -32,7 +32,7 @@
 - **Substitution Modes**（このプロジェクトの最大のユニーク証明）：**Exact（YukiのHoney Yogurt一択）/ Flexible（Hanaのdairy-free alternative）/ Exploring（プロテインパウダー味探索）/ Surprise（日本のお菓子、カリカリ系）**。すべて初期はユーザーの Explicit Action から始まり、AIが勝手にモードを変えない。
 - **Implicit Dial（5回連続承認パターンから昇格提案）と Explicit Dial（$20超は常にConfirm、FreshDirectは使わない、子供は洗剤NG）の二重構造**。例外イベント時の一時降格も実装。
 - **大掃除モードでの8トークン全発火**：Social=FAMILY、Form Factor=TV+Phone+Tablet×2+Speaker、Priority=3時の来客デッドライン、Feasibility=SA営業11-4 / 電気技師TaskRabbit 2:30。**4人分それぞれ異なる値で並列発火**するのが特徴。
-- **Ren原則の消費者版**：Facilitate / Participate / Stepback、ダイナミクス検知、~25%貢献——AIは掃除を代行せず「4人が同時に効率よく動ける環境を整える」。
+- **Ren原則の消費者版**：Facilitate / Participate / Stepback、ダイナミクス検知、~25%貢献—AIは掃除を代行せず「4人が同時に効率よく動ける環境を整える」。
 
 ### UI / インターフェース
 
@@ -55,14 +55,14 @@
 舞台はアメリカ在住の Nakamura-Andersen 家（日本人の父Takeshi・米国人の母Sarah・12歳Kai・9歳Mia）の **2週間の京都・大阪旅行**。Takeshiの実家（京都）に3泊し、子供たちに日本文化を体験させる旅。物語は4つのフェーズで進む。
 
 - **Phase 1 — Planning（出発2週間前）**：Sarahが深夜にGoogle Docsで比較表を自作する苦労が、「Kyoto-Osaka 2026」ダッシュボードに置き換わる。子供たちのスマホには**写真カード形式の "やりたいこと" 登録UI**（Kai=忍者・刀鍛冶・回転寿司、Mia=陶芸・着物・食品サンプル）。AIが家族の希望を統合し、Kai と Mia 共通の「刀鍛冶工房」を最上位に配置。
-- **Phase 2 — Day 3 京都に雨**：プロジェクトを象徴するシーン。「雨だ」と声に出した10秒後に、京都の1日が再構成される。三十三間堂（屋内）・嵐山トロッコ列車（屋根付き）・錦市場へとリプラン。各デバイスに役割別表示——TVは全体マップ、親のスマホは予算影響+確認、子供のタブレットには **"ADVENTURE CHANGE！🌧"** のポジティブ翻訳。
+- **Phase 2 — Day 3 京都に雨**：プロジェクトを象徴するシーン。「雨だ」と声に出した10秒後に、京都の1日が再構成される。三十三間堂（屋内）・嵐山トロッコ列車（屋根付き）・錦市場へとリプラン。各デバイスに役割別表示—TVは全体マップ、親のスマホは予算影響+確認、子供のタブレットには **"ADVENTURE CHANGE！🌧"** のポジティブ翻訳。
 - **Phase 3 — Day 7 Kaiが発熱（37.8度）**：Escalation Pathway の最も厳格な実装。AIは「大丈夫」とも「明日のディズニーに行ける」とも言わず、限界を正直に認め、最寄りドラッグストア（営業22時まで残40分）・旅行保険対応クリニック（タクシー15分・英語対応）・明朝8時までキャンセル料なしの予定変更、を構造化提示。**Synchro Rateは強制 Manual に降格**。
 - **Phase 4 — 帰宅後**：翌朝「3つの動画ができました」通知。家族用15分・祖父母用5分・SNS用3分（子供の顔なし）の Post-Trip Synthesis。費用サマリー（総額$4,780/予算$5,000、ラーメンに$400使った発見）、家族の好みのHome Brainへの反映（Kai=ラーメンに目覚めた、温泉旅館は1泊だけ）。
 
 ### Context Grammar の提案
 
 - **Trip Brain = Disposable Knowledge Architecture**：旅行2週間前に生まれ、Layer 1 を Home Brain から継承（家族の食の好み、アレルギー、Kaiの長距離歩行苦手）、Layer 2 を旅行中に蓄積、帰宅後は記憶になって UI が消える。次の旅行で「前回の学び」が引き継がれる。
-- **6 Agentic Patterns 全発生**（記事#10 の HERO プロジェクト）：Intent Preview / Autonomy Dial / Explainable Rationale / Confidence Signals / Action Audit / Escalation Pathway——すべてが旅行の自然な流れの中で発火する。
+- **6 Agentic Patterns 全発生**（記事#10 の HERO プロジェクト）：Intent Preview / Autonomy Dial / Explainable Rationale / Confidence Signals / Action Audit / Escalation Pathway—すべてが旅行の自然な流れの中で発火する。
 - **Phase 別 Synchro Rate 切替**：Planning=Confirm（不可逆な決済）→ Travel通常=Notify → 例外時=Confirm降格 → 医療=Manual強制 → Post-Trip=Auto。
 - **Disposable UI のライフサイクル**：Planning UI → Travel Mode UI に**変形**（消滅ではなく）→ Post-Trip UI → 1週間後消滅。「アプリのように常駐しない」が核心。
 
@@ -83,7 +83,7 @@
 舞台はロンドン郊外の Campbell-Adeyemi 家（黒人英国人の母Naomi・白人英国人の父James・16歳の姉Zara・13歳の弟Marcus・7歳のTheo）。Naomiが朝の通勤電車で**MarcusとZaraの2人分の冬用靴を探す**1日。プロジェクトの一言は「Naomiは AI に **3つ**しか言わなかった。でも Brain は Marcus のことを **5つ**知っていた」。
 
 - **Phase 0 — The Platform（駅のホーム、両手・PRIVATE）**：音声で制約を伝える（黒・防水・体育用・フワフワNG・有名ブランド・UK3 と UK5）。3エージェントが並列起動し、Marcus用8候補・Zara用7候補を生成。
-- **Phase 1 — The Train（電車、片手・PUBLIC）**：UI が Tinder的なスワイプカードに自動変形。ここがストーリーの核——**「AIが翻訳できなかった」制約**（白いソールNG、リッジソールNG、青アクセントNG、大きなロゴNG）が、実物画像を見て初めて言語化される。NaomiがNG判定するたびに Brain が学習し、その学習が Zara の候補にも自動適用される。
+- **Phase 1 — The Train（電車、片手・PUBLIC）**：UI が Tinder的なスワイプカードに自動変形。ここがストーリーの核—**「AIが翻訳できなかった」制約**（白いソールNG、リッジソールNG、青アクセントNG、大きなロゴNG）が、実物画像を見て初めて言語化される。NaomiがNG判定するたびに Brain が学習し、その学習が Zara の候補にも自動適用される。
 - **Phase 2-3 — The Living Room（リビング、家族・FAMILY）**：帰宅後にTVへキャストした瞬間、**スマホは画像コンポーネントを完全Purgeしてリモコンに変形**。TVは子供向けの感情ラベル（"Waterproof! Run-ready!"）+ 価格非表示、親のスマホだけに価格・Confidence・Buyボタン。Marcusは「真ん中のやつ！」と即決（TNF Fastpack £69）、Zaraは TNF を選ぶがUK5在庫切れ → AIが**事前に用意していた代替**（Adidas Terrex Free Hiker 2.0 GTX £170）を提示する Escalation。
 
 ### Context Grammar の提案
@@ -109,7 +109,7 @@
 
 ### ナラティブ
 
-舞台はマンハッタンのモダン SaaS スタートアップ。主人公は **Ren（蓮）、30代の営業マネージャー**。多様なチームを率いている。CRMには300件のリード、メール42通未読、今日のスタンドアップまで1時間。会社が導入した Sales Agent は初日から動いているが、Ren はまだ根拠が見えず信頼していない——ここが出発点。
+舞台はマンハッタンのモダン SaaS スタートアップ。主人公は **Ren（蓮）、30代の営業マネージャー**。多様なチームを率いている。CRMには300件のリード、メール42通未読、今日のスタンドアップまで1時間。会社が導入した Sales Agent は初日から動いているが、Ren はまだ根拠が見えず信頼していない—ここが出発点。
 
 物語は Ren の1日を5シーンで追う：
 - **Scene 1 — Morning 9:00**：「300件の不安を3件の確信に変える」。CRM・メール・カレンダー横断で Lead A（HOT・田中様）/ Lead B（COOLING・佐藤様）/ Lead C（WARMING・鈴木様）に集約。
@@ -148,7 +148,7 @@ P4から3ヶ月後の Ren。会社の「AIエージェント導入プログラ�
 
 - **Setup**：シェフ・ホール・仕入れ担当はいるがマネージャーがいないレストランの比喩。
 - **Scene 1 — 朝9:00 Morning Dashboard**：3エージェントの夜間実行結果が Control Tower 1画面で見える。Sales=DONE / Research=RUNNING / Admin=承認待ち。
-- **Scene 2 — 10:30 Conflict Resolution（Key Moment）**：2つのエージェントが同じ時間枠を取り合う。AIは決めず、両方の根拠を**対等に**見せて、Priority Weight を「審判（独裁者ではない）」として提示——Renが選ぶ。
+- **Scene 2 — 10:30 Conflict Resolution（Key Moment）**：2つのエージェントが同じ時間枠を取り合う。AIは決めず、両方の根拠を**対等に**見せて、Priority Weight を「審判（独裁者ではない）」として提示—Renが選ぶ。
 - **Scene 3 — 13:00 Cascade Delegation**：「**ピッチの準備をして**」の1文で、Research（競合分析）→ Sales（資料作成）→ Admin（会議室予約）が依存関係を持って同時起動。各サブタスクごとに**独立した Dial 位置**（Confirm / Auto）を持つ。
 - **Scene 4 — 15:00 Emergency Escalation**：Cascade の途中ノードが停止し、影響が全エージェントに波及。Impact Map で可視化し、3つの選択肢（urgent / parallel / review）を提示。
 
@@ -161,7 +161,7 @@ P4から3ヶ月後の Ren。会社の「AIエージェント導入プログラ�
 - **Conflict Resolution のデザイン原則**：AIは決めない。両方の根拠とPriority Weight を対等に見せて、ユーザーに委ねる（P4「審判」の延長）。
 - **Emergency Escalation の Impact Map**：失敗したノードから波及する影響を全エージェントに可視化、優先度の動的シフトを提示。
 - **3 Agents × Temporal Arc**：信頼蓄積速度がエージェントごとに異なることを認め、ドメイン別に独立して進化。
-- **OSレイヤーとしての位置付け**：Multi-Agent調整は個別アプリではなくOS層で行われるべき——これが P1〜P5 全体の到達点。
+- **OSレイヤーとしての位置付け**：Multi-Agent調整は個別アプリではなくOS層で行われるべき—これが P1〜P5 全体の到達点。
 
 ### UI / インターフェース
 
@@ -180,9 +180,9 @@ P4から3ヶ月後の Ren。会社の「AIエージェント導入プログラ�
 5プロジェクトを並べると、Context Grammar というデザイン言語が以下を共通して証明していることが見えてくる。
 
 1. **同じ文法のスケール証明**：8 Context Tokens + Brain（3層）+ Substitution Modes + Autonomy Dial が、家庭の冷蔵庫（P1）/ 家族旅行（P2）/ 親子の買い物（P3）/ 個人エンタープライズ（P4）/ 多エージェント・オーケストレーション（P5）すべてで同じ語彙のまま機能する。
-2. **Disposable UI / Disposable Brain のライフサイクル**：UIはアプリではなくプロジェクトの寿命に応じて生まれ・変形し・消える。P1=大掃除Disposable UI、P2=Trip Brain、P3=Shopping Brain、P4=1日のセッション、P5=Cascade Delegation——どれも「常駐しないが学習だけは Home/Master Brain に還元される」構造。
-3. **信頼は時間で構築される（Trust Timeline / Temporal Arc）**：P1（Month1→Year1）、P2（旅行間引き継ぎ）、P3（4ヶ月→1年）、P4（Week1→Month3）、P5（3エージェント独立速度）——いずれも Implicit Dial（行動学習）と Explicit Dial（明示ルール）の二重構造で進む。
+2. **Disposable UI / Disposable Brain のライフサイクル**：UIはアプリではなくプロジェクトの寿命に応じて生まれ・変形し・消える。P1=大掃除Disposable UI、P2=Trip Brain、P3=Shopping Brain、P4=1日のセッション、P5=Cascade Delegation—どれも「常駐しないが学習だけは Home/Master Brain に還元される」構造。
+3. **信頼は時間で構築される（Trust Timeline / Temporal Arc）**：P1（Month1→Year1）、P2（旅行間引き継ぎ）、P3（4ヶ月→1年）、P4（Week1→Month3）、P5（3エージェント独立速度）—いずれも Implicit Dial（行動学習）と Explicit Dial（明示ルール）の二重構造で進む。
 4. **AIは決めない、構造化して委ねる**：Escalation Pathway（P1の電気技師キャンセル、P2の発熱、P3の在庫切れ、P4の重要電話、P5のCascade失敗）はすべて「両方の重みを対等に見せる」設計。Priority Weight は審判であり独裁者ではない。
 5. **Form Factor Transformation の段階的拡張**：P1=4デバイス同時変形、P2=スマホ→TV→子供タブレット、P3=スマホ→リモコン変形（最も劇的）、P4=デスクトップ↔会議室ディスプレイ Social-Aware切替、P5=Multi-Agent Dashboard。
-6. **Human-Human Facilitation（Ren原則の消費者・職場展開）**：P1の大掃除（4人家族）、P3の親子の買い物（価格を子供から隠す Social Job 保護）、P5の多エージェント環境——AIは~25%貢献に抑え、人間同士の関係を守る環境を整える役回りに徹する。
+6. **Human-Human Facilitation（Ren原則の消費者・職場展開）**：P1の大掃除（4人家族）、P3の親子の買い物（価格を子供から隠す Social Job 保護）、P5の多エージェント環境—AIは~25%貢献に抑え、人間同士の関係を守る環境を整える役回りに徹する。
 7. **段階性 = Consumer (P1-3) → Personal Enterprise (P4) → Team Orchestration (P5)**：家庭の Home Brain から始まり、エンタープライズへ、そして OS レベルの Multi-Agent調整へと到達する。最後の Appendix スライド「同じContext Grammarが、すべてのスケールで機能する」がポートフォリオ全体のクロージング・ステートメントになっている。

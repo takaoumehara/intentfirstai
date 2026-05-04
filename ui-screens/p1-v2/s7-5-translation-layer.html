@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S7.5 — Translation Layer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_tokens.css">
+<link rel="stylesheet" href="_avatars.css">
+<style>
+  /* ── Desktop browser frame (inlined) ── */
+  html { overflow: hidden; height: 100%; }
+  body {
+    background: linear-gradient(135deg, #f6f5f0 0%, #ebe9e1 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .browser {
+    width: 100vw; height: 100vh;
+    border-radius: 0; box-shadow: none; transform: none;
+  }
+  body.noframe .chrome { display: none; }
+  body.noframe .content-scroll { top: 0; }
+
+  .browser {
+    width: 1440px;
+    height: 900px;
+    background: var(--bg);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 32px) / 900px), calc((100vw - 32px) / 1440px)));
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.08),
+      0 8px 24px rgba(0,0,0,0.10),
+      0 32px 80px rgba(0,0,0,0.06),
+      inset 0 0 0 1px rgba(0,0,0,0.05);
+  }
+  .chrome {
+    height: 48px;
+    background: #f6f6f6;
+    border-bottom: 1px solid #e1e1e1;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+  }
+  .chrome-lights { display: flex; gap: 8px; align-items: center; }
+  .light { width: 12px; height: 12px; border-radius: 50%; }
+  .light.red { background: #ff5f57; }
+  .light.yellow { background: #febc2e; }
+  .light.green { background: #28c840; }
+  .chrome-nav { display: flex; gap: 2px; color: #8e8e93; font-family: system-ui; font-size: 14px; }
+  .chrome-nav span { padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 500; }
+  .chrome-url {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e1e1e1;
+    border-radius: 6px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    font-size: 13px;
+    color: #1d1d1f;
+    max-width: 580px;
+    margin: 0 auto;
+    font-family: system-ui;
+  }
+  .chrome-url .lock-icon { width: 12px; height: 12px; color: #8e8e93; }
+  .chrome-url b { font-weight: 500; }
+  .chrome-url .muted { color: #6e6e73; }
+  .chrome-right { width: 60px; }
+
+  .content-scroll {
+    position: absolute;
+    top: 48px; left: 0; right: 0; bottom: 0;
+    overflow: auto;
+    background: var(--bg);
+  }
+
+  /* ── Page shell ── */
+  .page {
+    padding: 24px 40px 32px;
+    max-width: 1360px;
+    margin: 0 auto;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+    margin-bottom: 14px;
+  }
+  .breadcrumb svg { width: 12px; height: 12px; color: var(--gray-300); stroke-width: 1.75; }
+  .breadcrumb span:last-child { color: var(--fg); }
+
+  .page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 20px;
+  }
+  .page-title {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--fg);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .page-subtitle {
+    font-size: var(--fs-md);
+    color: var(--fg-muted);
+    line-height: 1.5;
+    max-width: 640px;
+  }
+
+  .header-aside {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+  .header-aside svg { width: 14px; height: 14px; stroke-width: 1.75; color: var(--fg-muted); }
+  .header-aside strong { color: var(--fg); font-weight: 500; }
+
+  /* ── Zone grid ── */
+  .zones {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* ─── Zone 1: Raw Fact ─── */
+  .zone-fact {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .fact-top {
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-subtle);
+  }
+  .fact-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .fact-label .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--fg);
+    letter-spacing: 0.3px;
+    text-transform: none;
+    font-weight: 500;
+  }
+  .fact-label .pill svg { width: 10px; height: 10px; stroke-width: 2; color: var(--amber); }
+
+  .fact-lock {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+  }
+  .fact-lock svg { width: 12px; height: 12px; stroke-width: 1.75; color: var(--fg-muted); }
+
+  .fact-body {
+    padding: 18px 20px 18px;
+  }
+  .fact-title {
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+  }
+  .fact-src {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+    margin-bottom: 14px;
+    letter-spacing: 0.2px;
+  }
+
+  .fact-expander {
+    border-top: 1px solid var(--border);
+    background: var(--bg-subtle);
+  }
+  .fact-expander-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    font-weight: 600;
+    user-select: none;
+  }
+  .fact-expander-head svg { width: 12px; height: 12px; stroke-width: 2; }
+  .fact-expander.open .chev { transform: rotate(90deg); }
+  .chev { transition: transform 120ms; display: inline-flex; }
+
+  .fact-expander-body {
+    display: none;
+    padding: 4px 20px 16px;
+    gap: 32px;
+  }
+  .fact-expander.open .fact-expander-body { display: grid; grid-template-columns: repeat(4, 1fr); }
+
+  .fact-data {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .fact-data .k {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+  }
+  .fact-data .v {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .fact-data .v .unit { color: var(--fg-muted); font-weight: 400; margin-left: 2px; }
+  .fact-data .v.warn { color: var(--amber); }
+  .fact-data .note {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    line-height: 1.4;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  /* ─── Zone 2 + Zone 3 two-column split ─── */
+  .zone-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* ─── Zone 2: Translation Controls ─── */
+  .zone-translate {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .zone-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-subtle);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .zone-head-title {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.1px;
+  }
+  .zone-head-sub {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+  }
+
+  .member-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 20px;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .member-row:last-child { border-bottom: none; }
+
+  .member-id {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .member-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .member-name {
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--fg);
+    line-height: 1.15;
+    letter-spacing: -0.1px;
+  }
+  .member-rel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .member-controls {
+    display: flex; flex-direction: column; gap: 8px;
+    min-width: 0;
+  }
+
+  /* Segmented control */
+  .seg {
+    display: flex;
+    background: var(--bg-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    width: 100%;
+  }
+  .seg-opt {
+    flex: 1;
+    padding: 6px 8px;
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-muted);
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.2;
+    transition: color 100ms, background 100ms;
+  }
+  .seg-opt:hover { color: var(--fg); }
+  .seg-opt.active {
+    background: var(--bg);
+    color: var(--fg);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.05);
+    font-weight: 600;
+  }
+  .seg.seg--mai .seg-opt.active { color: var(--amber); }
+  .seg.seg--aoi .seg-opt.active { color: var(--agent-education); }
+  .seg.seg--leo .seg-opt.active { color: var(--fg); }
+  .seg.seg--sota .seg-opt.active { color: var(--fg); }
+
+  /* 4-dot stepper under seg */
+  .depth-wrap {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+  }
+  .dots { display: inline-flex; gap: 4px; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--bg-muted);
+    border: 1px solid var(--border-strong);
+  }
+  .dot.on.mai  { background: var(--amber); border-color: var(--amber); }
+  .dot.on.aoi  { background: var(--agent-education); border-color: var(--agent-education); }
+  .dot.on.leo  { background: var(--gray-400); border-color: var(--gray-400); }
+  .dot.on.sota { background: var(--gray-400); border-color: var(--gray-400); }
+  .reason {
+    color: var(--fg-muted);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-style: normal;
+    line-height: 1.4;
+  }
+  .reason::before {
+    content: "—";
+    color: var(--gray-300);
+    margin-right: 5px;
+  }
+
+  .member-toggle {
+    display: inline-flex;
+    width: 20px; height: 20px;
+    align-items: center; justify-content: center;
+    color: var(--fg-muted);
+    cursor: pointer;
+  }
+  .member-toggle svg { width: 14px; height: 14px; stroke-width: 1.75; }
+
+  /* ─── Zone 3: Live Previews ─── */
+  .zone-previews {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .previews-body {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .phone {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-subtle);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    min-height: 420px;
+  }
+  .phone-top {
+    height: 26px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .phone-top::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    width: 58px; height: 10px;
+    background: #18181b;
+    border-radius: 8px;
+  }
+
+  .phone-owner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .phone-owner .av { width: 18px; height: 18px; font-size: 9px; }
+
+  .phone-body {
+    flex: 1;
+    padding: 8px 12px 14px;
+    display: flex; flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Shared notif card inside phone */
+  .notif {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .notif-head {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .notif-head .dot-t {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--fg-muted);
+  }
+  .notif-head.mai-head .dot-t { background: var(--amber); }
+  .notif-head.aoi-head .dot-t { background: var(--agent-education); }
+  .notif-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.1px;
+    line-height: 1.25;
+  }
+  .notif-body {
+    font-size: 12px;
+    color: var(--fg);
+    line-height: 1.5;
+  }
+  .notif-actionable {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-top: 6px;
+    padding: 8px 10px;
+    background: var(--amber-bg);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    color: var(--amber);
+    line-height: 1.4;
+  }
+  .notif-actionable svg { width: 12px; height: 12px; stroke-width: 2; flex-shrink: 0; margin-top: 1px; }
+  .notif-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+    text-decoration: none;
+  }
+  .notif-link svg { width: 10px; height: 10px; stroke-width: 2; }
+
+  .notif-meta-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 6px;
+    margin-top: 2px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-subtle);
+    letter-spacing: 0.3px;
+  }
+
+  /* Observation style for Aoi */
+  .notif.observation {
+    background: var(--bg);
+  }
+  .notif.observation .notif-body {
+    color: var(--fg);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .obs-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--agent-education);
+    letter-spacing: 0.3px;
+    background: rgba(91, 79, 176, 0.06);
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  /* Empty state for Leo */
+  .phone.empty .phone-body {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 24px 18px;
+  }
+  .empty-stack { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .empty-glyph {
+    width: 44px; height: 44px; border-radius: var(--radius-full);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--gray-400);
+  }
+  .empty-glyph svg { width: 18px; height: 18px; stroke-width: 1.5; }
+  .empty-title {
+    font-size: 13px;
+    color: var(--fg);
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .empty-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+    max-width: 190px;
+  }
+
+  .previews-footnote {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .previews-footnote svg { width: 12px; height: 12px; stroke-width: 1.75; color: var(--fg-muted); }
+  .previews-footnote b { color: var(--fg); font-weight: 500; }
+
+  /* ─── Footer bar ─── */
+  .footer-bar {
+    margin-top: 16px;
+    padding: 14px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .footer-left {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.3px;
+  }
+  .footer-left svg { width: 14px; height: 14px; stroke-width: 1.75; }
+  .footer-actions { display: flex; align-items: center; gap: 10px; }
+  .footer-link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+  }
+  .footer-link:hover { color: var(--fg); }
+  .footer-link svg { width: 12px; height: 12px; stroke-width: 1.75; }
+
+</style>
+</head>
+<body>
+
+<div class="browser">
+  <div class="chrome">
+    <div class="chrome-lights">
+      <span class="light red"></span>
+      <span class="light yellow"></span>
+      <span class="light green"></span>
+    </div>
+    <div class="chrome-nav">
+      <span>‹</span>
+      <span>›</span>
+    </div>
+    <div class="chrome-url">
+      <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span><b>family.brain</b><span class="muted">/disclosure/translate</span></span>
+    </div>
+    <div class="chrome-right"></div>
+  </div>
+
+  <div class="content-scroll">
+    <div class="page">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb">
+        <span>Settings</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <span>Privacy</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <span>Translation Layer</span>
+      </nav>
+
+      <!-- Header -->
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Translation Layer</h1>
+          <p class="page-subtitle">One fact, many listeners. Choose how much of this truth each family member sees — in words that make sense for who they are to you.</p>
+        </div>
+        <div class="header-aside">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.5A5.5 5.5 0 0 1 12 5a5.5 5.5 0 0 1 8 5.5C20 17.5 12 22 12 22z"/></svg>
+          Signed in as <strong>Kiran</strong>
+        </div>
+      </header>
+
+      <div class="zones">
+
+        <!-- ═══ Zone 1: The Fact ═══ -->
+        <section class="zone-fact">
+          <div class="fact-top">
+            <div class="fact-label">
+              <span>Raw fact</span>
+              <span class="pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2.5 2.5"/></svg>
+                2026-04-18 · Dr. Chen (annual physical)
+              </span>
+            </div>
+            <div class="fact-lock">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Only you see this raw
+            </div>
+          </div>
+
+          <div class="fact-body">
+            <h2 class="fact-title">Liver enzymes elevated. Alcohol moderation advised.</h2>
+            <div class="fact-src">Source of truth · encrypted · never auto-shared</div>
+          </div>
+
+          <div class="fact-expander open" id="factExp">
+            <div class="fact-expander-head" onclick="document.getElementById('factExp').classList.toggle('open')">
+              <span class="chev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </span>
+              <span>Raw data</span>
+            </div>
+            <div class="fact-expander-body">
+              <div class="fact-data">
+                <span class="k">γ-GTP</span>
+                <span class="v warn">78 <span class="unit">U/L</span></span>
+                <span class="note">Normal range 10–30</span>
+              </div>
+              <div class="fact-data">
+                <span class="k">Blood pressure</span>
+                <span class="v warn">132 / 85</span>
+                <span class="note">Borderline hypertension</span>
+              </div>
+              <div class="fact-data">
+                <span class="k">Doctor's note</span>
+                <span class="v">Reduce alcohol · 2 mo</span>
+                <span class="note">Follow-up May 15, 2026</span>
+              </div>
+              <div class="fact-data">
+                <span class="k">Rx</span>
+                <span class="v">Daily multivitamin</span>
+                <span class="note">OTC — starts Apr 20</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ Zone 2 + 3 split ═══ -->
+        <div class="zone-split">
+
+          <!-- Zone 2: Translation Controls -->
+          <section class="zone-translate">
+            <div class="zone-head">
+              <span class="zone-head-title">Translate for each family member</span>
+              <span class="zone-head-sub">4 people · 4 translations</span>
+            </div>
+
+            <!-- Mai -->
+            <div class="member-row">
+              <div class="member-id">
+                <span class="av av--md av--mai">M</span>
+                <div class="member-meta">
+                  <span class="member-name">Mai Yamashiro</span>
+                  <span class="member-rel">36 · Partner</span>
+                </div>
+              </div>
+              <div class="member-controls">
+                <div class="seg seg--mai">
+                  <div class="seg-opt">Full</div>
+                  <div class="seg-opt active">Summary + actionable</div>
+                  <div class="seg-opt">Observable</div>
+                  <div class="seg-opt">Nothing</div>
+                </div>
+                <div class="depth-wrap">
+                  <span class="dots">
+                    <span class="dot on mai"></span>
+                    <span class="dot on mai"></span>
+                    <span class="dot on mai"></span>
+                    <span class="dot"></span>
+                  </span>
+                  <span class="reason">Partner — full context helps her with meal planning.</span>
+                </div>
+              </div>
+              <span class="member-toggle" title="Preview open">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </div>
+
+            <!-- Aoi -->
+            <div class="member-row">
+              <div class="member-id">
+                <span class="av av--md av--aoi">A</span>
+                <div class="member-meta">
+                  <span class="member-name">Aoi</span>
+                  <span class="member-rel">15 · Teen · they/them</span>
+                </div>
+              </div>
+              <div class="member-controls">
+                <div class="seg seg--aoi">
+                  <div class="seg-opt">Summary</div>
+                  <div class="seg-opt active">Observable behavior</div>
+                  <div class="seg-opt">Ambient hint</div>
+                  <div class="seg-opt">Nothing</div>
+                </div>
+                <div class="depth-wrap">
+                  <span class="dots">
+                    <span class="dot on aoi"></span>
+                    <span class="dot on aoi"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </span>
+                  <span class="reason">Teen — respects autonomy, reduces worry.</span>
+                </div>
+              </div>
+              <span class="member-toggle" title="Preview open">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </div>
+
+            <!-- Leo -->
+            <div class="member-row">
+              <div class="member-id">
+                <span class="av av--md av--leo">L</span>
+                <div class="member-meta">
+                  <span class="member-name">Leo</span>
+                  <span class="member-rel">9 · Child</span>
+                </div>
+              </div>
+              <div class="member-controls">
+                <div class="seg seg--leo">
+                  <div class="seg-opt">Observable</div>
+                  <div class="seg-opt">Ambient hint</div>
+                  <div class="seg-opt active">Nothing</div>
+                </div>
+                <div class="depth-wrap">
+                  <span class="dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </span>
+                  <span class="reason">Too young for this worry.</span>
+                </div>
+              </div>
+              <span class="member-toggle" title="Preview open">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+            </div>
+
+            <!-- Sota -->
+            <div class="member-row">
+              <div class="member-id">
+                <span class="av av--md av--sota">S</span>
+                <div class="member-meta">
+                  <span class="member-name">Sota</span>
+                  <span class="member-rel">6 · Child</span>
+                </div>
+              </div>
+              <div class="member-controls">
+                <div class="seg seg--sota">
+                  <div class="seg-opt active">Nothing</div>
+                </div>
+                <div class="depth-wrap">
+                  <span class="dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </span>
+                  <span class="reason">Age-appropriate default — inherited from family policy.</span>
+                </div>
+              </div>
+              <span class="member-toggle" title="Preview closed">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </span>
+            </div>
+          </section>
+
+          <!-- Zone 3: Live Previews -->
+          <section class="zone-previews">
+            <div class="zone-head">
+              <span class="zone-head-title">How each person will see this</span>
+              <span class="zone-head-sub">Live preview · updates on save</span>
+            </div>
+            <div class="previews-body">
+
+              <!-- Mai's phone -->
+              <div class="phone">
+                <div class="phone-top"></div>
+                <div class="phone-owner">
+                  <span class="av av--md av--mai">M</span>
+                  Mai's view
+                </div>
+                <div class="phone-body">
+                  <div class="notif">
+                    <div class="notif-head mai-head">
+                      <span class="dot-t"></span>
+                      Kiran · Health update
+                    </div>
+                    <div class="notif-title">Liver markers slightly elevated</div>
+                    <div class="notif-body">Adjusting food + alcohol for 2 months. Follow-up May 15.</div>
+                    <div class="notif-actionable">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                      Dinner suggestions updated — lower sodium, zero-alcohol pairings
+                    </div>
+                    <a class="notif-link" href="#">
+                      View full details from Kiran
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </a>
+                    <div class="notif-meta-row">
+                      <span>Summary + actionable</span>
+                      <span>Apr 18, 7:42 PM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Aoi's phone -->
+              <div class="phone">
+                <div class="phone-top"></div>
+                <div class="phone-owner">
+                  <span class="av av--md av--aoi">A</span>
+                  Aoi's view
+                </div>
+                <div class="phone-body">
+                  <div class="notif observation">
+                    <div class="notif-head aoi-head">
+                      <span class="dot-t"></span>
+                      Family observation
+                    </div>
+                    <div class="notif-body">Kiran has been choosing non-alcoholic options recently.</div>
+                    <span class="obs-note">Shared as observation, not data</span>
+                    <div class="notif-meta-row">
+                      <span>Observable behavior</span>
+                      <span>Apr 18</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Leo's phone -->
+              <div class="phone empty">
+                <div class="phone-top"></div>
+                <div class="phone-owner">
+                  <span class="av av--md av--leo">L</span>
+                  Leo's view
+                </div>
+                <div class="phone-body">
+                  <div class="empty-stack">
+                    <div class="empty-glyph">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+                    </div>
+                    <div class="empty-title">No new updates for you today</div>
+                    <div class="empty-note">Kiran has chosen to keep today's update private from you.</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="previews-footnote">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              <span><b>Disclosure Matrix</b> controls agents. <b>Translation Layer</b> controls people. Both work together.</span>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- Footer bar -->
+      <div class="footer-bar">
+        <div class="footer-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Auto-saved draft · Changes will take effect on save
+        </div>
+        <div class="footer-actions">
+          <a href="#" class="footer-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            What is Translation Layer?
+          </a>
+          <button class="g-btn g-btn--secondary">
+            <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview all
+          </button>
+          <button class="g-btn">
+            <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save translations
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

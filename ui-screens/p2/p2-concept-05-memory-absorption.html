@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2 Concept 05 — Memory return to Home Brain</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/bts-frame.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: transparent;
+    min-height: 100vh;
+    padding: 24px;
+    color: #f1ecdf;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  .title {
+    font-size: clamp(26px, 2.6vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.6px;
+    color: #f1ecdf;
+    margin-bottom: 6px;
+  }
+  .lede {
+    font-size: 14px;
+    color: rgba(241,236,223,0.6);
+    margin-bottom: 24px;
+    max-width: 720px;
+    line-height: 1.5;
+  }
+
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .stat.identity { border-color: rgba(138, 106, 176, 0.35); background: rgba(138, 106, 176, 0.08); }
+  .stat.learn { border-color: rgba(48, 201, 105, 0.3); background: rgba(48, 201, 105, 0.06); }
+  .stat.discard { border-color: rgba(194, 65, 12, 0.25); background: rgba(194, 65, 12, 0.05); }
+  .stat-num {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: #f1ecdf;
+  }
+  .stat.identity .stat-num { color: #b09cd1; }
+  .stat.learn .stat-num { color: #30c969; }
+  .stat.discard .stat-num { color: #f59e0b; }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(241,236,223,0.55);
+    margin-top: 2px;
+  }
+
+  .tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .tier {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .tier::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .tier.t1::before { background: #b09cd1; }
+  .tier.t2::before { background: #30c969; }
+  .tier.t3::before { background: #f59e0b; }
+
+  .tier-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .tier-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+  }
+  .tier.t1 .tier-num { background: rgba(138,106,176,0.18); color: #b09cd1; }
+  .tier.t2 .tier-num { background: rgba(48,201,105,0.18); color: #30c969; }
+  .tier.t3 .tier-num { background: rgba(245,158,11,0.18); color: #f59e0b; }
+
+  .tier-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f1ecdf;
+    letter-spacing: -0.2px;
+  }
+  .tier-target {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: rgba(241,236,223,0.5);
+  }
+  .tier-target strong { color: #f1ecdf; font-weight: 600; }
+
+  .tier-sub {
+    font-size: 12px;
+    color: rgba(241,236,223,0.55);
+    margin-bottom: 10px;
+    padding-left: 0;
+  }
+
+  .items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .item {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: rgba(241,236,223,0.85);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.35;
+  }
+  .item .tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  .tag.new { background: rgba(48,201,105,0.2); color: #30c969; }
+  .tag.conf { background: rgba(138,106,176,0.2); color: #b09cd1; }
+  .tag.pattern { background: rgba(74,106,144,0.25); color: #9abad6; }
+  .tag.del { background: rgba(194,65,12,0.2); color: #f59e0b; text-decoration: line-through; }
+
+  .tier.t3 .item { color: rgba(241,236,223,0.5); }
+  .tier.t3 .item .item-text { text-decoration: line-through; text-decoration-color: rgba(245,158,11,0.5); }
+
+  .lifecycle {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill.dissolve {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+  }
+  .pill.dissolve::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: #f59e0b;
+    border-radius: 50%;
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    50% { opacity: 0.4; }
+  }
+  .pill.seed {
+    background: rgba(48, 201, 105, 0.12);
+    border: 1px solid rgba(48, 201, 105, 0.3);
+    color: #30c969;
+  }
+  .pill.seed::before {
+    content: '🌱';
+    font-size: 13px;
+  }
+
+  .lifecycle-arrow {
+    font-size: 22px;
+    color: rgba(241,236,223,0.4);
+    font-weight: 300;
+  }
+
+  .lifecycle-text {
+    flex: 1;
+    font-size: 13px;
+    color: rgba(241,236,223,0.75);
+    line-height: 1.5;
+    min-width: 240px;
+  }
+  .lifecycle-text strong { color: #f1ecdf; font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .stat-bar { grid-template-columns: 1fr 1fr; }
+  }
+
+  body.noframe { background: transparent !important; padding: 16px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bts-frame bts-frame--dark" data-kind="backstage">
+    <div class="bts-frame__chip">BACKSTAGE · Memory return to Home Brain</div>
+    <div class="bts-frame__body">
+
+      <h1 class="title">What the Disposable Brain sent home.</h1>
+      <p class="lede">The Trip Brain dies at the end of the journey — but not before sorting 22 days of observations into what permanently matters, what trends, and what gets forgotten.</p>
+
+      <div class="stat-bar">
+        <div class="stat">
+          <div class="stat-num">217</div>
+          <div class="stat-label">Preferences observed</div>
+        </div>
+        <div class="stat identity">
+          <div class="stat-num">4</div>
+          <div class="stat-label">→ Identity Layer</div>
+        </div>
+        <div class="stat learn">
+          <div class="stat-num">12</div>
+          <div class="stat-label">→ Learning Layer</div>
+        </div>
+        <div class="stat discard">
+          <div class="stat-num">201</div>
+          <div class="stat-label">Discarded</div>
+        </div>
+      </div>
+
+      <div class="tiers">
+
+        <div class="tier t1">
+          <div class="tier-head">
+            <span class="tier-num">Tier 1 · Permanent</span>
+            <span class="tier-title">→ Context Brain · Identity Layer</span>
+            <span class="tier-target"><strong>4 promoted</strong></span>
+          </div>
+          <div class="tier-sub">Facts about who each family member is — durable, cross-context.</div>
+          <div class="items">
+            <div class="item">
+              <span class="tag conf">Confirmed</span>
+              <span>Kai loves ramen (4th trip running)</span>
+            </div>
+            <div class="item">
+              <span class="tag new">New</span>
+              <span>Mia allergic to bamboo dust</span>
+            </div>
+            <div class="item">
+              <span class="tag new">New</span>
+              <span>Family energy dip at 3 PM</span>
+            </div>
+            <div class="item">
+              <span class="tag new">New</span>
+              <span>Grandma Yoshie's voice calms Mia</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tier t2">
+          <div class="tier-head">
+            <span class="tier-num">Tier 2 · Trending</span>
+            <span class="tier-title">→ Context Brain · Learning Layer</span>
+            <span class="tier-target"><strong>12 updated</strong></span>
+          </div>
+          <div class="tier-sub">Patterns the family is moving toward — re-weighted, not memorized.</div>
+          <div class="items">
+            <div class="item">
+              <span class="tag pattern">Pattern</span>
+              <span>Hands-on crafts &gt; passive tours</span>
+            </div>
+            <div class="item">
+              <span class="tag pattern">Pattern</span>
+              <span>Morning-heavy schedules work best</span>
+            </div>
+            <div class="item">
+              <span class="tag pattern">Pattern</span>
+              <span>Kai accepts detours if food is involved</span>
+            </div>
+            <div class="item">
+              <span class="tag pattern">Pattern</span>
+              <span>Mia prefers 1:1 adult time mid-day</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tier t3">
+          <div class="tier-head">
+            <span class="tier-num">Tier 3 · Expired</span>
+            <span class="tier-title">→ Now Layer · DELETED</span>
+            <span class="tier-target"><strong>201 discarded</strong></span>
+          </div>
+          <div class="tier-sub">Trip-scoped context with no value beyond the trip. Let go on purpose.</div>
+          <div class="items">
+            <div class="item">
+              <span class="tag del">Del</span>
+              <span class="item-text">Kyoto weather Apr 2026</span>
+            </div>
+            <div class="item">
+              <span class="tag del">Del</span>
+              <span class="item-text">Ryokan WiFi password</span>
+            </div>
+            <div class="item">
+              <span class="tag del">Del</span>
+              <span class="item-text">Clinic addresses · Sakyo ward</span>
+            </div>
+            <div class="item">
+              <span class="tag del">Del</span>
+              <span class="item-text">JR Pass activation window</span>
+            </div>
+            <div class="item">
+              <span class="tag del">Del</span>
+              <span class="item-text">Taxi app trip IDs</span>
+            </div>
+            <div class="item">
+              <span class="tag del">Del</span>
+              <span class="item-text">Grandparent address history</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="lifecycle">
+        <div class="pill dissolve">Disposable Brain · Day 22: dissolving</div>
+        <div class="lifecycle-arrow">→</div>
+        <div class="pill seed">Home Brain · Year 2 Trip Brain seed: enriched</div>
+        <div class="lifecycle-text">
+          <strong>The forgetting is the feature.</strong> Next year's trip starts from a smarter baseline — not a fuller one.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

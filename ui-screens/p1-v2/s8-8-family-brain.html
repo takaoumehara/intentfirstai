@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Brain · Shared Interest Graph - Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/avatars.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    body { padding: 32px; }
+    body.noframe { padding: 16px 24px 4px; background: transparent; }
+
+    .stage { max-width: 1440px; margin: 0 auto; }
+
+    /* ===== Header ===== */
+    .head { margin-bottom: 28px; }
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .chip::before {
+      content: '';
+      width: 7px; height: 7px;
+      background: var(--color-accent, #2ab85a);
+      border-radius: 50%;
+    }
+    .head h1 {
+      font-size: clamp(28px, 3.2vw, 40px);
+      font-weight: 500;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .head p {
+      font-size: 15px;
+      color: var(--text-2);
+      line-height: 1.6;
+      max-width: 720px;
+    }
+
+    /* ===== Main 2-column layout ===== */
+    .main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.9fr) minmax(280px, 1fr);
+      gap: 24px;
+      margin-bottom: 0;
+    }
+
+    /* ===== Left: Graph canvas ===== */
+    .canvas {
+      position: relative;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 24px 20px;
+    }
+    .legend {
+      position: absolute;
+      top: 16px; right: 20px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+      display: flex;
+      gap: 16px;
+      letter-spacing: 0.3px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend .ln-solid { width: 18px; height: 2px; background: var(--color-brain); opacity: 0.5; }
+    .legend .ln-dash { width: 18px; height: 0; border-top: 1.5px dashed var(--text-3); opacity: 0.5; }
+
+    .graph-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 14px 12px;
+      align-items: center;
+      justify-items: center;
+      padding-top: 14px;
+    }
+
+    /* SVG overlay for edges */
+    .edges {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      width: 100%; height: 100%;
+    }
+
+    /* Media card: image + label + platform */
+    .media {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 160px;
+    }
+    .media-img {
+      width: 120px;
+      height: 160px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--gray-100);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      position: relative;
+    }
+    .media-img img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    .media-platform {
+      position: absolute;
+      left: 8px; bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      padding: 3px 7px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.95);
+      color: var(--text);
+    }
+    .media-platform.kindle { color: #8a5a2b; }
+    .media-platform.netflix { color: #b91c1c; }
+    .media-platform.spotify { color: #16803a; }
+    .media-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .media-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.2px;
+    }
+    .edge-label {
+      position: absolute;
+      z-index: 3;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      color: var(--text-3);
+      background: var(--bg);
+      padding: 2px 7px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    /* Central IP node */
+    .ip-node {
+      position: relative;
+      z-index: 2;
+      width: 150px; height: 150px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2.5px solid var(--color-brain);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .ip-node::before, .ip-node::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1.5px solid var(--color-brain);
+      opacity: 0;
+      animation: pulse-ring 3s ease-out infinite;
+    }
+    .ip-node::after { animation-delay: 1.5s; }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.35; }
+      100% { transform: scale(1.35); opacity: 0; }
+    }
+    .ip-badge {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--color-brain);
+      margin-bottom: 4px;
+    }
+    .ip-en {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--color-brain);
+      letter-spacing: -0.4px;
+      line-height: 1.15;
+    }
+    .ip-jp {
+      font-family: var(--font-jp);
+      font-size: 11px;
+      color: var(--color-brain);
+      opacity: 0.75;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* Person row (bottom of graph) */
+    .person-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-items: start;
+      margin-top: 4px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      position: relative;
+      z-index: 2;
+    }
+    .person {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+    .person-avatar {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--bg);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .person-avatar img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    .person-info { line-height: 1.3; }
+    .person-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .person-act {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.2px;
+    }
+
+    /* ===== Right sidebar ===== */
+    .sidebar {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      height: fit-content;
+    }
+    .side-head {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .side-member {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .side-member:last-of-type { border-bottom: none; }
+    .side-avatar {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    .side-avatar img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    .side-body { flex: 1; min-width: 0; }
+    .side-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .side-desc {
+      font-size: 11px;
+      color: var(--text-2);
+      line-height: 1.45;
+      margin-bottom: 6px;
+    }
+    .side-badge {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 3px 7px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .side-badge.kindle { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+    .side-badge.netflix { background: var(--chip-red-bg); color: var(--chip-red-text); }
+    .side-badge.spotify { background: var(--chip-green-bg); color: var(--chip-green-text); }
+
+    .pattern {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: var(--chip-purple-bg);
+      border: 1px solid rgba(106,74,144,0.2);
+      border-radius: 8px;
+    }
+    .pattern-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--color-brain);
+      margin-bottom: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .pattern-label::before { content: '✦'; }
+    .pattern-text {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .pattern-text strong { color: var(--color-brain); font-weight: 600; }
+
+    /* ===== How-to-read row ===== */
+    .howto {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .howto-icon {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--color-brain);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .howto-body { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+    .howto-body strong { color: var(--text); font-weight: 600; }
+
+    /* ===== What each app sees ===== */
+    .sees-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+    .sees-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto 1fr;
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+    .sees-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .sees-card .app-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .sees-card .app-label::before {
+      content: '✓';
+      font-size: 11px;
+    }
+    .sees-card.netflix .app-label { color: var(--chip-red-text); }
+    .sees-card.kindle .app-label { color: var(--chip-amber-text); }
+    .sees-card.spotify .app-label { color: var(--chip-green-text); }
+    .sees-card.family {
+      background: var(--chip-purple-bg);
+      border-color: rgba(106,74,144,0.2);
+    }
+    .sees-card.family .app-label::before { content: '✦'; }
+    .sees-card.family .app-label { color: var(--color-brain); }
+    .sees-body {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+    .sees-body strong { color: var(--text); font-weight: 600; }
+    .plus {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--text-3);
+    }
+
+    /* ===== Action row (dinner nudges) ===== */
+    .action {
+      display: grid;
+      grid-template-columns: 200px 1fr 1fr;
+      gap: 20px;
+      align-items: stretch;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .action-label {
+      padding-top: 4px;
+      border-right: 1px solid var(--border);
+      padding-right: 20px;
+    }
+    .action-label .lbl {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+    .action-label .title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+    .action-label .time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    .nudge {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .nudge-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .nudge-av {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .nudge-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .nudge-from {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text-2);
+      flex: 1;
+    }
+    .nudge-time {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+    }
+    .nudge-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+    .nudge-body {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+    .nudge-footer {
+      margin-top: 4px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.3px;
+      color: var(--text-3);
+    }
+    .nudge-footer::before {
+      content: '✓ ';
+      color: var(--color-accent, #2ab85a);
+      font-weight: 700;
+    }
+
+    /* ===== Closing insight ===== */
+    .closing {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, var(--chip-purple-bg), var(--bg));
+      border: 1px solid rgba(106,74,144,0.18);
+      border-radius: 10px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .closing-left {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.4px;
+      color: var(--text-2);
+      line-height: 1.7;
+      flex: 1;
+    }
+    .closing-right {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-brain);
+      line-height: 1.45;
+      max-width: 300px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) {
+      .main { grid-template-columns: 1fr; }
+      .sees-row { grid-template-columns: 1fr 1fr; }
+      .sees-row .plus { display: none; }
+      .action { grid-template-columns: 1fr; }
+      .action-label { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+      .closing { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 640px) {
+      body { padding: 16px; }
+      .graph-grid { grid-template-columns: 1fr; }
+      .person-row { grid-template-columns: 1fr; gap: 12px; }
+      .sees-row { grid-template-columns: 1fr; }
+      .media-img { width: 100px; height: 133px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+
+    <!-- Header -->
+    <header class="head">
+      <div class="chip">Family Brain · Shared Interest Graph · Live</div>
+      <h1>Three family members are in one orbit this week.</h1>
+      <p>Aoi watches the anime on Netflix. Kiran read the manga on Kindle last Saturday. Sota hums the opening theme — the Brain detected it by audio fingerprint. <strong>Same story, three surfaces, nobody discussed it</strong> — until the Brain brought it to dinner.</p>
+    </header>
+
+    <!-- Main: graph + sidebar -->
+    <div class="main">
+      <!-- Graph canvas -->
+      <div class="canvas">
+        <div class="legend">
+          <span><span class="ln-solid"></span>IP link</span>
+          <span><span class="ln-dash"></span>person → media</span>
+        </div>
+
+        <div class="graph-grid">
+          <!-- SVG edges -->
+          <svg class="edges" viewBox="0 0 600 420" preserveAspectRatio="none">
+            <!-- Media-to-IP curves (solid purple) -->
+            <path d="M 100 130 Q 220 200, 300 200" stroke="#6a4a90" stroke-width="1.5" fill="none" opacity="0.45"/>
+            <path d="M 500 130 Q 380 200, 300 200" stroke="#6a4a90" stroke-width="1.5" fill="none" opacity="0.45"/>
+            <path d="M 300 320 L 300 270" stroke="#6a4a90" stroke-width="1.5" fill="none" opacity="0.45"/>
+          </svg>
+
+          <!-- Row 1: 3 media cards -->
+          <div class="media">
+            <div class="media-img">
+              <img src="../../assets/img/Jujutsukaisen/manga-zero.jpg" alt="Jujutsu Kaisen manga Vol 10">
+              <div class="media-platform kindle">KINDLE</div>
+            </div>
+            <div class="media-title">Jujutsu Kaisen · Vol 10</div>
+            <div class="media-meta">呪術廻戦 · Manga</div>
+          </div>
+
+          <!-- Central IP node -->
+          <div class="ip-node">
+            <div class="ip-badge">IP · UNIVERSE</div>
+            <div class="ip-en">Jujutsu Kaisen</div>
+            <div class="ip-jp">呪術廻戦</div>
+          </div>
+
+          <div class="media">
+            <div class="media-img">
+              <img src="../../assets/img/Jujutsukaisen/movie-zero.jpg" alt="Jujutsu Kaisen anime">
+              <div class="media-platform netflix">NETFLIX</div>
+            </div>
+            <div class="media-title">Anime · S2 Ep 8</div>
+            <div class="media-meta">Adapted from</div>
+          </div>
+
+          <!-- Row 2: song card, centered -->
+          <div></div>
+          <div class="media">
+            <div class="media-img" style="width:100px;height:100px;">
+              <img src="../../assets/img/Jujutsukaisen/sakayume-song.jpg" alt="Sakayume by King Gnu">
+              <div class="media-platform spotify">SPOTIFY</div>
+            </div>
+            <div class="media-title">Sakayume · King Gnu</div>
+            <div class="media-meta">逆夢 · Opening theme</div>
+          </div>
+          <div></div>
+
+          <!-- Row 3: 3 person avatars -->
+          <div class="person-row">
+            <div class="person">
+              <div class="person-avatar">
+                <img src="../../assets/img/avatars/kiran.png" alt="Kiran">
+              </div>
+              <div class="person-info">
+                <div class="person-name">Kiran, 38</div>
+                <div class="person-act">finished Sat · 6:14 PM</div>
+              </div>
+            </div>
+            <div class="person">
+              <div class="person-avatar">
+                <img src="../../assets/img/avatars/sota.png" alt="Sota">
+              </div>
+              <div class="person-info">
+                <div class="person-name">Sota, 6</div>
+                <div class="person-act">humming · 11 matches</div>
+              </div>
+            </div>
+            <div class="person">
+              <div class="person-avatar">
+                <img src="../../assets/img/avatars/aoi.png" alt="Aoi">
+              </div>
+              <div class="person-info">
+                <div class="person-name">Aoi, 15</div>
+                <div class="person-act">nightly · S2 Ep 8</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="side-head">In this orbit · this week</div>
+
+        <div class="side-member">
+          <div class="side-avatar"><img src="../../assets/img/avatars/kiran.png" alt=""></div>
+          <div class="side-body">
+            <div class="side-name">Kiran, 38</div>
+            <div class="side-desc">Finished Vol 10 · Sat 6:14 PM</div>
+            <span class="side-badge kindle">KINDLE</span>
+          </div>
+        </div>
+
+        <div class="side-member">
+          <div class="side-avatar"><img src="../../assets/img/avatars/aoi.png" alt=""></div>
+          <div class="side-body">
+            <div class="side-name">Aoi, 15</div>
+            <div class="side-desc">Nightly · S2 Ep 8 · saved theme 3 wks ago</div>
+            <span class="side-badge netflix">NETFLIX</span>
+          </div>
+        </div>
+
+        <div class="side-member">
+          <div class="side-avatar"><img src="../../assets/img/avatars/sota.png" alt=""></div>
+          <div class="side-body">
+            <div class="side-name">Sota, 6</div>
+            <div class="side-desc">Humming · 11 audio matches this week</div>
+            <span class="side-badge spotify">SPOTIFY</span>
+          </div>
+        </div>
+
+        <div class="pattern">
+          <div class="pattern-label">Pattern Detected</div>
+          <div class="pattern-text">Three members of the same <strong>IP universe</strong> are active at once — across three apps that don't talk to each other. The shared thread is <strong>Jujutsu Kaisen</strong>.</div>
+        </div>
+      </aside>
+    </div>
+
+  </div>
+
+  <script>
+    if (new URLSearchParams(location.search).has('noframe')) {
+      document.body.classList.add('noframe');
+    }
+
+    // Report height to parent so iframe can auto-resize (no internal scroll)
+    function reportHeight() {
+      const h = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight
+      );
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'family-brain:height', height: h }, '*');
+      }
+    }
+    window.addEventListener('load', reportHeight);
+    window.addEventListener('resize', reportHeight);
+    // Re-report after images load
+    document.querySelectorAll('img').forEach(img => {
+      if (img.complete) return;
+      img.addEventListener('load', reportHeight);
+      img.addEventListener('error', reportHeight);
+    });
+    // Also observe any content changes
+    if (window.ResizeObserver) {
+      new ResizeObserver(reportHeight).observe(document.body);
+    }
+  </script>
+</body>
+</html>

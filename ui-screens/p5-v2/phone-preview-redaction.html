@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galaxy S25 · Preview Redaction · Active</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #111010;
+    color: #f0ece4;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 24px 20px;
+  }
+
+  /* ───────────────────────────
+     PHONE SHELL
+  ─────────────────────────── */
+  .phone-wrap {
+    position: relative;
+    width: 200px;
+    /* S25 is narrower / taller than S24 — approx 9:20 */
+    aspect-ratio: 9 / 20;
+    flex-shrink: 0;
+  }
+
+  /* Dark glass phone body */
+  .phone-shell {
+    position: absolute;
+    inset: 0;
+    background: #1a1a1a;
+    border-radius: 32px;
+    /* Subtle titanium-like rim */
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.10),
+      0 0 0 2px #2e2e2e,
+      0 12px 40px rgba(0,0,0,0.7),
+      0 4px 12px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+
+  /* Punch-hole camera — S25 center-top */
+  .punch-hole {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: #000;
+    border-radius: 50%;
+    z-index: 20;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  /* ───────────────────────────
+     LOCK SCREEN CONTENT
+  ─────────────────────────── */
+  .lockscreen {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(175deg,
+      #0d0e16 0%,
+      #10101a 30%,
+      #0b0b12 65%,
+      #090909 100%
+    );
+    border-radius: 32px;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 12px 12px;
+    overflow: hidden;
+  }
+
+  /* Subtle ambient blobs for depth */
+  .ls-ambient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 32px;
+  }
+  .ls-ambient::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: -10%;
+    width: 80%;
+    height: 40%;
+    background: radial-gradient(ellipse, rgba(80,60,140,0.14) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .ls-ambient::after {
+    content: '';
+    position: absolute;
+    bottom: 15%;
+    right: -15%;
+    width: 70%;
+    height: 35%;
+    background: radial-gradient(ellipse, rgba(30,90,150,0.10) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  /* ── Status bar ── */
+  .ls-statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 4px 0;
+    z-index: 5;
+    position: relative;
+  }
+  .ls-statusbar__time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.3px;
+  }
+  .ls-statusbar__icons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Signal bars */
+  .signal {
+    display: flex;
+    gap: 1.5px;
+    align-items: flex-end;
+    height: 9px;
+  }
+  .signal span {
+    width: 2px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 1px;
+  }
+  .signal span:nth-child(1) { height: 30%; }
+  .signal span:nth-child(2) { height: 52%; }
+  .signal span:nth-child(3) { height: 74%; }
+  .signal span:nth-child(4) { height: 100%; }
+
+  /* Wifi icon minimal */
+  .icon-wifi {
+    width: 10px;
+    height: 8px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .icon-wifi::before,
+  .icon-wifi::after,
+  .icon-wifi .w-dot {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.7);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+  }
+  .icon-wifi::before {
+    width: 10px;
+    height: 5px;
+    top: 0;
+  }
+  .icon-wifi::after {
+    width: 6px;
+    height: 3px;
+    top: 2px;
+  }
+
+  /* Battery */
+  .battery {
+    width: 17px;
+    height: 8px;
+    border: 1.2px solid rgba(255,255,255,0.55);
+    border-radius: 2px;
+    position: relative;
+  }
+  .battery::before {
+    content: '';
+    position: absolute;
+    left: 1.5px;
+    top: 1.5px;
+    bottom: 1.5px;
+    width: 72%;
+    background: rgba(255,255,255,0.75);
+    border-radius: 1px;
+  }
+  .battery::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.5px;
+    height: 4px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 0 1.5px 1.5px 0;
+  }
+
+  /* ── Hero clock ── */
+  .ls-clock {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    padding: 14px 0 4px;
+    flex-shrink: 0;
+  }
+  .ls-clock__time {
+    font-family: 'Geist Sans', sans-serif;
+    font-size: 54px;
+    font-weight: 200;
+    color: #ffffff;
+    letter-spacing: -3px;
+    line-height: 1;
+  }
+  .ls-clock__date {
+    font-family: 'Geist Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.52);
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+
+  /* ── Weather strip ── */
+  .ls-weather {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 4px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+  }
+  .ls-weather__icon {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+  .ls-weather__text {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8.5px;
+    color: rgba(255,255,255,0.42);
+    letter-spacing: 0.2px;
+  }
+
+  /* ── Notifications ── */
+  .ls-notifs {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+    flex: 1;
+  }
+
+  .notif-card {
+    background: rgba(255,255,255,0.09);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 8px 10px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Normal notification */
+  .notif-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .notif-app {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+  }
+  .notif-app-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 1.5px;
+    flex-shrink: 0;
+  }
+  .notif-ts {
+    font-family: 'Geist Mono', monospace;
+    font-size: 7px;
+    color: rgba(255,255,255,0.28);
+  }
+  .notif-title {
+    font-size: 9px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+  .notif-body {
+    font-size: 8px;
+    color: rgba(255,255,255,0.52);
+    line-height: 1.4;
+  }
+
+  /* KEY: Redacted gmail card */
+  .notif-card--redacted {
+    background: rgba(255,255,255,0.11);
+    border-color: rgba(255,255,255,0.09);
+  }
+  /* Left accent bar — full-height, inside the card */
+  .notif-card--redacted .redact-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: rgba(48, 201, 105, 0.55);
+    border-radius: 12px 0 0 12px;
+  }
+  .notif-card--redacted .notif-head {
+    padding-left: 6px;
+  }
+  .notif-card--redacted .notif-title {
+    padding-left: 6px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.95);
+  }
+  .notif-card--redacted .notif-body-row {
+    padding-left: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .notif-card--redacted .notif-body {
+    color: rgba(255,255,255,0.38);
+    font-style: italic;
+    font-size: 8px;
+  }
+  /* CG chip inside the redacted card */
+  .cg-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(48,201,105,0.12);
+    border: 1px solid rgba(48,201,105,0.22);
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 6px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(48,201,105,0.85);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .cg-chip::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #30c969;
+    animation: chip-pulse 2.8s ease-in-out infinite;
+  }
+  @keyframes chip-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  /* ── Bottom affordances ── */
+  .ls-bottom {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 8px 4px 4px;
+    flex-shrink: 0;
+  }
+  .ls-quick {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .ls-quick__icon {
+    width: 26px;
+    height: 26px;
+    background: rgba(255,255,255,0.10);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ls-quick__icon svg { width: 12px; height: 12px; }
+  .ls-quick__label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 6px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .ls-home-pill {
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.30);
+    border-radius: 2px;
+    align-self: center;
+  }
+
+
+  /* ───────────────────────────
+     RULE NOTE (below phone)
+     Concept / Backstage label
+  ─────────────────────────── */
+  .rule-note {
+    width: 100%;
+    max-width: 220px;
+    background: #0f0e12;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 11px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .rule-note__header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rule-note__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #30c969;
+    flex-shrink: 0;
+  }
+  .rule-note__label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: rgba(240,236,228,0.35);
+  }
+
+  .rule-note__row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .rule-note__item {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+  }
+  .rule-note__key {
+    font-family: 'Geist Mono', monospace;
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: rgba(240,236,228,0.32);
+    text-transform: uppercase;
+    white-space: nowrap;
+    min-width: 42px;
+  }
+  .rule-note__val {
+    font-family: 'Geist Mono', monospace;
+    font-size: 7.5px;
+    color: rgba(240,236,228,0.62);
+    line-height: 1.4;
+  }
+  .rule-note__val em {
+    font-style: normal;
+    color: rgba(240,236,228,0.90);
+    font-weight: 600;
+  }
+
+  .rule-note__insight {
+    font-size: 10px;
+    color: rgba(240,236,228,0.48);
+    line-height: 1.5;
+    font-style: italic;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 7px;
+    margin-top: 0;
+  }
+  .rule-note__insight strong {
+    font-style: normal;
+    font-weight: 500;
+    color: rgba(240,236,228,0.75);
+  }
+</style>
+</head>
+<body>
+
+<!-- Samsung Galaxy S25 lock screen -->
+<div class="phone-wrap">
+  <div class="phone-shell">
+    <div class="punch-hole" aria-hidden="true"></div>
+    <div class="ls-ambient" aria-hidden="true"></div>
+
+    <div class="lockscreen">
+
+      <!-- Status bar -->
+      <div class="ls-statusbar">
+        <div class="ls-statusbar__time">21:14</div>
+        <div class="ls-statusbar__icons">
+          <div class="signal" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="icon-wifi" aria-hidden="true"></div>
+          <div class="battery" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- Hero clock -->
+      <div class="ls-clock">
+        <div class="ls-clock__time">21:14</div>
+        <div class="ls-clock__date">Tue, Apr 21</div>
+      </div>
+
+      <!-- Weather -->
+      <div class="ls-weather">
+        <div class="ls-weather__text">Copenhagen · 8° · Clear</div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="ls-notifs">
+
+        <!-- Regular notification — Calendar reminder -->
+        <div class="notif-card">
+          <div class="notif-head">
+            <div class="notif-app">
+              <div class="notif-app-dot" style="background: #4285f4;"></div>
+              Calendar
+            </div>
+            <div class="notif-ts">21:10</div>
+          </div>
+          <div class="notif-title">Dinner reservation at Noma</div>
+          <div class="notif-body">Tomorrow · 19:30 · 2 guests</div>
+        </div>
+
+        <!-- KEY: Redacted Gmail notification -->
+        <div class="notif-card notif-card--redacted">
+          <div class="redact-accent" aria-hidden="true"></div>
+          <div class="notif-head">
+            <div class="notif-app">
+              <div class="notif-app-dot" style="background: #ea4335;"></div>
+              Gmail
+            </div>
+            <div class="notif-ts">now</div>
+          </div>
+          <div class="notif-title">1 new email &middot; tap to view</div>
+          <div class="notif-body-row">
+            <div class="notif-body">preview hidden</div>
+            <div class="cg-chip">Preview Redaction</div>
+          </div>
+        </div>
+
+        <!-- Regular notification — Music -->
+        <div class="notif-card">
+          <div class="notif-head">
+            <div class="notif-app">
+              <div class="notif-app-dot" style="background: #1db954;"></div>
+              Spotify
+            </div>
+            <div class="notif-ts">21:08</div>
+          </div>
+          <div class="notif-title">Now playing</div>
+          <div class="notif-body">Agnes Obel &middot; Riverside</div>
+        </div>
+
+      </div>
+
+      <!-- Bottom: flashlight + camera + home pill -->
+      <div class="ls-bottom">
+        <div class="ls-quick">
+          <div class="ls-quick__icon">
+            <!-- Flashlight icon -->
+            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M5 1h2l.5 4H4.5L5 1ZM4.5 5h3l-1 6h-1L4.5 5Z" fill="rgba(255,255,255,0.6)"/>
+            </svg>
+          </div>
+          <div class="ls-quick__label">Light</div>
+        </div>
+        <div class="ls-home-pill" aria-hidden="true"></div>
+        <div class="ls-quick">
+          <div class="ls-quick__icon">
+            <!-- Camera icon -->
+            <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="1" y="3" width="10" height="7" rx="1.5" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+              <circle cx="6" cy="6.5" r="1.8" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+              <rect x="4" y="2" width="4" height="1.5" rx="0.5" fill="rgba(255,255,255,0.6)"/>
+            </svg>
+          </div>
+          <div class="ls-quick__label">Camera</div>
+        </div>
+      </div>
+
+    </div><!-- /lockscreen -->
+  </div><!-- /phone-shell -->
+</div><!-- /phone-wrap -->
+
+<!-- Backstage rule note -->
+<div class="rule-note">
+  <div class="rule-note__header">
+    <div class="rule-note__dot" aria-hidden="true"></div>
+    <div class="rule-note__label">Backstage · Rule fired</div>
+  </div>
+  <div class="rule-note__row">
+    <div class="rule-note__item">
+      <div class="rule-note__key">Signal</div>
+      <div class="rule-note__val">Social Exposure = <em>partner-present</em> (Mateo's device &lt;2m)</div>
+    </div>
+    <div class="rule-note__item">
+      <div class="rule-note__key">Action</div>
+      <div class="rule-note__val">Preview suppressed &rarr; arrival signal kept</div>
+    </div>
+  </div>
+  <div class="rule-note__insight">
+    <strong>Arrival = yes. Content = private.</strong> The grammar knows the difference.
+  </div>
+</div>
+
+</body>
+</html>

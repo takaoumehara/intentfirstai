@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Brain → 5 Surfaces | P5 Cross-Surface</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 32px;
+    font-variant-numeric: tabular-nums;
+  }
+  .artifact { width: 100%; max-width: 1120px; max-height: 100%; display: flex; flex-direction: column; gap: 10px; }
+
+  /* Header */
+  .hdr-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+  .hdr-title { font-family: var(--font-sans); font-weight: 500; font-size: 22px; letter-spacing: -0.4px; margin: 0 0 4px; line-height: 1.2; }
+  .hdr-sub { font-size: 12px; color: var(--text-2); max-width: 780px; line-height: 1.5; margin: 0; }
+
+  /* Main layout */
+  .layout { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; flex: 1; min-height: 0; }
+
+  /* Left: diagram */
+  .diagram { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; }
+  .diagram-label { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-3); }
+  svg.brain-svg { width: 100%; height: auto; max-height: 320px; display: block; flex-shrink: 0; }
+
+  /* Surface list compact */
+  .surface-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  .surface-item { display: flex; flex-direction: column; gap: 3px; padding: 6px 7px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; border-left-width: 2.5px; min-width: 0; }
+  .surface-item--watch { border-left-color: var(--illust-green); }
+  .surface-item--earbuds { border-left-color: var(--illust-blue); }
+  .surface-item--tv { border-left-color: var(--illust-amber); }
+  .surface-item--kitchen { border-left-color: var(--illust-purple); }
+  .surface-item--phone { border-left-color: var(--color-grammar); }
+  .surface-head-inline { display: flex; align-items: center; gap: 4px; }
+  .surface-emoji { font-size: 13px; line-height: 1; }
+  .surface-info-name { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.3px; color: var(--text); }
+  .surface-info-vocab { font-size: 9.5px; color: var(--text-3); line-height: 1.3; }
+  .surface-now { font-family: var(--font-mono); font-size: 9px; font-weight: 500; padding: 2px 5px; border-radius: 3px; white-space: nowrap; display: inline-block; align-self: flex-start; }
+  .surface-now--green { background: var(--chip-green-bg); color: var(--chip-green-text); }
+  .surface-now--blue { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .surface-now--amber { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+  .surface-now--purple { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+
+  /* Right annotations */
+  .annotate { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .annotate-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .annotate-label { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+  .annotate-h { font-family: var(--font-sans); font-size: 13px; font-weight: 500; letter-spacing: -0.2px; margin: 0 0 6px; line-height: 1.3; }
+  .annotate-p { font-size: 11.5px; color: var(--text-2); line-height: 1.55; margin: 0; }
+  .annotate-p strong { color: var(--text); font-weight: 500; }
+
+  .proj-chain { display: flex; flex-direction: column; gap: 3px; }
+  .proj-chain-item { display: grid; grid-template-columns: 34px 1fr; align-items: baseline; gap: 8px; padding: 5px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+  .proj-chain-item--p5 { background: var(--chip-purple-bg); border-color: transparent; }
+  .proj-id { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.4px; color: var(--text-3); }
+  .proj-chain-item--p5 .proj-id { color: var(--chip-purple-text); }
+  .proj-desc { font-size: 10.5px; color: var(--text-2); line-height: 1.4; }
+  .proj-chain-item--p5 .proj-desc { color: var(--chip-purple-text); font-weight: 500; }
+
+  @media (max-width: 900px) {
+    body { padding: 16px; overflow: auto; }
+    .artifact { max-height: none; }
+    .layout { grid-template-columns: 1fr; }
+    .surface-list { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="artifact">
+
+  <div>
+    <div class="hdr-label">Context Grammar · Structural Diagram</div>
+    <h1 class="hdr-title">Context Brain → 5 Surfaces</h1>
+    <p class="hdr-sub">One Context Brain reads 3 tokens (Cognitive / Social / Form Factor) and delivers to 5 surfaces — each in its own dialect. The lines show which token controls which route.</p>
+  </div>
+
+  <div class="layout">
+
+    <div class="diagram">
+      <div class="diagram-label">Routing Topology · Current State</div>
+
+      <svg class="brain-svg" viewBox="0 0 600 560" xmlns="http://www.w3.org/2000/svg" aria-labelledby="diag-title" role="img" preserveAspectRatio="xMidYMid meet">
+        <title id="diag-title">Context Brain radial routing to 5 surfaces</title>
+
+        <defs>
+          <marker id="arrow-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5CF6" opacity="0.6"/>
+          </marker>
+          <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#D97706" opacity="0.6"/>
+          </marker>
+          <marker id="arrow-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" opacity="0.6"/>
+          </marker>
+        </defs>
+
+        <line x1="300" y1="280" x2="130" y2="135" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" marker-end="url(#arrow-p)"/>
+        <line x1="300" y1="280" x2="470" y2="135" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" marker-end="url(#arrow-b)"/>
+        <line x1="300" y1="280" x2="500" y2="300" stroke="#D97706" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" marker-end="url(#arrow-a)"/>
+        <line x1="300" y1="280" x2="430" y2="455" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" marker-end="url(#arrow-p)"/>
+        <line x1="300" y1="280" x2="170" y2="455" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" marker-end="url(#arrow-b)"/>
+
+        <g font-family="'Geist Mono', ui-monospace, monospace" font-size="9.5" font-weight="600" letter-spacing="0.3">
+          <text x="195" y="195" fill="#6D28D9" text-anchor="middle">COGNITIVE</text>
+          <text x="405" y="195" fill="#2563eb" text-anchor="middle">FORM FACTOR</text>
+          <text x="420" y="290" fill="#92400e" text-anchor="middle">SOCIAL</text>
+          <text x="378" y="380" fill="#6D28D9" text-anchor="middle">COGNITIVE</text>
+          <text x="215" y="380" fill="#2563eb" text-anchor="middle">FORM FACTOR</text>
+        </g>
+
+        <g transform="translate(300, 280)">
+          <circle r="98" fill="#8B5CF6" opacity="0.04"/>
+          <circle r="82" fill="#8B5CF6" opacity="0.08"/>
+          <polygon points="0,-70 60.6,-35 60.6,35 0,70 -60.6,35 -60.6,-35"
+                   fill="#f3eeff" stroke="#8B5CF6" stroke-width="1.5"/>
+          <text y="-40" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="10" font-weight="600" fill="#6D28D9" letter-spacing="0.8">CONTEXT BRAIN</text>
+
+          <circle cx="-55" cy="-10" r="5" fill="#8B5CF6"/>
+          <text x="-43" y="-7" font-family="'Geist Mono', monospace" font-size="10" font-weight="500" fill="#6D28D9">Cognitive</text>
+
+          <circle cx="-55" cy="10" r="5" fill="#D97706"/>
+          <text x="-43" y="13" font-family="'Geist Mono', monospace" font-size="10" font-weight="500" fill="#92400e">Social</text>
+
+          <circle cx="-55" cy="30" r="5" fill="#3B82F6"/>
+          <text x="-43" y="33" font-family="'Geist Mono', monospace" font-size="10" font-weight="500" fill="#2563eb">Form Factor</text>
+
+          <text y="55" text-anchor="middle" font-family="'Geist', sans-serif" font-size="9" fill="#737373">3 tokens</text>
+        </g>
+
+        <g transform="translate(110, 120)">
+          <rect x="-60" y="-30" width="120" height="60" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+          <text y="-13" text-anchor="middle" font-size="16">⌚</text>
+          <text y="6" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="10" font-weight="600" fill="#065f46" letter-spacing="0.5">WATCH</text>
+          <text y="20" text-anchor="middle" font-family="'Geist', sans-serif" font-size="9" fill="#065f46">10:00 Standup</text>
+        </g>
+
+        <g transform="translate(490, 120)">
+          <rect x="-60" y="-30" width="120" height="60" rx="10" fill="#e8f0fe" stroke="#3B82F6" stroke-width="1.5"/>
+          <text y="-13" text-anchor="middle" font-size="16">🎧</text>
+          <text y="6" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="10" font-weight="600" fill="#2563eb" letter-spacing="0.5">EARBUDS</text>
+          <text y="20" text-anchor="middle" font-family="'Geist', sans-serif" font-size="9" fill="#2563eb">14-sec audio</text>
+        </g>
+
+        <g transform="translate(520, 300)">
+          <rect x="-60" y="-30" width="120" height="60" rx="10" fill="#fef3e0" stroke="#D97706" stroke-width="1.5"/>
+          <text y="-13" text-anchor="middle" font-size="16">📺</text>
+          <text y="6" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="10" font-weight="600" fill="#92400e" letter-spacing="0.5">TV</text>
+          <text y="20" text-anchor="middle" font-family="'Geist', sans-serif" font-size="9" fill="#92400e">Movie (blocked)</text>
+        </g>
+
+        <g transform="translate(450, 470)">
+          <rect x="-70" y="-30" width="140" height="60" rx="10" fill="#f3eeff" stroke="#8B5CF6" stroke-width="1.5"/>
+          <text y="-13" text-anchor="middle" font-size="16">🖥</text>
+          <text y="6" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="10" font-weight="600" fill="#6D28D9" letter-spacing="0.5">KITCHEN DISPLAY</text>
+          <text y="20" text-anchor="middle" font-family="'Geist', sans-serif" font-size="9" fill="#6D28D9">Recipe steps</text>
+        </g>
+
+        <g transform="translate(150, 470)">
+          <rect x="-60" y="-30" width="120" height="60" rx="10" fill="#eff5fa" stroke="#4a6a90" stroke-width="1.5"/>
+          <text y="-13" text-anchor="middle" font-size="16">📱</text>
+          <text y="6" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="10" font-weight="600" fill="#4a6a90" letter-spacing="0.5">PHONE</text>
+          <text y="20" text-anchor="middle" font-family="'Geist', sans-serif" font-size="9" fill="#4a6a90">Full features</text>
+        </g>
+
+      </svg>
+
+      <div class="surface-list">
+        <div class="surface-item surface-item--watch">
+          <div class="surface-head-inline"><span class="surface-emoji">⌚</span><span class="surface-info-name">WATCH</span></div>
+          <span class="surface-now surface-now--green">10:00 Standup</span>
+        </div>
+        <div class="surface-item surface-item--earbuds">
+          <div class="surface-head-inline"><span class="surface-emoji">🎧</span><span class="surface-info-name">EARBUDS</span></div>
+          <span class="surface-now surface-now--blue">14-sec audio</span>
+        </div>
+        <div class="surface-item surface-item--tv">
+          <div class="surface-head-inline"><span class="surface-emoji">📺</span><span class="surface-info-name">TV</span></div>
+          <span class="surface-now surface-now--amber">Movie only</span>
+        </div>
+        <div class="surface-item surface-item--kitchen">
+          <div class="surface-head-inline"><span class="surface-emoji">🖥</span><span class="surface-info-name">KITCHEN</span></div>
+          <span class="surface-now surface-now--purple">Recipe steps</span>
+        </div>
+        <div class="surface-item surface-item--phone">
+          <div class="surface-head-inline"><span class="surface-emoji">📱</span><span class="surface-info-name">PHONE</span></div>
+          <span class="surface-now" style="background:#eff5fa;color:#4a6a90;">Full context</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotate">
+      <div class="annotate-card">
+        <div class="annotate-label">One Brain · Five Dialects</div>
+        <h3 class="annotate-h">One Context Brain, five surfaces, each with its own vocabulary</h3>
+        <p class="annotate-p">
+          The Context Brain is <strong>one</strong> — a unified store of your context. But what flows out is translated into <strong>five different dialects</strong>. Watch is a glance, EarBuds is sound, TV is public, Kitchen is ambient, Phone is deep. The same context, re-shaped per surface.
+        </p>
+      </div>
+
+      <div class="annotate-card">
+        <div class="annotate-label">Portfolio Context</div>
+        <div class="proj-chain">
+          <div class="proj-chain-item">
+            <span class="proj-id">P1</span>
+            <span class="proj-desc">Home context — who delegates what</span>
+          </div>
+          <div class="proj-chain-item">
+            <span class="proj-id">P2</span>
+            <span class="proj-desc">Trip context — a disposable Brain</span>
+          </div>
+          <div class="proj-chain-item">
+            <span class="proj-id">P3</span>
+            <span class="proj-desc">AI collaboration — approval gates</span>
+          </div>
+          <div class="proj-chain-item">
+            <span class="proj-id">P4</span>
+            <span class="proj-desc">Work memory — Project Brain + Intent Fidelity</span>
+          </div>
+          <div class="proj-chain-item proj-chain-item--p5">
+            <span class="proj-id">P5</span>
+            <span class="proj-desc">↑ How those contexts express themselves across surfaces — the <strong>grammar</strong></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

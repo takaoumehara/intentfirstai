@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>P3-05 6-Month Repurchase</title>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 <style>
   :root {
     --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
@@ -13,22 +12,90 @@
   }
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #E8EAED;
+    background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+
+  /* noframe mode: hide outer shell, fill viewport with screen content */
+  body.noframe {
+    background: transparent !important;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  body.noframe .phone-frame {
+    width: 100vw;
+    height: 100vh;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    transform: none;
+  }
+  body.noframe .phone-frame::before,
+  body.noframe .phone-frame::after { display: none !important; }
+  body.noframe .phone-screen { border-radius: 0; }
+  body.noframe .notch { display: none !important; }
+  body.noframe .status-bar { display: none !important; }
+  body.noframe .home-indicator { display: none !important; }
+  /* Dynamic Island safe-area — parent iPhone island sits top-center */
+  body.noframe .header { padding-top: 56px; height: auto; min-height: 112px; }
 
   .phone-frame {
     width: 390px;
     height: 844px;
-    background: #FFFFFF;
-    border-radius: 44px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px;
+    padding: 11px;
+    position: relative;
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.18),
+      0 24px 64px rgba(0,0,0,0.1),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    right: -2px; top: 130px;
+    width: 3px; height: 52px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 0 2px 2px 0;
+  }
+  .phone-frame::after {
+    content: '';
+    position: absolute;
+    left: -2px; top: 110px;
+    width: 3px; height: 30px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 42px 0 #2a2a2c, 0 72px 0 #2a2a2c;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    border-radius: 40px;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Dynamic Island */
+  .notch {
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 126px; height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
   }
 
   .status-bar {
@@ -39,11 +106,13 @@
     align-items: center;
     font-size: 14px;
     font-weight: 600;
-    color: #202124;
-    background: #FFFFFF;
+    color: #0a0a0a;
+    background: #ffffff;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
   }
-  .status-bar-right { display: flex; gap: 6px; align-items: center; }
-  .status-bar-right .material-symbols-outlined { font-size: 18px; }
+  .status-bar-right { display: flex; gap: 5px; align-items: center; }
 
   .header {
     height: 56px;
@@ -51,29 +120,43 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #F1F3F4;
-    background: #FFFFFF;
+    border-bottom: 1px solid rgba(10,10,10,0.07);
+    background: #ffffff;
+    flex-shrink: 0;
   }
-  .header-left { display: flex; align-items: center; gap: 8px; }
-  .header-left .material-symbols-outlined { font-size: 24px; color: #5F6368; cursor: pointer; }
-  .gemini-badge { font-size: 15px; font-weight: 500; color: #1A73E8; display: flex; align-items: center; gap: 4px; }
-  .header-right .material-symbols-outlined { font-size: 24px; color: #5F6368; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .nav-icon {
+    font-size: 20px;
+    color: #525252;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+  .gemini-badge {
+    font-size: 15px;
+    font-weight: 500;
+    color: #4a6a90;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
 
   .content {
-    height: calc(844px - 54px - 56px - 34px);
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: 16px;
-    background: #F8F9FA;
+    background: #fafafa;
   }
   .content::-webkit-scrollbar { width: 0; }
 
   /* Notification Banner */
   .notification {
-    background: #FFFFFF;
-    border-radius: 16px;
+    background: #ffffff;
+    border-radius: 12px;
     padding: 14px 16px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid rgba(10,10,10,0.07);
     display: flex;
     gap: 10px;
     align-items: flex-start;
@@ -86,23 +169,24 @@
   }
   .notif-icon {
     font-size: 20px;
-    color: #1A73E8;
+    color: #4a6a90;
     flex-shrink: 0;
     line-height: 1.4;
   }
   .notif-text {
     font-size: 14px;
-    color: #202124;
+    color: #0a0a0a;
     line-height: 1.5;
   }
   .notif-text strong { font-weight: 600; }
 
   /* Learning Card */
   .learning-card {
-    background: #E6F4EA;
-    border-radius: 16px;
+    background: #ecfdf5;
+    border-radius: 12px;
     padding: 16px;
     margin-bottom: 14px;
+    border: 1px solid rgba(5,150,105,0.12);
     opacity: 0;
     transform: translateY(16px);
     animation: fadeInUp 450ms 500ms cubic-bezier(0.2, 0, 0, 1) forwards;
@@ -113,7 +197,7 @@
   .learning-header {
     font-size: 15px;
     font-weight: 600;
-    color: #1E8E3E;
+    color: #3a6a3a;
     margin-bottom: 14px;
     display: flex;
     align-items: center;
@@ -126,8 +210,8 @@
   }
   .comparison-col {
     flex: 1;
-    background: rgba(255,255,255,0.7);
-    border-radius: 12px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 10px;
     padding: 12px;
     opacity: 0;
   }
@@ -149,12 +233,12 @@
   .col-label {
     font-size: 11px;
     font-weight: 600;
-    color: #5F6368;
+    color: #737373;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 10px;
   }
-  .col-label.improved { color: #1E8E3E; }
+  .col-label.improved { color: #3a6a3a; }
 
   .stat-row {
     display: flex;
@@ -164,19 +248,20 @@
   }
   .stat-label {
     font-size: 12px;
-    color: #5F6368;
+    color: #737373;
   }
   .stat-value {
     font-size: 18px;
     font-weight: 700;
-    color: #202124;
+    color: #0a0a0a;
+    letter-spacing: -0.5px;
   }
-  .stat-value.highlight { color: #1E8E3E; }
+  .stat-value.highlight { color: #3a6a3a; }
 
   /* Candidates note */
   .candidates-note {
     font-size: 13px;
-    color: #5F6368;
+    color: #525252;
     margin-bottom: 14px;
     padding-left: 4px;
     opacity: 0;
@@ -185,11 +270,11 @@
 
   /* Product Cards */
   .product-card {
-    background: #FFFFFF;
-    border-radius: 16px;
+    background: #ffffff;
+    border-radius: 12px;
     padding: 16px;
     margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid rgba(10,10,10,0.07);
     opacity: 0;
     transform: translateY(16px);
   }
@@ -202,21 +287,22 @@
 
   .product-header { display: flex; gap: 12px; margin-bottom: 10px; }
   .product-image {
-    width: 72px; height: 72px; border-radius: 12px; background: #F1F3F4;
+    width: 72px; height: 72px; border-radius: 10px; background: #f4f4f5;
     display: flex; align-items: center; justify-content: center;
     font-size: 32px; flex-shrink: 0;
+    overflow: hidden;
   }
   .product-info { flex: 1; }
-  .product-name { font-size: 16px; font-weight: 500; color: #202124; margin-bottom: 2px; }
-  .product-price { font-size: 18px; font-weight: 700; color: #202124; margin-bottom: 4px; }
+  .product-name { font-size: 15px; font-weight: 500; color: #0a0a0a; margin-bottom: 2px; letter-spacing: -0.2px; }
+  .product-price { font-size: 18px; font-weight: 700; color: #0a0a0a; margin-bottom: 4px; letter-spacing: -0.5px; }
 
   .confidence-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .confidence-label { font-size: 13px; font-weight: 500; white-space: nowrap; }
-  .confidence-label.green { color: #1E8E3E; }
+  .confidence-label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .confidence-label.green { color: #3a6a3a; }
   .double-check { position: relative; display: inline-flex; gap: 1px; }
   .check-mark {
     display: inline-block;
-    color: #1E8E3E;
+    color: #3a6a3a;
     font-weight: 700;
     opacity: 0;
   }
@@ -227,11 +313,11 @@
     to { opacity: 1; transform: scale(1); }
   }
 
-  .confidence-track { flex: 1; height: 4px; background: #E8EAED; border-radius: 2px; overflow: hidden; }
-  .confidence-fill { height: 100%; border-radius: 2px; background: #1E8E3E; width: 0; }
+  .confidence-track { flex: 1; height: 4px; background: #e4e4e7; border-radius: 2px; overflow: hidden; }
+  .confidence-fill { height: 100%; border-radius: 2px; background: #3a6a3a; width: 0; }
 
-  .review-note { font-size: 12px; color: #5F6368; margin-bottom: 8px; line-height: 1.4; }
-  .review-note em { font-style: italic; color: #202124; }
+  .review-note { font-size: 12px; color: #737373; margin-bottom: 8px; line-height: 1.4; }
+  .review-note em { font-style: italic; color: #0a0a0a; }
 
   .card-actions { display: flex; gap: 8px; }
   .action-btn {
@@ -247,42 +333,42 @@
   }
   .action-btn:active { transform: scale(0.97); }
   .action-btn.primary {
-    background: #1A73E8;
-    color: #FFFFFF;
+    background: #0a0a0a;
+    color: #ffffff;
   }
   .action-btn.secondary {
-    background: #F1F3F4;
-    color: #5F6368;
+    background: #f4f4f5;
+    color: #525252;
   }
 
   /* Translation Evolution Footer */
   .translation-footer {
-    background: #FFFFFF;
-    border-radius: 16px;
+    background: #ffffff;
+    border-radius: 12px;
     padding: 14px 16px;
     margin-top: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid rgba(10,10,10,0.07);
     opacity: 0;
     animation: fadeInUp 400ms 1700ms cubic-bezier(0.2, 0, 0, 1) forwards;
   }
   .translation-label {
     font-size: 11px;
     font-weight: 600;
-    color: #9AA0A6;
+    color: #a1a1aa;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
   }
   .translation-text {
     font-size: 13px;
-    color: #5F6368;
+    color: #525252;
     line-height: 1.5;
   }
   .typewriter-cursor {
     display: inline-block;
     width: 2px;
     height: 14px;
-    background: #1A73E8;
+    background: #4a6a90;
     vertical-align: text-bottom;
     animation: blink 600ms infinite;
   }
@@ -298,15 +384,16 @@
     align-items: flex-end;
     justify-content: center;
     padding-bottom: 8px;
-    background: #F8F9FA;
+    background: #fafafa;
+    flex-shrink: 0;
   }
   .home-indicator-bar {
-    width: 134px; height: 5px; background: #202124; border-radius: 9999px;
+    width: 134px; height: 5px; background: #0a0a0a; border-radius: 9999px; opacity: 0.15;
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .action-btn.primary:hover { background: #1557B0; }
-    .action-btn.secondary:hover { background: #E8EAED; }
+    .action-btn.primary:hover { background: #27272a; }
+    .action-btn.secondary:hover { background: #e4e4e7; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -321,136 +408,153 @@
 <body>
 
 <div class="phone-frame">
-  <div class="status-bar">
-    <span>9:41</span>
-    <div class="status-bar-right">
-      <span class="material-symbols-outlined">signal_cellular_alt</span>
-      <span class="material-symbols-outlined">wifi</span>
-      <span class="material-symbols-outlined">battery_full</span>
-    </div>
-  </div>
+  <div class="phone-screen">
+    <div class="notch"></div>
 
-  <div class="header">
-    <div class="header-left">
-      <span class="material-symbols-outlined">arrow_back</span>
-      <div class="gemini-badge"><span>✦</span> Gemini</div>
-    </div>
-    <div class="header-right">
-      <span class="material-symbols-outlined">more_horiz</span>
-    </div>
-  </div>
-
-  <div class="content">
-    <!-- Notification -->
-    <div class="notification">
-      <div class="notif-icon">✦</div>
-      <div class="notif-text">
-        <strong>Son's shoes</strong> — 6 months since purchase. Size 4 might be needed now.
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-bar-right">
+        <svg width="15" height="12" viewBox="0 0 15 12" fill="#0a0a0a">
+          <rect x="0" y="8" width="2.5" height="4" opacity="0.25" rx="0.5"/>
+          <rect x="3.5" y="5.5" width="2.5" height="6.5" opacity="0.5" rx="0.5"/>
+          <rect x="7" y="3" width="2.5" height="9" rx="0.5"/>
+          <rect x="10.5" y="0.5" width="2.5" height="11.5" rx="0.5"/>
+        </svg>
+        <svg width="17" height="13" viewBox="0 0 24 18" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round">
+          <path d="M1.5 7C5.8 2.7 12 1 12 1S18.2 2.7 22.5 7"/>
+          <path d="M5 10.5C8 7.5 12 6.5 12 6.5S16 7.5 19 10.5"/>
+          <path d="M8.5 14C10 12.5 12 12 12 12S14 12.5 15.5 14"/>
+          <circle cx="12" cy="17" r="1.5" fill="#0a0a0a" stroke="none"/>
+        </svg>
+        <svg width="22" height="12" viewBox="0 0 28 14" fill="#0a0a0a">
+          <rect x="0.75" y="0.75" width="22.5" height="12.5" rx="2.25" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+          <rect x="23.5" y="3.5" width="3" height="7" rx="1.5"/>
+          <rect x="2.5" y="2.5" width="18" height="9" rx="1.5"/>
+        </svg>
       </div>
     </div>
 
-    <!-- Learning Card -->
-    <div class="learning-card">
-      <div class="learning-header">🧠 Brain Learned</div>
-      <div class="comparison">
-        <div class="comparison-col left">
-          <div class="col-label">Last Time</div>
-          <div class="stat-row">
-            <span class="stat-label">Shown</span>
-            <span class="stat-value" id="lastShown">0</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Accuracy</span>
-            <span class="stat-value" id="lastAcc">0%</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Time</span>
-            <span class="stat-value" id="lastTime">0h</span>
-          </div>
-        </div>
-        <div class="comparison-col right">
-          <div class="col-label improved">This Time</div>
-          <div class="stat-row">
-            <span class="stat-label">Shown</span>
-            <span class="stat-value highlight" id="thisShown">0</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Accuracy</span>
-            <span class="stat-value highlight" id="thisAcc">0%</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Time (est.)</span>
-            <span class="stat-value highlight" id="thisTime">0m</span>
-          </div>
-        </div>
+    <div class="header">
+      <div class="header-left">
+        <span class="nav-icon">←</span>
+        <div class="gemini-badge"><span>✦</span> Gemini</div>
+      </div>
+      <div>
+        <span class="nav-icon">···</span>
       </div>
     </div>
 
-    <!-- Candidates -->
-    <div class="candidates-note">2 candidates match criteria (Size 4)</div>
-
-    <!-- Card 1: Nike Flex Runner v2 -->
-    <div class="product-card">
-      <div class="product-header">
-        <div class="product-image" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=300&h=300&fit=crop&q=80" alt="Nike Flex Runner v2" style="width:100%;height:100%;object-fit:contain;border-radius:12px;"></div>
-        <div class="product-info">
-          <div class="product-name">Nike Flex Runner v2</div>
-          <div class="product-price">$68</div>
+    <div class="content">
+      <!-- Notification -->
+      <div class="notification">
+        <div class="notif-icon">✦</div>
+        <div class="notif-text">
+          <strong>Son's shoes</strong> — 6 months since purchase. Size 4 might be needed now.
         </div>
       </div>
-      <div class="confidence-row">
-        <span class="confidence-label green">97%
-          <span class="double-check">
-            <span class="check-mark c1">✓</span><span class="check-mark c2">✓</span>
+
+      <!-- Learning Card -->
+      <div class="learning-card">
+        <div class="learning-header">🧠 Brain Learned</div>
+        <div class="comparison">
+          <div class="comparison-col left">
+            <div class="col-label">Last Time</div>
+            <div class="stat-row">
+              <span class="stat-label">Shown</span>
+              <span class="stat-value" id="lastShown">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Accuracy</span>
+              <span class="stat-value" id="lastAcc">0%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Time</span>
+              <span class="stat-value" id="lastTime">0h</span>
+            </div>
+          </div>
+          <div class="comparison-col right">
+            <div class="col-label improved">This Time</div>
+            <div class="stat-row">
+              <span class="stat-label">Shown</span>
+              <span class="stat-value highlight" id="thisShown">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Accuracy</span>
+              <span class="stat-value highlight" id="thisAcc">0%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Time (est.)</span>
+              <span class="stat-value highlight" id="thisTime">0m</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Candidates -->
+      <div class="candidates-note">2 candidates match criteria (Size 4)</div>
+
+      <!-- Card 1: Nike Flex Runner v2 -->
+      <div class="product-card">
+        <div class="product-header">
+          <div class="product-image"><img src="https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=300&h=300&fit=crop&q=80" alt="Nike Flex Runner v2" style="width:100%;height:100%;object-fit:contain;border-radius:10px;"></div>
+          <div class="product-info">
+            <div class="product-name">Nike Flex Runner v2</div>
+            <div class="product-price">$68</div>
+          </div>
+        </div>
+        <div class="confidence-row">
+          <span class="confidence-label green">97%
+            <span class="double-check">
+              <span class="check-mark c1">✓</span><span class="check-mark c2">✓</span>
+            </span>
           </span>
-        </span>
-        <div class="confidence-track"><div class="confidence-fill" data-width="97"></div></div>
-      </div>
-      <div class="review-note">Next model of last version. <em>Inner smooth</em></div>
-      <div class="card-actions">
-        <button class="action-btn primary">Choose This</button>
-        <button class="action-btn secondary">Watch on TV</button>
-      </div>
-    </div>
-
-    <!-- Card 2: Adidas Terrex v3 -->
-    <div class="product-card">
-      <div class="product-header">
-        <div class="product-image" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=300&h=300&fit=crop&q=80" alt="Adidas Terrex v3" style="width:100%;height:100%;object-fit:contain;border-radius:12px;"></div>
-        <div class="product-info">
-          <div class="product-name">Adidas Terrex v3</div>
-          <div class="product-price">$62</div>
+          <div class="confidence-track"><div class="confidence-fill" data-width="97"></div></div>
+        </div>
+        <div class="review-note">Next model of last version. <em>Inner smooth</em></div>
+        <div class="card-actions">
+          <button class="action-btn primary">Choose This</button>
+          <button class="action-btn secondary">Watch on TV</button>
         </div>
       </div>
-      <div class="confidence-row">
-        <span class="confidence-label green">95%
-          <span class="double-check">
-            <span class="check-mark c1">✓</span><span class="check-mark c2">✓</span>
+
+      <!-- Card 2: Adidas Terrex v3 -->
+      <div class="product-card">
+        <div class="product-header">
+          <div class="product-image"><img src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=300&h=300&fit=crop&q=80" alt="Adidas Terrex v3" style="width:100%;height:100%;object-fit:contain;border-radius:10px;"></div>
+          <div class="product-info">
+            <div class="product-name">Adidas Terrex v3</div>
+            <div class="product-price">$62</div>
+          </div>
+        </div>
+        <div class="confidence-row">
+          <span class="confidence-label green">95%
+            <span class="double-check">
+              <span class="check-mark c1">✓</span><span class="check-mark c2">✓</span>
+            </span>
           </span>
-        </span>
-        <div class="confidence-track"><div class="confidence-fill" data-width="95"></div></div>
+          <div class="confidence-track"><div class="confidence-fill" data-width="95"></div></div>
+        </div>
+        <div class="review-note">Previously purchased. <em>High satisfaction</em></div>
+        <div class="card-actions">
+          <button class="action-btn primary">Choose This</button>
+          <button class="action-btn secondary">Watch on TV</button>
+        </div>
       </div>
-      <div class="review-note">Previously purchased. <em>High satisfaction</em></div>
-      <div class="card-actions">
-        <button class="action-btn primary">Choose This</button>
-        <button class="action-btn secondary">Watch on TV</button>
+
+      <!-- Translation Evolution Footer -->
+      <div class="translation-footer">
+        <div class="translation-label">Translation Evolution</div>
+        <div class="translation-text" id="typewriterTarget"></div>
       </div>
     </div>
 
-    <!-- Translation Evolution Footer -->
-    <div class="translation-footer">
-      <div class="translation-label">Translation Evolution</div>
-      <div class="translation-text" id="typewriterTarget"></div>
+    <div class="home-indicator">
+      <div class="home-indicator-bar"></div>
     </div>
-  </div>
-
-  <div class="home-indicator">
-    <div class="home-indicator-bar"></div>
   </div>
 </div>
 
 <script>
-  // Counter-roll animation
   function animateCounter(el, start, end, suffix, duration, delay) {
     setTimeout(() => {
       const startTime = performance.now();
@@ -467,28 +571,14 @@
   }
 
   window.addEventListener('load', () => {
-    // Last time counters
     animateCounter(document.getElementById('lastShown'), 0, 3, '', 600, 1000);
     animateCounter(document.getElementById('lastAcc'), 0, 94, '%', 600, 1000);
-
-    // Last time - special for "2 hours"
-    setTimeout(() => {
-      const el = document.getElementById('lastTime');
-      el.textContent = '2 hours';
-    }, 1600);
     animateCounter(document.getElementById('lastTime'), 0, 2, 'h', 600, 1000);
 
-    // This time counters
     animateCounter(document.getElementById('thisShown'), 0, 2, '', 600, 1200);
     animateCounter(document.getElementById('thisAcc'), 0, 97, '%', 600, 1200);
-
-    setTimeout(() => {
-      const el = document.getElementById('thisTime');
-      el.textContent = '15 mins';
-    }, 1800);
     animateCounter(document.getElementById('thisTime'), 0, 15, 'm', 600, 1200);
 
-    // Confidence bars
     setTimeout(() => {
       document.querySelectorAll('.confidence-fill').forEach(bar => {
         bar.style.width = bar.dataset.width + '%';
@@ -496,7 +586,6 @@
       });
     }, 1600);
 
-    // Typewriter effect
     const text = "Definition of 'fluffy' refined: thin fleece OK, thick backing NO, faux fur absolutely NO";
     const target = document.getElementById('typewriterTarget');
     let i = 0;
@@ -506,14 +595,16 @@
         i++;
         setTimeout(type, 30 + Math.random() * 20);
       } else {
-        // Remove cursor after done
-        setTimeout(() => {
-          target.innerHTML = text;
-        }, 1500);
+        setTimeout(() => { target.innerHTML = text; }, 1500);
       }
     }
     setTimeout(type, 2200);
   });
+
+  // ── URL param: ?noframe=1 → canonical content-only mode (spec) ──
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
 </script>
 </body>
 </html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phone · Preview Redaction | P5 Cross-Surface</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 32px;
+    font-variant-numeric: tabular-nums;
+  }
+  .artifact { width: 100%; max-width: 1120px; max-height: 100%; display: flex; flex-direction: column; gap: 10px; }
+
+  /* Header */
+  .hdr-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+  .hdr-title { font-family: var(--font-sans); font-weight: 500; font-size: 22px; letter-spacing: -0.4px; margin: 0 0 4px; line-height: 1.2; }
+  .hdr-sub { font-size: 12px; color: var(--text-2); max-width: 780px; line-height: 1.5; margin: 0; }
+
+  /* Main split */
+  .split { display: grid; grid-template-columns: 1fr 1fr 320px; gap: 12px; flex: 1; min-height: 0; }
+
+  /* Before / After panes */
+  .side { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .side--before { border-top: 3px solid var(--illust-red); }
+  .side--after { border-top: 3px solid var(--illust-green); }
+  .side-head { display: flex; align-items: baseline; gap: 8px; }
+  .side-label { font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; }
+  .side-label--before { color: var(--chip-red-text); }
+  .side-label--after { color: var(--chip-green-text); }
+  .side-title { font-family: var(--font-sans); font-size: 13px; font-weight: 500; letter-spacing: -0.2px; margin: 0; line-height: 1.25; }
+  .side-scenario { font-size: 10.5px; color: var(--text-2); line-height: 1.5; margin: 0; }
+
+  /* Phone mock compact */
+  .phone-wrap { display: flex; justify-content: center; padding: 2px 0; flex: 1; min-height: 0; align-items: center; }
+  .phone {
+    width: 170px;
+    aspect-ratio: 9/19;
+    background: linear-gradient(145deg, #2a2a2c, #1a1a1c);
+    border-radius: 26px;
+    padding: 6px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.12), 0 12px 30px rgba(0,0,0,.12);
+    position: relative;
+  }
+  .phone::before {
+    content:''; position:absolute; right:-3px; top:94px; width:3px; height:40px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c); border-radius: 1px 0 0 1px;
+  }
+  .phone-screen {
+    width: 100%; height: 100%; background: #000; border-radius: 20px;
+    padding: 32px 10px 12px; position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .phone-screen::before {
+    content:''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 66px; height: 18px; background: #0a0a0a; border-radius: 10px;
+  }
+  .phone-time { font-family: var(--font-mono); font-weight: 300; font-size: 32px; color: #fff; text-align: center; margin-top: 4px; letter-spacing: -1.5px; line-height: 1; }
+  .phone-date { font-family: var(--font-mono); font-size: 9px; color: rgba(255,255,255,0.65); text-align: center; margin-top: 2px; font-weight: 500; }
+
+  .notif {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    padding: 8px;
+    margin-top: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+  }
+  .notif-icon { width: 22px; height: 22px; border-radius: 6px; background: #5d74e6; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+  .notif-body { flex: 1; min-width: 0; }
+  .notif-app { font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.62); letter-spacing: 0.3px; text-transform: uppercase; }
+  .notif-title { font-size: 10px; font-weight: 600; color: #fff; margin-top: 1px; line-height: 1.25; }
+  .notif-preview { font-size: 9px; color: rgba(255,255,255,0.85); line-height: 1.35; margin-top: 1px; }
+  .notif-preview--redacted { color: rgba(255,255,255,0.5); font-style: italic; }
+  .leak { background: rgba(239,68,68,0.3); padding: 0 3px; border-radius: 2px; color: #fff; font-weight: 700; }
+
+  .protect-pill {
+    display: inline-flex; align-self: center; margin-top: auto; margin-bottom: 6px;
+    font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.3px;
+    padding: 2px 6px; border-radius: 3px;
+    color: rgba(52,211,153,0.9); background: rgba(5,150,105,0.18);
+  }
+
+  .scene-floor {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 5px 8px;
+    background: var(--bg); border: 1px dashed var(--border); border-radius: 6px;
+    font-size: 9.5px; color: var(--text-3);
+  }
+
+  /* Status row */
+  .status-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+  .status-card { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 4px 6px; text-align: center; }
+  .status-name { font-family: var(--font-mono); font-size: 8px; font-weight: 600; color: var(--text-3); letter-spacing: 0.3px; text-transform: uppercase; }
+  .status-state { font-size: 9px; color: var(--text-2); line-height: 1.3; margin-top: 1px; }
+  .status-mark { font-family: var(--font-mono); font-size: 9px; font-weight: 700; margin-top: 1px; }
+  .status-mark--block { color: var(--illust-red); }
+  .status-mark--pass { color: var(--illust-green); }
+
+  /* RIGHT COLUMN — combined reasoning + beyond */
+  .rail { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .reasoning { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .reasoning-label { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-3); }
+  .reasoning-title { font-family: var(--font-sans); font-size: 13px; font-weight: 500; letter-spacing: -0.2px; margin: 4px 0 8px; line-height: 1.3; }
+  .reasoning-items { display: flex; flex-direction: column; gap: 6px; }
+  .reasoning-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; }
+  .reasoning-card__k { font-family: var(--font-mono); font-size: 8.5px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-3); }
+  .reasoning-card__v { font-size: 10.5px; color: var(--text); font-weight: 500; line-height: 1.35; margin-top: 2px; }
+  .reasoning-card__sig { font-family: var(--font-mono); font-size: 8.5px; color: var(--text-2); line-height: 1.4; margin-top: 3px; }
+
+  .beyond { background: #f3eeff; border-left: 2px solid var(--illust-purple); border-radius: 4px; padding: 8px 10px; }
+  .beyond-label { font-family: var(--font-mono); font-size: 8.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--chip-purple-text); }
+  .beyond-body { font-size: 10.5px; color: var(--text); line-height: 1.55; margin: 4px 0 0; }
+  .beyond-body strong { color: var(--chip-purple-text); font-weight: 600; }
+
+  @media (max-width: 1000px) {
+    body { padding: 16px; overflow: auto; }
+    .artifact { max-height: none; }
+    .split { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="artifact">
+
+  <div>
+    <div class="hdr-label">Context Grammar · Surface Artifact</div>
+    <h1 class="hdr-title">Phone · Preview Redaction by Social Exposure</h1>
+    <p class="hdr-sub">Focus Mode blocks by app category and needs setup. Context Grammar reads what's in the message <em>and</em> who's nearby, then decides what the preview should show — zero setup.</p>
+  </div>
+
+  <div class="split">
+
+    <!-- BEFORE -->
+    <div class="side side--before">
+      <div class="side-head">
+        <span class="side-label side-label--before">Before · Focus Mode only</span>
+      </div>
+      <h2 class="side-title">Surprise broken in one preview.</h2>
+      <p class="side-scenario">Phone on the coffee table. The shipping email for his birthday watch lands. Focus Mode is off — and even on, Mail isn't "work," so it slips through. The full preview lights up.</p>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-time">21:47</div>
+            <div class="phone-date">Fri · Apr 25</div>
+            <div class="notif">
+              <div class="notif-icon">📧</div>
+              <div class="notif-body">
+                <div class="notif-app">Mail · Hodinkee</div>
+                <div class="notif-title">Order shipped</div>
+                <div class="notif-preview">Your <span class="leak">Tag Heuer Carrera</span> ships tomorrow ✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="scene-floor">👫 Partner can see the screen from the sofa</div>
+      <div class="status-row">
+        <div class="status-card"><div class="status-name">Focus</div><div class="status-state">OFF</div><div class="status-mark status-mark--block">—</div></div>
+        <div class="status-card"><div class="status-name">App</div><div class="status-state">Mail pass</div><div class="status-mark status-mark--block">thru</div></div>
+        <div class="status-card"><div class="status-name">Result</div><div class="status-state">full text</div><div class="status-mark status-mark--block">leak</div></div>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="side side--after">
+      <div class="side-head">
+        <span class="side-label side-label--after">After · Context Grammar</span>
+      </div>
+      <h2 class="side-title">It lit up. The name never did.</h2>
+      <p class="side-scenario">Same email. Context Brain reads nearby presence (BLE + recognition) and tags the email — from Ines's own Wishlist, recipient is the partner, category is surprise. Preview collapses to "1 new email." The name only appears when she picks the phone up.</p>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-time">21:47</div>
+            <div class="phone-date">Fri · Apr 25</div>
+            <div class="notif">
+              <div class="notif-icon">📧</div>
+              <div class="notif-body">
+                <div class="notif-app">Mail</div>
+                <div class="notif-title">1 new email</div>
+                <div class="notif-preview notif-preview--redacted">Tap to read</div>
+              </div>
+            </div>
+            <div class="protect-pill">🛡 REDACTED · SOCIAL</div>
+          </div>
+        </div>
+      </div>
+      <div class="scene-floor">👫 Partner is next to her — and still doesn't see it</div>
+      <div class="status-row">
+        <div class="status-card"><div class="status-name">Focus</div><div class="status-state">OFF (n/a)</div><div class="status-mark status-mark--pass">—</div></div>
+        <div class="status-card"><div class="status-name">Rule</div><div class="status-state">Social×Gift</div><div class="status-mark status-mark--pass">fired</div></div>
+        <div class="status-card"><div class="status-name">Result</div><div class="status-state">redacted</div><div class="status-mark status-mark--pass">safe</div></div>
+      </div>
+    </div>
+
+    <!-- RAIL: reasoning + beyond -->
+    <div class="rail">
+      <div class="reasoning">
+        <span class="reasoning-label">Context Brain · Reasoning Trace</span>
+        <div class="reasoning-title">What was read 0.2 seconds before it lit up.</div>
+        <div class="reasoning-items">
+          <div class="reasoning-card">
+            <div class="reasoning-card__k">Social Exposure</div>
+            <div class="reasoning-card__v">Partner in proximity</div>
+            <div class="reasoning-card__sig">BLE · face recognition · cohabitation history</div>
+          </div>
+          <div class="reasoning-card">
+            <div class="reasoning-card__k">Content Intent</div>
+            <div class="reasoning-card__v">Surprise-gift category</div>
+            <div class="reasoning-card__sig">Own Wishlist · recipient = partner · gift tag</div>
+          </div>
+          <div class="reasoning-card">
+            <div class="reasoning-card__k">Form Factor</div>
+            <div class="reasoning-card__v">Phone · lock screen</div>
+            <div class="reasoning-card__sig">Screen angle · on table · visible to others</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="beyond">
+        <span class="beyond-label">Beyond Focus Mode</span>
+        <p class="beyond-body">Focus Mode silences <strong>apps</strong>. Context Grammar decides <strong>what to show, to whom, on which surface</strong> — no setup, held as grammar.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

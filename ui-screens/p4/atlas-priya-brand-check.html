@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas · Priya · Brand Brain check</title>
+
+<!-- Fonts: Geist + Geist Mono -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Design tokens -->
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     Standalone QA frame (suppressed in noframe mode)
+     ═══════════════════════════════════════════════════════════ */
+  html { overflow: hidden; height: 100%; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-sans);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    width: 100vw; height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  /* standalone-only subtle backdrop so light screen is legible */
+  body:not(.noframe) { background: #eef1f4; }
+
+  body.noframe { background: transparent !important; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .phone-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .phone-frame::before, body.noframe .phone-frame::after { display: none; }
+  body.noframe .screen { border-radius: 0; width: 100%; height: 100%; }
+  body.noframe .notch, body.noframe .status-bar, body.noframe .scene-badge { display: none !important; }
+  /* Dynamic Island clearance: outer .iphone15pro__island band sits on top of the screen */
+  body.noframe .app-header { padding-top: 42px; }
+
+  .phone-frame {
+    width: 390px; height: 844px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px;
+    padding: 11px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 16px) / 844px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.14),
+      0 24px 48px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 126px; height: 34px;
+    background: #000; border-radius: 20px; z-index: 100;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     Screen
+     ═══════════════════════════════════════════════════════════ */
+  .screen {
+    position: relative;
+    width: 100%; height: 100%;
+    border-radius: 40px;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Faint warm wash — the Brand Brain is a warm-brain surface */
+  .screen::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(160, 112, 64, 0.05) 0%, transparent 70%),
+      radial-gradient(ellipse 90% 50% at 20% 100%, rgba(138, 106, 176, 0.03) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Status bar (3:14, standalone only) */
+  .status-bar {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    height: 54px;
+    padding: 18px 28px 0;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.1px;
+  }
+  .status-bar__right { display: flex; gap: 6px; align-items: center; opacity: 0.85; }
+
+  /* App header */
+  .app-header {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    padding: 6px 22px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-header__mark {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background:
+      radial-gradient(circle at 30% 30%, var(--grad-mid) 0%, var(--color-intent) 70%);
+    box-shadow: 0 1px 2px rgba(122, 85, 32, 0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .app-header__mark::before {
+    content: "";
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.92);
+    transform: rotate(45deg);
+  }
+  .app-header__titles { flex: 1; min-width: 0; }
+  .app-header__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+    line-height: 1.1;
+  }
+  .app-header__sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-intent);
+    margin-top: 2px;
+  }
+  .app-header__close {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.05);
+    display: grid; place-items: center;
+    color: var(--text-2);
+    flex-shrink: 0;
+  }
+  .app-header__close svg { width: 12px; height: 12px; }
+
+  /* Divider */
+  .hair {
+    height: 1px;
+    margin: 0 22px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     Thread body (scrollable inside)
+     ═══════════════════════════════════════════════════════════ */
+  .thread {
+    position: relative; z-index: 2;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 18px 18px 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Timestamp row */
+  .timestamp {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    text-align: center;
+    padding: 2px 0 6px;
+  }
+
+  /* User bubble (Priya's typed draft) */
+  .bubble-user {
+    align-self: flex-end;
+    max-width: 78%;
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 14px 11px;
+    border-radius: 18px 18px 4px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.1px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    position: relative;
+  }
+  .bubble-user__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .bubble-user__text {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .bubble-user__text .caret {
+    display: inline-block;
+    width: 1.5px;
+    height: 15px;
+    margin-left: 1px;
+    background: var(--bg);
+    vertical-align: -2px;
+    animation: caret 900ms steps(2) infinite;
+  }
+  @keyframes caret { 50% { opacity: 0; } }
+
+  /* Brand Brain header */
+  .brain-hdr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 2px 2px;
+    opacity: 0;
+    animation: fadeIn 320ms ease-out forwards;
+  }
+  .brain-hdr__dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--grad-mid);
+    box-shadow: 0 0 0 4px rgba(160, 112, 64, 0.14);
+  }
+  .brain-hdr__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-intent);
+  }
+  .brain-hdr__thinking {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 4px;
+  }
+  .brain-hdr__thinking span {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--grad-mid);
+    opacity: 0.35;
+    animation: dot 1.2s ease-in-out infinite;
+  }
+  .brain-hdr__thinking span:nth-child(2) { animation-delay: 0.18s; }
+  .brain-hdr__thinking span:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes dot {
+    0%, 100% { opacity: 0.25; transform: translateY(0); }
+    50%      { opacity: 1; transform: translateY(-2px); }
+  }
+
+  /* Response cards */
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 11px 13px 11px;
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .card__head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 6px;
+  }
+  .card__kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .card__kind--match   { color: var(--color-success); background: var(--chip-green-bg); }
+  .card__kind--tension { color: var(--color-intent); background: var(--chip-amber-bg); }
+  .card__kind--past    { color: var(--color-brain); background: var(--chip-purple-bg); }
+
+  .card__topic {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.1px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card__body {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-2);
+    letter-spacing: -0.05px;
+  }
+  .card__body em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Citation chip */
+  .cite {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 7px;
+    padding: 3px 7px 3px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--gray-100);
+    color: var(--text-2);
+    border: 1px solid var(--border);
+  }
+  .cite::before {
+    content: "";
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--color-intent);
+  }
+
+  /* Past decisions list */
+  .past-list {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .past-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--text-2);
+    letter-spacing: -0.05px;
+    padding: 5px 8px;
+    background: rgba(106, 74, 144, 0.04);
+    border-left: 2px solid rgba(106, 74, 144, 0.35);
+    border-radius: 2px 4px 4px 2px;
+  }
+  .past-list li .qno {
+    font-size: 10px;
+    color: var(--color-brain);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+  .past-list li .qtext {
+    color: var(--text-2);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Bottom composer (inert, visual) */
+  .composer {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    padding: 10px 16px 18px;
+  }
+  .composer__pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 8px 9px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+  .composer__input {
+    flex: 1;
+    font-size: 13.5px;
+    color: var(--gray-400);
+    font-weight: 500;
+  }
+  .composer__send {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--text);
+    color: var(--bg);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .composer__send svg { width: 12px; height: 12px; }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 7px; left: 50%;
+    transform: translateX(-50%);
+    width: 134px; height: 5px;
+    border-radius: 100px;
+    background: var(--text);
+    opacity: 0.55;
+    z-index: 3;
+  }
+  body.noframe .home-indicator { display: none; }
+
+  /* ═══════════════════════════════════════════════════════════
+     Animation driver — one-shot, fires when iframe scrolls into view.
+     Body gets `.play` via IntersectionObserver. Without `.play`, all
+     animated elements rest at start state (invisible). With `.play`,
+     each runs ONCE and holds its final state via `forwards`.
+     Sequence:
+       0.10s  draft bubble in
+       1.10s  brain header in
+       1.55s  card 1 in
+       1.75s  card 2 in
+       1.95s  card 3 in
+     ═══════════════════════════════════════════════════════════ */
+  /* Rest state: invisible until play */
+  .bubble-user { opacity: 0; transform: translateY(6px) scale(0.98); }
+  .brain-hdr   { opacity: 0; transform: translateY(4px); }
+  .card        { /* opacity/transform set in base .card rule */ }
+
+  /* Play state: run once, hold final */
+  body.play .bubble-user {
+    animation: bubble-in 520ms cubic-bezier(0.22, 0.8, 0.36, 1) 100ms 1 forwards;
+  }
+  body.play .brain-hdr {
+    animation: hdr-in 360ms cubic-bezier(0.22, 0.8, 0.36, 1) 1100ms 1 forwards;
+  }
+  body.play .card--1 {
+    animation: card-in 460ms cubic-bezier(0.22, 0.8, 0.36, 1) 1550ms 1 forwards;
+  }
+  body.play .card--2 {
+    animation: card-in 460ms cubic-bezier(0.22, 0.8, 0.36, 1) 1750ms 1 forwards;
+  }
+  body.play .card--3 {
+    animation: card-in 460ms cubic-bezier(0.22, 0.8, 0.36, 1) 1950ms 1 forwards;
+  }
+
+  @keyframes bubble-in {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)  scale(1); }
+  }
+  @keyframes hdr-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.985); filter: blur(1.5px); }
+    to   { opacity: 1; transform: translateY(0)  scale(1);     filter: blur(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Replay button removed from device frame — replay is now triggered by an
+     outer-page button that calls postMessage('replay'). When loaded standalone
+     (not via iframe), the button below shows; in iframe noframe mode it's hidden. */
+  .replay-btn {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(10,10,10,0.06);
+    border: 1px solid rgba(10,10,10,0.10);
+    color: rgba(10,10,10,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: background 180ms ease, color 180ms ease, transform 180ms ease, opacity 180ms ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+  body.play .replay-btn {
+    opacity: 0.7;
+    pointer-events: auto;
+  }
+  .replay-btn:hover {
+    background: rgba(10,10,10,0.12);
+    color: rgba(10,10,10,0.85);
+    opacity: 1;
+  }
+  .replay-btn:active { transform: scale(0.94); }
+  .replay-btn svg { width: 14px; height: 14px; display: block; }
+  /* In noframe mode (embedded via iframe) the in-device button is suppressed —
+     the outer host page renders its own replay control. */
+  body.noframe .replay-btn { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bubble-user, .brain-hdr, .card {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+    .bubble-user__text .caret { animation: none !important; opacity: 0; }
+    .brain-hdr__thinking span { animation: none !important; opacity: 1; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="phone-frame">
+  <div class="screen" role="img"
+       aria-label="Priya drafts a tagline in Atlas. The Brand Brain responds with a principle match, a tension, and similar past decisions.">
+    <div class="notch" aria-hidden="true"></div>
+
+    <!-- Status bar (3:14 — hidden in noframe mode) -->
+    <div class="status-bar" aria-hidden="true">
+      <span>3:14</span>
+      <span class="status-bar__right">
+        <svg viewBox="0 0 17 11" fill="currentColor" width="15" height="10">
+          <rect x="0"  y="7" width="3" height="4"  rx="0.6"/>
+          <rect x="4"  y="5" width="3" height="6"  rx="0.6"/>
+          <rect x="8"  y="3" width="3" height="8"  rx="0.6"/>
+          <rect x="12" y="1" width="3" height="10" rx="0.6"/>
+        </svg>
+        <svg viewBox="0 0 15 11" fill="none" stroke="currentColor" stroke-width="1.2" width="15" height="10">
+          <path d="M1 4.2 A10 10 0 0 1 14 4.2"/>
+          <path d="M3 6.4 A7 7 0 0 1 12 6.4"/>
+          <path d="M5 8.6 A4 4 0 0 1 10 8.6"/>
+          <circle cx="7.5" cy="10" r="0.8" fill="currentColor" stroke="none"/>
+        </svg>
+        <svg viewBox="0 0 25 11" fill="none" stroke="currentColor" stroke-width="1" width="24" height="10">
+          <rect x="0.5" y="0.5" width="22" height="10" rx="2.5"/>
+          <rect x="23"  y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor"/>
+          <rect x="2"   y="2"   width="15.6" height="7" rx="1.4" fill="currentColor"/>
+        </svg>
+      </span>
+    </div>
+
+    <!-- App header -->
+    <header class="app-header">
+      <div class="app-header__mark" aria-hidden="true"></div>
+      <div class="app-header__titles">
+        <div class="app-header__name">Brand Brain</div>
+        <div class="app-header__sub">Atlas · Project Apollo</div>
+      </div>
+      <button class="app-header__close" aria-label="Close">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M2 2 L10 10 M10 2 L2 10"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="hair" aria-hidden="true"></div>
+
+    <!-- Thread -->
+    <div class="thread">
+
+      <div class="timestamp">Thursday · 3:14 PM</div>
+
+      <!-- Priya's typed draft -->
+      <div class="bubble-user" aria-label="Your draft">
+        <span class="bubble-user__label">Draft · tagline candidate</span>
+        <span class="bubble-user__text">Ship your best work, together.<span class="caret" aria-hidden="true"></span></span>
+      </div>
+
+      <!-- Brand Brain header -->
+      <div class="brain-hdr" aria-label="Brand Brain is responding">
+        <span class="brain-hdr__dot" aria-hidden="true"></span>
+        <span class="brain-hdr__label">Brand Brain</span>
+        <span class="brain-hdr__thinking" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+      </div>
+
+      <!-- Card 1 · Match -->
+      <article class="card card--1">
+        <div class="card__head">
+          <span class="card__kind card__kind--match">Matches principle</span>
+          <span class="card__topic">Work as collective</span>
+        </div>
+        <p class="card__body">
+          "Together" aligns with the <em>"work as collective"</em> principle set in the 2024 brand workshop. Strong fit.
+        </p>
+        <span class="cite">Cited · Brand workshop 2024-03</span>
+      </article>
+
+      <!-- Card 2 · Tension -->
+      <article class="card card--2">
+        <div class="card__head">
+          <span class="card__kind card__kind--tension">Light tension</span>
+          <span class="card__topic">Hero line conflict</span>
+        </div>
+        <p class="card__body">
+          Current hero reads <em>"Do your best work."</em> — individual framing. Not a block; worth a pass with Marketing before sending.
+        </p>
+        <span class="cite">Cited · apollo.com hero · live</span>
+      </article>
+
+      <!-- Card 3 · Similar past decisions -->
+      <article class="card card--3">
+        <div class="card__head">
+          <span class="card__kind card__kind--past">Similar past decision</span>
+          <span class="card__topic">Q2 2025 taglines · rejected</span>
+        </div>
+        <p class="card__body">
+          3 candidates previously cut for individualism bias:
+        </p>
+        <ul class="past-list" aria-label="Past rejected taglines">
+          <li><span class="qno">#084</span><span class="qtext">"Your best ideas, shipped."</span></li>
+          <li><span class="qno">#097</span><span class="qtext">"Made for makers."</span></li>
+          <li><span class="qno">#112</span><span class="qtext">"Build what's yours."</span></li>
+        </ul>
+        <span class="cite">Cited · Decision log 2025-Q2</span>
+      </article>
+
+    </div>
+
+    <!-- Composer (inert) -->
+    <div class="composer" aria-hidden="true">
+      <div class="composer__pill">
+        <span class="composer__input">Ask Brand Brain…</span>
+        <span class="composer__send">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 6 L10 6 M6 2 L10 6 L6 10"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <button class="replay-btn" id="replayBtn" type="button" aria-label="Replay animation" title="Replay">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8a5 5 0 1 0 1.5-3.5"/>
+        <path d="M3 2.5 V5 H5.5"/>
+      </svg>
+    </button>
+
+    <div class="home-indicator" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+
+  // One-shot reveal: trigger animations when iframe scrolls into view.
+  (function () {
+    var prefersReduced = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var body = document.body;
+    var replayBtn = document.getElementById('replayBtn');
+
+    function play() { body.classList.add('play'); }
+    function replay() {
+      // Restart by removing 'play', forcing reflow, re-adding it.
+      body.classList.remove('play');
+      // force reflow so the animations re-trigger
+      void body.offsetWidth;
+      requestAnimationFrame(function () { body.classList.add('play'); });
+    }
+
+    if (replayBtn) {
+      replayBtn.addEventListener('click', replay);
+    }
+
+    // Listen for replay messages from outer host page (when embedded as iframe).
+    window.addEventListener('message', function (e) {
+      if (e && e.data === 'replay') replay();
+    });
+
+    if (prefersReduced) {
+      // Reduced motion: skip animation entirely, leave elements at final state.
+      return;
+    }
+
+    if ('IntersectionObserver' in window) {
+      var seen = false;
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && !seen) {
+            seen = true;
+            play();
+            io.disconnect();
+          }
+        });
+      }, { threshold: 0.25 });
+      io.observe(body);
+    } else {
+      play();
+    }
+  })();
+</script>
+
+</body>
+</html>

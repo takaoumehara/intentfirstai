@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rachel · Budget · iPad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e4e4e7;
+    --border-soft: #ececef;
+    --text: #18181b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --text-4: #a1a1aa;
+    --warm: #c2410c;
+    --trip: #6b8e4e;
+    --home: #8a6ab0;
+    --live: #16a34a;
+    --font-sans: 'Geist', sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, Menlo, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+  body.noframe { background: transparent; }
+
+  .pad {
+    width: 100%;
+    height: 100vh;
+    padding: 28px 32px;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .head__title-block {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .head__sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .head__title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .head__amount {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .head__amount-sub {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-3);
+    letter-spacing: 0.4px;
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  .body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 24px;
+    overflow: hidden;
+  }
+
+  /* Slider section */
+  .slider-block {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .slider {
+    margin-top: 6px;
+  }
+  .slider__labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .slider__track {
+    position: relative;
+    height: 12px;
+    background: var(--gray-200, #e4e4e7);
+    border-radius: 999px;
+    overflow: visible;
+  }
+  .slider__fill {
+    position: absolute;
+    inset: 0 35% 0 0;
+    background: var(--text);
+    border-radius: 999px;
+  }
+  .slider__handle {
+    position: absolute;
+    left: 65%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 3px solid var(--text);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+  }
+  .slider__handle::after {
+    content: '65%';
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.6px;
+  }
+
+  .day-bars {
+    margin-top: 8px;
+  }
+  .day-bars__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .day-bars__title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .day-bars__sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.4px;
+  }
+  .bars {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 5px;
+    height: 100px;
+    align-items: end;
+  }
+  .bar {
+    background: var(--text);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+  }
+  .bar:nth-child(1)  { height: 70%; }
+  .bar:nth-child(2)  { height: 55%; }
+  .bar:nth-child(3)  { height: 60%; }
+  .bar:nth-child(4)  { height: 78%; }
+  .bar:nth-child(5)  { height: 45%; }
+  .bar:nth-child(6)  { height: 30%; }
+  .bar:nth-child(7)  { height: 50%; }
+  .bar:nth-child(8)  { height: 65%; }
+  .bar:nth-child(9)  { height: 58%; }
+  .bar:nth-child(10) { height: 48%; }
+  .bar:nth-child(11) { height: 72%; background: var(--warm); }
+  .bar:nth-child(12) { height: 62%; }
+  .bar:nth-child(13) { height: 55%; }
+  .bar:nth-child(14) { height: 40%; }
+
+  .bars-labels {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    gap: 5px;
+    margin-top: 6px;
+  }
+  .bars-labels span {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--text-4);
+    text-align: center;
+  }
+
+  /* Trade-offs */
+  .tradeoffs {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tradeoffs__head {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .trade {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .trade:last-child { border-bottom: none; }
+  .trade__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .trade__delta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .trade__delta strong {
+    color: var(--warm);
+    font-weight: 600;
+  }
+
+  .confirm {
+    margin-top: auto;
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    flex: 1;
+    min-height: 52px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .btn--primary {
+    background: var(--text);
+    color: var(--surface);
+    border-color: var(--text);
+  }
+</style>
+</head>
+<body>
+<script>
+  if (new URLSearchParams(location.search).has('noframe')) document.body.classList.add('noframe');
+</script>
+
+<div class="pad">
+  <div class="head">
+    <div class="head__title-block">
+      <div class="head__sub">BUDGET · RACHEL · 6 MONTHS BEFORE</div>
+      <div class="head__title">Where do we sit?</div>
+    </div>
+    <div>
+      <div class="head__amount">¥820,000</div>
+      <div class="head__amount-sub">CURRENT · 14 DAYS · 4 PEOPLE</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="slider-block">
+      <div class="slider">
+        <div class="slider__labels">
+          <span>Conservative</span>
+          <span>Mid</span>
+          <span>Generous</span>
+        </div>
+        <div class="slider__track">
+          <div class="slider__fill"></div>
+          <div class="slider__handle"></div>
+        </div>
+      </div>
+
+      <div class="day-bars">
+        <div class="day-bars__head">
+          <div class="day-bars__title">Per-day spend · 14 days</div>
+          <div class="day-bars__sub">PEAK · DAY 11 · KANAZAWA</div>
+        </div>
+        <div class="bars">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          <div class="bar"></div><div class="bar"></div>
+        </div>
+        <div class="bars-labels">
+          <span>1</span><span>2</span><span>3</span><span>4</span>
+          <span>5</span><span>6</span><span>7</span><span>8</span>
+          <span>9</span><span>10</span><span>11</span><span>12</span>
+          <span>13</span><span>14</span>
+        </div>
+      </div>
+
+      <div class="confirm">
+        <button class="btn">Reset to Mid</button>
+        <button class="btn btn--primary">Confirm · ¥820,000</button>
+      </div>
+    </div>
+
+    <div class="tradeoffs">
+      <div class="tradeoffs__head">TRADE-OFFS · IF YOU MOVE THE SLIDER →</div>
+      <div class="trade">
+        <div class="trade__label">Hotel Tokyo · 中ランク → 上ランク</div>
+        <div class="trade__delta">
+          <span>4 nights · Marunouchi area</span>
+          <strong>+ ¥80,000</strong>
+        </div>
+      </div>
+      <div class="trade">
+        <div class="trade__label">Family dinners · 3 → 5</div>
+        <div class="trade__delta">
+          <span>Sushi · kaiseki · 2 more nights</span>
+          <strong>+ ¥40,000</strong>
+        </div>
+      </div>
+      <div class="trade">
+        <div class="trade__label">Kanazawa · +1 day</div>
+        <div class="trade__delta">
+          <span>Goldleaf workshop · ryokan</span>
+          <strong>+ ¥120,000</strong>
+        </div>
+      </div>
+      <div class="trade">
+        <div class="trade__label">Total if all three</div>
+        <div class="trade__delta">
+          <span>New ceiling</span>
+          <strong>¥1,060,000</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

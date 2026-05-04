@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · Apple Watch · Day 12 · Friday Frappuccino (silenced) | P6 Life Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-watch.css">
+<style>
+  /*
+    Watch UI · Day 12 · Friday Frappuccino (Protected Ritual silenced)
+    Same Smart Stack widget skeleton as Day 4, but in "silent" state:
+    - Amber accent dimmed
+    - No actions (this is an ambient state, not a proposal)
+    - Center stack: shield + label + message
+  */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    display: block;
+  }
+  body.noframe .qa-frame { display: none; }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: clamp(28px, 11.5cqw, 50px) 1fr auto;
+    padding: clamp(8px, 3.2cqw, 14px) clamp(10px, 4cqw, 18px) clamp(10px, 4cqw, 18px);
+    gap: clamp(6px, 2.4cqw, 10px);
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+  }
+  body.noframe .face {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    inset: auto;
+  }
+
+  /* Header: dimmed (silent state) */
+  .face__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(6px, 2.4cqw, 9px);
+    padding: clamp(2px, 0.8cqw, 3px);
+  }
+  .face__app {
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 1.6cqw, 6px);
+    min-width: 0;
+  }
+  .face__app-mark {
+    width: clamp(8px, 3.2cqw, 13px);
+    height: clamp(8px, 3.2cqw, 13px);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .face__app-name {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(12px, 4.6cqw, 22px);
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+    line-height: 1;
+  }
+  .face__time {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(13px, 5.2cqw, 22px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.62);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* CENTER: shield + ritual label + message */
+  .face__center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: clamp(10px, 3.6cqw, 18px);
+    min-height: 0;
+    padding: 0 clamp(4px, 1.6cqw, 8px);
+  }
+  .shield {
+    width: clamp(42px, 17cqw, 88px);
+    aspect-ratio: 1;
+    color: rgba(255, 255, 255, 0.62);
+    animation: shieldBreathe 6s ease-in-out infinite;
+  }
+  .shield svg { display: block; width: 100%; height: 100%; }
+  @keyframes shieldBreathe {
+    0%, 100% { opacity: 0.62; transform: scale(1); }
+    50%      { opacity: 0.88; transform: scale(1.04); }
+  }
+  .face__ritual-label {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(13px, 4.8cqw, 23px);
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.50);
+    line-height: 1;
+  }
+  .face__message {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(16px, 6.4cqw, 28px);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.40;
+    color: rgba(255, 255, 255, 0.86);
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+    max-width: 92%;
+    margin: 0;
+  }
+
+  /* FOOTER: single ambient line — Watch-First Design rule (less is glanceable) */
+  .ambient-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(6px, 2.4cqw, 11px);
+    padding-top: clamp(8px, 3.2cqw, 14px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .ambient-line__pip {
+    width: clamp(5px, 2cqw, 8px);
+    height: clamp(5px, 2cqw, 8px);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .ambient-line__text {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(10px, 3.8cqw, 18px);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.42);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shield { animation: none; opacity: 0.7; }
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="qa-frame applewatch applewatch--xxl">
+  <img class="applewatch__chrome"
+       src="../../Global_Assets/DeviceFrame/AppleWatch42mm.svg"
+       alt="" aria-hidden="true">
+  <div class="applewatch__screen">
+    <div class="face" id="qa-face"></div>
+  </div>
+</div>
+
+<div class="face" id="embed-face" style="display:none;"></div>
+
+<template id="face-tpl">
+  <header class="face__header">
+    <div class="face__app">
+      <span class="face__app-mark" aria-hidden="true"></span>
+      <span class="face__app-name">Ritual</span>
+    </div>
+    <time class="face__time" datetime="2026-04-12T15:34">15:34</time>
+  </header>
+
+  <main class="face__center">
+    <div class="shield" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2.5 L4 5.5 V12 C4 16.5 7 19.5 12 21.5 C17 19.5 20 16.5 20 12 V5.5 Z"/>
+        <path d="M9.5 12 L11 13.5 L14.5 10" stroke-width="1.4"/>
+      </svg>
+    </div>
+    <div class="face__ritual-label">Friday 15–17</div>
+    <p class="face__message">You choose this one.</p>
+  </main>
+
+  <footer class="ambient-line" aria-label="all 4 agents silenced">
+    <span class="ambient-line__pip" aria-hidden="true"></span>
+    <span class="ambient-line__text">4 agents · silent</span>
+  </footer>
+</template>
+
+<script>
+  var tpl = document.getElementById('face-tpl').content.cloneNode(true);
+  if (document.body.classList.contains('noframe')) {
+    document.querySelector('.qa-frame').remove();
+    var ef = document.getElementById('embed-face');
+    ef.style.display = 'grid';
+    ef.appendChild(tpl);
+  } else {
+    document.getElementById('embed-face').remove();
+    document.getElementById('qa-face').appendChild(tpl);
+  }
+</script>
+</body>
+</html>

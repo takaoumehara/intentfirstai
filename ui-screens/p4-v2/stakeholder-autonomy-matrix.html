@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stakeholder Autonomy Matrix | P4 Project Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-2);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto;
+    padding: 0;
+  }
+  body.noframe .artifact {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    max-width: 100%;
+  }
+
+  .artifact {
+    width: 100%;
+    max-width: 1200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    padding: 24px 32px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .header-left { min-width: 0; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 8px;
+  }
+  .title {
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.6px;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.45;
+  }
+  .header-right {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .proj-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--text-2);
+    background: var(--bg-3);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .proj-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── Body ─── */
+  .body {
+    padding: 28px 32px 24px;
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 32px;
+  }
+
+  /* ─── Matrix ─── */
+  .matrix-wrap {
+    min-width: 0;
+  }
+  .matrix {
+    display: grid;
+    grid-template-columns: 120px repeat(5, 1fr);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .mx-cell {
+    padding: 12px 10px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mx-cell:nth-child(6n) { border-right: none; }
+  .mx-cell.row-last { border-bottom: none; }
+
+  /* Corner */
+  .mx-corner {
+    background: var(--bg-2);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 10px;
+    justify-content: space-between;
+  }
+  .mx-corner .rowax { align-self: flex-start; }
+  .mx-corner .colax { align-self: flex-end; text-align: right; }
+
+  /* Column header */
+  .mx-col {
+    background: var(--bg-2);
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 8px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .mx-col-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.1px;
+    font-family: var(--font-sans);
+  }
+  .mx-col-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+
+  /* Row header */
+  .mx-row {
+    background: var(--bg-2);
+    justify-content: flex-start;
+    padding: 12px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .mx-row-title {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .mx-row-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+
+  /* Autonomy badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 5px 9px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    min-width: 68px;
+    text-align: center;
+    transition: transform 120ms var(--ease-out);
+  }
+  .badge:hover { transform: scale(1.04); }
+
+  .badge--auto {
+    background: var(--chip-green-bg);
+    color: var(--chip-green-text);
+    font-weight: 700;
+  }
+  .badge--notify {
+    background: var(--chip-blue-bg);
+    color: var(--chip-blue-text);
+  }
+  .badge--confirm {
+    background: var(--chip-amber-bg);
+    color: var(--chip-amber-text);
+  }
+  .badge--suggest {
+    background: var(--bg-3);
+    color: var(--text-2);
+  }
+  .badge--override {
+    background: var(--bg);
+    color: var(--illust-red);
+    border: 1.5px solid var(--illust-red);
+    font-weight: 700;
+  }
+
+  /* Highlighted cell */
+  .mx-cell.is-selected {
+    box-shadow: inset 0 0 0 2px var(--text);
+    background: var(--bg-2);
+  }
+
+  /* ─── Legend ─── */
+  .legend {
+    margin-top: 18px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .legend-head {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 12px;
+  }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .legend-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .legend-desc {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    color: var(--text-2);
+    line-height: 1.4;
+  }
+
+  /* ─── Side panel ─── */
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+  .detail-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .detail-head {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .detail-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .detail-ts {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+  .detail-body {
+    padding: 18px 20px 20px;
+  }
+  .detail-pair {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .detail-pair-text {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    font-family: var(--font-sans);
+  }
+  .detail-arrow {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .detail-copy {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .detail-reason {
+    background: var(--bg-3);
+    border-left: 3px solid var(--illust-red);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .detail-reason-head {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+
+  /* Note card */
+  .note-card {
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .note-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 8px;
+  }
+  .note-body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--bg) 92%, transparent);
+  }
+  .note-body em {
+    font-style: normal;
+    color: var(--bg);
+    background: color-mix(in srgb, var(--bg) 12%, transparent);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 14px 32px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .body { grid-template-columns: 1fr; }
+    .legend-grid { grid-template-columns: repeat(2, 1fr); }
+    .matrix { grid-template-columns: 90px repeat(5, 1fr); font-size: 11px; }
+    .mx-cell { padding: 8px 4px; min-height: 52px; }
+    .badge { min-width: 54px; padding: 4px 6px; font-size: 10px; }
+  }
+  @media (max-width: 600px) {
+    .matrix { grid-template-columns: 70px repeat(5, minmax(46px, 1fr)); font-size: 10px; }
+    .mx-row-label { font-size: 10px; padding: 6px 4px; }
+    .mx-cell { padding: 6px 2px; min-height: 44px; }
+    .badge { min-width: 38px; padding: 3px 4px; font-size: 9px; letter-spacing: 0.02em; }
+    .legend-grid { grid-template-columns: 1fr; }
+  }
+</style>
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+</head>
+<body>
+<div class="artifact">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="eyebrow">Atlas · Governance Design Tool</div>
+      <div class="title">Stakeholder Autonomy Matrix</div>
+      <div class="subtitle">5 domains × 5 roles — who decides what, and when</div>
+    </div>
+    <div class="header-right">
+      <span class="proj-chip">Project Atlas</span>
+      <div class="proj-meta">v1.4 · 2026-04-21</div>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="body">
+
+    <!-- LEFT: Matrix -->
+    <div class="matrix-wrap">
+      <div class="matrix">
+
+        <!-- Header row -->
+        <div class="mx-cell mx-corner">
+          <span class="rowax">Domain ↓</span>
+          <span class="colax">Role →</span>
+        </div>
+        <div class="mx-cell mx-col">
+          <span class="mx-col-name">Priya</span>
+          <span class="mx-col-role">PO</span>
+        </div>
+        <div class="mx-cell mx-col">
+          <span class="mx-col-name">Maya</span>
+          <span class="mx-col-role">Designer</span>
+        </div>
+        <div class="mx-cell mx-col">
+          <span class="mx-col-name">Dev</span>
+          <span class="mx-col-role">Engineer</span>
+        </div>
+        <div class="mx-cell mx-col">
+          <span class="mx-col-name">Design</span>
+          <span class="mx-col-role">Agent</span>
+        </div>
+        <div class="mx-cell mx-col">
+          <span class="mx-col-name">Dev</span>
+          <span class="mx-col-role">Agent</span>
+        </div>
+
+        <!-- Row 1: UI Detail -->
+        <div class="mx-cell mx-row">
+          <span class="mx-row-title">UI Detail</span>
+          <span class="mx-row-sub">visual · layout</span>
+        </div>
+        <div class="mx-cell"><span class="badge badge--notify">Notify</span></div>
+        <div class="mx-cell"><span class="badge badge--auto">Auto</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+        <div class="mx-cell"><span class="badge badge--confirm">Confirm</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+
+        <!-- Row 2: Info Architecture -->
+        <div class="mx-cell mx-row">
+          <span class="mx-row-title">Info Arch</span>
+          <span class="mx-row-sub">structure · IA</span>
+        </div>
+        <div class="mx-cell"><span class="badge badge--confirm">Confirm</span></div>
+        <div class="mx-cell"><span class="badge badge--notify">Notify</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+
+        <!-- Row 3: Tech Stack (SELECTED) -->
+        <div class="mx-cell mx-row">
+          <span class="mx-row-title">Tech Stack</span>
+          <span class="mx-row-sub">architecture</span>
+        </div>
+        <div class="mx-cell"><span class="badge badge--notify">Notify</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+        <div class="mx-cell is-selected"><span class="badge badge--override">Override</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+        <div class="mx-cell"><span class="badge badge--confirm">Confirm</span></div>
+
+        <!-- Row 4: Business Direction -->
+        <div class="mx-cell mx-row">
+          <span class="mx-row-title">Business</span>
+          <span class="mx-row-sub">direction · scope</span>
+        </div>
+        <div class="mx-cell"><span class="badge badge--auto">Auto</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+        <div class="mx-cell"><span class="badge badge--notify">Notify</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+        <div class="mx-cell"><span class="badge badge--suggest">Suggest</span></div>
+
+        <!-- Row 5: Brand Fit (row-last) -->
+        <div class="mx-cell mx-row row-last">
+          <span class="mx-row-title">Brand Fit</span>
+          <span class="mx-row-sub">voice · identity</span>
+        </div>
+        <div class="mx-cell row-last"><span class="badge badge--confirm">Confirm</span></div>
+        <div class="mx-cell row-last"><span class="badge badge--confirm">Confirm</span></div>
+        <div class="mx-cell row-last"><span class="badge badge--notify">Notify</span></div>
+        <div class="mx-cell row-last"><span class="badge badge--confirm">Confirm</span></div>
+        <div class="mx-cell row-last"><span class="badge badge--suggest">Suggest</span></div>
+
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-head">Autonomy Levels · 5 stages</div>
+        <div class="legend-grid">
+          <div class="legend-item">
+            <span class="badge badge--auto">Auto</span>
+            <span class="legend-desc">Acts autonomously. Reports after.</span>
+          </div>
+          <div class="legend-item">
+            <span class="badge badge--notify">Notify</span>
+            <span class="legend-desc">Notifies while acting. Reversible.</span>
+          </div>
+          <div class="legend-item">
+            <span class="badge badge--confirm">Confirm</span>
+            <span class="legend-desc">Requires approval before acting.</span>
+          </div>
+          <div class="legend-item">
+            <span class="badge badge--suggest">Suggest</span>
+            <span class="legend-desc">Proposes only. Decision belongs to others.</span>
+          </div>
+          <div class="legend-item">
+            <span class="badge badge--override">Override</span>
+            <span class="legend-desc">Final authority to override any decision.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Side panel -->
+    <aside class="side">
+
+      <div class="detail-card">
+        <div class="detail-head">
+          <span class="detail-label">Selected Cell</span>
+          <span class="detail-ts">row 3, col 3</span>
+        </div>
+        <div class="detail-body">
+          <div class="detail-pair">
+            <span class="detail-pair-text">Dev</span>
+            <span class="detail-arrow">×</span>
+            <span class="detail-pair-text">Tech Stack</span>
+            <span class="detail-arrow">=</span>
+            <span class="badge badge--override">Override</span>
+          </div>
+
+          <div class="detail-copy">
+            Dev holds final authority on architecture. He can reject proposals from the PO or agents — including an agent's "optimal implementation" recommendation. Any suggestion can be held or sent back.
+          </div>
+
+          <div class="detail-reason">
+            <div class="detail-reason-head">Why Override, not Auto</div>
+            Technical debt is a long-term commitment only humans can judge. An agent cannot reason about maintainability ten years from now.
+          </div>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-label">Design Principle</div>
+        <div class="note-body">
+          This matrix is a governance design tool for the <em>agentic era</em> — it makes explicit who holds final authority in each domain. As more agents join the team, human roles shift from <em>decision-makers</em> to <em>accountable owners</em>.
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span>25 cells · 5 domains × 5 roles</span>
+    <span>Atlas Governance · export JSON / Figma</span>
+  </footer>
+
+</div>
+</body>
+</html>

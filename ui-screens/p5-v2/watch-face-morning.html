@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galaxy Watch 7 · Morning · Context Grammar</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── Base — OLED black ── */
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    font-family: 'Geist Sans', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─────────────────────────────────────────────
+     WATCH FACE — fills the squircle screen area.
+     The outer .galaxywatch7 frame owns border-radius;
+     this file just fills 100vw × 100vh transparently.
+  ───────────────────────────────────────────── */
+  .face {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 14% 11% 11%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Ambient radial: very faint warm glow at top ── */
+  .face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 42% at 50% -5%,
+        rgba(62,198,198,0.06) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  /* ─── TOP SECTION ─── */
+  .top { display: flex; flex-direction: column; gap: 0; }
+
+  /* Date + day — Samsung-style small mono label above clock */
+  .date-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .date-day {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.38);
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .date-sep {
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    flex-shrink: 0;
+  }
+
+  /* Hero clock — largest element, full width */
+  .time {
+    font-family: 'Geist Mono', monospace;
+    font-size: clamp(38px, 13vw, 52px);
+    font-weight: 300;
+    color: #fff;
+    letter-spacing: -3px;
+    line-height: 0.92;
+    margin-top: 3px;
+    /* Samsung uses thin/light weight for the hero clock on One UI Watch 6 */
+  }
+
+  /* AM/PM + seconds row — sits right of the clock */
+  .time-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+  }
+  .time-ampm {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.38);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    margin-left: 3px;
+    align-self: flex-end;
+  }
+
+  /* ─── COMPLICATIONS ROW (Samsung-style) ─── */
+  /*
+    One UI Watch 6 uses a row of small pill-shaped complication chips
+    below the clock. Each chip has an icon-area + short text.
+  */
+  .complications {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .comp {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 100px; /* pill */
+    padding: 3px 8px 3px 6px;
+  }
+  .comp__icon {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* SVG-drawn icons inline */
+  .comp__icon svg { width: 100%; height: 100%; }
+
+  .comp__text {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.58);
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+  }
+  .comp--teal .comp__text { color: #3EC6C6; }
+  .comp--teal .comp__icon svg { fill: none; stroke: #3EC6C6; }
+  .comp--white .comp__icon svg { fill: none; stroke: rgba(255,255,255,0.5); }
+
+  /* ─── MIDDLE: PRIORITY ITEMS ─── */
+  .middle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+    padding-top: 4px;
+  }
+
+  /* Thin rule — Samsung uses a very subtle line */
+  .rule {
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    margin-bottom: 9px;
+  }
+
+  /* Items — One UI Watch 6 Reminders/Agenda complication style:
+     a small color bar on the left, event text on the right */
+  .items {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .item {
+    display: flex;
+    align-items: stretch;
+    gap: 7px;
+  }
+
+  /* Colored left-side bar (NOT a rounded rect with colored border —
+     this is a standalone vertical bar element) */
+  .item__bar {
+    width: 2px;
+    border-radius: 1px;
+    flex-shrink: 0;
+    align-self: stretch;
+    min-height: 14px;
+  }
+  .item__bar--urgent  { background: #ef4444; }
+  .item__bar--normal  { background: rgba(255,255,255,0.28); }
+  .item__bar--weather { background: #3EC6C6; }
+
+  .item__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+  }
+  .item__label {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.88);
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item__sub {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8px;
+    color: rgba(255,255,255,0.32);
+    letter-spacing: 0.2px;
+    line-height: 1;
+  }
+  .item__time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8.5px;
+    color: rgba(255,255,255,0.28);
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* ─── BOTTOM: DEFERRED INDICATOR ─── */
+  .bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 7px;
+  }
+
+  /* Thin rule above */
+  .bottom::before {
+    display: none; /* rule is a separate element below */
+  }
+  .bottom-rule {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 7px;
+  }
+
+  .deferred {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Phone icon — small, muted */
+  .phone-icon {
+    width: 10px;
+    height: 10px;
+    opacity: 0.22;
+    flex-shrink: 0;
+  }
+  .phone-icon svg { width: 100%; height: 100%; }
+
+  .deferred__text {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8px;
+    color: rgba(255,255,255,0.22);
+    letter-spacing: 0.1px;
+  }
+
+  /* The "+22" counter — muted, calm, not a red badge */
+  .deferred__count {
+    font-family: 'Geist Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    padding: 1px 4px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ─── CONTEXT GRAMMAR ACTIVE INDICATOR ───
+     Small "CG" mark — bottom right corner.
+     Subtle: it's a signal for the portfolio reader,
+     not something Samsung would ship. Keep it ghost-quiet.
+  */
+  .cg-mark {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0.55;
+  }
+  /* The green dot: a standalone circle element, NOT a border */
+  .cg-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #30c969;
+    /* Soft glow */
+    box-shadow: 0 0 4px rgba(48,201,105,0.7);
+    flex-shrink: 0;
+  }
+  .cg-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 600;
+    color: rgba(48,201,105,0.9);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  /* ─── ENTRANCE ANIMATIONS ───
+     Staggered fade-up on load. Matches how One UI Watch
+     content slides in after the wrist raise gesture.
+  */
+  @media (prefers-reduced-motion: no-preference) {
+    .time {
+      opacity: 0;
+      animation: face-in 0.55s 80ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .complications {
+      opacity: 0;
+      animation: face-in 0.45s 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .item:nth-child(1) {
+      opacity: 0;
+      animation: item-in 0.4s 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .item:nth-child(2) {
+      opacity: 0;
+      animation: item-in 0.4s 360ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .item:nth-child(3) {
+      opacity: 0;
+      animation: item-in 0.4s 440ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .bottom, .bottom-rule {
+      opacity: 0;
+      animation: face-in 0.4s 540ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes face-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes item-in {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  }
+
+  /* ─── HEARTBEAT PULSE on the CG dot ─── */
+  @media (prefers-reduced-motion: no-preference) {
+    .cg-dot {
+      animation: pulse 3s 1s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 4px rgba(48,201,105,0.7); }
+      50%       { box-shadow: 0 0 8px rgba(48,201,105,0.3); }
+    }
+  }
+</style>
+</head>
+<body>
+<div class="face">
+
+  <!-- ── TOP: Date + Hero Clock + Complications ── -->
+  <div class="top">
+
+    <div class="date-line">
+      <span class="date-day">Tue</span>
+      <span class="date-sep"></span>
+      <span class="date-day">Apr 21</span>
+    </div>
+
+    <div class="time-row">
+      <div class="time">07:04</div>
+      <div class="time-ampm">am</div>
+    </div>
+
+    <!-- Complications row: HR + Steps + Weather -->
+    <div class="complications">
+
+      <!-- Heart rate — teal accent (Samsung's typical accent) -->
+      <div class="comp comp--teal">
+        <div class="comp__icon">
+          <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 10.5S1 7 1 3.5A2.5 2.5 0 0 1 6 2.1 2.5 2.5 0 0 1 11 3.5C11 7 6 10.5 6 10.5Z"
+              stroke="#3EC6C6" stroke-width="1" fill="none"/>
+          </svg>
+        </div>
+        <span class="comp__text">72</span>
+      </div>
+
+      <!-- Steps — muted white -->
+      <div class="comp comp--white">
+        <div class="comp__icon">
+          <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- simplified walking figure -->
+            <circle cx="6" cy="2.5" r="1" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+            <path d="M4.5 4.5L5.5 7.5M7.5 4.5L6.5 7.5M5.5 7.5L4 10M6.5 7.5L8 10"
+              stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="comp__text">1.2k</span>
+      </div>
+
+      <!-- Rain forecast -->
+      <div class="comp comp--white">
+        <div class="comp__icon">
+          <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.5 6.5A3 3 0 0 0 4 5.5 2 2 0 0 0 4 9.5h5.5a2 2 0 0 0 0-3Z"
+              stroke="rgba(255,255,255,0.5)" stroke-width="1" fill="none"/>
+            <line x1="5" y1="10.5" x2="4.5" y2="11.5" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+            <line x1="7" y1="10.5" x2="6.5" y2="11.5" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="comp__text">14:00</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── MIDDLE: Priority Items ── -->
+  <div class="middle">
+    <div class="rule"></div>
+    <div class="items">
+
+      <!-- Item 1: Standup — time-critical, red bar -->
+      <div class="item">
+        <div class="item__bar item__bar--urgent"></div>
+        <div class="item__body">
+          <div class="item__label">10:00 Standup</div>
+          <div class="item__sub">Calendar · in 2h 56m</div>
+        </div>
+        <div class="item__time">2h 56m</div>
+      </div>
+
+      <!-- Item 2: Doc review — normal priority -->
+      <div class="item">
+        <div class="item__bar item__bar--normal"></div>
+        <div class="item__body">
+          <div class="item__label">1 doc pending review</div>
+          <div class="item__sub">Work · no hard deadline</div>
+        </div>
+        <div class="item__time">work hrs</div>
+      </div>
+
+      <!-- Item 3: Rain alert — environmental, teal -->
+      <div class="item">
+        <div class="item__bar item__bar--weather"></div>
+        <div class="item__body">
+          <div class="item__label">Rain from 14:00</div>
+          <div class="item__sub">Weather · take umbrella</div>
+        </div>
+        <div class="item__time">today</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── BOTTOM: Deferred count + CG indicator ── -->
+  <div>
+    <div class="bottom-rule"></div>
+    <div class="bottom">
+
+      <div class="deferred">
+        <!-- Phone icon: standalone SVG, no border on the shape -->
+        <div class="phone-icon">
+          <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2.5" y="1" width="7" height="10" rx="1.5"
+              stroke="rgba(255,255,255,0.7)" stroke-width="1" fill="none"/>
+            <circle cx="6" cy="9.2" r="0.6" fill="rgba(255,255,255,0.7)"/>
+          </svg>
+        </div>
+        <span class="deferred__text">22 deferred</span>
+        <span class="deferred__count">+22</span>
+      </div>
+
+      <!-- CG active mark: green dot + label, bottom-right -->
+      <div class="cg-mark">
+        <div class="cg-dot"></div>
+        <span class="cg-label">CG</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

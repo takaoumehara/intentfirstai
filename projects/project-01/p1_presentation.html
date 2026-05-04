@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 01 — Living Home | Context Grammar</title>
+<meta name="description" content="A family of five in San Francisco. How Context Grammar Brain quietly designs five different relationships with the agents living inside one home.">
+
+<!-- Geist + Noto Sans JP -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+
+<!-- DS -->
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/slide-layouts.css">
+<link rel="stylesheet" href="../../assets/css/device-frames.css">
+<link rel="stylesheet" href="../../assets/css/avatars.css">
+
+<style>
+/* ═══ P1-specific overrides ═══ */
+
+/* Iframe inside slide layouts — fill the slot, no chrome */
+.ui-embed {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: var(--bg-2);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.ui-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Phone-shaped iframe wrapper for embedding p1-v2 phone UIs */
+.phone-embed {
+  position: relative;
+  flex-shrink: 0;
+  background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+  border-radius: 36px;
+  padding: 8px;
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.10),
+    0 12px 32px rgba(0,0,0,0.12),
+    0 32px 64px rgba(0,0,0,0.05);
+  width: 320px;
+  aspect-ratio: 9 / 19.5;
+}
+.phone-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 28px;
+  background: #fff;
+  display: block;
+}
+.phone-embed--sm { width: 240px; }
+.phone-embed--lg { width: 400px; }
+
+/* Tablet-shaped wrapper */
+.tablet-embed {
+  position: relative;
+  flex-shrink: 0;
+  background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+  border-radius: 22px;
+  padding: 12px;
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.10),
+    0 16px 40px rgba(0,0,0,0.12);
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 1194 / 834;
+}
+.tablet-embed--portrait { aspect-ratio: 834 / 1194; max-width: 480px; }
+.tablet-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  display: block;
+}
+
+/* Desktop browser-shaped wrapper */
+.browser-embed {
+  position: relative;
+  width: 100%;
+  max-width: 880px;
+  aspect-ratio: 16 / 10;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.08);
+}
+.browser-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #fff;
+}
+
+/* Fridge-shaped wrapper */
+.fridge-embed {
+  position: relative;
+  flex-shrink: 0;
+  width: 280px;
+  aspect-ratio: 9 / 16;
+}
+.fridge-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: var(--bg-2);
+  border-radius: 8px;
+}
+
+/* Family intro slide — full bleed iframe */
+.family-intro-frame {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  border: 0;
+  display: block;
+}
+.slide--family-intro {
+  padding: 0 !important;
+  position: relative;
+}
+
+/* Dual device row (fridge + phone notification) */
+.dual-row {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Dual phone row (before / after) */
+.dual-phones {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.dual-phones .label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: center;
+  margin-bottom: 12px;
+  display: block;
+}
+.dual-phones-wrap { display: flex; flex-direction: column; align-items: center; }
+
+/* Brain 3-layer reveal (s5) */
+.brain-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+}
+.brain-layer {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 26px;
+  background: var(--bg);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+}
+.brain-layer.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.brain-layer__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.brain-layer__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  width: 28px;
+}
+.brain-layer__name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+}
+.brain-layer__when {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.brain-layer__body {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+.brain-layer--l1 { border-left: 3px solid var(--color-brain); }
+.brain-layer--l2 { border-left: 3px solid var(--color-grammar); }
+.brain-layer--l3 { border-left: 3px solid var(--color-success); }
+
+/* Diagram for S2 (silos) */
+.silos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 18px;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 3 / 2;
+}
+.silo {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.silo__name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 12px;
+}
+.silo__has {
+  font-family: var(--font-sans);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 8px;
+  font-weight: 400;
+}
+.silo__cant {
+  font-family: var(--font-sans);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+  color: var(--color-grammar);
+  margin-top: 6px;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Constellation diagram for S8 */
+.constellation {
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1 / 1;
+}
+
+/* Pronoun slide (s16) — minimal intimate */
+.intimate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  gap: 32px;
+}
+.intimate__line {
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1.55;
+  color: rgba(237, 237, 237, 0.92);
+  font-weight: 400;
+  max-width: 720px;
+  letter-spacing: -0.2px;
+}
+.intimate__line em {
+  font-style: normal;
+  font-weight: 500;
+  color: #ededed;
+}
+.intimate__small {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: rgba(237, 237, 237, 0.55);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Close slide (s19) */
+.close-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  gap: 32px;
+  max-width: 920px;
+}
+.close-stack h2 {
+  font-size: clamp(36px, 4.5vw, 60px);
+  font-weight: 500;
+  letter-spacing: -1.2px;
+  line-height: 1.15;
+  color: #ededed;
+}
+.close-stack p {
+  font-size: 18px;
+  line-height: 1.7;
+  color: rgba(237, 237, 237, 0.78);
+  max-width: 640px;
+}
+.close-stack .bridge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(237, 237, 237, 0.55);
+  border-top: 1px solid rgba(237, 237, 237, 0.18);
+  padding-top: 20px;
+  margin-top: 12px;
+}
+
+/* Hero illustration cards (S3 — power users) */
+.power-users {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  max-width: 600px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.power-user-card {
+  flex: 1;
+  min-width: 140px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.power-user-card .device {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.power-user-card .label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.power-user-card .note {
+  font-size: 12px;
+  color: var(--text-2);
+  font-style: italic;
+}
+
+/* Tag chip variant for slide footer */
+.slide-footer-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+/* Section labels colored */
+.label-axis-1 { color: #1d4ed8; }
+.label-axis-2 { color: #7c3aed; }
+.label-axis-3 { color: #c2410c; }
+
+/* Hide scrollbars on slides */
+.slide { overflow: hidden; }
+</style>
+</head>
+<body>
+
+<div id="deck" data-dark-slides="s1,s16,s19">
+
+<!-- =============================================================
+     S1 — HERO (dark)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s1">
+  <div class="slide-inner" style="display:flex;align-items:center;justify-content:center;text-align:center;padding:var(--slide-pad-x);">
+    <div>
+      <div class="slide-label" style="color:#a1a1aa;letter-spacing:1.5px;">Project 01 · Living Home</div>
+      <h1 class="slide-title" style="font-size:clamp(40px,6vw,76px);max-width:920px;color:#ededed;font-weight:500;letter-spacing:-2px;margin-top:14px;">
+        家のなかに、5人と<br>5つのエージェントが住んでいる。
+      </h1>
+      <p class="slide-subtitle" style="max-width:640px;margin:24px auto 0;color:rgba(237,237,237,0.7);font-size:clamp(16px,1.4vw,20px);line-height:1.6;">
+        San Francisco に暮らす Yamashiro 家。<br>
+        家族は5人。AIは5体。関係は、ドメインごとに違う。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S2 — FAMILY INTRO (full-bleed iframe)
+     ============================================================= -->
+<section class="slide slide--family-intro" id="s2">
+  <iframe class="family-intro-frame" src="../../ui-screens/p1-v2/s0-family-intro.html?noframe=1" loading="lazy" title="The Yamashiros"></iframe>
+</section>
+
+
+<!-- =============================================================
+     S3 — THE PROBLEM TODAY
+     ============================================================= -->
+<section class="slide" id="s3">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label">2026 · 観察された現象</div>
+        <h2 class="slide-title">先進的な家族は、<br>もう試している。</h2>
+        <p class="slide-subtitle">
+          AIに名前をつける。仕事用、家族用、子供の勉強用。<br><br>
+          別々のメールアカウントを作り、別々の端末で動かす。「このAIはこう動け」という指示書を、手で書く。<br><br>
+          これは、正しい問題への、真剣な答えだ。<br>
+          そして、まだ荒削りだ。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="power-users">
+          <div class="power-user-card">
+            <div class="device">Device 01</div>
+            <div class="label">仕事用 AI</div>
+            <div class="note">専用アカウント</div>
+          </div>
+          <div class="power-user-card">
+            <div class="device">Device 02</div>
+            <div class="label">家族用 AI</div>
+            <div class="note">別の指示書</div>
+          </div>
+          <div class="power-user-card">
+            <div class="device">Device 03</div>
+            <div class="label">学習用 AI</div>
+            <div class="note">別の端末</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S4 — INFORMATION SILOS
+     ============================================================= -->
+<section class="slide slide--dim" id="s4">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-grammar">問題の構造</div>
+        <h2 class="slide-title">それぞれが<br>別々の島になっている。</h2>
+        <p class="slide-subtitle">
+          仕事AIは、家族の状況を知らない。<br>
+          カレンダーAIは、子供のアレルギーを知らない。<br>
+          家事AIは、家計の余裕を知らない。<br><br>
+          別々に動かせば、混線は防げる。<br>
+          でも、情報は分断される。<br><br>
+          <strong style="color:var(--text);">「何を共有し、何を分離するか」の文法が、ない。</strong>
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="silos">
+          <div class="silo">
+            <div class="silo__name">仕事 AI</div>
+            <div>
+              <div class="silo__has">スケジュール・会議</div>
+              <div class="silo__cant">家族の今日を知らない</div>
+            </div>
+          </div>
+          <div class="silo">
+            <div class="silo__name">家事 AI</div>
+            <div>
+              <div class="silo__has">買い物・食事</div>
+              <div class="silo__cant">家計の余裕を知らない</div>
+            </div>
+          </div>
+          <div class="silo">
+            <div class="silo__name">教育 AI</div>
+            <div>
+              <div class="silo__has">宿題・進度</div>
+              <div class="silo__cant">アレルギーを知らない</div>
+            </div>
+          </div>
+          <div class="silo">
+            <div class="silo__name">財務 AI</div>
+            <div>
+              <div class="silo__has">予算・支出</div>
+              <div class="silo__cant">家族の予定を知らない</div>
+            </div>
+          </div>
+          <div class="silo">
+            <div class="silo__name">旅行 AI</div>
+            <div>
+              <div class="silo__has">予約・ルート</div>
+              <div class="silo__cant">食の好みを知らない</div>
+            </div>
+          </div>
+          <div class="silo">
+            <div class="silo__name">健康 AI</div>
+            <div>
+              <div class="silo__has">数値・記録</div>
+              <div class="silo__cant">家族構成を知らない</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S5 — BRAIN 3 LAYERS (progressive reveal)
+     ============================================================= -->
+<section class="slide" id="s5">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-brain">Context Brain · 3 Layers</div>
+        <h2 class="slide-title">家族の記憶を、<br>3つの速度で持つ。</h2>
+        <p class="slide-subtitle">
+          AIに名前をつけるのではなく、<strong style="color:var(--text);">家族の記憶を1つ持つ</strong>。<br><br>
+          記憶は3層。変わらない部分、ゆっくり育つ部分、今この瞬間の部分。<br><br>
+          <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:1px;color:var(--text-3);">→ スペースキーで1層ずつ開く</span>
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="brain-stack">
+          <div class="brain-layer brain-layer--l1" data-step="1">
+            <div class="brain-layer__head">
+              <span class="brain-layer__num">L1</span>
+              <span class="brain-layer__name">Identity</span>
+              <span class="brain-layer__when">変わらない</span>
+            </div>
+            <div class="brain-layer__body">
+              名前。アレルギー。プロナウン。言語。価値観。<br>
+              1年前に登録したアレルギーは、今日も有効だ。
+            </div>
+          </div>
+          <div class="brain-layer brain-layer--l2" data-step="2">
+            <div class="brain-layer__head">
+              <span class="brain-layer__num">L2</span>
+              <span class="brain-layer__name">Accumulated Learning</span>
+              <span class="brain-layer__when">日々育つ</span>
+            </div>
+            <div class="brain-layer__body">
+              月曜は送り迎え。冬は魚を控える時期。<br>
+              生活のリズムから、パターンが生まれる。
+            </div>
+          </div>
+          <div class="brain-layer brain-layer--l3" data-step="3">
+            <div class="brain-layer__head">
+              <span class="brain-layer__num">L3</span>
+              <span class="brain-layer__name">Right Now</span>
+              <span class="brain-layer__when">今この瞬間</span>
+            </div>
+            <div class="brain-layer__body">
+              移動中。手が空いていない。緊急。<br>
+              8つのToken が、リアルタイムで状況を読む。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S6 — L1 IDENTITY CARD UI
+     ============================================================= -->
+<section class="slide" id="s6">
+  <div class="slide-inner">
+    <div class="layout-phone-context">
+      <div class="content">
+        <div class="text-col">
+          <div class="slide-label label-brain">L1 — Identity Card</div>
+          <h2 class="slide-title">家族のDNA。<br>全エージェントが、ここから始まる。</h2>
+          <p class="slide-subtitle">
+            5人それぞれの、変わらない情報。<br>
+            プロナウン、アレルギー、言語。<br><br>
+            Finance Agent も、Education Agent も、Travel Agent も、まずここを読む。<br><br>
+            <strong style="color:var(--text);">1つ書けば、全員に届く。</strong>
+          </p>
+        </div>
+        <div class="phone-col">
+          <div class="phone-embed phone-embed--lg">
+            <iframe src="../../ui-screens/p1-v2/s3-identity-card.html?noframe=1" loading="lazy" title="L1 Identity Card"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S7 — L3 8 TOKEN DASHBOARD
+     ============================================================= -->
+<section class="slide slide--dim" id="s7">
+  <div class="slide-inner">
+    <div class="layout-phone-context">
+      <div class="content">
+        <div class="text-col">
+          <div class="slide-label label-grammar">L3 — 8 Context Tokens</div>
+          <h2 class="slide-title">今、この瞬間の<br>Mai を読む8つの目盛り。</h2>
+          <p class="slide-subtitle">
+            移動中か。忙しいか。誰と一緒か。<br>
+            画面はスマホか冷蔵庫か。今これは「やれること」か。<br><br>
+            8つの Token がリアルタイムで動き、AIの振る舞いを変える。<br><br>
+            <strong style="color:var(--text);">L3が変われば、出る答えも変わる。</strong>
+          </p>
+        </div>
+        <div class="phone-col">
+          <div class="phone-embed phone-embed--lg">
+            <iframe src="../../ui-screens/p1-v2/s5-token-dashboard.html?noframe=1" loading="lazy" title="8 Token Dashboard"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S8 — AGENT CONSTELLATION (diagram)
+     ============================================================= -->
+<section class="slide" id="s8">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label">1 Brain · 5 Agents</div>
+        <h2 class="slide-title">1つの記憶から、<br>5つのエージェントへ。</h2>
+        <p class="slide-subtitle">
+          家族のBrainは1つ。エージェントは5つ。デバイスは無数。<br><br>
+          <strong style="color:var(--text);">Finance</strong> は家計だけを見る。<br>
+          <strong style="color:var(--text);">Education</strong> は子供の学習だけを見る。<br>
+          <strong style="color:var(--text);">Calendar</strong> だけが、全エージェントを横断する。<br><br>
+          何を共有し、何を分離するか。それが設計だ。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <svg class="constellation" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <!-- Center: Brain -->
+          <circle cx="200" cy="200" r="46" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+          <circle cx="200" cy="200" r="32" fill="none" stroke="#525252" stroke-width="1"/>
+          <circle cx="200" cy="200" r="18" fill="none" stroke="#a1a1aa" stroke-width="1"/>
+          <text x="200" y="204" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" font-weight="600" fill="#0a0a0a" letter-spacing="1">FAMILY BRAIN</text>
+
+          <!-- 5 agent nodes -->
+          <g font-family="Geist, sans-serif" font-size="11" font-weight="500" fill="#0a0a0a">
+            <!-- Finance: top -->
+            <line x1="200" y1="154" x2="200" y2="80" stroke="#d4d4d8" stroke-width="1"/>
+            <circle cx="200" cy="60" r="22" fill="#fff" stroke="#0d7a7a" stroke-width="1.5"/>
+            <text x="200" y="64" text-anchor="middle" fill="#0d7a7a" font-weight="600">Finance</text>
+
+            <!-- Education: top-right -->
+            <line x1="232" y1="168" x2="320" y2="120" stroke="#d4d4d8" stroke-width="1"/>
+            <circle cx="338" cy="110" r="22" fill="#fff" stroke="#5b4fb0" stroke-width="1.5"/>
+            <text x="338" y="114" text-anchor="middle" fill="#5b4fb0" font-weight="600">Edu</text>
+
+            <!-- Calendar: right -->
+            <line x1="246" y1="200" x2="332" y2="200" stroke="#2563eb" stroke-width="1.5"/>
+            <circle cx="350" cy="200" r="22" fill="#fff" stroke="#2563eb" stroke-width="1.5"/>
+            <text x="350" y="204" text-anchor="middle" fill="#2563eb" font-weight="600">Cal</text>
+
+            <!-- Home: bottom-right -->
+            <line x1="232" y1="232" x2="320" y2="280" stroke="#d4d4d8" stroke-width="1"/>
+            <circle cx="338" cy="290" r="22" fill="#fff" stroke="#c2671c" stroke-width="1.5"/>
+            <text x="338" y="294" text-anchor="middle" fill="#c2671c" font-weight="600">Home</text>
+
+            <!-- Travel: bottom -->
+            <line x1="200" y1="246" x2="200" y2="320" stroke="#d4d4d8" stroke-width="1"/>
+            <circle cx="200" cy="340" r="22" fill="#fff" stroke="#17803d" stroke-width="1.5"/>
+            <text x="200" y="344" text-anchor="middle" fill="#17803d" font-weight="600">Travel</text>
+          </g>
+
+          <!-- Calendar's cross-domain hint (extra dotted lines) -->
+          <g stroke="#2563eb" stroke-width="0.7" stroke-dasharray="2 3" fill="none" opacity="0.45">
+            <line x1="346" y1="190" x2="210" y2="70"/>
+            <line x1="346" y1="195" x2="338" y2="118"/>
+            <line x1="346" y1="210" x2="338" y2="282"/>
+            <line x1="345" y1="217" x2="210" y2="328"/>
+          </g>
+
+          <!-- Disclosure barrier hint between Finance and Education -->
+          <text x="270" y="30" font-family="Geist Mono, monospace" font-size="9" fill="#737373" letter-spacing="0.5">↑ 分離 ↑</text>
+
+          <!-- Caption bottom -->
+          <text x="200" y="395" text-anchor="middle" font-family="Geist Mono, monospace" font-size="9" fill="#737373" letter-spacing="1">CALENDAR = 唯一の横断エージェント</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S9 — DISCLOSURE MATRIX (desktop UI)
+     ============================================================= -->
+<section class="slide" id="s9">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-default">Disclosure Matrix</div>
+        <h2 class="slide-title">「何を分離するか」<br>こそが、信頼を生む。</h2>
+        <p class="slide-subtitle">
+          Finance Agent は、子供の成績を読まない。<br>
+          それは制限ではなく、<strong style="color:var(--text);">設計の選択</strong>。<br><br>
+          5つのエージェント × 5つの情報ドメイン。<br>
+          25の境界を、設計する。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="browser-embed">
+          <iframe src="../../ui-screens/p1-v2/s7-disclosure-matrix.html?noframe=1" loading="lazy" title="Disclosure Matrix"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S10 — TRANSLATION LAYER (Axis 1)
+     ============================================================= -->
+<section class="slide slide--dim" id="s10">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-axis-1">Translation Layer · Axis 1</div>
+        <h2 class="slide-title">同じ事実を、<br>4人に違う深さで翻訳する。</h2>
+        <p class="slide-subtitle">
+          Kiran が健康診断で、肝機能の数値を指摘された。<br><br>
+          本人には、データの全文。<br>
+          妻 Mai には、要旨と「夕食を調整」のアクション。<br>
+          娘 Aoi には、「最近パパはノンアル選んでる」という観察だけ。<br>
+          幼い Leo と Sota には、何も。<br><br>
+          <strong style="color:var(--text);">これは権限管理ではない。意味の翻訳だ。</strong>
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="browser-embed" style="aspect-ratio:16/9;">
+          <iframe src="../../ui-screens/p1-v2/animations/anim-translation-morph.html?noframe=1" loading="lazy" title="Translation Morph — one fact, three translations"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S11 — MONDAY MORNING (dual: fridge + phone)
+     ============================================================= -->
+<section class="slide" id="s11">
+  <div class="slide-inner">
+    <div class="layout-dual-device">
+      <div>
+        <div class="slide-label">月曜日 · 朝7時</div>
+        <h2 class="slide-title">誰も指示していない。<br>でも、家は動いている。</h2>
+        <p class="slide-subtitle" style="max-width:680px;">
+          冷蔵庫が、今日の弁当を3つ提案する。<br>
+          スマホに通知が1件。「送り迎えが30分ずれた」。<br>
+          子供部屋では、復習シートが昨夜のうちに印刷されている。<br><br>
+          <strong style="color:var(--text);">家族の生活が、文法になった。</strong>
+        </p>
+      </div>
+      <div class="dual-row" style="margin-top:24px;">
+        <div class="fridge-embed">
+          <iframe src="../../ui-screens/p1-v2/s8a-fridge-bento.html?noframe=1" loading="lazy" title="Samsung Family Hub · Bento"></iframe>
+        </div>
+        <div class="phone-embed phone-embed--sm">
+          <iframe src="../../ui-screens/p1-v2/s8b-notification.html?noframe=1" loading="lazy" title="Phone notification"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S12 — YOGURT 4 PERSONS (Substitution Modes)
+     ============================================================= -->
+<section class="slide slide--dim" id="s12">
+  <div class="slide-inner">
+    <div class="layout-phone-context">
+      <div class="content">
+        <div class="text-col">
+          <div class="slide-label">Substitution Modes</div>
+          <h2 class="slide-title">同じ「ヨーグルト」<br>でも、4通りの文法がある。</h2>
+          <p class="slide-subtitle">
+            Kiran は <strong>Flexible</strong>。同等品なら替えていい。<br>
+            Aoi は <strong>Exploring</strong>。新しいdairy-freeを試している途中。<br>
+            Leo は <strong>Exact + Surprise</strong>。いつものか、新しい挑戦か。<br>
+            Mai は <strong>Auto</strong>。決まったブランド、自動で。<br><br>
+            <strong style="color:var(--text);">Brainは家族を1人に均さない。4通りの好みを、別々に覚える。</strong>
+          </p>
+        </div>
+        <div class="phone-col">
+          <div class="phone-embed phone-embed--lg">
+            <iframe src="../../ui-screens/p1-v2/s8-5-yogurt-shopping.html?noframe=1" loading="lazy" title="Yogurt Shopping · 4 modes"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S13 — CROSS-MEDIA GRAPH (Axis 2)
+     ============================================================= -->
+<section class="slide" id="s13">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-axis-2">Connective Disclosure · Axis 2</div>
+        <h2 class="slide-title">3人が、同じ作品の<br>軌道に入っている。</h2>
+        <p class="slide-subtitle">
+          Aoi は Netflix で、その作品のアニメを観ている。<br>
+          Kiran は Kindle で、原作マンガを読んだばかり。<br>
+          Sota は、その主題歌をずっと口ずさんでいる。<br><br>
+          Spotify はプレイリストを共有できる。<br>
+          Netflix は視聴履歴を共有できる。<br>
+          Kindle は読書履歴を共有できる。<br><br>
+          <strong style="color:var(--text);">3つを横断して「同じ世界にいる」と気づけるのは、Brainだけだ。</strong>
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="tablet-embed">
+          <iframe src="../../ui-screens/p1-v2/s8-7-cross-media.html?noframe=1" loading="lazy" title="Cross-Media Correlation Graph"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S14 — CARE ARCHITECTURE (before/after dual)
+     ============================================================= -->
+<section class="slide" id="s14">
+  <div class="slide-inner">
+    <div class="layout-dual-device">
+      <div>
+        <div class="slide-label" style="color:var(--illust-red);">Care Architecture · 緊急</div>
+        <h2 class="slide-title">娘が喘息発作。<br>画面に残ったのは、1つ。</h2>
+        <p class="slide-subtitle" style="max-width:680px;">
+          Mai は運転中だった。Cognitive Load は MAX。<br><br>
+          Home Agent も、Finance Agent も、Education Agent も—<br>
+          全員が、黙った。<br><br>
+          画面に残ったのは「養護教諭に電話する」、ボタン1つ。<br>
+          <strong style="color:var(--text);">UIが、認知負荷に合わせて、収縮した。</strong>
+        </p>
+      </div>
+      <div style="margin-top:24px;width:100%;display:flex;justify-content:center;">
+        <div style="width:100%;max-width:900px;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,0.04),0 12px 32px rgba(0,0,0,0.08);">
+          <iframe src="../../ui-screens/p1-v2/animations/anim-care-collapse.html?noframe=1" loading="lazy" title="Care Collapse — seven cards to one button" style="width:100%;height:100%;border:0;display:block;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S15 — CARE CASCADE (approvals pending)
+     ============================================================= -->
+<section class="slide slide--dim" id="s15">
+  <div class="slide-inner">
+    <div class="layout-phone-context">
+      <div class="content">
+        <div class="text-col">
+          <div class="slide-label" style="color:var(--illust-red);">Care Architecture · Cascade</div>
+          <h2 class="slide-title">Mai が選んだのは1つ。<br>AIが動かしたのは10個。</h2>
+          <p class="slide-subtitle">
+            Mai が「電話する」を選んだ瞬間、裏で全エージェントが動いた。<br><br>
+            <strong style="color:var(--text);">自動で実行：</strong>パートナーに通知、夕食を「遅め帰宅」に調整、Finance/Education のタスクを停止。<br><br>
+            <strong style="color:var(--text);">承認待ち：</strong>Zoom会議の延期文、医師への状況報告のドラフト。<br><br>
+            緊急度が、全エージェントの優先順位を、一瞬で書き換える。
+          </p>
+        </div>
+        <div class="phone-col">
+          <div class="phone-embed phone-embed--lg">
+            <iframe src="../../ui-screens/p1-v2/s9b-approvals.html?noframe=1" loading="lazy" title="Approvals Pending"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S16 — PRONOUN DISCLOSURE (intimate dark moment, no UI)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s16" style="background:#0a0a0a;">
+  <div class="slide-inner" style="padding:var(--slide-pad-x);">
+    <div class="intimate">
+      <div class="intimate__small">L1 Identity update</div>
+      <div class="intimate__line">
+        娘が、Mai に打ち明けた。<br>
+        Mai はそれを、Brain に伝えることにした。<br><br>
+        <em>性自認が更新された。</em><br><br>
+        娘の部屋の照明が、少し変わった。<br>
+        Education Agent が話しかける言葉が、少し変わった。<br>
+        Home Agent が提案する内容が、少し変わった。<br><br>
+        誰もそれに気づかなかった。<br>
+        <em>それが、正しい設計だ。</em>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S17 — AUTONOMY TIMELINE (12 months)
+     ============================================================= -->
+<section class="slide" id="s17">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-intent">Autonomy Timeline · 12 months</div>
+        <h2 class="slide-title">12ヶ月後、関係は<br>ドメインごとに違っていた。</h2>
+        <p class="slide-subtitle">
+          料理は <strong style="color:var(--text);">Omakase</strong>。任せていい。<br>
+          スケジュールは <strong style="color:var(--text);">Infrastructure</strong>。意識しない。<br>
+          子供の教育は <strong style="color:var(--text);">Collaborator</strong>。一緒に考える。<br>
+          財務は <strong style="color:var(--text);">Steward</strong>。自分でコントロールする。<br><br>
+          <strong style="color:var(--text);">同じBrain、4つの違う関係。</strong><br>
+          積み上げた信頼が、ドメインごとに、決める。
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="tablet-embed" style="aspect-ratio:16/9;">
+          <iframe src="../../ui-screens/p1-v2/animations/anim-autonomy-weaver.html?noframe=1" loading="lazy" title="Autonomy Weaver — 12 months, 4 relationships"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S18 — FAMILY ARCHIVE (Axis 3)
+     ============================================================= -->
+<section class="slide slide--dim" id="s18">
+  <div class="slide-inner">
+    <div class="layout-text-image">
+      <div class="text-col">
+        <div class="slide-label label-axis-3">Family Archive · Axis 3</div>
+        <h2 class="slide-title">家族が積み上げるのは、<br>1種類の記憶じゃない。</h2>
+        <p class="slide-subtitle">
+          <strong>Memories</strong>：今すぐ、全員で。<br>
+          <strong>Recipes</strong>：料理する人にだけ開く。<br>
+          <strong>Parent-as-Person</strong>：子が20歳になったら解錠される。Kiran の若い頃の日記、Mai の初めての職場の悩み。<br>
+          <strong>Family Stories</strong>：Aoi が高校選びに悩んだ時、似た決断の記録が浮上する。<br>
+          <strong>Skills</strong>：自転車を教えた日。分数を説明したメモ。<br><br>
+          <strong style="color:var(--text);">伝えたいけど伝えきれないものを、AI が、時間をかけて、運ぶ。</strong>
+        </p>
+      </div>
+      <div class="image-col" style="display:flex;align-items:center;justify-content:center;">
+        <div class="tablet-embed">
+          <iframe src="../../ui-screens/p1-v2/s12-family-archive.html?noframe=1" loading="lazy" title="Family Archive"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============================================================
+     S19 — CLOSE (dark)
+     ============================================================= -->
+<section class="slide slide--hero slide-dark slide--v-center" id="s19" style="background:#0a0a0a;">
+  <div class="slide-inner" style="padding:var(--slide-pad-x);">
+    <div class="close-stack">
+      <div class="slide-label" style="color:#a1a1aa;letter-spacing:1.5px;">Project 01 · Close</div>
+      <h2>
+        設計するのは、AIではない。<br>
+        家族が生きる、文脈だ。
+      </h2>
+      <p>
+        L1（誰か）。L2（どう生きているか）。L3（今、何が起きているか）。<br>
+        この3層がある家族は、AIに名前をつけなくていい。<br><br>
+        料理ではOmakase。財務ではSteward。緊急時にはInfrastructure。<br>
+        同じBrain、違う関係。それが Dial の設計だ。
+      </p>
+      <div class="bridge">
+        Bridge to P4 · Atlas Archive — 企業も同じ構造。1つの設計言語で、家庭も職場も。
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script src="../../assets/js/deck-nav.js"></script>
+
+<script>
+  /* Brain 3-layer progressive reveal on s5 */
+  window.deckNavBeforeAdvance = function(slide, index) {
+    if (slide && slide.id === 's5') {
+      var nextStep = slide.querySelector('.brain-layer:not(.visible)');
+      if (nextStep) {
+        nextStep.classList.add('visible');
+        return false;  // stay on s5, don't advance
+      }
+    }
+    return true;
+  };
+
+  /* When entering s5, ensure clean state */
+  var deck = document.getElementById('deck');
+  if (deck) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting && e.target.id === 's5') {
+          // First entry — make sure no layers visible yet
+          // (re-entry from later slides resets to clean)
+          var layers = e.target.querySelectorAll('.brain-layer');
+          // But if user has progressed past s5, keep them visible
+          // Detect: are we entering forward (no visible) or returning (some visible)?
+          // Simplest: just leave as-is. The first visit shows none until Space pressed.
+        }
+      });
+    }, { threshold: 0.6 });
+    var s5 = document.getElementById('s5');
+    if (s5) observer.observe(s5);
+
+    /* On first visit to s5 with no layer visible, show first one immediately so the slide isn't empty */
+    var s5InitialReveal = function() {
+      var s5 = document.getElementById('s5');
+      if (!s5) return;
+      var visible = s5.querySelectorAll('.brain-layer.visible').length;
+      var inView = s5.getBoundingClientRect().top < window.innerHeight * 0.5 &&
+                   s5.getBoundingClientRect().bottom > window.innerHeight * 0.5;
+      if (inView && visible === 0) {
+        s5.querySelector('.brain-layer[data-step="1"]').classList.add('visible');
+      }
+    };
+    window.addEventListener('scroll', s5InitialReveal, { passive: true });
+    setTimeout(s5InitialReveal, 600);
+  }
+</script>
+
+</body>
+</html>

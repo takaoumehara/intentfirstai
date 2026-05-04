@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2 Concept 01 — Context Token intersection</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/bts-frame.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: transparent;
+    min-height: 100vh;
+    padding: 24px;
+    color: #f1ecdf;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  .title {
+    font-size: clamp(26px, 2.6vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.6px;
+    color: #f1ecdf;
+    margin-bottom: 6px;
+  }
+  .lede {
+    font-size: 14px;
+    color: rgba(241,236,223,0.6);
+    margin-bottom: 28px;
+    max-width: 720px;
+    line-height: 1.5;
+  }
+
+  .venn {
+    position: relative;
+    height: 380px;
+    max-width: 760px;
+    margin: 0 auto 24px;
+  }
+  .circle {
+    position: absolute;
+    width: 330px; height: 330px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 36px;
+    font-size: 12px;
+    line-height: 1.45;
+    box-sizing: border-box;
+    backdrop-filter: blur(4px);
+  }
+  .circle-kai {
+    left: 0; top: 0;
+    background: rgba(74, 106, 144, 0.22);
+    border: 1.5px solid rgba(74, 106, 144, 0.6);
+    color: #b8d0ec;
+  }
+  .circle-mia {
+    right: 0; top: 0;
+    background: rgba(212, 127, 140, 0.22);
+    border: 1.5px solid rgba(212, 127, 140, 0.55);
+    color: #f2cad1;
+  }
+  .circle-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.8;
+  }
+  .circle-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f1ecdf;
+    margin-bottom: 10px;
+  }
+  .circle ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .circle ul li {
+    padding: 3px 0;
+    font-size: 11.5px;
+  }
+  .circle-kai ul li::before { content: '・'; color: #8eabc8; margin-right: 2px; }
+  .circle-mia ul li::before { content: '・'; color: #d49aa4; margin-right: 2px; }
+
+  .intersection {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #30c969;
+    color: #062312;
+    padding: 16px 22px;
+    border-radius: 14px;
+    text-align: center;
+    z-index: 5;
+    box-shadow: 0 8px 32px rgba(48,201,105,0.3);
+    min-width: 200px;
+  }
+  .inter-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 3px;
+  }
+  .inter-concept {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.2px;
+  }
+  .inter-output {
+    font-size: 12px;
+    font-weight: 500;
+    padding-top: 6px;
+    border-top: 1px solid rgba(6,35,18,0.2);
+    line-height: 1.35;
+  }
+
+  .feasibility {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+  }
+  .feas-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .feas-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1ecdf;
+  }
+  .feas-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(241,236,223,0.5);
+    letter-spacing: 0.5px;
+  }
+  .feas-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .feas-cell {
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .feas-cell-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(241,236,223,0.5);
+    text-transform: uppercase;
+  }
+  .feas-cell-val {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #f1ecdf;
+  }
+  .check {
+    color: #30c969;
+    font-size: 14px;
+  }
+
+  .output-box {
+    background: rgba(48, 201, 105, 0.08);
+    border: 1px solid rgba(48, 201, 105, 0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .output-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: rgba(48, 201, 105, 0.18);
+    color: #30c969;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .output-text {
+    font-size: 13px;
+    color: rgba(241,236,223,0.85);
+    line-height: 1.5;
+  }
+  .output-text strong { color: #30c969; font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .venn { height: auto; }
+    .circle { position: static; width: 100%; margin-bottom: 10px; height: auto; padding: 20px; border-radius: 14px; }
+    .intersection { position: static; transform: none; margin: 10px auto; }
+    .feas-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  body.noframe { background: transparent !important; padding: 16px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bts-frame bts-frame--dark" data-kind="backstage">
+    <div class="bts-frame__chip">BACKSTAGE · Context Token intersection</div>
+    <div class="bts-frame__body">
+
+      <h1 class="title">Why the sword-forging workshop surfaced.</h1>
+      <p class="lede">Two Learning Layers, one overlap. The recommendation is not a guess — it's the intersection of what each child has already shown the system, resolved silently.</p>
+
+      <div class="venn">
+        <div class="circle circle-kai">
+          <div class="circle-label">Kai · age 13</div>
+          <div class="circle-name">Home Brain · Learning Layer</div>
+          <ul>
+            <li>Loved ninja camp (2024)</li>
+            <li>Tried kendo · 3 months</li>
+            <li>YouTube: 刀鍛冶 · 18 hrs</li>
+            <li>"I want something real"</li>
+          </ul>
+        </div>
+
+        <div class="circle circle-mia">
+          <div class="circle-label">Mia · age 9</div>
+          <div class="circle-name">Home Brain · Learning Layer</div>
+          <ul>
+            <li>Pottery Saturdays · 6 mo</li>
+            <li>Bamboo craft books</li>
+            <li>Origami obsession</li>
+            <li>"I want to make<br>something Japanese"</li>
+          </ul>
+        </div>
+
+        <div class="intersection">
+          <div class="inter-label">Intersection</div>
+          <div class="inter-concept">Hands-on<br>Japanese craft</div>
+          <div class="inter-output">→ Day 4<br>Sword-forging workshop<br>(Nara)</div>
+        </div>
+      </div>
+
+      <div class="feasibility">
+        <div class="feas-head">
+          <div class="feas-title">Feasibility check · all pass before surfacing</div>
+          <div class="feas-note">Token ⑥ · Feasibility</div>
+        </div>
+        <div class="feas-grid">
+          <div class="feas-cell">
+            <span class="feas-cell-label">Time</span>
+            <span class="feas-cell-val"><span class="check">✓</span> Fits Day 4 AM</span>
+          </div>
+          <div class="feas-cell">
+            <span class="feas-cell-label">Budget</span>
+            <span class="feas-cell-val"><span class="check">✓</span> ¥12,000 / family</span>
+          </div>
+          <div class="feas-cell">
+            <span class="feas-cell-label">Age</span>
+            <span class="feas-cell-val"><span class="check">✓</span> 8+ allowed</span>
+          </div>
+          <div class="feas-cell">
+            <span class="feas-cell-label">Reachable</span>
+            <span class="feas-cell-val"><span class="check">✓</span> 38 min train</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-box">
+        <span class="output-chip">Output</span>
+        <div class="output-text">
+          <strong>Silent Resolution.</strong> The workshop surfaces as a recommendation — not a notification, not an alert. The system did not ask Sarah to compare; it just placed the option in front of the family at the moment it would matter.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

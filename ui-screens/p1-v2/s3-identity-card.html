@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S3 — Identity Card (L1 Permanent Layer)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_tokens.css">
+<link rel="stylesheet" href="_avatars.css">
+<style>
+  /* ── Phone frame (inlined from iphone15pro-frame.html) ── */
+  html { overflow: hidden; height: 100%; }
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .phone-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .phone-frame::before,
+  body.noframe .phone-frame::after { display: none; }
+  body.noframe .phone-screen { border-radius: 0; }
+  body.noframe .notch { display: none; }
+  body.noframe .status-bar { display: none; }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px;
+    padding: 11px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 16px) / 844px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.14),
+      0 24px 48px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .phone-frame::before {
+    content: ''; position: absolute;
+    right: -2px; top: 130px; width: 3px; height: 52px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 0 2px 2px 0;
+  }
+  .phone-frame::after {
+    content: ''; position: absolute;
+    left: -2px; top: 110px; width: 3px; height: 30px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 42px 0 #2a2a2c, 0 72px 0 #2a2a2c;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 126px; height: 34px;
+    background: #000; border-radius: 20px;
+    z-index: 100;
+  }
+  .status-bar {
+    height: 54px;
+    padding: 14px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 15px; font-weight: 600; color: var(--fg);
+    font-family: var(--font-sans);
+    position: relative; z-index: 50;
+    background: var(--bg);
+  }
+  .status-bar-right { display: flex; gap: 6px; align-items: center; }
+  .status-bar-right svg { width: 16px; height: 16px; stroke-width: 2; }
+  .home-indicator {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 34px;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 8px; z-index: 52; pointer-events: none;
+  }
+  .home-indicator-bar {
+    width: 134px; height: 5px; background: var(--fg); border-radius: 100px;
+  }
+  .content {
+    position: absolute; top: 54px; bottom: 34px; left: 0; right: 0;
+    overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 0;
+    background: var(--bg);
+  }
+
+  /* ── Page-specific styles ── */
+  .page-header {
+    padding: 8px 20px 16px;
+  }
+  .eyebrow-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    background: none; border: none; cursor: pointer;
+    padding: 4px 0;
+  }
+  .back-link svg { width: 14px; height: 14px; stroke-width: 1.75; }
+
+  .title-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .page-title {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.8px;
+    color: var(--fg);
+    line-height: 1.1;
+  }
+  .layer-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    padding: 3px 8px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+  }
+  .layer-tag-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--purple);
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--fg-muted);
+    letter-spacing: -0.1px;
+    margin-bottom: 12px;
+  }
+
+  .meta-row {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .share-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 9px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--fg);
+  }
+  .share-chip svg { width: 12px; height: 12px; stroke-width: 1.8; color: var(--fg-muted); }
+  .share-chip-count {
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .share-chip-label { color: var(--fg-muted); }
+
+  .list-wrap {
+    padding: 4px 16px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .member-card {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: border-color 120ms ease, background 120ms ease;
+    cursor: pointer;
+  }
+  .member-card:hover { border-color: var(--border-strong); background: var(--bg-subtle); }
+
+  .member-body { min-width: 0; }
+
+  .name-line {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .member-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.15px;
+    line-height: 1.2;
+  }
+  .pronoun {
+    display: inline-flex; align-items: center;
+    padding: 1px 6px;
+    background: var(--gray-100);
+    border: 1px solid var(--border);
+    color: var(--gray-600);
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+
+  .detail-line {
+    display: flex; align-items: center; gap: 6px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--fg-muted);
+    line-height: 1.35;
+  }
+  .detail-text { letter-spacing: -0.05px; }
+  .detail-text--jp { font-family: var(--font-sans), 'Noto Sans JP', sans-serif; }
+  .detail-text--hi { font-family: 'Noto Sans Devanagari', var(--font-sans); }
+
+  .dot-sep {
+    width: 2px; height: 2px; border-radius: 50%;
+    background: var(--gray-300);
+    flex-shrink: 0;
+  }
+
+  .allergy-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 7px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.1px;
+  }
+  .allergy-chip--warn { background: var(--amber-bg); color: var(--amber); }
+  .allergy-chip--mild { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--border); }
+  .allergy-chip--none { background: var(--green-bg); color: var(--green); }
+  .allergy-chip svg { width: 10px; height: 10px; stroke-width: 2; }
+
+  .right-col {
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: 8px;
+  }
+  .l1-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--gray-400);
+    letter-spacing: 0.6px;
+  }
+  .chev {
+    width: 14px; height: 14px; stroke-width: 1.75;
+    color: var(--gray-300);
+  }
+
+  .footer {
+    padding: 4px 20px 24px;
+    display: flex; flex-direction: column; gap: 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+    padding-top: 16px;
+  }
+  .footer-row {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-subtle);
+    letter-spacing: 0.1px;
+  }
+  .footer-row svg { width: 12px; height: 12px; stroke-width: 1.75; }
+  .footer-hint {
+    font-size: 12px;
+    color: var(--fg-muted);
+    font-family: var(--font-sans);
+    letter-spacing: -0.05px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="phone-screen">
+    <div class="notch"></div>
+
+    <div class="status-bar">
+      <span>9:41</span>
+      <div class="status-bar-right">
+        <!-- Signal -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+        <!-- Wifi -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/></svg>
+        <!-- Battery -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2" ry="2"/><line x1="22" y1="11" x2="22" y2="13"/><rect x="4" y="9" width="12" height="6" rx="0.5" fill="currentColor" stroke="none"/></svg>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Header -->
+      <div class="page-header">
+        <div class="eyebrow-row">
+          <button class="back-link" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <span>Brain</span>
+          </button>
+          <span class="g-label">Identity</span>
+        </div>
+
+        <div class="title-row">
+          <h1 class="page-title">Family</h1>
+          <span class="layer-tag">
+            <span class="layer-tag-dot"></span>
+            L1 · Permanent
+          </span>
+        </div>
+
+        <p class="page-subtitle">Who lives here. Rarely changes.</p>
+
+        <div class="meta-row">
+          <span class="share-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span class="share-chip-label">Shared by</span>
+            <span class="share-chip-count">5 agents</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Member cards -->
+      <div class="list-wrap">
+
+        <!-- Mai -->
+        <div class="member-card" role="button" tabindex="0">
+          <div class="av av--lg av--mai">MY</div>
+          <div class="member-body">
+            <div class="name-line">
+              <span class="member-name">Mai Yamashiro</span>
+              <span class="pronoun">she/her</span>
+            </div>
+            <div class="detail-line">
+              <span class="detail-text detail-text--jp">Japanese (Okinawa)</span>
+              <span class="dot-sep"></span>
+              <span class="allergy-chip allergy-chip--none">No allergies</span>
+            </div>
+          </div>
+          <div class="right-col">
+            <span class="l1-tag">L1</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Kiran -->
+        <div class="member-card" role="button" tabindex="0">
+          <div class="av av--lg av--kiran">K</div>
+          <div class="member-body">
+            <div class="name-line">
+              <span class="member-name">Kiran Yamashiro</span>
+              <span class="pronoun">he/him</span>
+            </div>
+            <div class="detail-line">
+              <span class="detail-text">English</span>
+              <span class="dot-sep"></span>
+              <span class="detail-text detail-text--hi">हिन्दी</span>
+              <span class="dot-sep"></span>
+              <span class="allergy-chip allergy-chip--warn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Tree nuts · severe
+              </span>
+            </div>
+          </div>
+          <div class="right-col">
+            <span class="l1-tag">L1</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Aoi -->
+        <div class="member-card" role="button" tabindex="0">
+          <div class="av av--lg av--aoi">A</div>
+          <div class="member-body">
+            <div class="name-line">
+              <span class="member-name">Aoi Yamashiro</span>
+              <span class="pronoun">they/them</span>
+            </div>
+            <div class="detail-line">
+              <span class="detail-text">English</span>
+              <span class="dot-sep"></span>
+              <span class="detail-text">age 15</span>
+              <span class="dot-sep"></span>
+              <span class="allergy-chip allergy-chip--mild">Dairy · mild</span>
+            </div>
+          </div>
+          <div class="right-col">
+            <span class="l1-tag">L1</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Leo -->
+        <div class="member-card" role="button" tabindex="0">
+          <div class="av av--lg av--leo">L</div>
+          <div class="member-body">
+            <div class="name-line">
+              <span class="member-name">Leo Yamashiro</span>
+              <span class="pronoun">he/him</span>
+            </div>
+            <div class="detail-line">
+              <span class="detail-text">English</span>
+              <span class="dot-sep"></span>
+              <span class="detail-text">age 9</span>
+              <span class="dot-sep"></span>
+              <span class="allergy-chip allergy-chip--warn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Eggs
+              </span>
+            </div>
+          </div>
+          <div class="right-col">
+            <span class="l1-tag">L1</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Sota -->
+        <div class="member-card" role="button" tabindex="0">
+          <div class="av av--lg av--sota">S</div>
+          <div class="member-body">
+            <div class="name-line">
+              <span class="member-name">Sota Yamashiro</span>
+              <span class="pronoun">he/him</span>
+            </div>
+            <div class="detail-line">
+              <span class="detail-text">English</span>
+              <span class="dot-sep"></span>
+              <span class="detail-text detail-text--jp">日本語</span>
+              <span class="dot-sep"></span>
+              <span class="allergy-chip allergy-chip--none">No allergies</span>
+            </div>
+          </div>
+          <div class="right-col">
+            <span class="l1-tag">L1</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Last updated · Sep 2024</span>
+        </div>
+        <div class="footer-hint">Tap any card to view full identity.</div>
+      </div>
+
+    </div>
+
+    <div class="home-indicator">
+      <div class="home-indicator-bar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+
+</body>
+</html>

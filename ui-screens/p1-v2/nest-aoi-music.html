@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nest Hub — From Aoi · Music for Dad</title>
+
+<!-- Design tokens (colors, fonts) -->
+<link rel="stylesheet" href="_tokens.css">
+
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     Nest Hub UI content — iframe target inside .nest-hub__screen.
+     Screen aspect ~1.66:1 (1267 × 763 in the SVG).
+
+     Viewed standalone:    soft kitchen-counter backdrop for QA.
+     Viewed via ?noframe=1: transparent; content fills viewport.
+     ═══════════════════════════════════════════════════════════ */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: var(--font-sans, "Satoshi", system-ui, sans-serif);
+    color: #1a1816;
+  }
+
+  /* Standalone QA — soft kitchen/living-room backdrop */
+  body {
+    background: radial-gradient(ellipse at 50% 40%, #efeae0 0%, #ded6c8 60%, #c7bfae 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+
+  /* Noframe mode: transparent, fills parent .nest-hub__screen */
+  body.noframe {
+    background: transparent !important;
+    padding: 0;
+    align-items: stretch; justify-content: stretch;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Screen container — landscape 1267:763, Nest-Hub-feel
+     ───────────────────────────────────────────────────────── */
+  .nh {
+    position: relative;
+    width: 100%; height: 100%;
+    max-width: calc(100vh * 1267 / 763);
+    aspect-ratio: 1267 / 763;
+    background: #f7f5f1;
+    color: #1a1816;
+    display: flex; flex-direction: column;
+    padding: 2.6% 3.2%;
+  }
+  body.noframe .nh { max-width: none; aspect-ratio: auto; }
+
+  /* Top bar — ambient, minimal */
+  .nh__top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.6%;
+    flex-shrink: 0;
+  }
+  .nh__greeting {
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  .nh__hello {
+    font-size: clamp(14px, 2.4vw, 22px);
+    font-weight: 600; letter-spacing: -0.02em;
+    color: #1a1816;
+  }
+  .nh__from {
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: clamp(8px, 1vw, 11px);
+    font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8a6ab0;
+    padding: 3px 8px;
+    background: rgba(138,106,176,0.10);
+    border-radius: 999px;
+  }
+  .nh__time {
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: clamp(9px, 1.1vw, 12px);
+    font-weight: 600; letter-spacing: 0.06em;
+    color: #6b635a;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    line-height: 1.25;
+  }
+  .nh__time small {
+    display: block;
+    font-weight: 500;
+    font-size: 0.82em;
+    color: #8a8279;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nh__sub {
+    font-size: clamp(10px, 1.25vw, 13px);
+    color: #55504a;
+    line-height: 1.4;
+    margin-bottom: 1.8%;
+    max-width: 82%;
+    flex-shrink: 0;
+  }
+  .nh__sub em { font-style: normal; font-weight: 600; color: #1a1816; }
+
+  /* Home Brain provenance footer — why Kiran is seeing this at all */
+  .nh__footer {
+    margin-top: 1.8%;
+    padding-top: 1.4%;
+    border-top: 1px solid rgba(26,24,22,0.08);
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: clamp(8px, 0.92vw, 10.5px);
+    font-weight: 500; letter-spacing: 0.05em;
+    color: #7a7066;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+  .nh__footer__mark {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #8a6ab0, #6a4a90);
+    color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; letter-spacing: 0;
+  }
+  .nh__footer strong { color: #1a1816; font-weight: 600; }
+  .nh__footer em { font-style: normal; color: #1a1816; }
+
+  /* Secondary card — dual-script title (kanji + romaji) */
+  .card__title__kanji {
+    display: block;
+    font-size: 0.8em; font-weight: 500;
+    color: #6b635a;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Card row — 3 song cards, primary is largest
+     ───────────────────────────────────────────────────────── */
+  .nh__cards {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr 1fr;
+    gap: 2.2%;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow:
+      0 1px 2px rgba(20,20,20,0.04),
+      0 6px 18px rgba(20,20,20,0.06);
+    display: flex; flex-direction: column;
+    min-height: 0;
+    opacity: 0; transform: translateY(8px);
+    animation: card-in 520ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    will-change: transform, opacity;
+  }
+  .card:nth-child(1) { animation-delay: 0ms; }
+  .card:nth-child(2) { animation-delay: 120ms; }
+  .card:nth-child(3) { animation-delay: 220ms; }
+  @keyframes card-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card__art {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #e8e4db no-repeat center / cover;
+    flex-shrink: 0;
+    border-radius: 14px 14px 0 0;
+    overflow: hidden;
+  }
+  .card--primary .card__art { aspect-ratio: 16 / 10; }
+
+  .card__chip {
+    position: absolute;
+    top: 7px; left: 7px;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: clamp(7.5px, 0.85vw, 10px);
+    font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: rgba(138,106,176,0.92);
+    padding: 3px 7px;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .card__body {
+    padding: 8px 10px 10px;
+    display: flex; flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-height: 0;
+  }
+  .card--primary .card__body { padding: 10px 14px 12px; gap: 3px; }
+
+  .card__title {
+    font-size: clamp(11px, 1.5vw, 15px);
+    font-weight: 600; letter-spacing: -0.01em;
+    color: #1a1816;
+    line-height: 1.2;
+  }
+  .card--primary .card__title {
+    font-size: clamp(13px, 1.95vw, 19px);
+  }
+
+  .card__artist {
+    font-size: clamp(9px, 1.05vw, 12px);
+    color: #6b635a;
+    line-height: 1.35;
+    font-weight: 500;
+  }
+  .card--primary .card__artist {
+    font-size: clamp(10px, 1.2vw, 13px);
+  }
+
+  .card__play {
+    margin-top: auto;
+    align-self: flex-start;
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: clamp(8.5px, 0.95vw, 11px);
+    font-weight: 700; letter-spacing: 0.06em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(26,24,22,0.12);
+    background: #fafaf7;
+    color: #1a1816;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .card--primary .card__play {
+    background: #1a1816;
+    color: #fafaf7;
+    border-color: #1a1816;
+    padding: 7px 14px;
+    font-size: clamp(9.5px, 1.1vw, 12px);
+  }
+  .card__play .triangle { font-size: 0.9em; line-height: 1; }
+
+  /* ── Playing state: equalizer bars + stop label ── */
+  .card__play .eq {
+    display: none;
+    align-items: flex-end;
+    gap: 1.5px;
+    height: 10px;
+  }
+  .card__play .eq i {
+    display: block;
+    width: 2px;
+    background: currentColor;
+    border-radius: 1px;
+    animation: eq-bob 0.9s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+  .card__play .eq i:nth-child(1) { height: 40%; animation-delay: 0s; }
+  .card__play .eq i:nth-child(2) { height: 80%; animation-delay: 0.12s; }
+  .card__play .eq i:nth-child(3) { height: 55%; animation-delay: 0.24s; }
+  .card__play .eq i:nth-child(4) { height: 100%; animation-delay: 0.36s; }
+  @keyframes eq-bob {
+    0%, 100% { transform: scaleY(0.45); }
+    50%      { transform: scaleY(1); }
+  }
+  .card__play.is-playing .triangle { display: none; }
+  .card__play.is-playing .eq { display: inline-flex; }
+  .card__play.is-playing .play-label { display: none; }
+  .card__play.is-playing .stop-label { display: inline; }
+  .card__play .stop-label { display: none; }
+
+  .card.is-playing .card__art { position: relative; }
+  .card.is-playing .card__art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(138,106,176,0) 50%, rgba(138,106,176,0.38) 100%);
+    pointer-events: none;
+    animation: art-glow 2.4s ease-in-out infinite;
+  }
+  @keyframes art-glow {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+  }
+
+  /* Hidden YouTube iframe player — kept in viewport but invisible so autoplay isn't throttled */
+  #yt-player {
+    position: fixed;
+    right: 0; bottom: 0;
+    width: 2px; height: 2px;
+    opacity: 0.01;
+    pointer-events: none;
+    border: 0;
+    z-index: -1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card__play .eq i, .card.is-playing .card__art::after { animation: none; }
+  }
+
+  /* Tertiary — "More from Aoi's mood" — smaller, subtler */
+  .card--mood {
+    background: linear-gradient(160deg, #fdfbf5 0%, #f3ede0 100%);
+  }
+  .card--mood .card__art {
+    aspect-ratio: 16 / 9;
+    background:
+      linear-gradient(135deg, rgba(138,106,176,0.18), rgba(160,112,64,0.18)),
+      #e8e2d2;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card--mood .card__art::after {
+    content: '♪ ♪ ♪';
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: clamp(14px, 2.4vw, 24px);
+    letter-spacing: 0.4em;
+    color: rgba(26,24,22,0.35);
+  }
+  .card--mood .card__label {
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: clamp(7.5px, 0.85vw, 10px);
+    font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8a6ab0;
+    margin-bottom: 2px;
+  }
+
+  /* Primary-card gentle pulse on the play button */
+  .card--primary .card__play {
+    animation: pulse-play 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse-play {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(26,24,22,0.0); }
+    50%      { box-shadow: 0 0 0 6px rgba(26,24,22,0.08); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { opacity: 1; transform: none; animation: none; }
+    .card--primary .card__play { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nh">
+  <div class="nh__top">
+    <div class="nh__greeting">
+      <div class="nh__hello">Good evening, Dad.</div>
+      <div class="nh__from">From Aoi</div>
+    </div>
+    <div class="nh__time">
+      18:42
+      <small>Thu · Apr 24</small>
+    </div>
+  </div>
+
+  <p class="nh__sub">
+    Your kids are in the world you just finished — <em>Jujutsu Kaisen 0</em>. Aoi picked three songs from it for you.
+  </p>
+
+  <div class="nh__cards">
+
+    <!-- Primary card — Sakayume -->
+    <article class="card card--primary" data-card>
+      <div class="card__art" style="background-image:url('../../assets/img/Jujutsukaisen/sakayume-song.jpg');">
+        <div class="card__chip">From Aoi</div>
+      </div>
+      <div class="card__body">
+        <div class="card__title">Sakayume <span class="card__title__kanji">— 逆夢</span></div>
+        <div class="card__artist">King Gnu · ending theme · the one Sota hums</div>
+        <button class="card__play" type="button" data-yt="2ywwkGZnqoY" aria-label="Play Sakayume">
+          <span class="triangle" aria-hidden="true">▸</span>
+          <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="play-label">Play</span><span class="stop-label">Playing · tap to stop</span>
+        </button>
+      </div>
+    </article>
+
+    <!-- Secondary card — Kaikai Kitan -->
+    <article class="card" data-card>
+      <div class="card__art" style="background-image:url('../../assets/img/Jujutsukaisen/kaikai-kitan.png');"></div>
+      <div class="card__body">
+        <div class="card__title">Kaikai Kitan <span class="card__title__kanji">— 廻廻奇譚</span></div>
+        <div class="card__artist">Eve · TV series opening theme</div>
+        <button class="card__play" type="button" data-yt="1tk1pqwrOys" aria-label="Play Kaikai Kitan">
+          <span class="triangle" aria-hidden="true">▸</span>
+          <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="play-label">Play</span><span class="stop-label">Playing · tap to stop</span>
+        </button>
+      </div>
+    </article>
+
+    <!-- Tertiary — mood / More from Aoi -->
+    <article class="card card--mood">
+      <div class="card__art"></div>
+      <div class="card__body">
+        <div class="card__label">More · Aoi's week</div>
+        <div class="card__title">Quiet Thursday</div>
+        <div class="card__artist">6 songs · anime OST &amp; lo-fi</div>
+        <button class="card__play" type="button">
+          <span class="triangle">▸</span> Queue
+        </button>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- Hidden YouTube iframe player (audio-only playback) -->
+  <iframe id="yt-player" src="" title="Music player"
+          allow="autoplay; encrypted-media; accelerometer; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+
+  <!-- Home Brain provenance — why Kiran is seeing this -->
+  <div class="nh__footer">
+    <span class="nh__footer__mark">H</span>
+    <span><strong>Home Brain</strong> · <em>Disclosure Dial</em> — Aoi shared watch titles, Sota shared hummed songs. Nothing else.</span>
+  </div>
+</div>
+
+<script>
+  // ?noframe=1 → content-only mode (embedded via iframe)
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+
+  // ── YouTube audio playback for song cards ──
+  (function() {
+    const player = document.getElementById('yt-player');
+    if (!player) return;
+    let activeBtn = null;
+
+    function stopPlayback() {
+      player.src = '';
+      if (activeBtn) {
+        activeBtn.classList.remove('is-playing');
+        activeBtn.closest('[data-card]')?.classList.remove('is-playing');
+        activeBtn.setAttribute('aria-pressed', 'false');
+      }
+      activeBtn = null;
+    }
+
+    function startPlayback(btn, videoId) {
+      stopPlayback();
+      player.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3`;
+      btn.classList.add('is-playing');
+      btn.closest('[data-card]')?.classList.add('is-playing');
+      btn.setAttribute('aria-pressed', 'true');
+      activeBtn = btn;
+    }
+
+    document.querySelectorAll('.card__play[data-yt]').forEach(btn => {
+      btn.setAttribute('aria-pressed', 'false');
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const videoId = btn.dataset.yt;
+        if (activeBtn === btn) {
+          stopPlayback();
+        } else {
+          startPlayback(btn, videoId);
+        }
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

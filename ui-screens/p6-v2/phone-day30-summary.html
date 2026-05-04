@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · iPhone · Day 30 · Month Summary | P6 Life Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<style>
+  /* iPhone UI · Day 30 · Month Summary
+     - End-of-month wrap: hero stat, 30-day strip, supporting metrics, AI:Self ratio
+     - This is the screen Lena opens last on April 30 */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe { background: transparent !important; min-height: auto !important; padding: 0 !important; display: block; }
+  body.noframe .qa-frame { display: none; }
+
+  .screen {
+    position: absolute; inset: 0;
+    background: #0a0a0c;
+    color: #f0ede8;
+    border-radius: inherit;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+  }
+  body.noframe .screen { position: relative; inset: auto; width: 100vw; min-height: 100vh; border-radius: 0; }
+
+  .status-bar {
+    flex-shrink: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 28px 0 28px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .status-bar__icons { display: flex; align-items: center; gap: 5px; }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 6px 0 28px;
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Header — Apr 30, year, month chip */
+  .header {
+    padding: 20px 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .header__eyebrow {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(232, 165, 87, 0.85);
+  }
+  .header__title {
+    font-family: 'Geist', sans-serif;
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.028em;
+    color: #fff;
+    margin: 0;
+  }
+  .header__sub {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: rgba(240, 237, 232, 0.55);
+    line-height: 1.55;
+    margin: 6px 0 0;
+    max-width: 320px;
+  }
+
+  /* Hero strip: 30 days as ticks (visual narrative of the month) */
+  .month-strip {
+    padding: 6px 20px 0;
+  }
+  .month-strip__label {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(240, 237, 232, 0.45);
+    margin-bottom: 10px;
+  }
+  .ticks {
+    display: grid;
+    grid-template-columns: repeat(30, 1fr);
+    gap: 2px;
+    height: 32px;
+  }
+  .tick {
+    background: rgba(255,255,255,0.06);
+    border-radius: 1.5px;
+  }
+  .tick--ritual { background: #e8a557; }
+  .tick--driver { background: rgba(232, 165, 87, 0.50); }
+  .tick--driveme { background: rgba(232, 165, 87, 0.28); }
+  .ticks-legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10px;
+    color: rgba(240, 237, 232, 0.50);
+    letter-spacing: 0.04em;
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+  }
+
+  /* Hero metric — Rituals fired */
+  .hero-metric {
+    padding: 24px 20px 22px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 16px;
+  }
+  .hero-metric__num {
+    font-family: 'Geist', sans-serif;
+    font-size: 64px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-metric__label {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: rgba(240, 237, 232, 0.65);
+    line-height: 1.4;
+    max-width: 180px;
+  }
+  .hero-metric__label strong { color: #fff; font-weight: 500; display: block; }
+
+  /* Stats list — anti-card divider rhythm */
+  .block {
+    padding: 18px 20px 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .block__label {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(240, 237, 232, 0.50);
+    margin-bottom: 14px;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    gap: 16px;
+  }
+  .stat-row:last-of-type { border-bottom: 0; }
+  .stat-row__name {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: rgba(240, 237, 232, 0.78);
+    line-height: 1.4;
+  }
+  .stat-row__value {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+  }
+  .stat-row__value--ok   { color: #a0c8aa; }
+  .stat-row__value--over { color: #e8a557; }
+  .stat-row__value-delta {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(240, 237, 232, 0.40);
+    margin-left: 6px;
+  }
+
+  /* AI : Self ratio bar */
+  .ratio {
+    margin-top: 14px;
+  }
+  .ratio__heads {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: rgba(240, 237, 232, 0.55);
+  }
+  .ratio__heads strong { color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ratio__bar {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 2px;
+    height: 12px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .ratio__seg-ai   { background: #e8a557; }
+  .ratio__seg-self { background: rgba(255,255,255,0.20); }
+
+  /* Bottom CTA */
+  .cta-bar {
+    flex-shrink: 0;
+    padding: 16px 20px 32px;
+    background: linear-gradient(180deg, rgba(10,10,12,0) 0%, #0a0a0c 32%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 52px;
+    padding: 14px 22px;
+    border-radius: 14px;
+    border: 0;
+    font-family: 'Geist', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: filter 200ms ease, transform 100ms ease, background 200ms ease;
+  }
+  .cta--primary { background: #e8a557; color: #1a0e02; }
+  .cta--ghost   { background: transparent; color: rgba(240, 237, 232, 0.80); }
+  @media (hover: hover) and (pointer: fine) {
+    .cta--primary:hover { filter: brightness(1.06); }
+    .cta--ghost:hover { background: rgba(255,255,255,0.04); color: #fff; }
+  }
+  .cta:active { transform: translateY(1px) scale(0.99); }
+  .cta:focus-visible { outline: 2px solid #e8a557; outline-offset: 3px; }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.32);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="qa-frame iphone15pro iphone15pro--lg">
+  <img class="iphone15pro__chrome"
+       src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+       alt="" aria-hidden="true">
+  <div class="iphone15pro__screen">
+    <div class="screen">
+      <div class="status-bar">
+        <span>22:30</span>
+        <div class="status-bar__icons" aria-hidden="true">
+          <svg width="16" height="12" viewBox="0 0 18 12" fill="currentColor">
+            <rect x="0" y="7" width="3" height="5" rx="0.5"/>
+            <rect x="4" y="5" width="3" height="7" rx="0.5"/>
+            <rect x="8" y="3" width="3" height="9" rx="0.5"/>
+            <rect x="12" y="1" width="3" height="11" rx="0.5"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+            <path d="M2 5C5.5 1.8 10.5 1.8 14 5"/>
+            <path d="M4.5 7.5C6.5 5.7 9.5 5.7 11.5 7.5"/>
+            <circle cx="8" cy="10" r="0.8" fill="currentColor"/>
+          </svg>
+          <svg width="24" height="12" viewBox="0 0 24 12">
+            <rect x="0.5" y="0.5" width="20" height="11" rx="2.5" stroke="currentColor" stroke-opacity="0.5" fill="none"/>
+            <rect x="2" y="2" width="17" height="8" rx="1.5" fill="currentColor"/>
+            <rect x="21" y="4" width="2" height="4" rx="0.6" fill="currentColor" fill-opacity="0.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <header class="header">
+          <div class="header__eyebrow">April · 30 days</div>
+          <h1 class="header__title">Lena's month.</h1>
+          <p class="header__sub">3 goals. 2 protected rituals. 4 agents. Here's how the month closed.</p>
+        </header>
+
+        <!-- 30-day timeline strip -->
+        <section class="month-strip">
+          <div class="month-strip__label">The month, day by day</div>
+          <div class="ticks" role="img" aria-label="30-day timeline of activity">
+            <span class="tick"></span>
+            <span class="tick"></span>
+            <span class="tick"></span>
+            <span class="tick tick--driveme"></span>
+            <span class="tick"></span>
+            <span class="tick"></span>
+            <span class="tick"></span>
+            <span class="tick tick--ritual"></span>
+            <span class="tick"></span>
+            <span class="tick tick--driveme"></span>
+            <span class="tick"></span>
+            <span class="tick tick--ritual"></span>
+            <span class="tick tick--driver"></span>
+            <span class="tick"></span>
+            <span class="tick tick--driveme"></span>
+            <span class="tick tick--driveme"></span>
+            <span class="tick"></span>
+            <span class="tick tick--ritual"></span>
+            <span class="tick"></span>
+            <span class="tick tick--driveme"></span>
+            <span class="tick"></span>
+            <span class="tick tick--driveme"></span>
+            <span class="tick tick--ritual"></span>
+            <span class="tick tick--driver"></span>
+            <span class="tick"></span>
+            <span class="tick tick--driveme"></span>
+            <span class="tick tick--ritual"></span>
+            <span class="tick tick--driver"></span>
+            <span class="tick"></span>
+            <span class="tick tick--driver"></span>
+          </div>
+          <div class="ticks-legend" aria-hidden="true">
+            <div class="legend-item"><span class="legend-dot" style="background:#e8a557"></span>Ritual</div>
+            <div class="legend-item"><span class="legend-dot" style="background:rgba(232,165,87,0.50)"></span>Driver Mode</div>
+            <div class="legend-item"><span class="legend-dot" style="background:rgba(232,165,87,0.28)"></span>Drive-Me</div>
+          </div>
+        </section>
+
+        <!-- Hero metric -->
+        <section class="hero-metric">
+          <div class="hero-metric__num">17</div>
+          <div class="hero-metric__label">
+            <strong>Rituals fired,</strong>
+            exactly as you declared. Zero misfires.
+          </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="block">
+          <div class="block__label">Goals · 30-day result</div>
+          <div class="stat-row">
+            <div class="stat-row__name">Weight</div>
+            <div class="stat-row__value stat-row__value--ok">−0.8 kg</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row__name">Lunch budget</div>
+            <div class="stat-row__value stat-row__value--over">¥23,400 <span class="stat-row__value-delta">+¥3.4k</span></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-row__name">Saved places visited</div>
+            <div class="stat-row__value stat-row__value--ok">3 <span class="stat-row__value-delta">+1</span></div>
+          </div>
+        </section>
+
+        <!-- AI : Self ratio -->
+        <section class="block">
+          <div class="block__label">How decisions split this month</div>
+          <div class="ratio">
+            <div class="ratio__heads">
+              <span><strong>60%</strong> · AI handled</span>
+              <span>self decided · <strong>40%</strong></span>
+            </div>
+            <div class="ratio__bar">
+              <div class="ratio__seg-ai"></div>
+              <div class="ratio__seg-self"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="cta-bar">
+        <button type="button" class="cta cta--primary">Start May with the same intent</button>
+        <button type="button" class="cta cta--ghost">Adjust before May 1</button>
+      </div>
+
+      <div class="home-indicator" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="iphone15pro__island" aria-hidden="true"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Emergency — Care Architecture Active (static)</title>
+<link rel="stylesheet" href="_tokens.css" />
+<link rel="stylesheet" href="../../assets/css/tokens.css" />
+<style>
+  /* Static snapshot of Scene 4 — Care Architecture Active.
+     No animation. No controls. */
+
+  :root{
+    --car-bg: #0a0c10;
+    --car-panel: rgba(22,26,32,0.92);
+    --car-panel-2: rgba(30,34,40,0.94);
+    --car-line: rgba(255,255,255,0.08);
+    --car-text: #f2f3f5;
+    --car-text-dim: rgba(242,243,245,0.68);
+    --car-text-faint: rgba(242,243,245,0.42);
+    --car-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+    --car-sans: "Satoshi", "Inter", system-ui, -apple-system, sans-serif;
+
+    --brand-green: #30c969;
+    --brand-green-soft: rgba(48,201,105,0.18);
+    --brand-voice: #a7c4ff;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--car-text);
+    font-family: var(--car-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+
+  .car{
+    position: relative;
+    width: min(1260px, 96vw);
+    aspect-ratio: 21 / 9;
+    border-radius: 26px;
+    padding: 22px;
+    background:
+      linear-gradient(180deg, #1d2026 0%, #121418 50%, #0d0f13 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.05),
+      inset 0 2px 0 rgba(255,255,255,0.08),
+      0 30px 90px rgba(0,0,0,0.55);
+  }
+  .car::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.06), transparent 40%),
+      radial-gradient(ellipse at 80% 100%, rgba(0,0,0,0.35), transparent 45%);
+    pointer-events: none;
+  }
+  .car::after{
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 22%;
+    height: 56%;
+    width: 6px;
+    border-radius: 4px;
+    background:
+      repeating-linear-gradient(0deg,
+        rgba(0,0,0,0.6) 0 2px,
+        rgba(255,255,255,0.04) 2px 4px);
+    opacity: .35;
+    pointer-events: none;
+  }
+  .wheel-peek{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -46px;
+    width: 380px;
+    height: 76px;
+    border-top-left-radius: 220px 76px;
+    border-top-right-radius: 220px 76px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(35,38,44,0.9), rgba(14,16,20,0.95) 60%, transparent 100%);
+    pointer-events: none;
+  }
+  .wheel-peek::after{
+    content: "";
+    position: absolute;
+    left: 50%; top: 18px;
+    transform: translateX(-50%);
+    width: 60px; height: 14px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .noframe .car{
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .noframe .car::before, .noframe .car::after, .noframe .wheel-peek{ display: none; }
+
+  .screen{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 14px;
+    background: var(--car-bg);
+    overflow: hidden;
+  }
+
+  .topbar{
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 40px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--car-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--car-text-dim);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
+    z-index: 20;
+  }
+  .topbar .left, .topbar .right{ display: flex; gap: 14px; align-items: center; }
+  .care-chip{
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--car-line);
+    color: var(--car-text);
+    font-size: 12px;
+    letter-spacing: .1em;
+  }
+  .care-dot{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--brand-green);
+    box-shadow: 0 0 8px rgba(48,201,105,0.6);
+  }
+
+  .canvas{
+    position: absolute;
+    inset: 40px 0 0 0;
+    display: grid;
+    grid-template-columns: 35% 65%;
+  }
+
+  .pane{
+    padding: 26px 30px;
+    overflow: hidden;
+    position: relative;
+  }
+  .pane.call{
+    background: var(--car-panel);
+    border-right: 1px solid var(--car-line);
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .call-head{ display: flex; align-items: center; gap: 16px; }
+  .call-avatar{
+    width: 78px; height: 78px; border-radius: 50%;
+    background: linear-gradient(135deg, #6889b4, #2a4677);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--car-mono);
+    font-size: 28px;
+    color: #fff;
+  }
+  .call-name{ font-size: 26px; font-weight: 600; }
+  .call-meta{
+    font-family: var(--car-mono);
+    font-size: 14px;
+    letter-spacing: .1em;
+    color: var(--car-text-dim);
+    margin-top: 4px;
+  }
+  .waveform{
+    display: flex; gap: 5px; align-items: flex-end; height: 36px;
+  }
+  .waveform span{
+    display: block; width: 5px; border-radius: 3px;
+    background: var(--brand-voice); opacity: .7;
+  }
+  .waveform span:nth-child(1){ height: 40%; }
+  .waveform span:nth-child(2){ height: 70%; }
+  .waveform span:nth-child(3){ height: 90%; }
+  .waveform span:nth-child(4){ height: 55%; }
+  .waveform span:nth-child(5){ height: 80%; }
+  .waveform span:nth-child(6){ height: 35%; }
+  .waveform span:nth-child(7){ height: 65%; }
+  .waveform span:nth-child(8){ height: 50%; }
+
+  .caption{
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--car-line);
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--car-text);
+    min-height: 112px;
+    position: relative;
+  }
+  .caption .cap-label{
+    position: absolute;
+    top: -12px; left: 16px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--car-bg);
+    color: var(--car-text-faint);
+    font-family: var(--car-mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+  }
+  .caption span.cap-line{ display: block; }
+  .caption span.cap-line + span.cap-line{ margin-top: 4px; }
+
+  .call-foot{
+    margin-top: auto;
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--car-mono);
+    font-size: 14px;
+    color: var(--car-text-faint);
+  }
+  .speaker-ico{
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .care-pane{
+    padding: 26px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    background:
+      radial-gradient(ellipse at 70% 0%, rgba(48,201,105,0.08), transparent 50%),
+      var(--car-panel-2);
+  }
+  .care-chip-active{
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-family: var(--car-mono);
+    font-size: 13px;
+    letter-spacing: .14em;
+    background: var(--brand-green-soft);
+    color: var(--brand-green);
+    border: 1px solid rgba(48,201,105,0.35);
+    width: max-content;
+  }
+  .care-title{
+    font-size: 34px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .care-sub{
+    font-size: 18px;
+    color: var(--car-text-dim);
+    font-family: var(--car-mono);
+    letter-spacing: .05em;
+  }
+  .actions{
+    display: flex; flex-direction: column; gap: 10px; margin-top: 4px;
+  }
+  .action{
+    display: flex; gap: 18px; align-items: flex-start;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--car-line);
+  }
+  .action .ico{
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .action .body{ flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .action .title{ font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .action .detail{ font-size: 18px; color: var(--car-text-dim); line-height: 1.35; }
+  .action .tag{
+    font-family: var(--car-mono);
+    font-size: 12px;
+    letter-spacing: .14em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    color: var(--car-text-faint);
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  .voice-prompt{
+    margin-top: auto;
+    padding: 18px 22px;
+    border-radius: 16px;
+    background: rgba(167,196,255,0.08);
+    border: 1px solid rgba(167,196,255,0.3);
+    display: flex; align-items: center; gap: 16px;
+    font-family: var(--car-mono);
+    color: var(--brand-voice);
+    font-size: 22px;
+  }
+  .voice-prompt .mic-big{
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--brand-voice);
+    color: #0a0c10;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 900px){
+    .car{ aspect-ratio: 4 / 3; }
+    .canvas{ grid-template-columns: 1fr; }
+    .pane.call{ border-right: none; border-bottom: 1px solid var(--car-line); }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="car">
+    <div class="screen">
+
+      <div class="topbar">
+        <div class="left">
+          <span>14:23</span>
+          <span>62°F</span>
+        </div>
+        <div class="right">
+          <span class="care-chip">
+            <span class="care-dot"></span>
+            <span>CARE ARCHITECTURE · ACTIVE</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="canvas">
+        <!-- LEFT 35% — call continuing -->
+        <div class="pane call">
+          <div class="call-head">
+            <div class="call-avatar">NC</div>
+            <div>
+              <div class="call-name">Nurse Chen</div>
+              <div class="call-meta">ON CALL · 14:23 · 00:01:14</div>
+            </div>
+          </div>
+          <div class="waveform" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="caption">
+            <span class="cap-label">Live Transcript</span>
+            <span class="cap-line">"They're comfortable in the nurse's office."</span>
+            <span class="cap-line">"No rush — drive safe."</span>
+          </div>
+          <div class="call-foot">
+            <div class="speaker-ico">🔊</div>
+            <span>SPEAKER · HANDS-FREE</span>
+          </div>
+        </div>
+
+        <!-- RIGHT 65% — Care Architecture Active -->
+        <div class="care-pane">
+          <div class="care-chip-active">
+            <span>●</span>
+            <span>CARE ARCHITECTURE · ACTIVE</span>
+          </div>
+          <div class="care-title">I'll handle this while you drive.</div>
+          <div class="care-sub">4 actions ready · your approval before anything sends</div>
+
+          <div class="actions">
+            <div class="action">
+              <div class="ico">🗺️</div>
+              <div class="body">
+                <div class="title">Rerouted</div>
+                <div class="detail">Oak Valley MS · 8 min · replaces Home</div>
+              </div>
+              <div class="tag">Updated</div>
+            </div>
+            <div class="action">
+              <div class="ico">📩</div>
+              <div class="body">
+                <div class="title">Drafting Kiran</div>
+                <div class="detail">"I'm going to Aoi. Can you get Leo at 4?"</div>
+              </div>
+              <div class="tag">Draft</div>
+            </div>
+            <div class="action">
+              <div class="ico">💼</div>
+              <div class="body">
+                <div class="title">Drafting Slack</div>
+                <div class="detail">#design-crit · "Running late, rejoining 4:30"</div>
+              </div>
+              <div class="tag">Draft</div>
+            </div>
+            <div class="action">
+              <div class="ico">📅</div>
+              <div class="body">
+                <div class="title">Rescheduled</div>
+                <div class="detail">Sota's soccer pickup · delegated to Kiran</div>
+              </div>
+              <div class="tag">Saved</div>
+            </div>
+          </div>
+
+          <div class="voice-prompt">
+            <div class="mic-big">🎙</div>
+            <div>Say <b>"Send all"</b> to confirm messages</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="wheel-peek" aria-hidden="true"></div>
+  </div>
+
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get("noframe") === "1") {
+    document.body.classList.add("noframe");
+  }
+</script>
+
+</body>
+</html>

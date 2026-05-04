@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Share to Trip Brain · Continuous input</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_screen.css">
+<style>
+  body { background: #000; }
+  body.noframe { background: transparent; }
+
+  /* Instagram-style top sheet */
+  .ig {
+    background: #fafafa;
+    color: #18181b;
+    border-bottom: 1px solid #e4e4e7;
+  }
+  .ig__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ececef;
+  }
+  .ig__brand {
+    font-family: 'Billabong', cursive, var(--font-sans);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    font-style: italic;
+  }
+  .ig__user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  .ig__avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f09433, #dc2743, #bc1888);
+    padding: 2px;
+  }
+  .ig__avatar-inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: #fafafa;
+    display: grid; place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #18181b;
+  }
+  .ig__handle {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .ig__loc {
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  .ig__photo {
+    aspect-ratio: 1 / 1;
+    background:
+      linear-gradient(135deg, #2a3a52 0%, #1c2738 100%);
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+  .ig__photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 18px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 14px);
+  }
+  .ig__photo-text {
+    position: relative;
+    z-index: 2;
+    color: #f4f4f5;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    line-height: 1.6;
+  }
+  .ig__photo-text strong {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-transform: none;
+    margin-bottom: 6px;
+  }
+
+  .ig__meta {
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.5;
+    border-bottom: 1px solid #ececef;
+  }
+  .ig__meta strong { color: var(--text); font-weight: 600; }
+
+  /* Share sheet */
+  .sheet {
+    background: #fafafa;
+    padding: 14px 16px 16px;
+  }
+  .sheet__handle {
+    width: 36px; height: 4px;
+    background: var(--text-4);
+    border-radius: 999px;
+    margin: 0 auto 12px;
+  }
+  .sheet__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .targets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .target {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid var(--border-soft);
+  }
+  .target--brain {
+    border-color: rgba(138,106,176,0.4);
+    background: rgba(138,106,176,0.06);
+    box-shadow: 0 0 0 2px rgba(138,106,176,0.12);
+  }
+  .target__icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--gray-200);
+    display: grid; place-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-2);
+    letter-spacing: 0.5px;
+  }
+  .target--brain .target__icon {
+    background: linear-gradient(135deg, #8a6ab0, #6b4d8e);
+    color: #fff;
+  }
+  .target__label {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .target--brain .target__label {
+    color: var(--home);
+    font-weight: 600;
+  }
+
+  .accumulator {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(138,106,176,0.06);
+    border: 1px solid rgba(138,106,176,0.22);
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .accumulator__label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--home);
+    font-weight: 600;
+  }
+  .accumulator__count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--home);
+    font-weight: 600;
+  }
+
+  .timestamp {
+    text-align: center;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 1.2px;
+    color: var(--text-3);
+  }
+</style>
+</head>
+<body>
+<script>
+  if (new URLSearchParams(location.search).has('noframe')) document.body.classList.add('noframe');
+</script>
+
+<div class="status-bar">
+  <span>02:11</span>
+  <span class="status-bar__icons mono">5G · 42%</span>
+</div>
+
+<div class="ig">
+  <div class="ig__bar">
+    <div class="ig__brand">Instagram</div>
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-3);">SAVED</div>
+  </div>
+  <div class="ig__user">
+    <div class="ig__avatar"><div class="ig__avatar-inner">2D</div></div>
+    <div>
+      <div class="ig__handle">@aoyama_2d_cafe</div>
+      <div class="ig__loc">Aoyama · Tokyo</div>
+    </div>
+  </div>
+  <div class="ig__photo">
+    <div class="ig__photo-text">
+      <strong>2D Café · Aoyama</strong>
+      Hand-drawn dessert · 1.2k saves
+    </div>
+  </div>
+  <div class="ig__meta">
+    <strong>1,247 saves</strong> · saved by Rachel · "for Maya 2026 trip — looks fun"
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="sheet__handle"></div>
+  <div class="sheet__title">Share to…</div>
+
+  <div class="targets">
+    <div class="target">
+      <div class="target__icon">MSG</div>
+      <div class="target__label">Messages</div>
+    </div>
+    <div class="target">
+      <div class="target__icon">NOTE</div>
+      <div class="target__label">Notes</div>
+    </div>
+    <div class="target target--brain">
+      <div class="target__icon">TB</div>
+      <div class="target__label">Send to<br>Trip Brain</div>
+    </div>
+  </div>
+
+  <div class="accumulator">
+    <div class="accumulator__label">TRIP BRAIN · IDEAS</div>
+    <div class="accumulator__count">47 accumulating</div>
+  </div>
+
+  <div class="timestamp">02:11 AM · 8 MONTHS BEFORE TRIP</div>
+</div>
+
+<div class="home-indicator"></div>
+</body>
+</html>

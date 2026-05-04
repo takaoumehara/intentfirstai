@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autonomy Weaver — 12 Months, 4 Relationships</title>
+<meta name="description" content="Four domains weave toward four different ceilings.">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+
+<style>
+  :root {
+    --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+    --ease-out-expo:  cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+
+    --ln-home: #c2671c;
+    --ln-cal:  #2563eb;
+    --ln-edu:  #5b4fb0;
+    --ln-fin:  #0d7a7a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body.noframe { background: #fff; }
+  body.noframe .stage-chrome { display: none; }
+
+  .stage {
+    width: 100vw; height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3% 3.5%;
+    background: var(--bg);
+  }
+
+  .stage-chrome {
+    position: absolute;
+    top: 28px; left: 32px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .stage-chrome strong { color: var(--text); font-weight: 600; margin-right: 8px; }
+
+  /* Arena aspect matches iPad 11" landscape (1194/834 ≈ 1.43:1).
+     Tightened gap + sidebar width to match the rest of the P1 iPad UIs. */
+  .arena {
+    width: 100%;
+    max-width: 1500px;
+    aspect-ratio: 1194 / 834;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 40px;
+    align-items: stretch;
+  }
+
+  /* ── Chart ── */
+  .chart {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .chart__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+  .chart__title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .chart__sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chart__svg-wrap {
+    flex: 1;
+    position: relative;
+  }
+  .chart__svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* Grid lines (SVG user units — viewBox is 1000×400; rendered ~0.76× on iPad scale) */
+  .grid-h { stroke: var(--border); stroke-width: 1.2; stroke-dasharray: 4 6; }
+  .grid-y-label {
+    font-family: var(--font-mono);
+    font-size: 19px;
+    font-weight: 600;
+    fill: var(--text-3);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+  .grid-x-label {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 600;
+    fill: var(--text-3);
+    letter-spacing: 0.4px;
+  }
+
+  /* Curves — restrained line weight to match Geist data-viz aesthetic */
+  .curve {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    opacity: 0;
+    transition: opacity 200ms;
+  }
+  .curve.is-drawing {
+    opacity: 1;
+    animation: curve-draw 3200ms var(--ease-in-out-quart) forwards;
+  }
+  @keyframes curve-draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .curve--home { stroke: var(--ln-home); }
+  .curve--cal  { stroke: var(--ln-cal);  }
+  .curve--edu  { stroke: var(--ln-edu);  }
+  .curve--fin  { stroke: var(--ln-fin);  }
+
+  /* Endpoint dot + label */
+  .endpoint {
+    opacity: 0;
+    transition: opacity 320ms var(--ease-out-quart);
+  }
+  .endpoint.is-on { opacity: 1; }
+  .endpoint__label {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  /* ── Sidebar legend ── */
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-self: center;
+  }
+  .legend__head {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .leg-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: opacity 320ms var(--ease-out-quart), transform 320ms var(--ease-out-quart);
+  }
+  .leg-item.is-on { opacity: 1; transform: translateX(0); }
+
+  .leg-item__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .leg-item__swatch {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .leg-item__name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+  .leg-item__rel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding-left: 20px;
+    margin-top: 2px;
+  }
+  .leg-item__ceil {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-3);
+    padding-left: 20px;
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+  }
+  .leg-item__ceil strong { color: var(--text); font-weight: 600; }
+
+  @media (max-width: 900px) {
+    .arena { grid-template-columns: 1fr; grid-template-rows: 1fr auto; gap: 20px; }
+    .legend { flex-direction: row; flex-wrap: wrap; gap: 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .curve { stroke-dashoffset: 0; opacity: 1; }
+    .endpoint, .leg-item { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage-chrome"><strong>ANIM · S17</strong> Autonomy Timeline · 12 months</div>
+
+<div class="stage">
+  <div class="arena">
+
+    <div class="chart">
+      <div class="chart__head">
+        <div class="chart__title">Autonomy, per domain</div>
+        <div class="chart__sub">DAY 1 → MONTH 12</div>
+      </div>
+
+      <div class="chart__svg-wrap">
+        <!--
+          SVG coords: 1000 x 400
+          X: 60 (day 1) → 940 (M12). width 880
+          Y bands: 4 rows, each 80px tall (after 40 top + 40 bottom padding)
+            band tops (y): Suggest=320, Confirm=240, Notify=160, Auto=80
+            dots sit at center: 360, 280, 200, 120 — wait let me plan again
+          Let me use simpler scale: y=40 top padding, y=360 bottom padding
+          4 bands divided evenly: top=Auto, then Notify, Confirm, Suggest
+          band centers at y: 80, 160, 240, 320
+          band lines (dividers) at: 120, 200, 280
+        -->
+        <svg class="chart__svg" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet" aria-hidden="false" role="img" aria-label="Autonomy timeline chart">
+
+          <!-- Horizontal band lines (background striping subtle) -->
+          <rect x="0" y="40"  width="1000" height="80" fill="var(--gray-50)" opacity="0.5"/>
+          <rect x="0" y="200" width="1000" height="80" fill="var(--gray-50)" opacity="0.5"/>
+
+          <!-- Y grid lines -->
+          <line class="grid-h" x1="0" y1="120" x2="1000" y2="120"/>
+          <line class="grid-h" x1="0" y1="200" x2="1000" y2="200"/>
+          <line class="grid-h" x1="0" y1="280" x2="1000" y2="280"/>
+
+          <!-- Y axis labels (at right edge) -->
+          <text class="grid-y-label" x="952" y="84" text-anchor="start">Auto</text>
+          <text class="grid-y-label" x="952" y="164" text-anchor="start">Notify</text>
+          <text class="grid-y-label" x="952" y="244" text-anchor="start">Confirm</text>
+          <text class="grid-y-label" x="952" y="324" text-anchor="start">Suggest</text>
+
+          <!-- X axis ticks -->
+          <g>
+            <line class="grid-h" x1="60"  y1="360" x2="60"  y2="40" stroke-dasharray="0"/>
+            <text class="grid-x-label" x="60"  y="378" text-anchor="middle">D1</text>
+            <text class="grid-x-label" x="220" y="378" text-anchor="middle">M3</text>
+            <text class="grid-x-label" x="380" y="378" text-anchor="middle">M5</text>
+            <text class="grid-x-label" x="540" y="378" text-anchor="middle">M7</text>
+            <text class="grid-x-label" x="700" y="378" text-anchor="middle">M9</text>
+            <text class="grid-x-label" x="860" y="378" text-anchor="middle">M11</text>
+            <text class="grid-x-label" x="940" y="378" text-anchor="middle">M12</text>
+          </g>
+
+          <!-- Baseline -->
+          <line x1="60" y1="360" x2="940" y2="360" stroke="var(--border)" stroke-width="1"/>
+
+          <!-- ── Curves ── -->
+          <!-- Home: Suggest(320) → Auto(80) by M10 -->
+          <path class="curve curve--home" id="curve-home"
+                d="M 60 320
+                   C 180 310, 260 290, 340 250
+                   S 520 180, 640 130
+                   S 800 88, 940 80" />
+
+          <!-- Calendar: Suggest(320) → Notify(160) by M8, held -->
+          <path class="curve curve--cal" id="curve-cal"
+                d="M 60 320
+                   C 180 310, 260 280, 340 240
+                   S 520 200, 640 170
+                   S 800 162, 940 160" />
+
+          <!-- Education: Suggest(320) → Confirm(240) by M5, held -->
+          <path class="curve curve--edu" id="curve-edu"
+                d="M 60 320
+                   C 140 315, 220 295, 300 270
+                   S 460 245, 580 242
+                   S 780 240, 940 240" />
+
+          <!-- Finance: hovers near Suggest(320) throughout -->
+          <path class="curve curve--fin" id="curve-fin"
+                d="M 60 320
+                   C 180 322, 300 318, 440 320
+                   S 620 322, 780 320
+                   S 900 321, 940 320" />
+
+          <!-- Endpoint dots + labels -->
+          <g class="endpoint" id="ep-home">
+            <circle cx="940" cy="80"  r="4" fill="var(--ln-home)"/>
+            <circle cx="940" cy="80"  r="9" fill="var(--ln-home)" opacity="0.18"/>
+            <text class="endpoint__label" x="928" y="62" text-anchor="end" fill="var(--ln-home)">Omakase</text>
+          </g>
+          <g class="endpoint" id="ep-cal">
+            <circle cx="940" cy="160" r="4" fill="var(--ln-cal)"/>
+            <circle cx="940" cy="160" r="9" fill="var(--ln-cal)" opacity="0.18"/>
+            <text class="endpoint__label" x="928" y="142" text-anchor="end" fill="var(--ln-cal)">Infrastructure</text>
+          </g>
+          <g class="endpoint" id="ep-edu">
+            <circle cx="940" cy="240" r="4" fill="var(--ln-edu)"/>
+            <circle cx="940" cy="240" r="9" fill="var(--ln-edu)" opacity="0.18"/>
+            <text class="endpoint__label" x="928" y="222" text-anchor="end" fill="var(--ln-edu)">Collaborator</text>
+          </g>
+          <g class="endpoint" id="ep-fin">
+            <circle cx="940" cy="320" r="4" fill="var(--ln-fin)"/>
+            <circle cx="940" cy="320" r="9" fill="var(--ln-fin)" opacity="0.18"/>
+            <text class="endpoint__label" x="928" y="302" text-anchor="end" fill="var(--ln-fin)">Steward</text>
+          </g>
+
+        </svg>
+      </div>
+    </div>
+
+    <!-- Legend / sidebar -->
+    <aside class="legend">
+      <div class="legend__head">Relationship models</div>
+
+      <div class="leg-item" data-who="home">
+        <div class="leg-item__head">
+          <span class="leg-item__swatch" style="background:var(--ln-home);"></span>
+          <span class="leg-item__name">Home</span>
+        </div>
+        <div class="leg-item__rel">Omakase</div>
+        <div class="leg-item__ceil">Ceiling · <strong>Auto</strong></div>
+      </div>
+
+      <div class="leg-item" data-who="cal">
+        <div class="leg-item__head">
+          <span class="leg-item__swatch" style="background:var(--ln-cal);"></span>
+          <span class="leg-item__name">Calendar</span>
+        </div>
+        <div class="leg-item__rel">Infrastructure</div>
+        <div class="leg-item__ceil">Ceiling · <strong>Notify</strong></div>
+      </div>
+
+      <div class="leg-item" data-who="edu">
+        <div class="leg-item__head">
+          <span class="leg-item__swatch" style="background:var(--ln-edu);"></span>
+          <span class="leg-item__name">Education</span>
+        </div>
+        <div class="leg-item__rel">Collaborator</div>
+        <div class="leg-item__ceil">Ceiling · <strong>Confirm</strong></div>
+      </div>
+
+      <div class="leg-item" data-who="fin">
+        <div class="leg-item__head">
+          <span class="leg-item__swatch" style="background:var(--ln-fin);"></span>
+          <span class="leg-item__name">Finance</span>
+        </div>
+        <div class="leg-item__rel">Steward</div>
+        <div class="leg-item__ceil">Ceiling · <strong>Suggest</strong></div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    'use strict';
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (new URLSearchParams(location.search).get('noframe') === '1') document.body.classList.add('noframe');
+
+    // Measure path lengths for dasharray precision
+    const curves = ['home', 'cal', 'edu', 'fin'].map(k => ({
+      path: document.getElementById('curve-' + k),
+      endpoint: document.getElementById('ep-' + k),
+      legend: document.querySelector('.leg-item[data-who="' + k + '"]'),
+      key: k,
+    }));
+
+    curves.forEach(c => {
+      const len = c.path.getTotalLength();
+      c.path.style.strokeDasharray = len;
+      c.path.style.strokeDashoffset = len;
+    });
+
+    function reset() {
+      curves.forEach(c => {
+        c.path.classList.remove('is-drawing');
+        c.path.style.strokeDashoffset = c.path.getTotalLength();
+        c.endpoint.classList.remove('is-on');
+        c.legend.classList.remove('is-on');
+      });
+    }
+
+    function drawAll() {
+      if (prefersReduced) {
+        curves.forEach(c => {
+          c.path.style.strokeDashoffset = 0;
+          c.path.classList.add('is-drawing');
+          c.endpoint.classList.add('is-on');
+          c.legend.classList.add('is-on');
+        });
+        return;
+      }
+
+      reset();
+      // Stagger starts
+      curves.forEach((c, i) => {
+        setTimeout(() => {
+          c.path.classList.add('is-drawing');
+          c.legend.classList.add('is-on');
+          // Endpoint appears after curve finishes
+          setTimeout(() => c.endpoint.classList.add('is-on'), 3100);
+        }, i * 220);
+      });
+    }
+
+    let loopTimer = null;
+    function start() {
+      drawAll();
+      clearInterval(loopTimer);
+      if (!prefersReduced) {
+        loopTimer = setInterval(drawAll, 9000);
+      }
+    }
+    function stop() { clearInterval(loopTimer); loopTimer = null; }
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) start();
+        else stop();
+      });
+    }, { threshold: 0.3 });
+    io.observe(document.querySelector('.arena'));
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else start();
+    });
+  })();
+</script>
+
+</body>
+</html>

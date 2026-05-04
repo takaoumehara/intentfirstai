@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eli · Trip Diary · Day 8 Kanazawa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_screen.css">
+<style>
+  :root {
+    --eli-bg:     #0d0d10;
+    --eli-bg-2:   #16161c;
+    --eli-bg-3:   #1d1d25;
+    --eli-text:   #e8e4f0;
+    --eli-text-2: #a09cb0;
+    --eli-text-3: #6c6878;
+    --eli-border: #2a2a36;
+    --eli-purple: #7c3aed;
+    --eli-purple-2: #a78bfa;
+    --eli-amber:  #f5a623;
+  }
+  body {
+    font-family: 'Noto Sans JP', var(--font-sans);
+    background: var(--eli-bg);
+    color: var(--eli-text);
+  }
+  body.noframe { background: var(--eli-bg); }
+
+  .app-bar {
+    background: rgba(13,13,16,0.94);
+    border-bottom: 1px solid var(--eli-border);
+  }
+  .app-bar__title { color: var(--eli-text); }
+  .app-bar__sub { color: var(--eli-text-3); }
+
+  .eli-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 14px;
+    border-bottom: 1px solid var(--eli-border);
+    background: rgba(13,13,16,0.94);
+  }
+  body.noframe .eli-bar { padding-top: 52px; }
+  .eli-bar__title {
+    font-family: 'Geist Mono', var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: var(--eli-text);
+  }
+  .eli-bar__title .accent { color: var(--eli-purple-2); }
+  .eli-bar__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(124,58,237,0.18);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--eli-purple-2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .screen {
+    padding: 18px 18px 24px;
+    gap: 18px;
+  }
+
+  .screen__eyebrow {
+    color: var(--eli-text-3);
+  }
+  .screen__title {
+    color: var(--eli-text);
+    font-size: 20px;
+  }
+
+  /* Manga panel grid */
+  .manga-day {
+    display: grid;
+    gap: 10px;
+  }
+  .manga-day__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .manga-day__title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    color: var(--eli-purple-2);
+    text-transform: uppercase;
+  }
+  .manga-day__pages {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--eli-text-3);
+    letter-spacing: 0.8px;
+  }
+  .panel-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 6px;
+    height: 132px;
+  }
+  .panel {
+    position: relative;
+    border: 1.5px solid var(--eli-text);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--eli-bg-2);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 8px;
+    transition: transform 160ms var(--ease-out-quart);
+  }
+  .panel:active { transform: scale(0.98); }
+  .panel__angle {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--eli-text);
+    background: var(--eli-bg);
+    padding: 2px 6px;
+    border: 1px solid var(--eli-text);
+    text-transform: uppercase;
+  }
+  .panel__title {
+    font-family: 'Noto Sans JP', var(--font-sans);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--eli-text);
+    text-shadow: 0 1px 0 var(--eli-bg);
+    z-index: 1;
+  }
+  .panel__bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--eli-bg-3) 0%, var(--eli-bg-2) 100%);
+    opacity: 0.85;
+  }
+  .panel--gold .panel__bg { background: radial-gradient(circle at 30% 30%, #4a3a1a 0%, #1d1810 70%); }
+  .panel--street .panel__bg { background: linear-gradient(180deg, #2a2030 0%, #161018 100%); }
+  .panel--food .panel__bg { background: linear-gradient(135deg, #3a2018 0%, #181012 100%); }
+
+  /* Locked future panel */
+  .panel--locked {
+    border: 1.5px dashed var(--eli-purple-2);
+    background: radial-gradient(circle at center, rgba(124,58,237,0.18) 0%, var(--eli-bg) 70%);
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    text-align: center;
+  }
+  .panel--locked .panel__bg { display: none; }
+  .panel__burst {
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent 0 12px, rgba(124,58,237,0.10) 12px 13px),
+      repeating-linear-gradient(-45deg, transparent 0 12px, rgba(167,139,250,0.07) 12px 13px);
+  }
+  .panel__locked-text {
+    z-index: 1;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--eli-purple-2);
+    text-transform: uppercase;
+  }
+  .panel__locked-sub {
+    z-index: 1;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--eli-text-3);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Stamp bar */
+  .stamp-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--eli-border);
+    background: var(--eli-bg-2);
+  }
+  .stamp-bar__label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: var(--eli-text-3);
+    text-transform: uppercase;
+  }
+  .stamp-bar__bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--eli-bg-3);
+    overflow: hidden;
+  }
+  .stamp-bar__fill {
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--eli-purple) 0%, var(--eli-purple-2) 100%);
+  }
+  .stamp-bar__count {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--eli-purple-2);
+    letter-spacing: 0.5px;
+  }
+
+  /* Boast button */
+  .boast-btn {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 10px;
+    border: 1.5px solid var(--eli-purple);
+    background: rgba(124,58,237,0.12);
+    color: var(--eli-purple-2);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    transition: background 150ms ease;
+  }
+  .boast-btn:hover { background: rgba(124,58,237,0.22); }
+
+  /* Translation cards */
+  .trans-section {
+    border-top: 1px solid var(--eli-border);
+    padding-top: 14px;
+  }
+  .trans-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .trans-head__label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: var(--eli-text-2);
+    text-transform: uppercase;
+  }
+  .trans-head__count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--eli-text-3);
+    letter-spacing: 0.6px;
+  }
+  .trans-cards {
+    display: grid;
+    gap: 8px;
+  }
+  .trans-card {
+    padding: 10px 12px;
+    border: 1px solid var(--eli-border);
+    border-radius: 8px;
+    background: var(--eli-bg-2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .trans-card__icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--eli-bg-3);
+    display: grid; place-items: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--eli-purple-2);
+    letter-spacing: 0.6px;
+    flex-shrink: 0;
+  }
+  .trans-card__phrase {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--eli-text);
+    margin-bottom: 1px;
+  }
+  .trans-card__romaji {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--eli-text-3);
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span style="color:var(--eli-text);">07:42</span>
+  <span class="status-bar__icons mono" style="color:var(--eli-text-3);">5G · 87%</span>
+</div>
+
+<header class="eli-bar">
+  <div class="eli-bar__title">ELI · 13 · <span class="accent">TRIP DIARY</span></div>
+  <span class="eli-bar__chip">DAY 08 / 14</span>
+</header>
+
+<main class="screen">
+
+  <div class="reveal" data-d="1">
+    <div class="screen__eyebrow">Today's panels — Kanazawa</div>
+    <h1 class="screen__title" style="margin-top:6px;">DAY 08 · KANAZAWA</h1>
+  </div>
+
+  <!-- Today's manga day -->
+  <section class="manga-day reveal" data-d="2">
+    <div class="manga-day__head">
+      <div class="manga-day__title">▸ Morning · Gold leaf workshop</div>
+      <div class="manga-day__pages">3 panels</div>
+    </div>
+    <div class="panel-row">
+      <div class="panel panel--gold">
+        <div class="panel__bg"></div>
+        <div class="panel__angle">10:00</div>
+        <div class="panel__title">叩く。<br>金が、紙になる。</div>
+      </div>
+      <div class="panel panel--street">
+        <div class="panel__bg"></div>
+        <div class="panel__angle">13:00</div>
+        <div class="panel__title">武家屋敷<br>の路地</div>
+      </div>
+      <div class="panel panel--food">
+        <div class="panel__bg"></div>
+        <div class="panel__angle">19:00</div>
+        <div class="panel__title">のどぐろ<br>初体験</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Locked future day -->
+  <section class="manga-day reveal" data-d="3">
+    <div class="manga-day__head">
+      <div class="manga-day__title">▸ Day 10 · ???</div>
+      <div class="manga-day__pages">locked</div>
+    </div>
+    <div class="panel-row" style="grid-template-columns:1fr;">
+      <div class="panel panel--locked" style="height:132px;">
+        <div class="panel__burst"></div>
+        <div>
+          <div class="panel__locked-text">ROAD TO ???</div>
+          <div class="panel__locked-sub">Day 10 · 02 days out</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stamp collection -->
+  <div class="stamp-bar reveal" data-d="4">
+    <span class="stamp-bar__label">Stamps</span>
+    <div class="stamp-bar__bar"><div class="stamp-bar__fill"></div></div>
+    <span class="stamp-bar__count">12 / 30</span>
+  </div>
+
+  <!-- Boast button -->
+  <button class="boast-btn reveal" data-d="5" type="button">▸ Share to friends</button>
+
+  <!-- Translation cards -->
+  <section class="trans-section reveal" data-d="6">
+    <div class="trans-head">
+      <span class="trans-head__label">Phrasebook</span>
+      <span class="trans-head__count">3 saved · tap to expand</span>
+    </div>
+    <div class="trans-cards">
+      <div class="trans-card">
+        <div class="trans-card__icon">JP</div>
+        <div>
+          <div class="trans-card__phrase">これ、ひとつください</div>
+          <div class="trans-card__romaji">kore, hitotsu kudasai · "one of these, please"</div>
+        </div>
+      </div>
+      <div class="trans-card">
+        <div class="trans-card__icon">JP</div>
+        <div>
+          <div class="trans-card__phrase">ありがとうございます</div>
+          <div class="trans-card__romaji">arigatou gozaimasu · "thank you"</div>
+        </div>
+      </div>
+      <div class="trans-card">
+        <div class="trans-card__icon">JP</div>
+        <div>
+          <div class="trans-card__phrase">トイレはどこですか</div>
+          <div class="trans-card__romaji">toire wa doko desu ka · "where is the bathroom"</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="home-indicator" style="background:rgba(255,255,255,0.32);"></div>
+
+<script>
+  if (new URLSearchParams(location.search).has('noframe')) document.body.classList.add('noframe');
+</script>
+</body>
+</html>

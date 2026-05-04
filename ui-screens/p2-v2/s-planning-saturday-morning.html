@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saturday morning · Trip Brain dashboard (MacBook)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --border: #e4e4e7;
+    --border-soft: #ececef;
+    --text: #18181b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --text-4: #a1a1aa;
+    --warm: #c2410c;
+    --trip: #6b8e4e;
+    --home: #8a6ab0;
+    --live: #16a34a;
+    --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, Menlo, monospace;
+    --font-jp: 'Noto Sans JP', var(--font-sans);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "cv11";
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+  body.noframe { background: transparent; }
+
+  .laptop {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar__title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.6px;
+    color: var(--text-2);
+  }
+  .topbar__meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.6px;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--live);
+    box-shadow: 0 0 0 4px rgba(22,163,74,0.16);
+  }
+
+  .body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .col {
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+  .col--right { border-left: 1px solid var(--border); background: var(--bg); }
+
+  .col__head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .col__title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .col__count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 0.8px;
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 14px;
+    align-items: start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(22,163,74,0.10);
+    border: 1px solid rgba(22,163,74,0.32);
+    color: var(--live);
+    font-family: var(--font-mono);
+    font-size: 13px; font-weight: 700;
+    display: grid; place-items: center;
+  }
+  .q {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(194,65,12,0.08);
+    border: 1px solid rgba(194,65,12,0.30);
+    color: var(--warm);
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 700;
+    display: grid; place-items: center;
+  }
+  .item__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .item__sub {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-3);
+    letter-spacing: 0.6px;
+    margin-top: 3px;
+  }
+  .item__source {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-4);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .candidates {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid rgba(194,65,12,0.25);
+    background: rgba(194,65,12,0.04);
+    border-radius: 10px;
+  }
+  .candidates__head {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--warm);
+    margin-bottom: 10px;
+  }
+  .candidate-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-2);
+    font-family: var(--font-mono);
+  }
+
+  /* Floating chat panel */
+  .chat {
+    position: absolute;
+    right: 28px;
+    bottom: 28px;
+    width: 360px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15,15,20,0.10);
+    overflow: hidden;
+  }
+  .chat__head {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .chat__body { padding: 12px 14px; }
+  .bubble {
+    padding: 10px 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    max-width: 88%;
+  }
+  .bubble--ai {
+    background: rgba(138,106,176,0.08);
+    color: var(--text);
+    border-top-left-radius: 4px;
+  }
+  .bubble--user {
+    background: var(--text);
+    color: var(--surface);
+    margin-left: auto;
+    border-top-right-radius: 4px;
+  }
+  .bubble__from {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-4);
+    margin-bottom: 3px;
+  }
+  .typing {
+    display: inline-flex;
+    gap: 3px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .typing span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--text-4);
+    animation: blink 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: 0.3 } 30% { opacity: 1 } }
+
+  .chat__result {
+    border-top: 1px solid var(--border-soft);
+    padding: 10px 14px;
+    background: rgba(22,163,74,0.05);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--live);
+    letter-spacing: 0.4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .typing span { animation: none; }
+  }
+</style>
+</head>
+<body>
+<script>
+  if (new URLSearchParams(location.search).has('noframe')) document.body.classList.add('noframe');
+</script>
+
+<div class="laptop">
+  <div class="topbar">
+    <div class="topbar__brand">
+      <span class="live-dot"></span>
+      <span class="topbar__title">TRIP BRAIN · STERN FAMILY · JAPAN 2026</span>
+    </div>
+    <div class="topbar__meta">SAT 09:42 · 6 MONTHS BEFORE · LOCAL DRAFT</div>
+  </div>
+
+  <div class="body">
+    <div class="col col--left">
+      <div class="col__head">
+        <div class="col__title">I know</div>
+        <div class="col__count">5 facts · auto-imported</div>
+      </div>
+
+      <div class="item">
+        <div class="check">+</div>
+        <div>
+          <div class="item__label">Family schedules synced · 4 calendars</div>
+          <div class="item__sub">David · Rachel · Eli · Maya</div>
+        </div>
+        <div class="item__source">Google Cal</div>
+      </div>
+
+      <div class="item">
+        <div class="check">+</div>
+        <div>
+          <div class="item__label">Flight inventory · TYO routes</div>
+          <div class="item__sub">JFK→HND · 14h · 6 viable departures</div>
+        </div>
+        <div class="item__source">Skyscanner</div>
+      </div>
+
+      <div class="item">
+        <div class="check">+</div>
+        <div>
+          <div class="item__label">March climate · Tokyo · Kyoto</div>
+          <div class="item__sub">7–14°C · sakura forecast late Mar</div>
+        </div>
+        <div class="item__source">JMA</div>
+      </div>
+
+      <div class="item">
+        <div class="check">+</div>
+        <div>
+          <div class="item__label">Family allergies on file</div>
+          <div class="item__sub">Eli · peanuts (severe) · Rachel · shellfish</div>
+        </div>
+        <div class="item__source">Health</div>
+      </div>
+
+      <div class="item">
+        <div class="check">+</div>
+        <div>
+          <div class="item__label">Clothing sizes · 4 members</div>
+          <div class="item__sub">Auto-imported from Amazon order history</div>
+        </div>
+        <div class="item__source">Brain</div>
+      </div>
+    </div>
+
+    <div class="col col--right">
+      <div class="col__head">
+        <div class="col__title">I need to know</div>
+        <div class="col__count">3 open · waiting on you</div>
+      </div>
+
+      <div class="item">
+        <div class="q">?</div>
+        <div>
+          <div class="item__label">Bar Mitzvah date alignment</div>
+          <div class="item__sub">Synagogue holds 2 Saturdays · need to lock one</div>
+        </div>
+        <div class="item__source">David</div>
+      </div>
+
+      <div class="item">
+        <div class="q">?</div>
+        <div>
+          <div class="item__label">School spring break window</div>
+          <div class="item__sub">PS 234 calendar not yet published for 2026</div>
+        </div>
+        <div class="item__source">Maya</div>
+      </div>
+
+      <div class="item">
+        <div class="q">?</div>
+        <div>
+          <div class="item__label">Departure date · 3 candidates</div>
+          <div class="item__sub">Pick one to begin building plans</div>
+        </div>
+        <div class="item__source">Rachel</div>
+      </div>
+
+      <div class="candidates">
+        <div class="candidates__head">Departure candidates</div>
+        <div class="candidate-row"><span>A · Sat Mar 14 → Sat Mar 28</span><span>$11,840</span></div>
+        <div class="candidate-row"><span>B · Sun Mar 22 → Sun Apr 05</span><span>$12,310</span></div>
+        <div class="candidate-row"><span>C · Sat Mar 28 → Sat Apr 11</span><span>$10,920</span></div>
+      </div>
+    </div>
+
+    <div class="chat" role="region" aria-label="Trip Brain chat">
+      <div class="chat__head">
+        <span class="live-dot"></span>
+        <span>TRIP BRAIN · ASK ME</span>
+      </div>
+      <div class="chat__body">
+        <div class="bubble bubble--ai">
+          <div class="bubble__from">TRIP BRAIN · 09:38</div>
+          Eli の友達の最新トレンドは何ですか? Tokyo の scout list を作る前に押さえたい。
+        </div>
+        <div class="bubble bubble--user">
+          <div class="bubble__from" style="color: rgba(255,255,255,0.6)">DAVID · 09:41</div>
+          Jujutsu Kaisen lately. Been on his shirt for 3 weeks straight.
+        </div>
+        <div class="typing" aria-label="Trip Brain typing">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="chat__result">
+        ✓ Adding Jujutsu Kaisen to Tokyo scout list. Surprise mode for Eli.
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

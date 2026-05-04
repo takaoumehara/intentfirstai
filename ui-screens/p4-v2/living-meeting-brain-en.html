@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Meeting Brain | P4 Project Atlas</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  body.noframe {
+    background: transparent !important;
+    padding: 0;
+  }
+  body.noframe .app { background: transparent; }
+
+  .app {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 40px 1fr;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 12.5px;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .app-name { display: flex; align-items: center; gap: 7px; font-family: var(--font-sans); font-weight: 500; font-size: 12px; letter-spacing: -0.1px; }
+  .app-logo { width: 16px; height: 16px; border-radius: 4px; background: var(--text); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 700; }
+  .crumb { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); letter-spacing: 0.2px; }
+  .crumb b { color: var(--text-2); font-weight: 500; }
+  .search { margin-left: auto; display: flex; align-items: center; gap: 6px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; width: 220px; }
+  .search input { background: transparent; border: 0; outline: 0; font-family: var(--font-sans); font-size: 11.5px; color: var(--text); flex: 1; }
+  .search input::placeholder { color: var(--text-3); }
+  .search-kbd { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); background: var(--bg-3); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.3px; }
+  .avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--chip-purple-text); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 700; }
+
+  /* Main: 3 columns */
+  .main { display: grid; grid-template-columns: 220px 1fr 260px; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { border-right: 1px solid var(--border); padding: 12px 10px; overflow: hidden; background: var(--bg-2); }
+  .side-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.9px; text-transform: uppercase; color: var(--text-3); padding: 0 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .side-label b { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); font-weight: 500; }
+  .side-list { display: flex; flex-direction: column; gap: 1px; }
+  .side-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-family: var(--font-sans); font-size: 12px; color: var(--text-2); cursor: pointer; letter-spacing: -0.1px; font-weight: 400; }
+  .side-item:hover { background: var(--bg-3); color: var(--text); }
+  .side-item.active { background: var(--text); color: var(--bg); font-weight: 500; }
+  .side-item.active .side-count { color: rgba(255,255,255,0.6); }
+  .side-item__name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .side-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.3px; }
+  .side-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); flex-shrink: 0; }
+
+  /* Center */
+  .center { padding: 14px 20px; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
+  .c-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .c-crumb { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.6px; color: var(--text-3); text-transform: uppercase; }
+  .c-title { font-family: var(--font-sans); font-size: 19px; font-weight: 500; letter-spacing: -0.4px; margin: 2px 0 0; color: var(--text); }
+  .c-meta { display: flex; gap: 10px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); letter-spacing: 0.2px; }
+  .c-meta b { color: var(--text-2); font-weight: 500; }
+
+  .attendees { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .att-stack { display: inline-flex; }
+  .att { width: 22px; height: 22px; border-radius: 50%; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 700; border: 2px solid var(--bg); margin-left: -4px; }
+  .att:first-child { margin-left: 0; }
+  .att--k { background: var(--chip-amber-text); }
+  .att--m { background: var(--chip-blue-text); }
+  .att--a { background: var(--color-success); }
+  .att--p { background: var(--chip-purple-text); }
+  .att-names { font-family: var(--font-sans); font-size: 11.5px; color: var(--text-2); line-height: 1.4; }
+  .att-names b { color: var(--text); font-weight: 500; }
+
+  /* Section labels */
+  .s-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .s-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.9px; text-transform: uppercase; color: var(--text-3); }
+  .s-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+
+  .decisions { display: flex; flex-direction: column; gap: 6px; }
+  .dec { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; display: flex; gap: 10px; align-items: flex-start; }
+  .dec-num { font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--chip-amber-text); background: var(--chip-amber-bg); padding: 2px 6px; border-radius: 3px; letter-spacing: 0.4px; flex-shrink: 0; margin-top: 1px; }
+  .dec-body { flex: 1; min-width: 0; }
+  .dec-statement { font-family: var(--font-sans); font-size: 12px; font-weight: 500; color: var(--text); letter-spacing: -0.1px; line-height: 1.4; }
+  .dec-why { font-family: var(--font-sans); font-size: 11px; color: var(--text-2); line-height: 1.4; margin-top: 2px; }
+  .dec-why b { color: var(--text-3); font-weight: 600; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.4px; text-transform: uppercase; margin-right: 4px; }
+  .dec-tags { display: flex; gap: 4px; flex-shrink: 0; }
+  .dec-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.3px; }
+  .dec-tag--routing { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .dec-tag--perf { background: var(--chip-red-bg); color: var(--chip-red-text); }
+  .dec-tag--intent { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+
+  .transcript { background: var(--bg-2); border: 1px solid var(--border); border-left: 3px solid var(--border-hover); border-radius: 6px; padding: 8px 12px; font-family: var(--font-sans); font-size: 11.5px; color: var(--text-2); line-height: 1.5; }
+  .transcript b { font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--text); letter-spacing: 0.4px; text-transform: uppercase; margin-right: 6px; }
+
+  /* Floating ask */
+  .ask { margin-top: auto; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 10px; }
+  .ask-icon { width: 20px; height: 20px; border-radius: 5px; background: var(--text); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .ask-input { flex: 1; font-family: var(--font-sans); font-size: 12px; color: var(--text-3); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ask-kbd { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); background: var(--bg-3); padding: 2px 5px; border-radius: 3px; letter-spacing: 0.3px; }
+
+  /* Right panel */
+  .right { border-left: 1px solid var(--border); padding: 14px 14px; overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column; gap: 8px; }
+  .r-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+  .r-card:hover { border-color: var(--border-hover); }
+  .r-date { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.3px; margin-bottom: 2px; }
+  .r-title { font-family: var(--font-sans); font-size: 11.5px; font-weight: 500; color: var(--text); letter-spacing: -0.1px; line-height: 1.35; }
+  .r-link { font-family: var(--font-mono); font-size: 10px; color: var(--chip-blue-text); letter-spacing: 0.3px; margin-top: 3px; }
+
+  /* ── Tablet & mobile ── */
+  @media (max-width: 1024px) {
+    .main { grid-template-columns: 200px 1fr; }
+    .right { display: none; }
+  }
+  @media (max-width: 720px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .search input { font-size: 12.5px; }
+  }
+</style>
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+</head>
+<body>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="app-name">
+      <span class="app-logo">A</span>
+      <span>Atlas · Meeting Brain</span>
+    </div>
+    <span class="crumb">Project Atlas <b>/</b> Meetings</span>
+    <label class="search">
+      <span style="color: var(--text-3); font-family: var(--font-mono); font-size: 11px;">⌕</span>
+      <input type="text" placeholder="Search across 14 meetings, 47 decisions...">
+      <span class="search-kbd">⌘K</span>
+    </label>
+    <span class="avatar">K</span>
+  </header>
+
+  <div class="main">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="side-label">Meetings <b>14</b></div>
+      <div class="side-list">
+        <div class="side-item">
+          <span class="side-item__name">Kickoff</span>
+          <span class="side-count">12</span>
+        </div>
+        <div class="side-item">
+          <span class="side-item__name">Sprint 1 Planning</span>
+          <span class="side-count">8</span>
+        </div>
+        <div class="side-item">
+          <span class="side-item__name">Sprint 1 Retro</span>
+          <span class="side-count">5</span>
+        </div>
+        <div class="side-item">
+          <span class="side-item__name">Sprint 2 Planning</span>
+          <span class="side-count">9</span>
+        </div>
+        <div class="side-item active">
+          <span class="side-dot"></span>
+          <span class="side-item__name">Sprint 3 Planning</span>
+          <span class="side-count">7</span>
+        </div>
+        <div class="side-item">
+          <span class="side-item__name">Sprint 4 Planning</span>
+          <span class="side-count">6</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center -->
+    <section class="center">
+      <div>
+        <div class="c-crumb">Meetings · Sprint 3 Planning</div>
+        <h2 class="c-title">Sprint 3 Planning</h2>
+        <div class="c-meta">
+          <span><b>March 18, 2026</b></span>
+          <span>1h 47m</span>
+          <span>4 attendees</span>
+        </div>
+      </div>
+
+      <div class="attendees">
+        <span class="att-stack">
+          <span class="att att--k">K</span>
+          <span class="att att--m">M</span>
+          <span class="att att--a">A</span>
+          <span class="att att--p">P</span>
+        </span>
+        <span class="att-names"><b>Priya</b> (PO) · <b>Maya</b> (Designer) · <b>Alex</b> (Dev Lead) · <b>Priya</b> (Researcher)</span>
+      </div>
+
+      <div class="s-head">
+        <span class="s-label">Key Decisions</span>
+        <span class="s-count">3 of 7 · expand ↓</span>
+      </div>
+      <div class="decisions">
+        <div class="dec">
+          <span class="dec-num">DEC-22</span>
+          <div class="dec-body">
+            <div class="dec-statement">Pivot to performance-first routing for the explore flow.</div>
+            <div class="dec-why"><b>Why</b> FCP measured 3.2s on Sprint 2 build; Alex flagged as shipping-blocker. Maya confirmed exploration cues survive the trim.</div>
+          </div>
+          <span class="dec-tags">
+            <span class="dec-tag dec-tag--routing">routing</span>
+            <span class="dec-tag dec-tag--perf">perf</span>
+          </span>
+        </div>
+        <div class="dec">
+          <span class="dec-num">DEC-23</span>
+          <div class="dec-body">
+            <div class="dec-statement">Preserve the "welcome uncertainty" motif as an optional secondary path.</div>
+            <div class="dec-why"><b>Why</b> Priya referenced the Level 1 Identity Layer — intent must survive the perf trade.</div>
+          </div>
+          <span class="dec-tags">
+            <span class="dec-tag dec-tag--intent">intent</span>
+          </span>
+        </div>
+        <div class="dec">
+          <span class="dec-num">DEC-24</span>
+          <div class="dec-body">
+            <div class="dec-statement">Defer Intent Fidelity monitoring setup to Sprint 4.</div>
+            <div class="dec-why"><b>Why</b> Priya still finalizing the observable signal set. Re-opens in next planning.</div>
+          </div>
+          <span class="dec-tags">
+            <span class="dec-tag dec-tag--intent">intent</span>
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <div class="s-label" style="margin-bottom:4px;">Transcript excerpt · DEC-22</div>
+        <div class="transcript">
+          <b>Alex</b>The explore flow is hitting 3.2 on First Contentful Paint. We either trim routing or we ship slow.<br>
+          <b>Priya</b>The Level 1 Identity Layer says we welcome uncertainty — not latency. Trim the routing, keep the exploration cues.
+        </div>
+      </div>
+
+      <div class="ask">
+        <span class="ask-icon">↳</span>
+        <span class="ask-input">Ask this meeting — e.g. "Why did we pivot to performance-first routing?"</span>
+        <span class="ask-kbd">⌘ ↵</span>
+      </div>
+    </section>
+
+    <!-- Right panel -->
+    <aside class="right">
+      <div class="side-label">Related</div>
+      <div class="r-card">
+        <div class="r-date">Mar 04, 2026</div>
+        <div class="r-title">Sprint 2 Retro — FCP first surfaced</div>
+        <div class="r-link">context from Context Brain →</div>
+      </div>
+      <div class="r-card">
+        <div class="r-date">Jan 21, 2026</div>
+        <div class="r-title">Kickoff — "Welcome uncertainty" defined</div>
+        <div class="r-link">Level 1 · Identity Layer →</div>
+      </div>
+      <div class="r-card">
+        <div class="r-date">Feb 18, 2026</div>
+        <div class="r-title">Priya's persona sync — 3 PM dropoff</div>
+        <div class="r-link">Research Brain link →</div>
+      </div>
+      <div class="r-card">
+        <div class="r-date">Mar 11, 2026</div>
+        <div class="r-title">Alex · routing spike doc</div>
+        <div class="r-link">external doc →</div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+</body>
+</html>

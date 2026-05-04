@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S5 — 8 Token Dashboard (Mai's Now)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_tokens.css">
+<link rel="stylesheet" href="_avatars.css">
+<link rel="stylesheet" href="../../assets/css/ui-mode.css">
+<style>
+  /* ── Phone frame ── */
+  html { overflow: hidden; height: 100%; }
+  body {
+    background: #E8EAED;
+    display: flex; justify-content: center; align-items: center;
+    width: 100vw; height: 100vh;
+    -webkit-font-smoothing: antialiased; user-select: none; overflow: hidden;
+  }
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .phone-frame {
+    width: 100vw; height: auto; min-height: 100%;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .phone-frame::before,
+  body.noframe .phone-frame::after { display: none; }
+  body.noframe .phone-screen { border-radius: 0; height: auto; min-height: 100%; }
+  body.noframe .notch { display: none; }
+  body.noframe .status-bar { display: none; }
+  /* Embedded backstage view: drop the phone footer + home indicator + bottom padding */
+  body.noframe .footer { display: none; }
+  body.noframe .home-indicator { display: none; }
+  body.noframe .content {
+    position: static;
+    top: auto; bottom: auto;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+  body.noframe { overflow: hidden; }
+  body.noframe html { overflow: hidden; }
+
+  .phone-frame {
+    width: 390px; height: 844px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px; padding: 11px; position: relative; flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 16px) / 844px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.14),
+      0 24px 48px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .phone-frame::before {
+    content: ''; position: absolute;
+    right: -2px; top: 130px; width: 3px; height: 52px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 0 2px 2px 0;
+  }
+  .phone-frame::after {
+    content: ''; position: absolute;
+    left: -2px; top: 110px; width: 3px; height: 30px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 42px 0 #2a2a2c, 0 72px 0 #2a2a2c;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    border-radius: 40px; overflow: hidden; position: relative;
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 34px; background: #000; border-radius: 20px; z-index: 100;
+  }
+  .status-bar {
+    height: 54px; padding: 14px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 15px; font-weight: 600; color: var(--fg);
+    font-family: var(--font-sans);
+    position: relative; z-index: 50; background: var(--bg);
+  }
+  .status-bar-right { display: flex; gap: 6px; align-items: center; }
+  .status-bar-right svg { width: 16px; height: 16px; stroke-width: 2; }
+  .home-indicator {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 34px;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 8px; z-index: 52; pointer-events: none;
+  }
+  .home-indicator-bar { width: 134px; height: 5px; background: var(--fg); border-radius: 100px; }
+  .content {
+    position: absolute; top: 54px; bottom: 34px; left: 0; right: 0;
+    overflow-y: auto; overflow-x: hidden;
+    padding: 0;
+    background: var(--bg);
+  }
+
+  /* ── Page-specific ── */
+  .page-header {
+    padding: 8px 20px 16px;
+  }
+  .eyebrow-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    background: none; border: none; cursor: pointer; padding: 4px 0;
+  }
+  .back-link svg { width: 14px; height: 14px; stroke-width: 1.75; }
+
+  .live-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.8px;
+    color: var(--green);
+    padding: 3px 8px 3px 7px;
+    background: var(--green-bg);
+    border-radius: var(--radius-full);
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 0 rgba(23,128,61,0.5);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(23,128,61,0.5); }
+    50% { box-shadow: 0 0 0 4px rgba(23,128,61,0); }
+  }
+
+  .owner-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 4px;
+  }
+  .page-title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.7px;
+    color: var(--fg);
+    line-height: 1.1;
+  }
+
+  .ts-row {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-muted);
+    letter-spacing: 0.1px;
+    margin: 10px 0 4px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ts-row svg { width: 12px; height: 12px; stroke-width: 1.75; color: var(--fg-subtle); }
+  .ts-dot { width: 2px; height: 2px; border-radius: 50%; background: var(--gray-300); }
+
+  .subhead {
+    font-size: 13px; color: var(--fg-muted);
+    letter-spacing: -0.1px;
+    margin-top: 2px;
+  }
+
+  /* Grid — 3 columns for 16/9 host (8 tokens fit in 3×3 with last row 2 items) */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 4px 16px 12px;
+  }
+  @media (max-width: 720px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .tile {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 12px 13px;
+    display: flex; flex-direction: column; gap: 6px;
+    min-height: 122px;
+    transition: border-color 120ms ease;
+    cursor: pointer;
+  }
+  .tile:hover { border-color: var(--border-strong); }
+
+  .tile-head {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .tile-num {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--fg-subtle);
+    letter-spacing: 0.8px;
+  }
+  .tile-icon {
+    width: 18px; height: 18px;
+    color: var(--fg-muted);
+    stroke-width: 1.6;
+  }
+
+  .tile-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+  }
+
+  .tile-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: -0.3px;
+    line-height: 1.15;
+    margin-top: auto;
+  }
+  .tile-value small {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.1px;
+    margin-left: 3px;
+  }
+
+  .tile-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-muted);
+    letter-spacing: 0.1px;
+    margin-top: 2px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .tile-sub svg { width: 10px; height: 10px; stroke-width: 1.75; }
+
+  /* Gauge */
+  .gauge {
+    height: 3px;
+    background: var(--gray-100);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .gauge-fill {
+    height: 100%; border-radius: 2px;
+  }
+  .gauge-fill--amber { background: var(--amber); }
+  .gauge-fill--blue  { background: var(--blue); }
+  .gauge-fill--green { background: var(--green); }
+
+  /* Mini avatars (stacked pile) */
+  .mini-avatars {
+    display: flex; align-items: center;
+    margin-top: 2px;
+  }
+  .mini-avatars .av {
+    border: 1.5px solid var(--bg);
+  }
+  .mini-avatars .av + .av { margin-left: -4px; }
+
+  /* Priority dot */
+  .prio-row { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+  .prio-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--gray-300);
+  }
+  .prio-dot--active { background: var(--amber); }
+
+  /* Autonomy 4-step */
+  .autonomy-dots {
+    display: flex; gap: 3px; align-items: center;
+    margin-top: 4px;
+  }
+  .auto-step {
+    flex: 1;
+    height: 3px;
+    background: var(--gray-100);
+    border-radius: 2px;
+  }
+  .auto-step--filled { background: var(--fg); }
+  .auto-step-labels {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    color: var(--fg-subtle);
+    margin-top: 3px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .auto-step-labels .active { color: var(--fg); font-weight: 600; }
+
+  /* Footer */
+  .footer {
+    padding: 12px 20px 20px;
+    border-top: 1px solid var(--border);
+    margin: 8px 0 0;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+  }
+  .footer-text {
+    font-size: 11px;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.1px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .footer-text svg { width: 12px; height: 12px; stroke-width: 1.75; color: var(--fg-subtle); }
+  .footer-hint {
+    font-size: 11px;
+    color: var(--fg-muted);
+    letter-spacing: -0.05px;
+  }
+
+  /* ── Live animations (ui-mode system) ── */
+  .tile { transition: transform 220ms cubic-bezier(0.165,0.84,0.44,1); }
+  body[data-ui-mode="auto"] .tile[data-pulse]     { animation: tile-breathe 2.8s ease-in-out infinite; }
+  body[data-ui-mode="auto"] .tile[data-pulse="1"] { animation-delay: 0s;    }
+  body[data-ui-mode="auto"] .tile[data-pulse="2"] { animation-delay: 0.5s;  }
+  body[data-ui-mode="auto"] .tile[data-pulse="3"] { animation-delay: 1.0s;  }
+  body[data-ui-mode="auto"] .tile[data-pulse="4"] { animation-delay: 1.5s;  }
+
+  @keyframes tile-breathe {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(10,10,10,0); }
+    50%      { box-shadow: 0 0 0 2px rgba(10,10,10,0.04); }
+  }
+
+  [data-anim] { transition: color 300ms cubic-bezier(0.165,0.84,0.44,1); }
+
+  /* Highlight pop when value changes */
+  [data-anim].bump {
+    animation: anim-bump 600ms cubic-bezier(0.19,1,0.22,1);
+  }
+  @keyframes anim-bump {
+    0%   { transform: translateY(0);  opacity: 1;   }
+    20%  { transform: translateY(-2px); opacity: 0.7; }
+    100% { transform: translateY(0);  opacity: 1;   }
+  }
+
+  /* Mini-avatars pulse (one at a time) */
+  .mini-avatars .av { transition: transform 300ms cubic-bezier(0.165,0.84,0.44,1), box-shadow 300ms; }
+  .mini-avatars .av.is-active {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 2px rgba(255,255,255,1), 0 0 0 3px rgba(10,10,10,0.18);
+  }
+
+  /* Explore-mode tile affordance */
+  body[data-ui-mode="explore"] .tile { cursor: pointer; }
+  body[data-ui-mode="explore"] .tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 18px rgba(0,0,0,0.06);
+  }
+  .tile.is-highlight {
+    animation: tile-highlight 900ms cubic-bezier(0.19,1,0.22,1);
+  }
+  @keyframes tile-highlight {
+    0%   { box-shadow: 0 0 0 0 rgba(42,184,90,0.0);  }
+    30%  { box-shadow: 0 0 0 4px rgba(42,184,90,0.25); }
+    100% { box-shadow: 0 0 0 0 rgba(42,184,90,0);    }
+  }
+
+  /* Live chip is already animated — respect pause */
+  body[data-ui-mode="paused"] .live-dot,
+  body[data-ui-mode="explore"] .live-dot,
+  body[data-ui-mode="static"]  .live-dot { animation-play-state: paused !important; }
+
+  /* Reduced motion fallback already handled in ui-mode.css */
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="phone-screen">
+    <div class="notch"></div>
+
+    <div class="status-bar">
+      <span>7:02</span>
+      <div class="status-bar-right">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/><rect x="4" y="9" width="12" height="6" rx="0.5" fill="currentColor" stroke="none"/></svg>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Header -->
+      <div class="page-header">
+        <div class="eyebrow-row">
+          <button class="back-link" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <span>Context</span>
+          </button>
+          <span class="live-chip"><span class="live-dot"></span>LIVE</span>
+        </div>
+
+        <div class="owner-row">
+          <div class="av av--md av--mai">MY</div>
+          <h1 class="page-title">Mai's Now</h1>
+        </div>
+
+        <div class="ts-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Mon · 7:02 AM</span>
+          <span class="ts-dot"></span>
+          <span>San Francisco</span>
+        </div>
+
+        <p class="subhead">Context snapshot — updates every second.</p>
+      </div>
+
+      <!-- Grid of 8 tiles -->
+      <div class="grid">
+
+        <!-- 1. Physical State -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">01</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+          </div>
+          <div class="tile-label">Physical</div>
+          <div class="tile-value">Moving</div>
+          <div class="tile-sub"><span data-anim="mph" style="font-variant-numeric: tabular-nums;">15</span> mph · driving</div>
+        </div>
+
+        <!-- 2. Cognitive Load -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">02</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+          </div>
+          <div class="tile-label">Cognitive Load</div>
+          <div class="tile-value"><span data-anim="cogLabel">High</span> <small><span data-anim="cogPct" style="font-variant-numeric: tabular-nums;">74</span>%</small></div>
+          <div class="gauge"><div class="gauge-fill gauge-fill--amber" data-anim="cogBar" style="width:74%; transition: width 900ms cubic-bezier(0.77,0,0.175,1);"></div></div>
+        </div>
+
+        <!-- 3. Social Exposure -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">03</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="tile-label">Social Exposure</div>
+          <div class="tile-value">Family only</div>
+          <div class="mini-avatars" data-anim="avatars">
+            <div class="av av--xs av--kiran" data-av-idx="0">K</div>
+            <div class="av av--xs av--aoi"   data-av-idx="1">A</div>
+            <div class="av av--xs av--leo"   data-av-idx="2">L</div>
+            <div class="av av--xs av--sota"  data-av-idx="3">S</div>
+          </div>
+        </div>
+
+        <!-- 4. Priority Weight -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">04</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 12 3l5.5 3.5L21 12l-3.5 5.5L12 21l-5.5-3.5L3 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="tile-label">Priority Weight</div>
+          <div class="tile-value">Normal</div>
+          <div class="prio-row">
+            <span class="prio-dot"></span>
+            <span class="prio-dot prio-dot--active"></span>
+            <span class="prio-dot"></span>
+            <span class="prio-dot"></span>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); margin-left: 2px;">2 / 5</span>
+          </div>
+        </div>
+
+        <!-- 5. Form Factor -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">05</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <div class="tile-label">Form Factor</div>
+          <div class="tile-value">Phone</div>
+          <div class="tile-sub">iPhone · CarPlay linked</div>
+        </div>
+
+        <!-- 6. Feasibility -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">06</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="tile-label">Feasibility</div>
+          <div class="tile-value"><span data-anim="feasPct" style="font-variant-numeric: tabular-nums;">42</span><small>%</small></div>
+          <div class="gauge"><div class="gauge-fill gauge-fill--blue" data-anim="feasBar" style="width:42%; transition: width 900ms cubic-bezier(0.77,0,0.175,1);"></div></div>
+        </div>
+
+        <!-- 7. Autonomy Dial -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">07</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div class="tile-label">Autonomy Dial</div>
+          <div class="tile-value" style="font-size: 17px;">Confirm</div>
+          <div class="autonomy-dots">
+            <div class="auto-step auto-step--filled"></div>
+            <div class="auto-step auto-step--filled"></div>
+            <div class="auto-step"></div>
+            <div class="auto-step"></div>
+          </div>
+          <div class="auto-step-labels">
+            <span>Sgst</span>
+            <span class="active">Cnfm</span>
+            <span>Ntfy</span>
+            <span>Auto</span>
+          </div>
+        </div>
+
+        <!-- 8. Disclosure Dial -->
+        <div class="tile" role="button" tabindex="0">
+          <div class="tile-head">
+            <span class="tile-num">08</span>
+            <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="tile-label">Disclosure Dial</div>
+          <div class="tile-value" style="font-size: 17px;">Open to family</div>
+          <div class="tile-sub">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Home domain · default
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <span class="footer-text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Read-only
+        </span>
+        <span class="footer-hint">Tap tile for history.</span>
+      </div>
+
+    </div>
+
+    <div class="home-indicator">
+      <div class="home-indicator-bar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+
+<!-- Universal mode controller (auto / paused / static / explore) -->
+<script src="../../assets/js/ui-mode.js" defer></script>
+
+<!-- Live token animation loop -->
+<script>
+(function () {
+  'use strict';
+
+  const $  = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+
+  // Tiles (8) — expose ui-trigger names based on their number labels
+  const tiles = $$('.grid .tile');
+  tiles.forEach((tile, i) => {
+    const num = (i + 1).toString().padStart(2, '0');
+    tile.classList.add('ui-trigger');
+    tile.setAttribute('data-ui-trigger', 'token-' + num);
+  });
+
+  // Value containers
+  const els = {
+    mph:       $('[data-anim="mph"]'),
+    cogPct:    $('[data-anim="cogPct"]'),
+    cogLabel:  $('[data-anim="cogLabel"]'),
+    cogBar:    $('[data-anim="cogBar"]'),
+    feasPct:   $('[data-anim="feasPct"]'),
+    feasBar:   $('[data-anim="feasBar"]'),
+    avatars:   $$('.mini-avatars .av[data-av-idx]'),
+  };
+
+  // ── State (approx "realtime" simulated values) ──
+  const state = {
+    mph: 15,
+    cog: 74,
+    feas: 42,
+    avIdx: 0,
+  };
+
+  function bumpText(el, newVal) {
+    if (!el) return;
+    el.textContent = newVal;
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+
+  function cogLabelFor(pct) {
+    if (pct >= 75) return 'High';
+    if (pct >= 45) return 'Med';
+    return 'Low';
+  }
+
+  // ── Tick functions (each runs at its own cadence) ──
+
+  function tickMph() {
+    // Wander 12–20 mph, ±1 each step
+    const delta = Math.round((Math.random() - 0.5) * 3);
+    state.mph = Math.max(12, Math.min(22, state.mph + delta));
+    if (els.mph) bumpText(els.mph, state.mph);
+  }
+
+  function tickCog() {
+    // Wander 65–85%, ±2
+    const delta = (Math.random() - 0.5) * 6;
+    state.cog = Math.max(62, Math.min(88, Math.round(state.cog + delta)));
+    if (els.cogPct) bumpText(els.cogPct, state.cog);
+    if (els.cogBar) els.cogBar.style.width = state.cog + '%';
+    if (els.cogLabel) {
+      const newLabel = cogLabelFor(state.cog);
+      if (els.cogLabel.textContent !== newLabel) bumpText(els.cogLabel, newLabel);
+    }
+  }
+
+  function tickFeas() {
+    // Wander 30–55%, ±3
+    const delta = (Math.random() - 0.5) * 7;
+    state.feas = Math.max(28, Math.min(58, Math.round(state.feas + delta)));
+    if (els.feasPct) bumpText(els.feasPct, state.feas);
+    if (els.feasBar) els.feasBar.style.width = state.feas + '%';
+  }
+
+  function tickAvatars() {
+    if (!els.avatars.length) return;
+    els.avatars.forEach(a => a.classList.remove('is-active'));
+    els.avatars[state.avIdx].classList.add('is-active');
+    state.avIdx = (state.avIdx + 1) % els.avatars.length;
+  }
+
+  // ── Loops (different cadences for organic feel) ──
+  let loops = [];
+
+  function startLoops() {
+    stopLoops();
+    // Kick off once immediately
+    tickMph(); tickCog(); tickFeas(); tickAvatars();
+    loops = [
+      setInterval(tickMph,      1600),
+      setInterval(tickCog,      2400),
+      setInterval(tickFeas,     2900),
+      setInterval(tickAvatars,  1100),
+    ];
+  }
+  function stopLoops() {
+    loops.forEach(clearInterval);
+    loops = [];
+  }
+
+  // ── IntersectionObserver: play only when tile grid is visible ──
+  const gridEl = $('.grid');
+  let inView = false;
+
+  function syncState() {
+    const mode = (window.uiMode && window.uiMode.mode) || 'auto';
+    if (mode === 'auto' && inView) startLoops();
+    else stopLoops();
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      inView = e.isIntersecting;
+      syncState();
+    });
+  }, { threshold: 0.25 });
+  if (gridEl) io.observe(gridEl);
+
+  // Pause on hidden tab
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopLoops();
+    else syncState();
+  });
+
+  // ── Hook into ui-mode system ──
+  function wireUpMode() {
+    if (!window.uiMode) return setTimeout(wireUpMode, 50);
+
+    window.uiMode.onChange((m) => syncState());
+
+    // Reset: randomize state baselines, fire one tick
+    window.uiMode.onReset(() => {
+      state.mph  = 13 + Math.floor(Math.random() * 6);
+      state.cog  = 70 + Math.floor(Math.random() * 10);
+      state.feas = 38 + Math.floor(Math.random() * 10);
+      tickMph(); tickCog(); tickFeas(); tickAvatars();
+    });
+
+    // Explore: click a tile to "sample" that token (highlight + one tick)
+    window.uiMode.onTrigger((name, el) => {
+      if (!el) return;
+      el.classList.remove('is-highlight');
+      void el.offsetWidth;
+      el.classList.add('is-highlight');
+      setTimeout(() => el.classList.remove('is-highlight'), 900);
+
+      // Fire a fresh sample based on which token
+      if (name === 'token-01') tickMph();
+      else if (name === 'token-02') tickCog();
+      else if (name === 'token-03') tickAvatars();
+      else if (name === 'token-06') tickFeas();
+    });
+
+    syncState();
+  }
+  wireUpMode();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S8b — Phone Notification · Mai · Monday morning</title>
+<link rel="stylesheet" href="_tokens.css">
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     iPhone 15 Pro frame — Lock Screen
+     ═══════════════════════════════════════════════════════════ */
+  html { overflow: hidden; height: 100%; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body.noframe { background: #dfe3e7; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .phone-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .phone-frame::before,
+  body.noframe .phone-frame::after { display: none; }
+  body.noframe .phone-screen { border-radius: 0; }
+  body.noframe .notch { display: none; }
+  body.noframe .ls-status-bar { display: none; }
+
+  .phone-frame {
+    width: 390px; height: 844px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px;
+    padding: 11px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 16px) / 844px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.14),
+      0 24px 48px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .phone-frame::before {
+    content: ''; position: absolute;
+    right: -2px; top: 130px; width: 3px; height: 52px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 0 2px 2px 0;
+  }
+  .phone-frame::after {
+    content: ''; position: absolute;
+    left: -2px; top: 110px; width: 3px; height: 30px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+    box-shadow: 0 42px 0 #2a2a2c, 0 72px 0 #2a2a2c;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    /* Soft SF fog morning wallpaper */
+    background:
+      radial-gradient(ellipse 90% 55% at 20% 10%, rgba(255, 214, 196, 0.55) 0%, rgba(255, 214, 196, 0) 55%),
+      radial-gradient(ellipse 85% 60% at 85% 25%, rgba(224, 213, 234, 0.6) 0%, rgba(224, 213, 234, 0) 55%),
+      radial-gradient(ellipse 120% 70% at 50% 100%, rgba(160, 175, 195, 0.55) 0%, rgba(160, 175, 195, 0) 60%),
+      linear-gradient(180deg, #d8dee6 0%, #c9d0da 45%, #b7bfcb 100%);
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 126px; height: 34px;
+    background: #000; border-radius: 20px; z-index: 100;
+  }
+
+  /* Status bar — light content on wallpaper */
+  .ls-status-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 54px;
+    padding: 14px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    z-index: 50;
+    font-family: var(--font-sans);
+  }
+  .ls-status-bar-right {
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 34px;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 8px;
+    z-index: 52; pointer-events: none;
+  }
+  .home-indicator-bar {
+    width: 134px; height: 5px;
+    background: #1a1a1a;
+    border-radius: 100px;
+    opacity: 0.55;
+  }
+
+  /* ═══ Lock-screen content ═══ */
+  .ls-content {
+    position: absolute;
+    top: 54px; bottom: 34px;
+    left: 0; right: 0;
+    padding: 10px 20px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top widgets row — flashlight & camera bottom controls are below,
+     but Date & Time up top in iOS style */
+  .ls-date {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 500;
+    color: #222;
+    letter-spacing: -0.1px;
+    text-align: center;
+    opacity: 0.95;
+    margin-top: 12px;
+  }
+
+  .ls-time {
+    font-family: var(--font-sans);
+    font-size: 86px;
+    font-weight: 400;
+    color: #171717;
+    letter-spacing: -3px;
+    text-align: center;
+    line-height: 1;
+    margin-top: 2px;
+    /* Soft shadow for depth */
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  }
+
+  /* Notification card */
+  .ls-notifications {
+    margin-top: auto;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ls-note-group-label {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: #2a2a2a;
+    opacity: 0.75;
+    margin-left: 6px;
+    margin-bottom: 2px;
+  }
+
+  .ls-note {
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(22px) saturate(1.4);
+    -webkit-backdrop-filter: blur(22px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .ls-note-icon {
+    width: 38px; height: 38px;
+    border-radius: 9px;
+    background: var(--agent-calendar);
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: inset 0 -1px 2px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.08);
+  }
+  .ls-note-icon svg { width: 20px; height: 20px; stroke: #fff; stroke-width: 2; }
+
+  .ls-note-body { flex: 1; min-width: 0; }
+  .ls-note-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .ls-note-sender {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: -0.1px;
+  }
+  .ls-note-time {
+    font-size: 12px;
+    color: #4a4a4a;
+    font-family: var(--font-sans);
+    font-weight: 400;
+  }
+  .ls-note-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0a0a0a;
+    letter-spacing: -0.2px;
+    line-height: 1.3;
+    margin-top: 1px;
+  }
+  .ls-note-msg {
+    font-size: 14px;
+    color: #222;
+    line-height: 1.35;
+    margin-top: 2px;
+    letter-spacing: -0.1px;
+  }
+  .ls-note-msg .emph {
+    font-weight: 500;
+    color: #0a0a0a;
+  }
+
+  /* Bottom hint */
+  .ls-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 4px;
+  }
+  .ls-hint {
+    font-size: 13px;
+    color: #1a1a1a;
+    opacity: 0.65;
+    font-weight: 400;
+    text-align: center;
+    letter-spacing: -0.1px;
+  }
+  .ls-hint svg {
+    display: block;
+    margin: 0 auto 2px;
+    opacity: 0.55;
+  }
+  .ls-controls {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 6px;
+    margin-bottom: 6px;
+  }
+  .ls-control-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: none;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .ls-control-btn svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 1.75; }
+
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+<div class="phone-screen">
+  <div class="notch"></div>
+
+  <!-- Status bar -->
+  <div class="ls-status-bar">
+    <span>7:14</span>
+    <div class="ls-status-bar-right">
+      <svg viewBox="0 0 18 12" fill="#1a1a1a" width="15" height="10"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="4.5" y="6" width="3" height="6" rx="0.5"/><rect x="9" y="3" width="3" height="9" rx="0.5"/><rect x="13.5" y="0" width="3" height="12" rx="0.5"/></svg>
+      <svg viewBox="0 0 16 11" fill="#1a1a1a" width="15" height="10"><path d="M8 2.5c2.1 0 4.1.8 5.7 2.3l1.4-1.4C13 1.3 10.6.3 8 .3S3 1.3 1 3.4l1.3 1.4A8.1 8.1 0 0 1 8 2.5zm0 3.3c1.3 0 2.5.5 3.4 1.4l1.4-1.4A7 7 0 0 0 8 3.7c-1.9 0-3.6.7-5 2.1l1.5 1.4A5 5 0 0 1 8 5.8zM8 9a1.6 1.6 0 1 0 0 3.2A1.6 1.6 0 0 0 8 9z"/></svg>
+      <svg viewBox="0 0 26 12" fill="none" width="24" height="10"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1a1a1a" stroke-opacity="0.5"/><rect x="2" y="2" width="19" height="8" rx="1.5" fill="#1a1a1a"/><rect x="23.5" y="4" width="2" height="4" rx="0.5" fill="#1a1a1a" fill-opacity="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- Lock screen body -->
+  <div class="ls-content">
+
+    <!-- Lock icon -->
+    <div style="display:flex;justify-content:center;margin-top:0;opacity:0.7;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+
+    <div class="ls-date">Monday, April 21</div>
+    <div class="ls-time">7:14</div>
+
+    <!-- Notifications anchored to bottom -->
+    <div class="ls-notifications">
+      <div class="ls-note-group-label">Notification</div>
+      <article class="ls-note" aria-label="Calendar notification">
+        <div class="ls-note-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div class="ls-note-body">
+          <div class="ls-note-head">
+            <span class="ls-note-sender">CALENDAR</span>
+            <span class="ls-note-time">now</span>
+          </div>
+          <div class="ls-note-title">Pickup adjusted</div>
+          <div class="ls-note-msg">Today <span class="emph">3:30 PM → 4:30 PM</span>. Kiran's return flight delayed.</div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Bottom controls + hint -->
+    <div class="ls-bottom">
+      <div class="ls-controls">
+        <button class="ls-control-btn" aria-label="Flashlight">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c0 2-2 2-2 4v10H8V10c0-2-2-2-2-4V2h12v4Z"/></svg>
+        </button>
+        <button class="ls-control-btn" aria-label="Camera">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+      </div>
+      <div class="ls-hint">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        Slide up to open
+      </div>
+    </div>
+
+  </div>
+
+  <div class="home-indicator">
+    <div class="home-indicator-bar"></div>
+  </div>
+</div>
+</div>
+
+<script>
+if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+  document.body.classList.add('noframe');
+}
+</script>
+</body>
+</html>

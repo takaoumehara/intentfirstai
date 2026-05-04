@@ -4,8 +4,8 @@
 **目的:** Context Grammar の全体構造・各概念・キーインサイトを構造化して把握する。今後のすべての判断・編集・Project吟味の基準点とする。
 
 > このドキュメントを書いた根拠ソース:
-> - context-grammar/index.html(全文)
-> - context-grammar/grammar/index.html(全文)
+> - context-tokens/index.html(全文)
+> - context-grammar/tokens/index.html(全文)
 > - context-grammar/brain/index.html(全文)
 > - context-grammar/trust-design/index.html(全文)
 > - context-grammar/specs/index.html(全文)
@@ -276,6 +276,37 @@ Cross-cutting (側面) — Trust Design
 ### 4.9 メモリのドメイン × 人 構造
 メモリはフラットなリストではない。**ドメイン軸**(Health / Food / Finance / Hobby / Work)と**Disclosure軸**で組織化。各ドメインは異なる深さで蓄積される。Foodは深く、Workは浅く、など。Disclosureは「どのドアを開けるか」をユーザーが制御する。
 
+### 4.10 Family Graduated Archive(複数Brain構造)— ★2026-04追記
+**Brainは「1つの記憶」ではない。家族が積み上げるものは、種類ごとに違う速度で熟成し、違うタイミングで開示される複数のアーカイブである。**
+
+企業版(P4: Atlas Archive)と**完全同型**。1つの設計言語で家庭も職場も。
+
+**5種類の Family Archive コレクション:**
+
+| Archive | 内容 | 開示タイミング | アクセス |
+|---------|------|-------------|---------|
+| **Memories** | 写真・旅行・イベント・ささやかな瞬間 | 常時 · リアルタイム〜数十年 | 家族全員 |
+| **Recipes** | 母の沖縄料理・父のインド家庭料理・家族の定番 | 子供が料理を始めた時 | 料理している家族メンバー |
+| **Parent-as-Person** | 親の若い頃の日記・悩み・仕事の試行錯誤・読んだ本 | 子供が20歳 or 親になる時 or 危機時 | 時限解錠(time-locked) |
+| **Family Stories** | 「なぜSFに移住したか」等の意思決定ログ | 子供が類似した決断に直面した時 | 文脈的自動浮上 |
+| **Skills & Teachings** | 「Leoに自転車を教えた日」「Sotaに分数を説明」 | 本人が必要とした時 | Self-serve |
+
+**設計原則:**
+1. Archive は1つではなく、**種類ごとに異なる速度と開示ルール**を持つ
+2. **Time-locked unlock**: 子供の年齢・ライフイベントで自動解錠
+3. **Contextual surfacing**: 類似状況に直面した時、関連するArchiveが自動で浮上
+4. **Legacy as design**: 親の日常の頑張りは、20年後に子供が大人になった時、意味を持つ
+
+**企業版との対応:**
+- P4 Atlas Archive: プロジェクト意図の圧縮保存、3年後に別POが引き出す
+- Family Archive: 親の意図・記憶の保存、20年後に子供が大人になって引き出す
+- **同じパターン(Graduated Archive)を、家庭と職場で共通の言語として実装**
+
+**「伝えたいけど伝えきれないもの」問題:**
+親の仕事の頑張りは構造的に子供には見えにくい(昇給・プロジェクト完了のような大きな出来事しか届かない)。Family Graduated Archive は、この見えない日常を**文脈ある小さな窓**として蓄積し、未来の家族のために保存する。「Kiranは3週間、Seattleプロジェクトに集中していた」レベルの粒度。
+
+**監視との違い:** 監視は強制された透明性。Family Archiveは**選択された透明性**。主導権は本人にある。AIは配管であって圧力ではない。
+
 ---
 
 ## 5. Floor 4: Rule Engine
@@ -393,7 +424,7 @@ Q1: AIが判断しようとしているか?
 ### 7.1 全体像
 **Trust Design は1つのフロアではない。タワー全体を縦断する温度計。**
 
-### 7.2 Disclosure Dial(2方向構造)
+### 7.2 Disclosure Dial(2方向構造 + 2レイヤー)
 
 #### Protective方向(自分を守る)
 4レベル: **Full → Summary → Existence → Hidden**
@@ -405,6 +436,22 @@ Q1: AIが判断しようとしているか?
 | Existence | 「ある」だけ | 「予定がある」のみ、内容秘匿 |
 | Hidden | 完全秘匿 | データ存在自体を隠す |
 
+#### Translation Layer(Protective方向の拡張)— ★2026-04追記
+**同じ1つの事実を、相手との関係性・年齢・文脈に応じて別の深さに翻訳する設計レイヤー**。Disclosure Matrixが「Agent × 情報ドメイン」の制御なら、Translation Layerは「Fact × Person × Depth」。
+
+**例:** Kiranが健康診断で肝機能の数値異常を指摘された。
+
+| 相手 | 深さ | 開示内容 |
+|------|------|---------|
+| 本人(Kiran) | Full | 元データ全文(γ-GTP 78, BP 132/85, 医師メモ "alcohol control 2 months") |
+| 妻(Mai) | Summary + actionable | 「肝機能数値が少し上がっている。食事と酒を2ヶ月調整中」+ 夕食提案の自動調整 |
+| 娘(Aoi, 15) | Observable behavior | 「最近パパはビールをノンアルに替えている」(観察可能な行動のみ、数値なし) |
+| 息子(Leo, 9 / Sota, 6) | Nothing | 何も表示しない |
+
+**設計原則:** 同じ事実が4通りに翻訳される。本人がコントロールする。UIでリアルタイムプレビュー。「誰に何をどの深さで伝えるか」は権限管理(read/write)ではなく**意味の翻訳**として扱う。
+
+---
+
 #### Connective方向(他者と繋ぐ)— ★完全に新規概念
 4ステージ: **Push → Digest → Available → Off**
 
@@ -415,7 +462,34 @@ Q1: AIが判断しようとしているか?
 | Available | 聞かれたら答える | dadが「妻今日忙しい?」と聞けば答える |
 | Off | 完全分断 | 家族の情報は一切流通しない |
 
-**インサイト:** 既存のすべての「プライバシー設定」は Protective 方向のみ。Connective 方向の設計は世界に存在しない。
+#### Cross-Media Correlation(Connective方向の本当のパワー)— ★2026-04追記
+**Disclosure Dial が OS/Brain レイヤーに存在しなければならない唯一の根拠。**
+
+既存アプリ単体の共有機能では絶対にできないこと:
+- Spotify: プレイリストだけ見える
+- Netflix: 視聴履歴だけ見える
+- Kindle: 読書履歴だけ見える
+
+**Family Brain は上記を横断して**、Aoiが観ているアニメ=Kiranが読んだマンガ=Sotaが口ずさんでいる主題歌、が同じIPだという**ブリッジ**を発見できる。
+
+**典型シナリオ:**
+Aoi watching: Jujutsu Kaisen (Netflix)
+Kiran reading: Jujutsu Kaisen Vol 10 (Kindle, last Saturday)
+Sota humming: Sakayume by King Gnu (audio detected, Home)
+→ Family Brain correlates: all three in one orbit
+→ 夕食前の通知 "Kiran, tonight you have something to talk about. Aoi is watching the anime adaptation of the manga you finished. Sota's been humming the opening."
+
+**設計原則:** Connective Disclosureは能動的な子→親、親→子、partner-only の3方向チャネルを持つ。スイッチは本人が握る(opt-in)。監視ではなく**選択された透明性**。AIは配管で、圧力ではない。
+
+**重要な3つの開示方向:**
+1. **子→親(teen-driven opt-in)**: Aoiが自分のSpotify履歴・マンガ・YouTube・好きな食品ブランドを能動的に家族に見せる
+2. **親→子(legacy direction)**: 親の日々の仕事の頑張り・文脈を小窓で共有(昇給だけじゃない日常)
+3. **親同士(partner-only depth)**: 子供に見せられない深さを配偶者にだけ共有(Translation Layerとの組み合わせ)
+
+---
+
+#### インサイト
+既存のすべての「プライバシー設定」は Protective 方向のみ。**Connective 方向の設計**も、**Translation Layer の設計**も、**Cross-Media Correlation の設計**も、世界に存在しない。3つ合わせて初めて、AI時代の家族のための情報設計が完成する。
 
 ### 7.3 Three Information Flows(3つの情報の流れ)
 1. **User → AI** — Disclose(あなたがAIに教える)

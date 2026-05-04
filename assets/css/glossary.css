@@ -1,0 +1,215 @@
+/* ───────────────────────────────────────────────────────
+   Glossary popover — site-wide
+   Wraps any <span data-term="slug">...</span> with a
+   subtle dotted underline; click reveals a popover with
+   short definition + restaurant metaphor + optional link.
+   ─────────────────────────────────────────────────────── */
+
+[data-term] {
+  cursor: help;
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+  border-bottom-color: var(--cg-term-line, rgba(0,0,0,.35));
+  padding-bottom: 1px;
+  transition: border-bottom-color .15s ease, background-color .15s ease;
+  position: relative;
+}
+[data-term]:hover {
+  border-bottom-color: var(--cg-green, #30c969);
+  background-color: rgba(48,201,105,.06);
+}
+[data-term][data-term-active="true"] {
+  border-bottom-color: var(--cg-green, #30c969);
+  background-color: rgba(48,201,105,.1);
+}
+
+/* Dark backgrounds */
+[data-theme="dark"] [data-term],
+.case--dark [data-term],
+.contact [data-term] {
+  border-bottom-color: rgba(255,255,255,.4);
+}
+[data-theme="dark"] [data-term]:hover,
+.case--dark [data-term]:hover,
+.contact [data-term]:hover {
+  border-bottom-color: var(--cg-green, #30c969);
+  background-color: rgba(48,201,105,.12);
+}
+
+/* ─── Popover ─── */
+.cg-popover {
+  position: absolute;
+  z-index: 1000;
+  width: min(380px, calc(100vw - 32px));
+  max-width: 380px;
+  background: #ffffff;
+  color: #0a0a0a;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 12px -4px rgba(0,0,0,.08),
+    0 24px 56px -12px rgba(0,0,0,.22);
+  padding: 20px 22px 18px;
+  font-family: 'Geist', 'Geist Sans', -apple-system, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .18s ease, transform .18s ease;
+  pointer-events: none;
+}
+.cg-popover[data-open="true"] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cg-popover__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.cg-popover__name {
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: -.005em;
+  color: #0a0a0a;
+  margin: 0;
+}
+.cg-popover__close {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  width: 24px; height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #888;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1;
+  transition: background-color .15s, color .15s;
+  flex-shrink: 0;
+}
+.cg-popover__close:hover { background: rgba(0,0,0,.06); color: #0a0a0a; }
+.cg-popover__close::before { content: '×'; }
+
+.cg-popover__body {
+  font-size: 14px;
+  color: #1a1a1a;
+  margin: 0 0 14px;
+}
+
+.cg-popover__metaphor {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4a4a4a;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: rgba(48,201,105,.05);
+  border-left: 2px solid var(--cg-green, #30c969);
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+}
+.cg-popover__metaphor::before {
+  content: 'Like —';
+  display: inline-block;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-style: normal;
+  color: var(--cg-green-dark, #239352);
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.cg-popover__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #0a0a0a;
+  text-decoration: none;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #0a0a0a;
+  transition: gap .2s ease;
+}
+.cg-popover__more::after { content: '→'; }
+.cg-popover__more:hover { gap: 12px; }
+
+/* Arrow pointer (CSS only, no JS positioning) */
+.cg-popover::before {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.12);
+  border-right: 0;
+  border-bottom: 0;
+  transform: rotate(45deg);
+  top: -7px;
+  left: var(--arrow-x, 24px);
+}
+
+.cg-popover[data-placement="bottom"]::before {
+  top: auto;
+  bottom: -7px;
+  transform: rotate(225deg);
+}
+
+/* ─── Mobile: full-width sheet from bottom ─── */
+@media (max-width: 600px) {
+  .cg-popover {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-width: none;
+    top: auto !important;
+    transform: translateY(20px);
+    border-radius: 14px;
+    box-shadow: 0 -8px 32px -4px rgba(0,0,0,.18), 0 24px 56px -12px rgba(0,0,0,.3);
+  }
+  .cg-popover[data-open="true"] {
+    transform: translateY(0);
+  }
+  .cg-popover::before { display: none; }
+}
+
+/* Backdrop on mobile only */
+.cg-popover-backdrop {
+  display: none;
+}
+@media (max-width: 600px) {
+  .cg-popover-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
+  }
+  .cg-popover-backdrop[data-open="true"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .cg-popover, .cg-popover-backdrop, [data-term] {
+    transition: none;
+  }
+}

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trust Heartbeat — 12 Months of Earning</title>
+<meta name="description" content="Trust rises as AI earns it. A breach resets the arc. Auto-play loop.">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #2ab85a;   /* Aligned to tokens.css --color-accent */
+    --accent-soft: rgba(42,184,90,0.4);
+    --red: #e05050;
+    --bg: #050810;
+    --panel: #080c14;
+    --border: #121824;
+    --border-light: #1c2432;
+    --text: #d0ccc2;
+    --text-muted: #545e6e;
+    --font: 'Geist', sans-serif;
+    --mono: 'Geist Mono', monospace;
+    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Noframe mode — hide chrome for embedding */
+  body.noframe {
+    padding: 16px;
+    gap: 8px;
+  }
+  body.noframe .chrome-header,
+  body.noframe .controls,
+  body.noframe .readout {
+    display: none !important;
+  }
+
+  .chrome-header { display: flex; flex-direction: column; gap: 4px; }
+  .label-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .subtitle {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .monitor {
+    position: relative;
+    border: 1px solid var(--border);
+    background: #030508;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+  }
+  .monitor::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  canvas#chart {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stage-labels {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 12px 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .stage-line-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(42,184,90,0.38);
+    padding-left: 10px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border: 1px solid var(--border-light);
+    background: var(--panel);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 180ms, color 180ms, border-color 180ms;
+  }
+  .btn:hover { color: var(--text); border-color: var(--text-muted); }
+
+  .readout {
+    display: flex;
+    border: 1px solid var(--border);
+  }
+  .readout-cell {
+    flex: 1;
+    padding: 8px 14px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .readout-cell:last-child { border-right: none; }
+  .readout-key {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .readout-val {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .breach-flash {
+    position: absolute;
+    inset: 0;
+    background: var(--red);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 80ms;
+  }
+  .breach-flash.active { opacity: 0.08; }
+
+  /* Embedded caption overlay (shown only in noframe) */
+  .mini-caption {
+    display: none;
+    position: absolute;
+    top: 12px; right: 16px;
+    z-index: 4;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(208,204,194,0.55);
+  }
+  body.noframe .mini-caption { display: block; }
+
+  .mini-readout {
+    display: none;
+    position: absolute;
+    bottom: 12px; right: 16px;
+    z-index: 4;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text);
+    padding: 6px 10px;
+    background: rgba(5,8,16,0.7);
+    border: 1px solid var(--border-light);
+    font-variant-numeric: tabular-nums;
+  }
+  body.noframe .mini-readout { display: flex; gap: 14px; }
+  .mini-readout span.k { color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; font-size: 8px; }
+  .mini-readout span.v { color: var(--accent); font-weight: 500; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="chrome-header">
+  <div class="label-tag">Context Grammar · Trust Timeline</div>
+  <h1>Trust Heartbeat</h1>
+  <div class="subtitle">12 months of autonomy earned. A breach resets the arc.</div>
+</div>
+
+<div class="monitor" id="monitor">
+  <canvas id="chart"></canvas>
+
+  <div class="mini-caption">TRUST HEARTBEAT · 12 MONTHS</div>
+  <div class="mini-readout">
+    <span><span class="k">Month</span> <span class="v" id="mini-m">M1</span></span>
+    <span><span class="k">Trust</span> <span class="v" id="mini-t">12%</span></span>
+    <span><span class="k">Stage</span> <span class="v" id="mini-s">SUGGEST</span></span>
+  </div>
+
+  <div class="stage-labels">
+    <div class="stage-line-label">Auto</div>
+    <div class="stage-line-label">Notify</div>
+    <div class="stage-line-label">Confirm</div>
+    <div class="stage-line-label">Suggest</div>
+  </div>
+
+  <div class="breach-flash" id="breach-flash"></div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="btn-breach">+ Add Trust Breach</button>
+  <button class="btn" id="btn-fwd">▶ Fast-forward 3 months</button>
+  <button class="btn" id="btn-reset">↺ Reset</button>
+</div>
+
+<div class="readout">
+  <div class="readout-cell">
+    <div class="readout-key">Current Month</div>
+    <div class="readout-val" id="r-month" style="color:var(--text)">M1</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">Trust Level</div>
+    <div class="readout-val" id="r-trust" style="color:var(--accent)">12%</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">Autonomy Stage</div>
+    <div class="readout-val" id="r-stage" style="color:var(--accent)">SUGGEST</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">Breaches</div>
+    <div class="readout-val" id="r-breaches" style="color:var(--red)">0</div>
+  </div>
+</div>
+
+<script>
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+
+  const ACCENT = '#2ab85a';
+  const ACCENT_RGBA = (a) => `rgba(42,184,90,${a})`;
+  const RED = '#e05050';
+
+  const monitor = document.getElementById('monitor');
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+
+  const STAGE_THRESHOLDS = [
+    { name: 'SUGGEST', min: 0,  max: 24 },
+    { name: 'CONFIRM', min: 25, max: 49 },
+    { name: 'NOTIFY',  min: 50, max: 74 },
+    { name: 'AUTO',    min: 75, max: 100 },
+  ];
+  const MONTH_LABELS = ['Wk1','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12'];
+
+  let dataPoints = [];
+  let currentMonth = 0;
+  let breachCount = 0;
+  let prevLen = 0;
+  let animT = 1;
+
+  function initData() {
+    dataPoints = [{ month: 0, trust: 8, breach: false }];
+    currentMonth = 0;
+    breachCount = 0;
+    prevLen = 0;
+    animT = 1;
+  }
+
+  function advanceMonth(months = 1) {
+    for (let i = 0; i < months; i++) {
+      const last = dataPoints[dataPoints.length - 1];
+      const growth = 6 + Math.random() * 8;
+      const newTrust = Math.min(100, last.trust + growth);
+      currentMonth++;
+      dataPoints.push({ month: currentMonth, trust: newTrust, breach: false });
+    }
+  }
+
+  function addBreach() {
+    const last = dataPoints[dataPoints.length - 1];
+    const spikeTrust = Math.min(100, last.trust + 25);
+    currentMonth += 0.2;
+    dataPoints.push({ month: currentMonth, trust: spikeTrust, breach: true });
+    const dropTrust = Math.max(5, last.trust * 0.25);
+    currentMonth += 0.2;
+    dataPoints.push({ month: currentMonth, trust: dropTrust, breach: true });
+    breachCount++;
+    const flash = document.getElementById('breach-flash');
+    flash.classList.add('active');
+    setTimeout(() => flash.classList.remove('active'), 320);
+  }
+
+  function getStage(trust) {
+    return STAGE_THRESHOLDS.find(s => trust >= s.min && trust <= s.max) || STAGE_THRESHOLDS[0];
+  }
+  function monthLabel(m) {
+    const r = Math.round(m);
+    return MONTH_LABELS[Math.min(r, MONTH_LABELS.length - 1)];
+  }
+
+  let dims = { w: 0, h: 0 };
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = monitor.clientWidth;
+    const h = monitor.clientHeight;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    dims = { w, h };
+  }
+
+  const PAD_LEFT = 72;
+  const PAD_RIGHT = 24;
+  const PAD_TOP = 18;
+  const PAD_BOTTOM = 34;
+
+  function trustToY(trust, h) {
+    const chartH = h - PAD_TOP - PAD_BOTTOM;
+    return PAD_TOP + chartH * (1 - trust / 100);
+  }
+  function monthToX(month, w, maxMonth) {
+    const chartW = w - PAD_LEFT - PAD_RIGHT;
+    return PAD_LEFT + (month / Math.max(maxMonth, 6)) * chartW;
+  }
+
+  let rafId = null;
+  function draw() {
+    const { w, h } = dims;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#030508';
+    ctx.fillRect(0, 0, w, h);
+
+    const maxMonth = Math.max(currentMonth, 6);
+
+    // Stage thresholds
+    ctx.setLineDash([3, 5]);
+    ctx.lineWidth = 0.5;
+    STAGE_THRESHOLDS.forEach(s => {
+      const y = trustToY(s.min, h);
+      ctx.beginPath();
+      ctx.strokeStyle = ACCENT_RGBA(0.12);
+      ctx.moveTo(PAD_LEFT, y);
+      ctx.lineTo(w - PAD_RIGHT, y);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Axes
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD_LEFT, PAD_TOP);
+    ctx.lineTo(PAD_LEFT, h - PAD_BOTTOM);
+    ctx.moveTo(PAD_LEFT, h - PAD_BOTTOM);
+    ctx.lineTo(w - PAD_RIGHT, h - PAD_BOTTOM);
+    ctx.stroke();
+
+    // X labels
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    ctx.font = '8px "Geist Mono", monospace';
+    ctx.textAlign = 'center';
+    const step = Math.max(1, Math.floor(maxMonth / 8));
+    for (let m = 0; m <= maxMonth; m += step) {
+      ctx.fillText(monthLabel(m), monthToX(m, w, maxMonth), h - PAD_BOTTOM + 14);
+    }
+
+    if (dataPoints.length < 2) {
+      rafId = requestAnimationFrame(draw);
+      return;
+    }
+
+    if (dataPoints.length > prevLen) {
+      animT = 0;
+      prevLen = dataPoints.length;
+    }
+    animT = Math.min(animT + 0.04, 1);
+    const eT = 1 - Math.pow(2, -10 * animT);
+    const displayCount = Math.floor(1 + (dataPoints.length - 1) * eT);
+    const pts = dataPoints.slice(0, displayCount + 1);
+
+    // Area fill
+    ctx.beginPath();
+    ctx.moveTo(PAD_LEFT, h - PAD_BOTTOM);
+    pts.forEach((p, i) => {
+      const x = monthToX(p.month, w, maxMonth);
+      const y = trustToY(p.trust, h);
+      ctx.lineTo(x, y);
+    });
+    const lastPt = pts[pts.length - 1];
+    ctx.lineTo(monthToX(lastPt.month, w, maxMonth), h - PAD_BOTTOM);
+    ctx.closePath();
+    ctx.fillStyle = ACCENT_RGBA(0.05);
+    ctx.fill();
+
+    // Glow line
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+      const x = monthToX(p.month, w, maxMonth);
+      const y = trustToY(p.trust, h);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = ACCENT_RGBA(0.22);
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    // Main line (segmented by breach)
+    ctx.lineWidth = 1.5;
+    for (let i = 1; i < pts.length; i++) {
+      ctx.beginPath();
+      ctx.strokeStyle = pts[i].breach ? 'rgba(224,80,80,0.85)' : ACCENT_RGBA(0.95);
+      ctx.moveTo(monthToX(pts[i-1].month, w, maxMonth), trustToY(pts[i-1].trust, h));
+      ctx.lineTo(monthToX(pts[i].month, w, maxMonth), trustToY(pts[i].trust, h));
+      ctx.stroke();
+    }
+
+    // Breach markers
+    pts.forEach(p => {
+      if (!p.breach) return;
+      ctx.beginPath();
+      ctx.arc(monthToX(p.month, w, maxMonth), trustToY(p.trust, h), 3, 0, Math.PI * 2);
+      ctx.fillStyle = RED;
+      ctx.fill();
+    });
+
+    // Current dot
+    const cur = pts[pts.length - 1];
+    const curX = monthToX(cur.month, w, maxMonth);
+    const curY = trustToY(cur.trust, h);
+    ctx.beginPath();
+    ctx.arc(curX, curY, 8, 0, Math.PI * 2);
+    ctx.fillStyle = ACCENT_RGBA(0.15);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(curX, curY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = ACCENT;
+    ctx.fill();
+
+    // Readout
+    const stage = getStage(cur.trust);
+    document.getElementById('r-month').textContent = monthLabel(cur.month);
+    document.getElementById('r-trust').textContent = Math.round(cur.trust) + '%';
+    document.getElementById('r-stage').textContent = stage.name;
+    document.getElementById('r-breaches').textContent = breachCount;
+    // Mini readout (noframe)
+    document.getElementById('mini-m').textContent = monthLabel(cur.month);
+    document.getElementById('mini-t').textContent = Math.round(cur.trust) + '%';
+    document.getElementById('mini-s').textContent = stage.name;
+
+    rafId = requestAnimationFrame(draw);
+  }
+
+  // Manual controls
+  document.getElementById('btn-breach').addEventListener('click', () => {
+    if (dataPoints.length === 0) initData();
+    if (currentMonth < 1) advanceMonth(1);
+    addBreach();
+  });
+  document.getElementById('btn-fwd').addEventListener('click', () => {
+    if (dataPoints.length === 0) initData();
+    advanceMonth(3);
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    initData();
+  });
+
+  // Auto-play loop (for embed + standalone)
+  let autoTimer = null;
+  let autoStep = 0;
+  const AUTO_SCRIPT = [
+    { t: 800,  act: () => advanceMonth(1) },
+    { t: 800,  act: () => advanceMonth(1) },
+    { t: 800,  act: () => advanceMonth(1) },
+    { t: 1200, act: () => advanceMonth(1) },
+    { t: 1200, act: () => addBreach() },
+    { t: 1400, act: () => advanceMonth(1) },
+    { t: 900,  act: () => advanceMonth(1) },
+    { t: 900,  act: () => advanceMonth(1) },
+    { t: 900,  act: () => advanceMonth(1) },
+    { t: 900,  act: () => advanceMonth(1) },
+    { t: 900,  act: () => advanceMonth(1) },
+    { t: 1400, act: () => advanceMonth(1) },
+    { t: 2800, act: () => { initData(); advanceMonth(1); } }, // reset loop
+  ];
+
+  function autoTick() {
+    if (prefersReduced) return;
+    const step = AUTO_SCRIPT[autoStep % AUTO_SCRIPT.length];
+    step.act();
+    autoStep++;
+    autoTimer = setTimeout(autoTick, step.t);
+  }
+  function startAuto() {
+    stopAuto();
+    if (prefersReduced) {
+      initData();
+      advanceMonth(12);
+      return;
+    }
+    autoTick();
+  }
+  function stopAuto() {
+    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  }
+
+  // Start on viewport
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) startAuto();
+      else stopAuto();
+    });
+  }, { threshold: 0.3 });
+  io.observe(monitor);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopAuto();
+    else startAuto();
+  });
+
+  // Init
+  initData();
+  advanceMonth(1);
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+</script>
+
+</body>
+</html>

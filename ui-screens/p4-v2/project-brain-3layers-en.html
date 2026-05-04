@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Brain · Three Layers Inside | P4 Project Atlas</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 36px;
+  }
+  body.noframe {
+    background: transparent !important;
+    padding: 20px 28px;
+  }
+  .artifact {
+    width: 100%;
+    max-width: 1120px;
+    max-height: 100%;
+  }
+
+  .hdr-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+  .hdr-title { font-family: var(--font-sans); font-weight: 500; font-size: 26px; letter-spacing: -0.6px; margin: 0 0 6px; line-height: 1.15; }
+  .hdr-sub { font-family: var(--font-sans); font-size: 13px; font-weight: 400; color: var(--text-2); max-width: 760px; line-height: 1.5; margin: 0 0 18px; }
+
+  /* 3 horizontal layer cards
+     NOTE — no colored top stroke on rounded cards (see PORTFOLIO_GLOBAL_RULES §9.5).
+     Layer color lives in the badge chip + dot inside the card, never on the border. */
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+  .layer-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-height: 230px; position: relative; overflow: hidden; }
+  /* Full-height left vertical bar (allowed pattern — clipped cleanly by rounded corners) */
+  .layer-card::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: var(--bar, transparent); }
+  .layer-card--l1 { --bar: var(--illust-purple); }
+  .layer-card--l2 { --bar: var(--illust-blue); }
+  .layer-card--l3 { --bar: var(--illust-green); }
+
+  .lc-head { display: flex; align-items: center; gap: 8px; }
+  .lc-badge { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
+  .lc-badge--l1 { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+  .lc-badge--l2 { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .lc-badge--l3 { background: var(--chip-green-bg); color: var(--chip-green-text); }
+  .lc-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .lc-dot--l1 { background: var(--illust-purple); }
+  .lc-dot--l2 { background: var(--illust-blue); }
+  .lc-dot--l3 { background: var(--illust-green); }
+
+  .lc-name { font-family: var(--font-sans); font-size: 16px; font-weight: 500; letter-spacing: -0.3px; color: var(--text); line-height: 1.25; }
+  .lc-body { font-family: var(--font-sans); font-size: 12.5px; font-weight: 400; color: var(--text-2); line-height: 1.55; }
+  .lc-ex { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: auto; }
+  .lc-ex-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+  .lc-ex-q { font-family: var(--font-sans); font-size: 11.5px; color: var(--text); font-weight: 500; line-height: 1.45; letter-spacing: -0.1px; }
+  .lc-ex-q em { font-style: italic; color: var(--text-2); font-weight: 400; display: block; margin-top: 2px; }
+
+  /* Graduation row */
+  .grad-row { display: grid; grid-template-columns: auto repeat(3, 1fr); gap: 10px; align-items: center; background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; }
+  .grad-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-3); white-space: nowrap; }
+  .grad-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+  .grad-from { font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.4px; }
+  .grad-arrow { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+  .grad-to { font-family: var(--font-mono); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.3px; white-space: nowrap; }
+  .grad-to--evap { background: var(--chip-red-bg); color: var(--chip-red-text); }
+  .grad-to--merge { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+  .grad-to--compress { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+  .grad-desc { font-family: var(--font-sans); font-size: 11px; color: var(--text-2); flex: 1; line-height: 1.35; }
+
+  .footer-note { font-family: var(--font-sans); font-size: 12px; color: var(--text-3); text-align: center; line-height: 1.5; font-weight: 400; padding-top: 4px; }
+  .footer-note b { color: var(--text-2); font-weight: 600; }
+
+  /* ── Tablet & mobile ── */
+  @media (max-width: 1024px) {
+    body { padding: clamp(16px, 4vw, 36px); }
+    .layers { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 720px) {
+    .layers { grid-template-columns: 1fr; }
+    .layer-card { min-height: auto; }
+    .grad-row { grid-template-columns: auto 1fr; row-gap: 6px; }
+    .grad-label { grid-column: 1 / -1; }
+  }
+</style>
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+</head>
+<body>
+<div class="artifact">
+
+  <div class="hdr-label">Context Grammar · Internal Structure</div>
+  <h1 class="hdr-title">Project Brain · Three Layers Inside</h1>
+  <p class="hdr-sub">Every Brain has the same three-layer spine. What changes is the domain.</p>
+
+  <div class="layers">
+
+    <div class="layer-card layer-card--l1">
+      <div class="lc-head">
+        <span class="lc-dot lc-dot--l1"></span>
+        <span class="lc-badge lc-badge--l1">Level 1 · Identity</span>
+      </div>
+      <div class="lc-name">Identity Layer</div>
+      <div class="lc-body">Why this project exists. Original intent. Non-negotiable principles.</div>
+      <div class="lc-ex">
+        <div class="lc-ex-label">Atlas · Example</div>
+        <div class="lc-ex-q">"An exploratory UI that welcomes uncertainty."<em>— Priya, kickoff, Jan 2026</em></div>
+      </div>
+    </div>
+
+    <div class="layer-card layer-card--l2">
+      <div class="lc-head">
+        <span class="lc-dot lc-dot--l2"></span>
+        <span class="lc-badge lc-badge--l2">Level 2 · Learning</span>
+      </div>
+      <div class="lc-name">Learning Layer</div>
+      <div class="lc-body">What we discovered. Tested hypotheses, behavior patterns, team rhythms.</div>
+      <div class="lc-ex">
+        <div class="lc-ex-label">Atlas · Example</div>
+        <div class="lc-ex-q">"Persona A drops off at 3 PM."<em>— Sprint 2 usability discovery</em></div>
+      </div>
+    </div>
+
+    <div class="layer-card layer-card--l3">
+      <div class="lc-head">
+        <span class="lc-dot lc-dot--l3"></span>
+        <span class="lc-badge lc-badge--l3">Level 3 · Now</span>
+      </div>
+      <div class="lc-name">Now Layer</div>
+      <div class="lc-body">What's happening today. Current tasks, open blockers, this week.</div>
+      <div class="lc-ex">
+        <div class="lc-ex-label">Atlas · Example</div>
+        <div class="lc-ex-q">"Sprint 4 — Intent Fidelity monitoring."<em>— in progress this week</em></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grad-row">
+    <span class="grad-label">Graduated Archive →</span>
+    <div class="grad-item">
+      <span class="grad-from">Level 3</span>
+      <span class="grad-arrow">→</span>
+      <span class="grad-to grad-to--evap">Evaporate</span>
+    </div>
+    <div class="grad-item">
+      <span class="grad-from">Level 2</span>
+      <span class="grad-arrow">→</span>
+      <span class="grad-to grad-to--merge">Merge into Org Brain</span>
+    </div>
+    <div class="grad-item">
+      <span class="grad-from">Level 1</span>
+      <span class="grad-arrow">→</span>
+      <span class="grad-to grad-to--compress">Compressed to Atlas Archive</span>
+    </div>
+  </div>
+
+  <p class="footer-note">Same spine across <b>Family Brain</b>, <b>Trip Brain</b>, <b>Life Brain</b>. The domain changes, the structure does not.</p>
+
+</div>
+</body>
+</html>

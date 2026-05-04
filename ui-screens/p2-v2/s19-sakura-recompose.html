@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S19 · Sakura · Live Recomposition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_screen.css">
+<style>
+
+  /* ── Sakura hero banner ── */
+  .sakura-hero {
+    position: relative;
+    height: 148px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f2a7b3 0%, #f9d5db 60%, #fce8eb 100%);
+  }
+  .sakura-hero__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 60%;
+    display: block;
+    /* fade-in once loaded */
+    animation: img-fade 400ms var(--ease-out-quint) both;
+    animation-delay: 80ms;
+  }
+  @keyframes img-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  /* gradient scrim — text legibility over photo */
+  .sakura-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 40%,
+      rgba(0,0,0,0.42) 100%
+    );
+    pointer-events: none;
+  }
+  .sakura-hero__label {
+    position: absolute;
+    bottom: 12px;
+    left: 16px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.92);
+  }
+  .sakura-hero__label .dot {
+    background: #f2a7b3;
+    width: 6px;
+    height: 6px;
+  }
+
+  /* ── Live alert strip ── */
+  .live-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 16px;
+    background: rgba(242, 167, 179, 0.12);
+    border-bottom: 1px solid rgba(242, 167, 179, 0.28);
+  }
+  .live-strip__left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .live-strip__label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--warm);
+  }
+  .live-strip__msg {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-2);
+    line-height: 1.35;
+  }
+  .live-strip__time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: var(--text-4);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── Reason chip ── */
+  .reason-chip {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(242, 167, 179, 0.10);
+    /* left accent bar instead of colored border */
+    box-shadow: inset 3px 0 0 #f2a7b3;
+  }
+  .reason-chip__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f2a7b3;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .reason-chip__text {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--text);
+  }
+  .reason-chip__text strong { font-weight: 600; }
+  .reason-chip__src {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    color: var(--text-3);
+    margin-top: 4px;
+  }
+
+  /* ── Schedule compare ── */
+  .compare {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .compare__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border-soft);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .compare__head--after {
+    background: rgba(242, 167, 179, 0.08);
+    color: var(--warm);
+  }
+
+  .compare__divider {
+    height: 1px;
+    background: var(--border-soft);
+  }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .day-row:last-child { border-bottom: none; }
+
+  .day-row__num {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-4);
+    line-height: 1;
+  }
+  .day-row__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.35;
+  }
+  .day-row__sub {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    color: var(--text-4);
+    margin-top: 2px;
+  }
+  .day-row__badge {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-4);
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--bg-3);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Before — muted style */
+  .compare--before .day-row__label { color: var(--text-3); }
+  .compare--before .day-row__num   { color: var(--text-4); }
+
+  /* After — highlights */
+  .day-row--peak {
+    background: rgba(242, 167, 179, 0.08);
+  }
+  .day-row--peak .day-row__num   { color: var(--warm); }
+  .day-row--peak .day-row__label { color: var(--text); font-weight: 600; }
+  .day-row--peak .day-row__badge {
+    color: var(--warm);
+    background: rgba(194, 65, 12, 0.07);
+  }
+  .day-row--anchor {
+    background: rgba(107, 142, 78, 0.05);
+  }
+  .day-row--anchor .day-row__num   { color: var(--trip); }
+  .day-row--anchor .day-row__badge {
+    color: var(--trip);
+    background: rgba(107, 142, 78, 0.10);
+  }
+
+  /* ── Care balance note ── */
+  .care-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: rgba(107, 142, 78, 0.05);
+    /* left bar accent — no colored border on rounded rect */
+    box-shadow: inset 3px 0 0 var(--trip);
+  }
+  .care-note__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--trip);
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .care-note__text {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-2);
+  }
+  .care-note__text strong { color: var(--text); font-weight: 600; }
+
+  /* ── Sync targets strip ── */
+  .sync-strip {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .sync-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-soft);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: var(--text-3);
+  }
+
+  /* ── Action row ── */
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 10px;
+  }
+
+  /* ── Petal animation (decorative, reduced-motion safe) ── */
+  .petal {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50% 0 50% 0;
+    background: rgba(255, 255, 255, 0.72);
+    animation: petal-fall 4s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes petal-fall {
+    0%   { transform: translateY(-10px) rotate(0deg);   opacity: 0.9; }
+    80%  { opacity: 0.7; }
+    100% { transform: translateY(160px) rotate(180deg); opacity: 0; }
+  }
+  .petal:nth-child(1) { left: 12%; animation-delay: 0s;    animation-duration: 3.6s; width: 7px; height: 7px; }
+  .petal:nth-child(2) { left: 35%; animation-delay: 0.8s;  animation-duration: 4.2s; width: 5px; height: 5px; }
+  .petal:nth-child(3) { left: 62%; animation-delay: 1.6s;  animation-duration: 3.9s; }
+  .petal:nth-child(4) { left: 80%; animation-delay: 2.4s;  animation-duration: 4.6s; width: 6px; height: 6px; }
+  .petal:nth-child(5) { left: 50%; animation-delay: 0.4s;  animation-duration: 5.1s; width: 9px; height: 9px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .petal { animation: none; opacity: 0; }
+    .sakura-hero__img { animation: none; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span>07:14</span>
+  <span class="status-bar__icons mono">5G · 96%</span>
+</div>
+
+<header class="app-bar">
+  <div>
+    <div class="app-bar__title">Trip Brain</div>
+    <div class="app-bar__sub">Day 9 · Kyoto · 07:14 JST</div>
+  </div>
+  <div class="chip chip--accent reveal" data-d="1"><span class="dot dot--warn dot--pulse"></span> Plan changed</div>
+</header>
+
+<!-- Sakura hero image with falling petals -->
+<div class="sakura-hero reveal" data-d="2" aria-label="Cherry blossoms in peak bloom, Philosopher's Path, Kyoto">
+  <img
+    class="sakura-hero__img"
+    src="https://source.unsplash.com/featured/?cherry-blossom,sakura,kyoto,japan"
+    alt="Cherry blossom trees in full bloom lining a canal path in Kyoto"
+    onerror="this.style.display='none'"
+    loading="eager"
+  >
+  <!-- decorative petals (CSS animated) -->
+  <span class="petal" aria-hidden="true"></span>
+  <span class="petal" aria-hidden="true"></span>
+  <span class="petal" aria-hidden="true"></span>
+  <span class="petal" aria-hidden="true"></span>
+  <span class="petal" aria-hidden="true"></span>
+  <div class="sakura-hero__label">
+    <span class="dot"></span>
+    Philosopher's Path · Kyoto
+  </div>
+</div>
+
+<!-- Live status strip -->
+<div class="live-strip reveal" data-d="2">
+  <div class="live-strip__left">
+    <span class="dot dot--warn dot--pulse"></span>
+    <span class="live-strip__label">Live</span>
+    <span class="live-strip__msg">桜が6日早い — Brain がスケジュールを組み直した</span>
+  </div>
+  <span class="live-strip__time">06:42</span>
+</div>
+
+<main class="screen">
+
+  <div class="reveal" data-d="3">
+    <div class="screen__eyebrow">AX Pattern · Live Recomposition</div>
+    <h1 class="screen__title" style="margin-top:6px;">Sakura blooms three days early. The plan reshuffles.</h1>
+  </div>
+
+  <!-- Reason chip -->
+  <div class="reason-chip reveal" data-d="4">
+    <div class="reason-chip__dot"></div>
+    <div>
+      <div class="reason-chip__text"><strong>桜が6日早い</strong> — JMA forecast updated at 06:42. Peak bloom moved to Mar 26, six days before your booked Day 11.</div>
+      <div class="reason-chip__src">JMA · Kyoto forecast update · 06:42 JST</div>
+    </div>
+  </div>
+
+  <!-- Before / After compare -->
+  <section class="compare reveal" data-d="5" aria-label="Schedule before and after recomposition">
+
+    <div class="compare__head">
+      <span class="dot dot--info"></span>
+      Before · booked Jan 18
+    </div>
+
+    <div class="compare--before">
+      <div class="day-row">
+        <div class="day-row__num">D9</div>
+        <div>
+          <div class="day-row__label">Philosopher's Path</div>
+          <div class="day-row__sub">10:00 start</div>
+        </div>
+        <div class="day-row__badge">Original</div>
+      </div>
+      <div class="day-row">
+        <div class="day-row__num">D10</div>
+        <div>
+          <div class="day-row__label">Kameoka Forge</div>
+          <div class="day-row__sub">Swordsmith anchor</div>
+        </div>
+        <div class="day-row__badge">Anchor</div>
+      </div>
+      <div class="day-row">
+        <div class="day-row__num">D11</div>
+        <div>
+          <div class="day-row__label">Arashiyama</div>
+          <div class="day-row__sub">Bamboo grove</div>
+        </div>
+        <div class="day-row__badge">10:00</div>
+      </div>
+    </div>
+
+    <div class="compare__head compare__head--after">
+      <span class="dot dot--warn"></span>
+      After · sakura forecast applied
+    </div>
+
+    <div class="compare--after">
+      <div class="day-row day-row--peak">
+        <div class="day-row__num">D9</div>
+        <div>
+          <div class="day-row__label">Philosopher's Path</div>
+          <div class="day-row__sub">07:00 · peak window</div>
+        </div>
+        <div class="day-row__badge">Peak</div>
+      </div>
+      <div class="day-row day-row--anchor">
+        <div class="day-row__num">D10</div>
+        <div>
+          <div class="day-row__label">Kameoka Forge</div>
+          <div class="day-row__sub">Held · anchor unchanged</div>
+        </div>
+        <div class="day-row__badge">Held</div>
+      </div>
+      <div class="day-row day-row--peak">
+        <div class="day-row__num">D11</div>
+        <div>
+          <div class="day-row__label">Arashiyama + Maruyama Park</div>
+          <div class="day-row__sub">Golden hour sakura added</div>
+        </div>
+        <div class="day-row__badge">Peak +</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Care balance note -->
+  <div class="care-note reveal" data-d="6">
+    <div class="care-note__dot"></div>
+    <div class="care-note__text">
+      <strong>Care 2+2 balance held.</strong> Maya gets Maruyama golden hour + Arashiyama. Eli's swordsmith anchor (D10) untouched. No day exceeds 1-hour delta.
+    </div>
+  </div>
+
+  <!-- Sync targets -->
+  <div class="reveal" data-d="7">
+    <div class="mono-label" style="margin-bottom:8px;">Syncs on approve</div>
+    <div class="sync-strip">
+      <div class="sync-item"><span class="dot dot--info"></span>Hotel TV</div>
+      <div class="sync-item"><span class="dot dot--info"></span>JR pass app</div>
+      <div class="sync-item"><span class="dot dot--info"></span>Group chat</div>
+      <div class="sync-item"><span class="dot dot--info"></span>Hotel concierge</div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-row reveal" data-d="8">
+    <button class="btn">Edit</button>
+    <button class="btn btn--primary">Confirm</button>
+  </div>
+
+</main>
+
+<div class="home-indicator"></div>
+
+<script>
+  if (new URLSearchParams(location.search).has('noframe')) document.body.classList.add('noframe');
+</script>
+</body>
+</html>

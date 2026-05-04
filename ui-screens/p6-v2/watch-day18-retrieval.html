@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · Apple Watch · Day 18 · Forgotten Intent surfaces | P6 Life Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-watch.css">
+<style>
+  /*
+    Watch UI · Day 18 · Forgotten Intent Retrieval
+    Smart Stack widget pattern · place card layout (thumb left, info right)
+  */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    display: block;
+  }
+  body.noframe .qa-frame { display: none; }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: clamp(28px, 11.5cqw, 50px) 1fr auto;
+    padding: clamp(8px, 3.2cqw, 14px) clamp(10px, 4cqw, 18px) clamp(10px, 4cqw, 18px);
+    gap: clamp(6px, 2.4cqw, 10px);
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+  }
+  body.noframe .face {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    inset: auto;
+  }
+
+  /* Header strip */
+  .face__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(6px, 2.4cqw, 9px);
+    padding: clamp(2px, 0.8cqw, 3px);
+  }
+  .face__app {
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 1.6cqw, 6px);
+    min-width: 0;
+  }
+  .face__app-mark {
+    width: clamp(8px, 3.2cqw, 13px);
+    height: clamp(8px, 3.2cqw, 13px);
+    border-radius: 50%;
+    background: #e8a557;
+    box-shadow: 0 0 9px 1px rgba(232, 165, 87, 0.45);
+  }
+  .face__app-name {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(12px, 4.6cqw, 22px);
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(232, 165, 87, 0.78);
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .face__time {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(13px, 5.2cqw, 22px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+
+  /* BODY: place card (thumb + info, asymmetric) */
+  .face__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(10px, 3.6cqw, 18px);
+    min-height: 0;
+    padding: 0 clamp(2px, 0.8cqw, 4px);
+  }
+  .face__source-tag {
+    /* Caption 2 · 11pt */
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(11px, 4cqw, 20px);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+    line-height: 1;
+  }
+  .place {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: clamp(12px, 4.4cqw, 22px);
+    align-items: center;
+  }
+
+  /* CSS-drawn coffee thumbnail (no emoji) */
+  .place__thumb-wrap {
+    position: relative;
+    padding: 2.5px;
+  }
+  .place__thumb-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 36%;
+    border: 1px solid rgba(232, 165, 87, 0.45);
+    animation: surfaceRing 3.6s ease-in-out infinite;
+  }
+  @keyframes surfaceRing {
+    0%, 100% { opacity: 0.45; transform: scale(1); }
+    50%      { opacity: 0.85; transform: scale(1.06); }
+  }
+  .place__thumb {
+    width: clamp(44px, 17cqw, 76px);
+    aspect-ratio: 1;
+    border-radius: 32%;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 70% 50% at 30% 32%, rgba(255,255,255,0.20), transparent 65%),
+      radial-gradient(circle at 65% 65%, #6e4a2c 0%, #4a2f1a 70%, #2c1c10 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.10),
+      inset 0 -1px 0 rgba(0,0,0,0.40);
+  }
+  .place__thumb::before {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    background: conic-gradient(from 220deg,
+      rgba(232, 200, 160, 0.45) 0%,
+      rgba(150, 100, 60, 0.65) 30%,
+      rgba(80, 50, 30, 0.85) 60%,
+      rgba(232, 200, 160, 0.45) 100%);
+    opacity: 0.78;
+  }
+  .place__thumb::after {
+    content: '';
+    position: absolute;
+    top: 18%; left: 22%;
+    width: 22%; height: 14%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.45), transparent 70%);
+  }
+
+  .place__info {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2px, 0.8cqw, 4px);
+    min-width: 0;
+  }
+  .place__name {
+    /* Headline · 16pt · Semibold */
+    font-family: 'Geist', sans-serif;
+    font-size: clamp(16px, 6.2cqw, 28px);
+    font-weight: 600;
+    line-height: 1.18;
+    color: #fff;
+    letter-spacing: -0.012em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .place__meta {
+    /* Caption 1 · 12pt mono */
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(13px, 4.8cqw, 23px);
+    font-weight: 400;
+    line-height: 1.30;
+    color: rgba(255, 255, 255, 0.62);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .place__source {
+    /* Caption 2 · 11pt */
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(11px, 4cqw, 19px);
+    color: rgba(255, 255, 255, 0.40);
+    letter-spacing: 0.04em;
+    line-height: 1.30;
+  }
+  .place__source-sep { opacity: 0.50; margin: 0 0.4em; }
+
+  /* Actions: pill buttons, 44pt min-height */
+  .face__actions {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: clamp(5px, 2cqw, 8px);
+  }
+  .face__btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(15px, 5.8cqw, 30px);
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    min-height: clamp(44px, 18cqw, 84px);
+    padding: 0 6px;
+    border-radius: 999px;
+    border: 0;
+    cursor: pointer;
+    letter-spacing: -0.005em;
+    transition: filter 200ms ease, transform 100ms ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .face__btn--primary { background: #e8a557; color: #1a0e02; }
+  .face__btn--secondary {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.78);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.20);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .face__btn:hover { filter: brightness(1.08); }
+    .face__btn--secondary:hover {
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+      color: #fff;
+    }
+  }
+  .face__btn:active { transform: translateY(1px) scale(0.98); }
+  .face__btn:focus-visible { outline: 2px solid #e8a557; outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .place__thumb-wrap::before { animation: none; opacity: 0.5; transform: none; }
+    .face__app-mark { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="qa-frame applewatch applewatch--xxl">
+  <img class="applewatch__chrome"
+       src="../../Global_Assets/DeviceFrame/AppleWatch42mm.svg"
+       alt="" aria-hidden="true">
+  <div class="applewatch__screen">
+    <div class="face" id="qa-face"></div>
+  </div>
+</div>
+
+<div class="face" id="embed-face" style="display:none;"></div>
+
+<template id="face-tpl">
+  <header class="face__header">
+    <div class="face__app">
+      <span class="face__app-mark" aria-hidden="true"></span>
+      <span class="face__app-name">Saved · 3mo</span>
+    </div>
+    <time class="face__time" datetime="2026-04-18T22:00">22:00</time>
+  </header>
+
+  <main class="face__body">
+    <div class="place">
+      <div class="place__thumb-wrap" aria-hidden="true">
+        <div class="place__thumb"></div>
+      </div>
+      <div class="place__info">
+        <div class="place__name">Rosa's Coffee Lab</div>
+        <div class="place__meta">3 min walk · open till 22:30</div>
+        <div class="place__source">Instagram · saved 3 months ago</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="face__actions">
+    <button class="face__btn face__btn--primary" type="button">Go</button>
+    <button class="face__btn face__btn--secondary" type="button">Later</button>
+  </footer>
+</template>
+
+<script>
+  var tpl = document.getElementById('face-tpl').content.cloneNode(true);
+  if (document.body.classList.contains('noframe')) {
+    document.querySelector('.qa-frame').remove();
+    var ef = document.getElementById('embed-face');
+    ef.style.display = 'grid';
+    ef.appendChild(tpl);
+  } else {
+    document.getElementById('embed-face').remove();
+    document.getElementById('qa-face').appendChild(tpl);
+  }
+</script>
+</body>
+</html>

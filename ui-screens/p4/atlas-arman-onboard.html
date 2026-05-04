@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas · Arman · Welcome · Project Apollo</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Design tokens -->
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+
+<style>
+  :root {
+    --color-intent:  #a07040;  /* amber · intent / PO layer */
+    --color-brain:   #8a6ab0;  /* purple · brain memory */
+    --color-grammar: #6889b4;  /* slate blue · grammar / design */
+    --color-success: #3d7a3d;  /* forest green · live state */
+    --grad-mid:      #a07040;  /* same as intent — used in gradients */
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     Standalone QA iPad bezel (suppressed in noframe)
+     ═══════════════════════════════════════════════════════════ */
+  html { overflow: hidden; height: 100%; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-sans);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    width: 100vw; height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body:not(.noframe) { background: #eef1f4; }
+
+  body.noframe { background: transparent !important; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .tablet-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .tablet-frame::before, body.noframe .tablet-frame::after { display: none; }
+  body.noframe .tablet-cam { display: none; }
+  body.noframe .tablet-screen { border-radius: 0; width: 100%; height: 100%; }
+  body.noframe .status-bar, body.noframe .scene-badge { display: none !important; }
+
+  .tablet-frame {
+    width: 1194px; height: 834px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 44px;
+    padding: 22px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 24px) / 834px), calc((100vw - 24px) / 1194px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 12px 32px rgba(0,0,0,0.16),
+      0 32px 64px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .tablet-cam {
+    position: absolute;
+    top: 50%; left: 10px;
+    transform: translateY(-50%);
+    width: 8px; height: 8px;
+    background: #0a0a0a; border-radius: 50%;
+    border: 1px solid #222;
+    z-index: 100;
+  }
+
+  .tablet-screen {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    border-radius: 22px;
+    overflow: hidden;
+    position: relative;
+    display: flex; flex-direction: column;
+    color: var(--text);
+  }
+
+  /* Subtle warm-dawn wash on this first-morning screen */
+  .tablet-screen::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 10% 0%, rgba(160, 112, 64, 0.05) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 50% at 90% 100%, rgba(138, 106, 176, 0.04) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* ── Status bar (tablet, standalone-only) ── */
+  .status-bar {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    height: 28px;
+    padding: 8px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.1px;
+  }
+  .status-bar__right { display: flex; gap: 10px; align-items: center; opacity: 0.85; }
+
+  /* ═══════════════════════════════════════════════════════════
+     Canvas — asymmetric 3-zone dashboard
+     Left rail · Center hero · Right rail
+     ═══════════════════════════════════════════════════════════ */
+  .canvas {
+    position: relative; z-index: 2;
+    flex: 1 1 auto; min-height: 0;
+    display: grid;
+    grid-template-columns: 240px 1fr 296px;
+    gap: 22px;
+    padding: 14px 28px 26px;
+  }
+
+  /* ── App header band (top, spans all three) ── */
+  .hdr {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    padding: 6px 28px 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .hdr__title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .hdr__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-intent);
+  }
+  .hdr__eyebrow::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--grad-mid);
+    box-shadow: 0 0 0 4px rgba(160, 112, 64, 0.14);
+  }
+  .hdr__title {
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.9px;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .hdr__title em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .hdr__sub {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-2);
+    letter-spacing: -0.1px;
+    margin-top: 2px;
+  }
+  .hdr__right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hdr__date {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .hdr__date strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.1em;
+  }
+  .hdr__avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--grad-mid) 0%, var(--color-intent) 100%);
+    color: var(--bg);
+    display: grid; place-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    box-shadow: 0 1px 2px rgba(122, 85, 32, 0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+
+  /* ═══ Cards (shared) ═══ */
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-intent);
+  }
+  .card__label--brain   { color: var(--color-brain); }
+  .card__label--grammar { color: #4a6a90; }
+
+  /* ─────────────────────────────────────────────────────────
+     LEFT RAIL · Lineage
+     ───────────────────────────────────────────────────────── */
+  .zone-left {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: zone-in 600ms cubic-bezier(0.22, 0.8, 0.36, 1) 60ms forwards;
+  }
+  .lineage {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .lineage__hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .lineage__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-success);
+  }
+  .lineage__live::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--color-success);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(58, 106, 58, 0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(58, 106, 58, 0); }
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 0 11px;
+    border-top: 1px solid var(--border);
+  }
+  .metric:first-of-type { border-top: none; padding-top: 2px; }
+  .metric__num {
+    font-size: 34px;
+    font-weight: 500;
+    letter-spacing: -1.4px;
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .metric__num .unit {
+    font-size: 13px;
+    font-weight: 500;
+    color: #737373;
+    letter-spacing: -0.1px;
+    margin-left: 4px;
+  }
+  .metric__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  /* Small timeline chart */
+  .tl {
+    margin-top: 4px;
+    padding: 12px 10px 10px;
+    background: var(--gray-100);
+    border-radius: 10px;
+  }
+  .tl__title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 8px;
+  }
+  .tl__bars {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    gap: 2px;
+    align-items: end;
+    height: 34px;
+  }
+  .tl__bar {
+    background: #d4d4d8;
+    border-radius: 1.5px 1.5px 0 0;
+    width: 100%;
+  }
+  .tl__bar.accent { background: var(--color-intent); }
+
+  /* ─────────────────────────────────────────────────────────
+     CENTER · Hero "Similar to your first task"
+     ───────────────────────────────────────────────────────── */
+  .zone-center {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: zone-in 600ms cubic-bezier(0.22, 0.8, 0.36, 1) 160ms forwards;
+  }
+
+  .hero-card {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid rgba(122, 85, 32, 0.22);
+    border-radius: 18px;
+    padding: 22px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--grad-mid) 0%, rgba(160, 112, 64, 0) 100%);
+  }
+  .hero-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .hero-card__title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    line-height: 1.25;
+    margin-top: 4px;
+  }
+  .hero-card__quote {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text-2);
+    letter-spacing: -0.1px;
+    padding-left: 14px;
+    border-left: 2px solid rgba(122, 85, 32, 0.35);
+  }
+  .hero-card__quote em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* People row */
+  .people {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px;
+    background: rgba(160, 112, 64, 0.05);
+    border-radius: 10px;
+  }
+  .person {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-2);
+    letter-spacing: -0.05px;
+    min-width: 0;
+  }
+  .person__avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--bg);
+    letter-spacing: -0.2px;
+    flex-shrink: 0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .person__avatar--leena { background: linear-gradient(135deg, #6f8caa 0%, var(--color-grammar) 100%); }
+  .person__avatar--priya  { background: linear-gradient(135deg, var(--grad-mid) 0%, var(--color-intent) 100%); }
+  .person__body { min-width: 0; }
+  .person__name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+    letter-spacing: -0.1px;
+  }
+  .person__role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--text-2);
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+  .people__arrow {
+    flex-shrink: 0;
+    color: var(--gray-400);
+  }
+
+  /* Actions row */
+  .hero-card__actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 2px;
+  }
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 120ms ease;
+  }
+  .btn svg { width: 12px; height: 12px; }
+  .btn:active { transform: scale(0.98); }
+  .btn--primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: transparent;
+  }
+  .btn__hint {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: #737373;
+    text-transform: uppercase;
+  }
+
+  /* Secondary matrix of 2 small cards below hero */
+  .sub-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .sub-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 14px;
+  }
+  .sub-card__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #737373;
+    margin-bottom: 6px;
+  }
+  .sub-card__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.1px;
+    line-height: 1.3;
+  }
+  .sub-card__meta {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-top: 4px;
+    letter-spacing: -0.05px;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     RIGHT RAIL · Open threads inherited
+     ───────────────────────────────────────────────────────── */
+  .zone-right {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: zone-in 600ms cubic-bezier(0.22, 0.8, 0.36, 1) 280ms forwards;
+  }
+  .zone-right__hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .zone-right__count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--text-2);
+    padding: 2px 7px;
+    background: var(--gray-100);
+    border-radius: 4px;
+  }
+
+  .thread-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 12px 12px;
+    box-shadow: inset 3px 0 0 transparent;
+  }
+  .thread-card--meeting  { box-shadow: inset 3px 0 0 var(--color-intent); }
+  .thread-card--research { box-shadow: inset 3px 0 0 #4a6a90; }
+  .thread-card--brand    { box-shadow: inset 3px 0 0 var(--color-brain); }
+
+  .thread-card__kind {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+  .thread-card__chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(10, 10, 10, 0.04);
+    color: var(--text-2);
+  }
+  .thread-card--meeting  .thread-card__chip { color: var(--color-intent); background: rgba(160, 112, 64, 0.08); }
+  .thread-card--research .thread-card__chip { color: #4a6a90; background: rgba(74, 106, 144, 0.08); }
+  .thread-card--brand    .thread-card__chip { color: var(--color-brain); background: rgba(106, 74, 144, 0.08); }
+
+  .thread-card__age {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--gray-400);
+  }
+  .thread-card__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.1px;
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+  .thread-card__note {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-2);
+    line-height: 1.35;
+    letter-spacing: -0.05px;
+  }
+
+  @keyframes zone-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zone-left, .zone-center, .zone-right {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .lineage__live::before { animation: none !important; }
+  }
+
+  /* ── Tablet portrait / narrow width: stack zones ── */
+  @media (max-width: 1024px) {
+    body.noframe .canvas {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 12px 18px 22px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="tablet-frame">
+  <div class="tablet-cam" aria-hidden="true"></div>
+  <div class="tablet-screen" role="img"
+       aria-label="Arman's first morning in Atlas. A welcome dashboard for Project Apollo with lineage, similar past work, and inherited open threads.">
+
+    <!-- Status bar -->
+    <div class="status-bar" aria-hidden="true">
+      <span>9:04 AM · Tue 14 Aug 2029</span>
+      <span class="status-bar__right">
+        <svg viewBox="0 0 17 11" fill="currentColor" width="14" height="10">
+          <rect x="0"  y="7" width="3" height="4"  rx="0.6"/>
+          <rect x="4"  y="5" width="3" height="6"  rx="0.6"/>
+          <rect x="8"  y="3" width="3" height="8"  rx="0.6"/>
+          <rect x="12" y="1" width="3" height="10" rx="0.6"/>
+        </svg>
+        <svg viewBox="0 0 15 11" fill="none" stroke="currentColor" stroke-width="1.2" width="14" height="10">
+          <path d="M1 4.2 A10 10 0 0 1 14 4.2"/>
+          <path d="M3 6.4 A7 7 0 0 1 12 6.4"/>
+          <path d="M5 8.6 A4 4 0 0 1 10 8.6"/>
+          <circle cx="7.5" cy="10" r="0.8" fill="currentColor" stroke="none"/>
+        </svg>
+        <svg viewBox="0 0 25 11" fill="none" stroke="currentColor" stroke-width="1" width="22" height="10">
+          <rect x="0.5" y="0.5" width="22" height="10" rx="2.5"/>
+          <rect x="23"  y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor"/>
+          <rect x="2"   y="2"   width="17" height="7" rx="1.4" fill="currentColor"/>
+        </svg>
+      </span>
+    </div>
+
+    <!-- App header -->
+    <header class="hdr">
+      <div class="hdr__title-block">
+        <span class="hdr__eyebrow">Atlas · Project Apollo</span>
+        <h1 class="hdr__title">Welcome, <em>Arman</em>.</h1>
+        <p class="hdr__sub">We prepared this so you don't start from zero.</p>
+      </div>
+      <div class="hdr__right">
+        <div class="hdr__date">
+          <strong>Tue · 14 Aug 2029</strong>
+          Day 1 · 9:04 AM
+        </div>
+        <div class="hdr__avatar" aria-label="Arman">Ar</div>
+      </div>
+    </header>
+
+    <!-- Three zones -->
+    <div class="canvas">
+
+      <!-- LEFT · Lineage -->
+      <aside class="zone-left">
+        <section class="card lineage" aria-label="Project lineage">
+          <div class="lineage__hdr">
+            <span class="card__label">Lineage</span>
+            <span class="lineage__live">Live</span>
+          </div>
+
+          <div class="metric">
+            <div class="metric__num">47<span class="unit">decisions</span></div>
+            <div class="metric__label">Logged · since 2026</div>
+          </div>
+          <div class="metric">
+            <div class="metric__num">12<span class="unit">questions</span></div>
+            <div class="metric__label">Still open</div>
+          </div>
+          <div class="metric">
+            <div class="metric__num">3<span class="unit">sprints</span></div>
+            <div class="metric__label">In flight</div>
+          </div>
+
+          <div class="tl" aria-hidden="true">
+            <div class="tl__title">Decisions · last 16 weeks</div>
+            <div class="tl__bars">
+              <div class="tl__bar" style="height: 22%"></div>
+              <div class="tl__bar" style="height: 36%"></div>
+              <div class="tl__bar" style="height: 28%"></div>
+              <div class="tl__bar" style="height: 54%"></div>
+              <div class="tl__bar" style="height: 32%"></div>
+              <div class="tl__bar" style="height: 48%"></div>
+              <div class="tl__bar" style="height: 62%"></div>
+              <div class="tl__bar" style="height: 42%"></div>
+              <div class="tl__bar" style="height: 68%"></div>
+              <div class="tl__bar" style="height: 40%"></div>
+              <div class="tl__bar" style="height: 54%"></div>
+              <div class="tl__bar" style="height: 72%"></div>
+              <div class="tl__bar" style="height: 44%"></div>
+              <div class="tl__bar" style="height: 66%"></div>
+              <div class="tl__bar" style="height: 52%"></div>
+              <div class="tl__bar accent" style="height: 88%"></div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- CENTER · Similar to your first task -->
+      <main class="zone-center">
+        <article class="hero-card" aria-label="Similar to your first task">
+          <div class="hero-card__head">
+            <span class="card__label">Similar to your first task</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: #737373; text-transform: uppercase;">Confidence · high</span>
+          </div>
+
+          <h2 class="hero-card__title">Enterprise tier pricing — a question you'll hear today</h2>
+
+          <p class="hero-card__quote">
+            <em>Leena (Brand Owner, 44)</em> asked whether enterprise pricing should bundle the analytics module. <em>Priya (PO, 2026–2029)</em> resolved a near-identical question in <em>Q3 2027</em> — see decision <em>#142</em>.
+          </p>
+
+          <div class="people" aria-label="Relevant people">
+            <div class="person">
+              <div class="person__avatar person__avatar--leena" aria-label="Leena">L</div>
+              <div class="person__body">
+                <div class="person__name">Leena</div>
+                <div class="person__role">Brand Owner · 2024→</div>
+              </div>
+            </div>
+            <span class="people__arrow" aria-hidden="true">
+              <svg viewBox="0 0 16 12" width="22" height="14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+                <path d="M1 6 L14 6 M10 2 L14 6 L10 10"/>
+              </svg>
+            </span>
+            <div class="person">
+              <div class="person__avatar person__avatar--priya" aria-label="Priya">Pr</div>
+              <div class="person__body">
+                <div class="person__name">Priya</div>
+                <div class="person__role">PO · 2026→2029</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-card__actions">
+            <button class="btn btn--primary" type="button">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                <path d="M3 2 L9 6 L3 10 Z"/>
+              </svg>
+              Replay thread
+            </button>
+            <button class="btn" type="button">Open decision #142</button>
+            <span class="btn__hint">8 min · voice + slides</span>
+          </div>
+        </article>
+
+        <div class="sub-grid">
+          <div class="sub-card">
+            <div class="sub-card__label" style="color: var(--color-intent);">Before your 10 AM</div>
+            <div class="sub-card__title">Sync with Leena — 56 min away</div>
+            <div class="sub-card__meta">Brief auto-drafted · read in 6 min</div>
+          </div>
+          <div class="sub-card">
+            <div class="sub-card__label" style="color: var(--color-brain);">Quietly handled</div>
+            <div class="sub-card__title">22 routine tickets · last 24 h</div>
+            <div class="sub-card__meta">AI · under cascade you set at suggest</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- RIGHT · Open threads inherited -->
+      <aside class="zone-right">
+        <div class="zone-right__hdr">
+          <span class="card__label">Open threads · inherited</span>
+          <span class="zone-right__count">3</span>
+        </div>
+
+        <article class="thread-card thread-card--meeting">
+          <div class="thread-card__kind">
+            <span class="thread-card__chip">Meeting Brain</span>
+            <span class="thread-card__age">6 d</span>
+          </div>
+          <div class="thread-card__title">Pricing review pending</div>
+          <div class="thread-card__note">Priya scheduled 2029-08-20 with Finance. Agenda drafted. You're invited but not required.</div>
+        </article>
+
+        <article class="thread-card thread-card--research">
+          <div class="thread-card__kind">
+            <span class="thread-card__chip">Research Brain</span>
+            <span class="thread-card__age">14 d</span>
+          </div>
+          <div class="thread-card__title">2028 interviews not yet synthesized</div>
+          <div class="thread-card__note">27 transcripts · raw tags applied · synthesis paused mid-draft by Priya on 2029-07-31.</div>
+        </article>
+
+        <article class="thread-card thread-card--brand">
+          <div class="thread-card__kind">
+            <span class="thread-card__chip">Brand Brain</span>
+            <span class="thread-card__age">2 d</span>
+          </div>
+          <div class="thread-card__title">Tagline refresh in progress</div>
+          <div class="thread-card__note">Priya's final draft passed workshop. Leena holding for your read before we send.</div>
+        </article>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+
+</body>
+</html>

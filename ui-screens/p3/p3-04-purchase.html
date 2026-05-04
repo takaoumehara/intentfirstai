@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>P3-04 Purchase Complete + Disposable UI Dissolution</title>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 <style>
   html { overflow: hidden; height: 100%; }
   :root {
@@ -14,18 +13,33 @@
   }
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #E8EAED;
+    background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     height: 100vh;
     overflow: hidden;
-    font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     user-select: none;
     -webkit-user-select: none;
   }
+  /* noframe mode — parent page owns iPhone frame */
+  body.noframe { background: transparent !important; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .phone-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .phone-frame::before,
+  body.noframe .phone-frame::after { display: none !important; }
+  body.noframe .phone-screen { border-radius: 0; }
+  body.noframe .notch { display: none !important; }
+  body.noframe .status-bar { display: none !important; }
+  body.noframe .home-indicator { display: none !important; }
+  /* Dynamic Island safe-area — push purchase screen down 56px */
+  body.noframe .purchase-screen { padding-top: 88px; }
 
   /* ── Phone Frame (iPhone 15 Pro) ── */
   .phone-frame {
@@ -42,7 +56,6 @@
       inset 0 1px 0 rgba(255,255,255,0.08),
       inset 0 -1px 0 rgba(0,0,0,0.3);
   }
-  /* Side button — power */
   .phone-frame::before {
     content: '';
     position: absolute;
@@ -53,7 +66,6 @@
     background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
     border-radius: 0 2px 2px 0;
   }
-  /* Side buttons — volume + mute */
   .phone-frame::after {
     content: '';
     position: absolute;
@@ -69,7 +81,7 @@
   .phone-screen {
     width: 100%;
     height: 100%;
-    background: #FFFFFF;
+    background: #ffffff;
     border-radius: 40px;
     overflow: hidden;
     position: relative;
@@ -97,13 +109,12 @@
     align-items: center;
     font-size: 15px;
     font-weight: 600;
-    color: #202124;
-    background: #FFFFFF;
+    color: #0a0a0a;
+    background: #ffffff;
     position: relative;
     z-index: 50;
   }
   .status-bar-right { display: flex; gap: 5px; align-items: center; }
-  .status-bar-right .material-symbols-outlined { font-size: 17px; }
 
   /* phone-screen inner height = 844 - 22 (padding) = 822px */
   .content-area {
@@ -126,13 +137,13 @@
     z-index: 52;
     pointer-events: none;
   }
-  .home-indicator-bar { width: 134px; height: 5px; background: #202124; border-radius: 100px; }
+  .home-indicator-bar { width: 134px; height: 5px; background: #0a0a0a; border-radius: 100px; }
 
   /* ==================== Purchase Complete Screen ==================== */
   .purchase-screen {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: #FFFFFF;
+    background: #ffffff;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -151,10 +162,10 @@
     height: 96px;
   }
   .check-bg {
-    fill: #E6F4EA;
+    fill: #ecfdf5;
   }
   .check-stroke {
-    stroke: #1E8E3E;
+    stroke: #059669;
     stroke-width: 3;
     fill: none;
     stroke-linecap: round;
@@ -172,15 +183,16 @@
 
   .purchase-title {
     font-size: 24px;
-    font-weight: 700;
-    color: #202124;
+    font-weight: 600;
+    color: #0a0a0a;
     margin-bottom: 8px;
     opacity: 0;
     transform: translateY(8px);
+    letter-spacing: -0.5px;
   }
   .purchase-detail {
     font-size: 15px;
-    color: #5F6368;
+    color: #525252;
     text-align: center;
     margin-bottom: 24px;
     line-height: 1.5;
@@ -197,7 +209,7 @@
   }
   .tracker-bar {
     height: 4px;
-    background: #E8EAED;
+    background: #e4e4e7;
     border-radius: 2px;
     position: relative;
     margin-bottom: 8px;
@@ -207,7 +219,7 @@
     top: 0; left: 0;
     height: 100%;
     width: 25%;
-    background: #1E8E3E;
+    background: #059669;
     border-radius: 2px;
     transition: width 600ms 800ms cubic-bezier(0.2, 0, 0, 1);
   }
@@ -215,16 +227,18 @@
     display: flex;
     justify-content: space-between;
     font-size: 11px;
-    color: #9AA0A6;
+    color: #a1a1aa;
+    font-weight: 500;
+    letter-spacing: 0.01em;
   }
   .tracker-labels span:first-child {
-    color: #1E8E3E;
-    font-weight: 500;
+    color: #3a6a3a;
+    font-weight: 600;
   }
 
   .auto-delete-note {
     font-size: 13px;
-    color: #9AA0A6;
+    color: #a1a1aa;
     text-align: center;
     margin-bottom: 32px;
     opacity: 0;
@@ -234,10 +248,10 @@
   .ok-btn {
     padding: 14px 48px;
     border-radius: 9999px;
-    background: #1A73E8;
-    color: #FFFFFF;
+    background: #0a0a0a;
+    color: #ffffff;
     font-family: inherit;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     border: none;
     cursor: pointer;
@@ -258,7 +272,7 @@
   .dissolution-screen {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: #F8F9FA;
+    background: #fafafa;
     padding: 24px 16px;
     opacity: 0;
     pointer-events: none;
@@ -268,7 +282,7 @@
   .dissolution-header {
     font-size: 13px;
     font-weight: 500;
-    color: #1A73E8;
+    color: #4a6a90;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -276,11 +290,11 @@
   }
 
   .dissolve-card {
-    background: #FFFFFF;
-    border-radius: 12px;
+    background: #ffffff;
+    border-radius: 10px;
     padding: 14px;
     margin-bottom: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid rgba(10,10,10,0.07);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -292,18 +306,18 @@
   }
 
   .dissolve-img {
-    width: 48px; height: 48px; border-radius: 8px; background: #F1F3F4;
+    width: 48px; height: 48px; border-radius: 8px; background: #f4f4f5;
     display: flex; align-items: center; justify-content: center;
     font-size: 24px; flex-shrink: 0;
   }
-  .dissolve-name { font-size: 14px; font-weight: 500; color: #202124; }
-  .dissolve-meta { font-size: 12px; color: #5F6368; }
+  .dissolve-name { font-size: 14px; font-weight: 500; color: #0a0a0a; }
+  .dissolve-meta { font-size: 12px; color: #525252; }
 
   .dissolve-dpad {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: #F1F3F4;
+    background: #f4f4f5;
     margin: 20px auto;
     display: flex;
     align-items: center;
@@ -315,13 +329,13 @@
     opacity: 0;
   }
   .dissolve-dpad-inner {
-    width: 32px; height: 32px; border-radius: 50%; background: #1A73E8;
+    width: 32px; height: 32px; border-radius: 50%; background: #4a6a90;
   }
 
   /* Ghost outline */
   .ghost-outline {
-    border: 2px dashed #E8EAED;
-    border-radius: 12px;
+    border: 2px dashed #e4e4e7;
+    border-radius: 10px;
     height: 72px;
     margin-bottom: 10px;
     opacity: 0;
@@ -334,7 +348,7 @@
   .home-screen {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: #FFFFFF;
+    background: #ffffff;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -346,23 +360,25 @@
 
   .home-gemini {
     font-size: 48px;
-    color: #1A73E8;
+    color: #4a6a90;
     margin-bottom: 12px;
+    line-height: 1;
   }
   .home-greeting {
     font-size: 20px;
     font-weight: 500;
-    color: #202124;
+    color: #0a0a0a;
     margin-bottom: 4px;
+    letter-spacing: -0.3px;
   }
   .home-sub {
     font-size: 14px;
-    color: #9AA0A6;
+    color: #a1a1aa;
   }
   .home-search {
     width: 280px;
     height: 48px;
-    background: #F1F3F4;
+    background: #f4f4f5;
     border-radius: 9999px;
     margin-top: 32px;
     display: flex;
@@ -370,8 +386,7 @@
     padding: 0 16px;
     gap: 8px;
   }
-  .home-search .material-symbols-outlined { font-size: 20px; color: #9AA0A6; }
-  .home-search span:last-child { font-size: 14px; color: #9AA0A6; }
+  .home-search span:last-child { font-size: 14px; color: #a1a1aa; }
 
   .disposable-label {
     position: absolute;
@@ -379,7 +394,7 @@
     left: 0; right: 0;
     text-align: center;
     font-size: 12px;
-    color: #BDC1C6;
+    color: #d4d4d8;
     opacity: 0;
     transition: opacity 600ms 400ms;
   }
@@ -393,8 +408,8 @@
     transform: translateX(-50%);
     padding: 8px 20px;
     border-radius: 9999px;
-    background: rgba(0,0,0,0.06);
-    color: #5F6368;
+    background: rgba(10,10,10,0.06);
+    color: #525252;
     font-family: inherit;
     font-size: 12px;
     font-weight: 500;
@@ -408,7 +423,7 @@
   .replay-btn.visible { opacity: 1; }
 
   @media (hover: hover) and (pointer: fine) {
-    .ok-btn:hover { background: #1557B0; }
+    .ok-btn:hover { background: #27272a; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -429,9 +444,26 @@
   <div class="status-bar">
     <span>9:41</span>
     <div class="status-bar-right">
-      <span class="material-symbols-outlined">signal_cellular_alt</span>
-      <span class="material-symbols-outlined">wifi</span>
-      <span class="material-symbols-outlined">battery_full</span>
+      <!-- Signal bars -->
+      <svg width="15" height="12" viewBox="0 0 15 12" fill="#0a0a0a">
+        <rect x="0" y="8" width="2.5" height="4" opacity="0.25" rx="0.5"/>
+        <rect x="3.5" y="5.5" width="2.5" height="6.5" opacity="0.5" rx="0.5"/>
+        <rect x="7" y="3" width="2.5" height="9" rx="0.5"/>
+        <rect x="10.5" y="0.5" width="2.5" height="11.5" rx="0.5"/>
+      </svg>
+      <!-- WiFi -->
+      <svg width="17" height="13" viewBox="0 0 24 18" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round">
+        <path d="M1.5 7C5.8 2.7 12 1 12 1S18.2 2.7 22.5 7"/>
+        <path d="M5 10.5C8 7.5 12 6.5 12 6.5S16 7.5 19 10.5"/>
+        <path d="M8.5 14C10 12.5 12 12 12 12S14 12.5 15.5 14"/>
+        <circle cx="12" cy="17" r="1.5" fill="#0a0a0a" stroke="none"/>
+      </svg>
+      <!-- Battery -->
+      <svg width="22" height="12" viewBox="0 0 28 14" fill="#0a0a0a">
+        <rect x="0.75" y="0.75" width="22.5" height="12.5" rx="2.25" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+        <rect x="23.5" y="3.5" width="3" height="7" rx="1.5"/>
+        <rect x="2.5" y="2.5" width="18" height="9" rx="1.5"/>
+      </svg>
     </div>
   </div>
 
@@ -467,21 +499,21 @@
         <span>✦</span> Gemini &middot; Cleaning up...
       </div>
       <div class="dissolve-card" id="dc1">
-        <div class="dissolve-img" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop&q=80" alt="Nike Flex Runner" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div class="dissolve-img" style="background:#fafafa;overflow:hidden;"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop&q=80" alt="Nike Flex Runner" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
         <div>
           <div class="dissolve-name">Nike Flex Runner</div>
           <div class="dissolve-meta">$65 &middot; 94%</div>
         </div>
       </div>
       <div class="dissolve-card" id="dc2">
-        <div class="dissolve-img" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=200&h=200&fit=crop&q=80" alt="Adidas Terrex" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div class="dissolve-img" style="background:#fafafa;overflow:hidden;"><img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=200&h=200&fit=crop&q=80" alt="Adidas Terrex" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
         <div>
           <div class="dissolve-name">Adidas Terrex</div>
           <div class="dissolve-meta">$58 &middot; 88% &middot; Purchased ✓</div>
         </div>
       </div>
       <div class="dissolve-card" id="dc3">
-        <div class="dissolve-img" style="background:#F8F9FA;overflow:hidden;"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=200&h=200&fit=crop&q=80" alt="New Balance 680" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
+        <div class="dissolve-img" style="background:#fafafa;overflow:hidden;"><img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=200&h=200&fit=crop&q=80" alt="New Balance 680" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"></div>
         <div>
           <div class="dissolve-name">New Balance 680</div>
           <div class="dissolve-meta">$52 &middot; 71%</div>
@@ -501,7 +533,9 @@
       <div class="home-greeting">Good afternoon</div>
       <div class="home-sub">What can I help with?</div>
       <div class="home-search">
-        <span class="material-symbols-outlined">search</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" style="flex-shrink:0">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
         <span>Ask Gemini...</span>
       </div>
       <div class="disposable-label">Disposable UI — born for a purpose, gone when done</div>
@@ -543,40 +577,33 @@
     if (animating) return;
     animating = true;
 
-    // Fade out purchase screen
     const ps = document.getElementById('purchaseScreen');
     ps.style.opacity = '0';
 
-    // Show dissolution screen
     setTimeout(() => {
       const ds = document.getElementById('dissolutionScreen');
       ds.style.opacity = '1';
       ds.style.pointerEvents = 'auto';
     }, 400);
 
-    // Peel cards away staggered
     setTimeout(() => document.getElementById('dc1').classList.add('peeling'), 800);
     setTimeout(() => document.getElementById('dc2').classList.add('peeling'), 900);
     setTimeout(() => document.getElementById('dc3').classList.add('peeling'), 1000);
 
-    // Shrink D-pad
     setTimeout(() => document.getElementById('dissolveDpad').classList.add('shrinking'), 1100);
 
-    // Show ghost outlines
     setTimeout(() => {
       document.getElementById('ghost1').classList.add('visible');
       document.getElementById('ghost2').classList.add('visible');
       document.getElementById('ghost3').classList.add('visible');
     }, 1300);
 
-    // Fade ghost outlines
     setTimeout(() => {
       document.getElementById('ghost1').classList.add('fading');
       document.getElementById('ghost2').classList.add('fading');
       document.getElementById('ghost3').classList.add('fading');
     }, 1800);
 
-    // Show home screen
     setTimeout(() => {
       document.getElementById('dissolutionScreen').style.opacity = '0';
       const hs = document.getElementById('homeScreen');
@@ -584,7 +611,6 @@
       hs.classList.add('active');
     }, 2300);
 
-    // Show replay
     setTimeout(() => {
       document.getElementById('replayBtn').classList.add('visible');
       animating = false;
@@ -592,7 +618,6 @@
   }
 
   function replay() {
-    // Reset everything
     document.getElementById('replayBtn').classList.remove('visible');
     document.getElementById('homeScreen').style.opacity = '0';
     document.getElementById('homeScreen').classList.remove('active');
@@ -604,7 +629,6 @@
       document.getElementById(id).classList.remove('visible','fading');
     });
 
-    // Reset purchase screen
     const ps = document.getElementById('purchaseScreen');
     ps.style.opacity = '1';
     document.getElementById('checkCircle').classList.remove('animate-check');
@@ -614,7 +638,6 @@
       document.getElementById(id).style.transform = 'translateY(8px)';
     });
 
-    // Re-trigger entrance
     setTimeout(() => {
       ['pTitle','pDetail','pTracker','pNote','okBtn'].forEach(id => {
         document.getElementById(id).style.opacity = '';
@@ -627,6 +650,10 @@
       setTimeout(() => document.getElementById('pNote').classList.add('fade-in'), 750);
       setTimeout(() => document.getElementById('okBtn').classList.add('fade-in'), 900);
     }, 100);
+  }
+
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
   }
 </script>
 </body>

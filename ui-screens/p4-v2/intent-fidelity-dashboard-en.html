@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intent Fidelity Dashboard | P4 Project Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-2);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto;
+    padding: 0;
+  }
+  body.noframe .artifact {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    max-width: 100%;
+  }
+
+  .artifact {
+    width: 100%;
+    max-width: 1200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .breadcrumb-sep { color: var(--text-3); opacity: 0.5; }
+  .breadcrumb-current { color: var(--text); }
+  .project-name {
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    margin-top: 4px;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .ts-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-2);
+    padding: 6px 10px;
+    background: var(--bg-3);
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+  }
+  .alert-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--chip-red-text);
+    background: var(--chip-red-bg);
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .alert-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--illust-red);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  /* ─── Main grid ─── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 0;
+  }
+  .panel {
+    padding: 28px 32px;
+  }
+  .panel + .panel {
+    border-left: 1px solid var(--border);
+  }
+
+  .panel-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 16px;
+  }
+
+  /* ─── Hero: Gauge + trend ─── */
+  .fidelity-hero {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .gauge-wrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+  }
+  .gauge-num {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -42%);
+    text-align: center;
+  }
+  .gauge-num .big {
+    font-family: var(--font-mono);
+    font-size: 52px;
+    font-weight: 500;
+    color: var(--illust-red);
+    letter-spacing: -2px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .gauge-num .small {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    letter-spacing: 0.08em;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  .trend-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .trend-title {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+  }
+  .trend-sub {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+    font-family: var(--font-jp);
+  }
+  .trend-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--illust-red);
+    letter-spacing: 0.04em;
+    margin-top: 4px;
+  }
+  .delta-arrow {
+    font-size: 16px; line-height: 1;
+  }
+
+  /* ─── Chart ─── */
+  .chart-block {
+    margin-top: 28px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px 16px;
+  }
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .chart-head-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .chart-head-ts {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+  .chart-svg {
+    width: 100%;
+    height: 180px;
+    display: block;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+  .legend-swatch {
+    display: inline-block;
+    width: 10px; height: 2px;
+    background: var(--text);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .legend-swatch--red { background: var(--illust-red); }
+  .legend-swatch--target {
+    background: none;
+    border-top: 1px dashed var(--text-3);
+    height: 0;
+    margin-bottom: 2px;
+  }
+
+  /* ─── Drift causes ─── */
+  .causes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cause-item {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .cause-item--red    { border-left-color: var(--illust-red); }
+  .cause-item--amber  { border-left-color: var(--illust-amber); }
+  .cause-item--yellow { border-left-color: #d4a017; }
+
+  .cause-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cause-dot--red    { background: var(--illust-red); }
+  .cause-dot--amber  { background: var(--illust-amber); }
+  .cause-dot--yellow { background: #d4a017; }
+
+  .cause-body {
+    min-width: 0;
+  }
+  .cause-sprint {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .cause-desc {
+    font-family: var(--font-jp);
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  .cause-weight {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .cause-weight-label {
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 1px;
+    font-weight: 600;
+  }
+
+  /* ─── Reasoning log ─── */
+  .log-block {
+    margin-top: 20px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .log-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .log-head-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .log-chevron {
+    font-size: 10px;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+  }
+  .log-body {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-2);
+    line-height: 1.6;
+    letter-spacing: 0;
+  }
+  .log-line {
+    padding: 2px 0;
+    display: flex;
+    gap: 10px;
+  }
+  .log-line-ts {
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+  .log-line-arrow {
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+
+  /* ─── Actions ─── */
+  .actions {
+    padding: 24px 32px 28px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+  .actions-head {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 14px;
+  }
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  .action-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out);
+    cursor: pointer;
+  }
+  .action-card:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+  .action-card--green { border-color: rgba(5, 150, 105, 0.35); }
+  .action-card--blue {
+    background: var(--text);
+    border-color: var(--text);
+  }
+  .action-card--blue .action-title,
+  .action-card--blue .action-desc {
+    color: var(--bg);
+  }
+  .action-card--blue .action-desc { color: rgba(255,255,255,0.72); }
+  .action-card--amber { border-color: rgba(217, 119, 6, 0.35); }
+
+  .action-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: inline-block;
+    padding: 3px 7px;
+    border-radius: 4px;
+  }
+  .action-card--green .action-tag { background: var(--chip-green-bg); color: var(--chip-green-text); }
+  .action-card--blue .action-tag { background: rgba(255,255,255,0.14); color: var(--bg); }
+  .action-card--amber .action-tag { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+
+  .action-title {
+    font-family: var(--font-jp);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .action-desc {
+    font-family: var(--font-jp);
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+
+  /* ─── Footer ─── */
+  .footer {
+    padding: 14px 28px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .footer-brain {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brain-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--color-success);
+  }
+
+  @media (max-width: 820px) {
+    .grid { grid-template-columns: 1fr; }
+    .panel + .panel { border-left: none; border-top: 1px solid var(--border); }
+    .fidelity-hero { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    .action-row { grid-template-columns: 1fr; }
+  }
+</style>
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+</head>
+<body>
+<div class="artifact">
+
+  <!-- Header -->
+  <header class="header">
+    <div>
+      <div class="breadcrumb">
+        <span>Workspace</span>
+        <span class="breadcrumb-sep">/</span>
+        <span>Project Atlas</span>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Intent Fidelity</span>
+      </div>
+      <div class="project-name">Intent Fidelity Dashboard</div>
+    </div>
+    <div class="header-right">
+      <span class="ts-badge">2026-04-21 · 14:37</span>
+      <span class="alert-chip"><span class="alert-dot"></span>Drift detected</span>
+    </div>
+  </header>
+
+  <!-- Two-panel body -->
+  <div class="grid">
+
+    <!-- LEFT: Fidelity score + chart -->
+    <section class="panel">
+      <div class="panel-label">L1 Intent · Current Alignment</div>
+
+      <div class="fidelity-hero">
+        <!-- Semi-circular gauge (SVG, hand-drawn feel) -->
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 200 200" width="200" height="200" aria-hidden="true">
+            <!-- Track -->
+            <circle cx="100" cy="100" r="78"
+              fill="none"
+              stroke="var(--bg-3)"
+              stroke-width="14" />
+            <!-- Arc 62% (from top, clockwise). Circumference = 2π·78 ≈ 490.1; 62% = 303.9 -->
+            <circle cx="100" cy="100" r="78"
+              fill="none"
+              stroke="var(--illust-red)"
+              stroke-width="14"
+              stroke-linecap="round"
+              stroke-dasharray="303.9 490.1"
+              transform="rotate(-90 100 100)" />
+            <!-- Target tick at 85% -->
+            <g transform="rotate(216 100 100)">
+              <line x1="100" y1="14" x2="100" y2="28"
+                stroke="var(--text-3)" stroke-width="2" stroke-dasharray="2 2"/>
+            </g>
+          </svg>
+          <div class="gauge-num">
+            <div class="big">62<span style="font-size: 28px; vertical-align: top; margin-left: 2px; color: var(--text-3);">%</span></div>
+            <div class="small">Fidelity</div>
+          </div>
+        </div>
+
+        <div class="trend-stack">
+          <div class="trend-title"><span style="color: var(--illust-red);">20pt</span> drift from Intent</div>
+          <div class="trend-sub">Since Sprint 3, small decisions have compounded. 23pt below the 85% target.</div>
+          <div class="trend-delta"><span class="delta-arrow">↓</span> Last week 82% → This week 62%</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-block">
+        <div class="chart-head">
+          <span class="chart-head-title">Fidelity over 8 weeks</span>
+          <span class="chart-head-ts">W1–W8 · Target 85%</span>
+        </div>
+        <svg class="chart-svg" viewBox="0 0 560 180" preserveAspectRatio="none" aria-hidden="true">
+          <!-- Grid -->
+          <g stroke="var(--border)" stroke-width="1">
+            <line x1="40" y1="20"  x2="540" y2="20"/>
+            <line x1="40" y1="60"  x2="540" y2="60"/>
+            <line x1="40" y1="100" x2="540" y2="100"/>
+            <line x1="40" y1="140" x2="540" y2="140"/>
+          </g>
+          <!-- Y-axis labels -->
+          <g font-family="Geist Mono, monospace" font-size="9" fill="#737373" letter-spacing="0.4">
+            <text x="10" y="24">100</text>
+            <text x="10" y="64">80</text>
+            <text x="10" y="104">60</text>
+            <text x="10" y="144">40</text>
+          </g>
+          <!-- Target line (85%) -->
+          <line x1="40" y1="50" x2="540" y2="50"
+            stroke="#737373" stroke-width="1" stroke-dasharray="3 4"/>
+          <text x="545" y="54" font-family="Geist Mono, monospace" font-size="9" fill="#737373">85</text>
+
+          <!-- Path: W1..W8 values roughly 84,83,82,82,82,82,72,62.
+               x: 80..520 step ~63, y: 100 - val is mapped: y = (100-val)*1.6 + 20 -->
+          <path d="M 80,45.6 L 143,47.2 L 206,48.8 L 269,48.8 L 332,48.8 L 395,48.8 L 458,65 L 521,128.8"
+            fill="none"
+            style="stroke: var(--text);"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+          <!-- Red accent on the drop segment -->
+          <path d="M 395,48.8 L 458,65 L 521,128.8"
+            fill="none"
+            stroke="var(--illust-red)"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+          <!-- Dots -->
+          <g style="fill: var(--text);">
+            <circle cx="80"  cy="45.6"  r="2.5"/>
+            <circle cx="143" cy="47.2"  r="2.5"/>
+            <circle cx="206" cy="48.8"  r="2.5"/>
+            <circle cx="269" cy="48.8"  r="2.5"/>
+            <circle cx="332" cy="48.8"  r="2.5"/>
+            <circle cx="395" cy="48.8"  r="2.5"/>
+          </g>
+          <g fill="var(--illust-red)">
+            <circle cx="458" cy="65"    r="3"/>
+            <circle cx="521" cy="128.8" r="4"/>
+          </g>
+          <!-- Current marker label -->
+          <g font-family="Geist Mono, monospace" font-size="10" font-weight="600">
+            <text x="521" y="148" fill="var(--illust-red)" text-anchor="middle">62%</text>
+          </g>
+          <!-- X-axis labels -->
+          <g font-family="Geist Mono, monospace" font-size="9" fill="#737373" text-anchor="middle">
+            <text x="80"  y="170">W1</text>
+            <text x="143" y="170">W2</text>
+            <text x="206" y="170">W3</text>
+            <text x="269" y="170">W4</text>
+            <text x="332" y="170">W5</text>
+            <text x="395" y="170">W6</text>
+            <text x="458" y="170">W7</text>
+            <text x="521" y="170">W8</text>
+          </g>
+        </svg>
+        <div class="chart-legend">
+          <span><span class="legend-swatch"></span>Actual</span>
+          <span><span class="legend-swatch legend-swatch--red"></span>Drift zone</span>
+          <span><span class="legend-swatch legend-swatch--target"></span>Target 85%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Drift cause analysis -->
+    <section class="panel">
+      <div class="panel-label">Drift cause analysis · Detected causes</div>
+
+      <div class="causes-list">
+        <div class="cause-item cause-item--red">
+          <span class="cause-dot cause-dot--red"></span>
+          <div class="cause-body">
+            <div class="cause-sprint">Sprint 3 · 2026-04-08</div>
+            <div class="cause-desc">Dev's "performance optimization" call — exploration flow shortened</div>
+          </div>
+          <div class="cause-weight">
+            <span class="cause-weight-label">Weight</span>
+            <span>−14pt</span>
+          </div>
+        </div>
+
+        <div class="cause-item cause-item--amber">
+          <span class="cause-dot cause-dot--amber"></span>
+          <div class="cause-body">
+            <div class="cause-sprint">Sprint 2 · 2026-03-24</div>
+            <div class="cause-desc">Design's "shortest path" refinement — browsing elements removed</div>
+          </div>
+          <div class="cause-weight">
+            <span class="cause-weight-label">Weight</span>
+            <span>−4pt</span>
+          </div>
+        </div>
+
+        <div class="cause-item cause-item--yellow">
+          <span class="cause-dot cause-dot--yellow"></span>
+          <div class="cause-body">
+            <div class="cause-sprint">Sprint 1 · 2026-03-10</div>
+            <div class="cause-desc">Minor spec change from PM — added filter conditions</div>
+          </div>
+          <div class="cause-weight">
+            <span class="cause-weight-label">Weight</span>
+            <span>−2pt</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reasoning log -->
+      <div class="log-block">
+        <div class="log-head">
+          <span class="log-head-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Intent Drift · automated analysis log
+          </span>
+          <span class="log-chevron">▼ expanded</span>
+        </div>
+        <div class="log-body">
+          <div class="log-line"><span class="log-line-ts">14:36:02</span><span>compare_intent(L1.v1) ↔ implementation(sprint-3.commit-a4f)</span></div>
+          <div class="log-line"><span class="log-line-ts">14:36:03</span><span class="log-line-arrow">→</span><span>keyword-drift: "welcome hesitation" (7) → 0 (removed in nav.tsx)</span></div>
+          <div class="log-line"><span class="log-line-ts">14:36:04</span><span class="log-line-arrow">→</span><span>behavior-drift: avg-dwell 4.2s → 1.8s (measured in staging)</span></div>
+          <div class="log-line"><span class="log-line-ts">14:36:05</span><span class="log-line-arrow">→</span><span>cause-weight: Dev decision +14, Design refactor +4, PM spec +2</span></div>
+          <div class="log-line"><span class="log-line-ts">14:36:06</span><span class="log-line-arrow">✓</span><span>alignment_score = 0.62 · confidence = 0.94</span></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Action cards -->
+  <section class="actions">
+    <div class="actions-head">How do you want to handle this drift?</div>
+    <div class="action-row">
+      <div class="action-card action-card--green">
+        <span class="action-tag">Option A · Accept</span>
+        <div class="action-title">Accept the drift</div>
+        <div class="action-desc">Update Intent to justify the new direction. Learning writes back to L1.</div>
+      </div>
+      <div class="action-card action-card--blue">
+        <span class="action-tag">Option B · Update</span>
+        <div class="action-title">Rewrite the Intent</div>
+        <div class="action-desc">Edit L1 Intent. History is preserved — replayable later.</div>
+      </div>
+      <div class="action-card action-card--amber">
+        <span class="action-tag">Option C · Revert</span>
+        <div class="action-title">Fix the implementation</div>
+        <div class="action-desc">Course-correct in Sprint 4. Intent stays. Code closes the gap.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="footer-brain">
+      <span class="brain-dot"></span>
+      Generated by Atlas Brain · Confidence 94%
+    </span>
+    <span>Last sync 14:37 · auto-refresh 15min</span>
+  </footer>
+
+</div>
+</body>
+</html>

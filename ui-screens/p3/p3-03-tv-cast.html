@@ -3,63 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>P3-03 TV Cast + Remote Transformation</title>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined:opsz,wght,FILL@20..48,100..700,0..1" rel="stylesheet">
+<title>P3-03 · TV Cast + Phone Console — Family Co-Shopping</title>
+
+<!-- Canonical iPhone 15 Pro frame (CLAUDE.md device-frame standard) -->
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+
+<!-- Geist Sans (per Vercel Geist design system) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+
 <style>
+/* ============================================================
+   P3-03 — TV Cast + Phone Console
+   ------------------------------------------------------------
+   Aesthetic POV: refined editorial. The TV is the family stage
+   (large product portraits, no UI chrome competing). The phone
+   is a single-purpose purchase console — three signal layers:
+   1) who-this-is-for chip (Marcus / Amara — shelf identity)
+   2) current selection card (image, brand, fit)
+   3) intent line (price, confidence) + Buy CTA
+   Copper (#a05c35) is reserved for the price + Buy moment so
+   the eye lands there last. Everything else is Geist neutral.
+   ============================================================ */
+
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
 :root {
-  --ease: cubic-bezier(0.2, 0, 0, 1);
-  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
-  --blue: #1A73E8;
-  --blue-light: #E8F0FE;
-  --blue-dim: #D2E3FC;
-  --green: #1E8E3E;
-  --green-light: #E6F4EA;
-  --amber: #E37400;
-  --amber-light: #FEF7E0;
-  --surface: #FFFFFF;
-  --surface-dim: #F8F9FA;
-  --surface-container: #F1F3F4;
-  --text: #202124;
-  --text-2: #5F6368;
-  --text-3: #9AA0A6;
-  --text-4: #BDC1C6;
-  --border: #DADCE0;
-  --border-light: #E8EAED;
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft:      cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Geist neutral scale */
+  --gray-50:  #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-150: #ededed;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+  --gray-950: #0a0a0a;
+
+  /* Project-3 accent — muted neutral. */
+  --copper:        #171717;
+  --copper-soft:   #f4f4f5;
+  --copper-line:   #e5e5e5;
+  --copper-deep:   #171717;
+
+  /* Amara persona accent — soft slate */
+  --rose:          #525252;
+  --rose-soft:     #f4f4f5;
+
+  /* Confidence — minimal */
+  --ok:        #3a6a3a;
+  --ok-soft:   #ecfdf5;
+  --warn:      #4a6a90;
+  --warn-soft: #e8f0fe;
+
+  --surface:    #ffffff;
+  --surface-2:  #fafafa;
+  --line:       rgba(10,10,10,0.08);
+  --line-2:     rgba(10,10,10,0.14);
+
+  --text:    #171717;
+  --text-2:  #525252;
+  --text-3:  #737373;
+  --text-4:  #a3a3a3;
 }
+
+html, body { height: 100%; }
 body {
-  background: #35363a;
-  font-family: 'Google Sans', 'Google Sans Text', system-ui, sans-serif;
+  background: #f5f4f1;             /* warm light gallery wall */
+  font-family: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
+  color: var(--text);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
-/* Subtle centered glow behind the stage */
+
+/* noframe mode — when embedded via ?noframe=1 the parent page owns the backdrop */
+body.noframe { background: transparent !important; }
+body.noframe::before { display: none !important; }
+
+/* Subtle radial wash so the stage feels lit */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse 80% 70% at 42% 50%, rgba(255,255,255,0.04) 0%, transparent 65%);
+  background:
+    radial-gradient(ellipse 60% 55% at 38% 50%, rgba(255,255,255,0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 60%, rgba(160,92,53,0.04) 0%, transparent 70%);
   pointer-events: none;
+  z-index: 0;
 }
 
 /* ═══ STAGE ═══ */
 .stage {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 32px;
-  padding: 20px 32px;
+  gap: clamp(28px, 4vw, 56px);
+  padding: 24px clamp(24px, 3vw, 48px);
   width: 100vw;
   height: 100vh;
 }
 
-/* ═══ TV ═══ */
+/* ═══════════════════════════════════════════════════════════
+   TV — the family stage
+   ═══════════════════════════════════════════════════════════ */
 .tv-wrapper {
   display: flex;
   flex-direction: column;
@@ -67,160 +126,209 @@ body::before {
   flex: 1;
   min-width: 0;
   opacity: 0;
-  transform: scale(0.94) translateY(16px);
-  pointer-events: none;
-  transition: opacity 500ms var(--ease-out-expo), transform 600ms var(--ease-out-expo);
+  transform: translateY(12px) scale(0.985);
+  transition: opacity 520ms var(--ease-out-quart),
+              transform 560ms var(--ease-out-quart);
 }
-.tv-wrapper.visible {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  pointer-events: auto;
-}
-.tv-frame {
-  width: min(1100px, calc(100vw - 360px - 32px - 32px));
-  height: calc(min(1100px, calc(100vw - 360px - 32px - 32px)) * 9 / 16);
-  background: var(--surface);
-  border-radius: 10px;
-  overflow: visible;
-  position: relative;
-  border: 12px solid #111113;
-  box-shadow:
-    0 24px 60px rgba(0,0,0,.5),
-    0 0 0 2px #4a4b50,
-    0 0 0 4px #2a2b30;
-}
-.tv-bezel { width: 200px; height: 20px; background: #111113; border-radius: 0 0 8px 8px; margin: 0 auto; }
-.tv-stand { width: 300px; height: 4px; background: #222328; border-radius: 2px; margin: -1px auto 0; }
-/* Subtle TV screen ambient glow */
-.tv-frame::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
-  pointer-events: none;
-  z-index: 100;
-}
+.tv-wrapper.visible { opacity: 1; transform: none; }
 
-/* ═══ TV CONTENT — CARD GRID ═══ */
+.tv-frame {
+  width: min(1080px, calc(100vw - 360px - 48px - 56px));
+  height: calc(min(1080px, calc(100vw - 360px - 48px - 56px)) * 9 / 16);
+  background: var(--surface);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  /* Real TV reads as a thin matte bezel — no gloss, no beveled rings */
+  border: 10px solid #131316;
+  box-shadow:
+    0 30px 70px -20px rgba(0,0,0,0.45),
+    0 8px 20px -8px rgba(0,0,0,0.25);
+}
+.tv-bezel { width: 220px; height: 18px; background: #131316; border-radius: 0 0 6px 6px; margin: 0 auto; }
+.tv-stand { width: 320px; height: 4px; background: #1c1c1f; border-radius: 2px; margin: -1px auto 0; opacity: 0.85; }
+
+/* ═══ TV CONTENT ═══ */
 .tv-content {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 14px 16px 14px;
-  background: var(--surface-dim);
-  border-radius: 2px;
-  overflow: hidden;
+  padding: 22px 26px 18px;
+  background: var(--surface);
   position: relative;
+  overflow: hidden;
 }
+
+/* TV header — persona shelf identity */
 .tv-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   flex-shrink: 0;
+  gap: 16px;
 }
-.tv-header-left {
+.tv-shelf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.tv-shelf-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 400ms var(--ease-out-quart);
+}
+.tv-shelf-avatar.amara { background: var(--surface-2); border-color: var(--line); }
+.tv-shelf-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tv-shelf-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: var(--text-3);
+  margin-bottom: 2px;
+}
+.tv-shelf-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
+}
+.tv-shelf-title em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--copper);
+  transition: color 400ms var(--ease-out-quart);
+}
+.tv-shelf-title.amara em { color: var(--rose); }
+
+.tv-meta {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-.tv-gemini-star {
-  font-size: 16px;
-  color: var(--blue);
-  line-height: 1;
-  animation: geminPulse 2.4s ease-in-out infinite;
-}
-@keyframes geminPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.65; transform: scale(0.88); }
-}
-.tv-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.5px;
-}
-.tv-subtitle {
-  font-size: 14px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   color: var(--text-3);
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  white-space: nowrap;
+}
+.tv-meta-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gray-600);
+  box-shadow: 0 0 0 0 rgba(82,82,82,0.45);
+  animation: tvLive 2.2s ease-in-out infinite;
+  transition: background 400ms var(--ease-out-quart);
+}
+.tv-meta.amara .tv-meta-dot { background: var(--gray-500); animation: tvLiveRose 2.2s ease-in-out infinite; }
+@keyframes tvLive {
+  0%,100% { box-shadow: 0 0 0 0 rgba(82,82,82,0.45); }
+  50%     { box-shadow: 0 0 0 6px rgba(82,82,82,0); }
+}
+@keyframes tvLiveRose {
+  0%,100% { box-shadow: 0 0 0 0 rgba(115,115,115,0.45); }
+  50%     { box-shadow: 0 0 0 6px rgba(115,115,115,0); }
 }
 
+/* ═══ TV CARDS — large product portraits ═══ */
 .tv-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 10px;
+  gap: 12px;
   flex: 1;
   min-height: 0;
-  overflow: visible;
   padding: 4px;
   margin: -4px;
+  /* Handoff stage — children animate via .handoff-out / .handoff-in */
+  transition: opacity 320ms var(--ease-out-quart);
 }
 .tv-card {
   background: var(--surface);
-  border-radius: 12px;
-  padding: 0;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  border: 3.5px solid transparent;
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  transition: border-color 200ms var(--ease), box-shadow 220ms var(--ease), transform 220ms var(--ease);
+  border: 1px solid var(--line);
+  /* No colored stroke / border on rounded rect — focus uses inset ring + lift */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition:
+    box-shadow 220ms var(--ease-out-quart),
+    transform 280ms var(--ease-out-quart),
+    border-color 220ms var(--ease-out-quart),
+    opacity 280ms var(--ease-out-quart);
   cursor: pointer;
   position: relative;
-  will-change: transform;
   overflow: hidden;
   min-height: 0;
 }
-.tv-card:active { transform: scale(0.97); }
+.tv-card:active { transform: scale(0.985); }
 @media (hover: hover) and (pointer: fine) {
-  .tv-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); transform: translateY(-2px); }
+  .tv-card:hover {
+    border-color: var(--gray-300);
+    box-shadow: 0 6px 18px -8px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
 }
 .tv-card.focused {
-  border-color: var(--blue);
-  box-shadow: 0 6px 32px rgba(26,115,232,.22);
+  border-color: var(--gray-900);
+  box-shadow:
+    0 0 0 1px var(--gray-900),
+    0 14px 32px -12px rgba(10,10,10,0.28);
   transform: translateY(-3px);
 }
 
-/* Hero image — fixed height so info bar is always visible */
 .tv-card-img {
   width: 100%;
-  height: 0;
   flex: 1;
   min-height: 0;
-  background: var(--surface-dim);
-  border-radius: 0;
-  overflow: hidden;
+  background: var(--surface-2);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 .tv-card-img img {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   object-fit: contain;
-  padding: 8px;
+  padding: 10px;
+  transition: transform 400ms var(--ease-out-quart);
 }
+.tv-card.focused .tv-card-img img { transform: scale(1.04); }
 
-/* Bottom bar — fixed height, always visible */
 .tv-card-bar {
   flex-shrink: 0;
-  padding: 8px 10px 9px;
+  padding: 10px 12px 12px;
   background: var(--surface);
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-height: 68px;
+  min-height: 64px;
 }
 .tv-card-name {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -233,71 +341,314 @@ body::before {
   gap: 6px;
 }
 .tv-card-brand {
-  font-size: 13px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
   font-weight: 500;
   color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tv-tag {
-  font-size: 13px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
   font-weight: 500;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: var(--surface-dim);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   color: var(--text-2);
-  border: 1px solid var(--border-light);
   white-space: nowrap;
 }
-.tv-tag--blue { background: var(--blue-light); color: var(--blue); border-color: var(--blue-dim); }
-.tv-tag--amber { background: var(--amber-light); color: var(--amber); border-color: #FDE68A; }
+.tv-tag--ok { background: var(--surface-2); color: var(--text-2); }
+.tv-tag--warn { background: var(--surface-2); color: var(--text-2); }
 
-.tv-card-warning {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--amber);
+/* Handoff animations — Marcus → Amara shelf reset */
+.tv-card.handoff-out {
+  animation: shelfOut 360ms var(--ease-out-quart) forwards;
 }
-.tv-card-warning .material-symbols-outlined { font-size: 15px; }
+.tv-card.handoff-in {
+  animation: shelfIn 460ms var(--ease-out-quart) backwards;
+}
+@keyframes shelfOut {
+  0%   { opacity: 1; transform: translateY(0)   scale(1); }
+  100% { opacity: 0; transform: translateY(-12px) scale(0.96); filter: blur(2px); }
+}
+@keyframes shelfIn {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.96); filter: blur(2px); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
 
 .tv-nav-hint {
   position: absolute;
-  bottom: 10px;
-  right: 14px;
-  font-size: 13px;
+  bottom: 14px;
+  right: 22px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   color: var(--text-3);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .tv-nav-hint kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 5px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 4px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-2);
   font-family: inherit;
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
 }
 
-/* Detail nav hint bar */
+/* ═══ TV DETAIL OVERLAY ═══ */
+.tv-detail {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: 46% 54%;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(16px);
+  pointer-events: none;
+  transition: opacity 280ms var(--ease-out-quart),
+              transform 320ms var(--ease-out-quart);
+  z-index: 10;
+}
+.tv-detail.visible { opacity: 1; transform: none; pointer-events: auto; }
+
+.td-gallery {
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  gap: 10px;
+  overflow: hidden;
+}
+.td-main-img {
+  flex: 1;
+  min-height: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+}
+.td-main-img img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 8px;
+  transition: opacity 280ms var(--ease-out-quart);
+}
+.td-thumbs {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 56px;
+}
+.td-thumb {
+  width: 56px; height: 56px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 180ms var(--ease-out-quart);
+  padding: 4px;
+}
+.td-thumb.active { border-color: var(--gray-900); box-shadow: 0 0 0 1px var(--gray-900); }
+.td-thumb img { width: 100%; height: 100%; object-fit: contain; }
+
+.td-info {
+  padding: 18px 24px 16px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+  display: flex;
+  flex-direction: column;
+}
+.td-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 150ms var(--ease-out-quart), background 150ms var(--ease-out-quart);
+  margin-bottom: 14px;
+  align-self: flex-start;
+  padding: 4px 10px 4px 6px;
+  border-radius: 6px;
+  margin-left: -6px;
+}
+.td-back.remote-focused {
+  background: var(--gray-100);
+  color: var(--text);
+  outline: 1px solid var(--gray-900);
+  outline-offset: 0;
+}
+
+.td-brand {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 6px;
+}
+.td-name {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.td-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  align-self: flex-start;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+}
+.td-match.g { background: var(--surface-2); color: var(--text-2); }
+.td-match.b { background: var(--surface-2); color: var(--text-2); }
+.td-match.a { background: var(--surface-2); color: var(--text-2); }
+
+.td-section-title {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+.td-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.td-spec {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-radius: 6px;
+}
+.td-spec-label {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.5px;
+  margin-bottom: 1px;
+}
+.td-spec-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.td-reviews { margin-bottom: 14px; }
+.td-review-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+}
+.td-stars .star-full  { color: var(--text); }
+.td-stars .star-empty { color: var(--line); }
+.td-review-score { font-size: 16px; font-weight: 600; color: var(--text); }
+.td-review-count { font-size: 12px; color: var(--text-3); }
+.td-review-bars { display: flex; flex-direction: column; gap: 3px; }
+.td-review-bar { display: flex; align-items: center; gap: 6px; }
+.td-review-bar-label { font-size: 9px; color: var(--text-3); width: 8px; text-align: right; font-family: 'Geist Mono', monospace; }
+.td-review-bar-fill  { height: 100%; background: var(--text-2); border-radius: 2px; }
+
+.td-highlights { display: flex; flex-direction: column; gap: 2px; margin-bottom: 14px; }
+.td-highlight {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.td-highlight .icon-nav {
+  color: var(--text);
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 12px;
+}
+.td-highlight.warn .icon-nav { color: var(--text-2); }
+
+.td-size-info {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+
+.td-price-note {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: var(--gray-50);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+  margin-top: auto;
+  text-transform: uppercase;
+}
+
 .detail-nav-hint {
   position: absolute;
-  bottom: 10px;
+  bottom: 14px;
   left: 0; right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  font-size: 13px;
+  gap: 18px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
   color: var(--text-3);
   pointer-events: none;
   z-index: 5;
@@ -306,316 +657,20 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 5px;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 4px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-2);
   font-family: inherit;
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-2);
 }
-.detail-nav-hint-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+.detail-nav-hint-item { display: flex; align-items: center; gap: 4px; }
 
-/* Back to All focused state (when navigated via remote) */
-.td-back.remote-focused {
-  background: var(--blue-light);
-  color: var(--blue);
-  border-radius: 8px;
-  padding: 4px 10px;
-  margin-bottom: 8px;
-  outline: 2px solid var(--blue);
-  outline-offset: 1px;
-}
-
-/* ═══ TV DETAIL OVERLAY ═══ */
-.tv-detail {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--surface);
-  display: grid;
-  grid-template-columns: 46% 54%;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateX(20px);
-  pointer-events: none;
-  transition: opacity 280ms var(--ease-out-expo), transform 320ms var(--ease-out-expo);
-  z-index: 10;
-}
-.tv-detail.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
-
-/* Detail — left: image gallery */
-.td-gallery {
-  background: var(--surface-dim);
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  gap: 8px;
-  overflow: hidden;
-}
-.td-main-img {
-  flex: 1;
-  min-height: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.td-main-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  padding: 6px;
-  transition: opacity 300ms var(--ease);
-}
-.td-thumbs {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-  height: 60px;
-}
-.td-thumb {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
-  background: var(--surface);
-  border: 2px solid transparent;
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color 200ms var(--ease);
-  padding: 3px;
-}
-.td-thumb.active { border-color: var(--blue); }
-.td-thumb img { width: 100%; height: 100%; object-fit: contain; }
-
-/* Detail — right: info */
-.td-info {
-  padding: 16px 24px;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-light) transparent;
-  display: flex;
-  flex-direction: column;
-}
-.td-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-3);
-  cursor: pointer;
-  transition: color 150ms ease-out, background 150ms ease-out;
-  margin-bottom: 12px;
-  align-self: flex-start;
-  padding: 4px 10px 4px 4px;
-  border-radius: 8px;
-  margin-left: -4px;
-}
-.td-back .material-symbols-outlined { font-size: 18px; }
-
-.td-brand {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
-}
-.td-name {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.6px;
-  line-height: 1.15;
-  margin-bottom: 10px;
-}
-
-.td-match {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-.td-match.g { background: var(--green-light); color: var(--green); }
-.td-match.b { background: var(--blue-light); color: var(--blue); }
-.td-match.a { background: var(--amber-light); color: var(--amber); }
-.td-match .material-symbols-outlined { font-size: 16px; }
-
-/* Spec grid */
-.td-section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 10px;
-  margin-top: 6px;
-}
-.td-specs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-.td-spec {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  background: var(--surface-dim);
-  border-radius: 8px;
-}
-.td-spec .material-symbols-outlined {
-  font-size: 18px;
-  color: var(--blue);
-  flex-shrink: 0;
-}
-.td-spec-text {
-  display: flex;
-  flex-direction: column;
-}
-.td-spec-label {
-  font-size: 11px;
-  color: var(--text-3);
-  font-weight: 500;
-}
-.td-spec-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-/* Review summary */
-.td-reviews {
-  margin-bottom: 16px;
-}
-.td-review-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.td-stars {
-  display: flex;
-  gap: 1px;
-}
-.td-stars .material-symbols-outlined {
-  font-size: 16px;
-  color: #FBBC04;
-  font-variation-settings: 'FILL' 1;
-}
-.td-stars .material-symbols-outlined.dim {
-  color: var(--border);
-  font-variation-settings: 'FILL' 0;
-}
-.td-review-score {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-}
-.td-review-count {
-  font-size: 15px;
-  color: var(--text-3);
-}
-.td-review-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.td-review-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.td-review-bar-label {
-  font-size: 10px;
-  color: var(--text-3);
-  width: 10px;
-  text-align: right;
-  font-weight: 500;
-}
-.td-review-bar-track {
-  flex: 1;
-  height: 4px;
-  background: var(--surface-container);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.td-review-bar-fill {
-  height: 100%;
-  background: #FBBC04;
-  border-radius: 2px;
-}
-
-/* Highlights */
-.td-highlights {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 16px;
-}
-.td-highlight {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 7px 0;
-  font-size: 16px;
-  color: var(--text-2);
-  line-height: 1.45;
-}
-.td-highlight .material-symbols-outlined {
-  font-size: 20px;
-  color: var(--green);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-.td-highlight.warn .material-symbols-outlined { color: var(--amber); }
-
-/* Size info */
-.td-size-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  background: var(--green-light);
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--green);
-  margin-bottom: 14px;
-}
-.td-size-info .material-symbols-outlined { font-size: 22px; }
-
-/* Price note */
-.td-price-note {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--surface-dim);
-  border-radius: 10px;
-  font-size: 14px;
-  color: var(--text-3);
-  margin-top: auto;
-}
-.td-price-note .material-symbols-outlined { font-size: 18px; }
-
-/* ═══ TV CELEBRATION OVERLAY ═══ */
+/* ═══ TV CELEBRATION ═══ */
 .tv-celebrate {
   position: absolute;
   inset: 0;
@@ -627,500 +682,799 @@ body::before {
   z-index: 20;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms var(--ease-out-expo);
+  transition: opacity 380ms var(--ease-out-quart);
 }
 .tv-celebrate.visible { opacity: 1; pointer-events: auto; }
-.celebrate-emoji {
-  font-size: 56px;
-  margin-bottom: 12px;
-  opacity: 0;
-  transform: scale(0.4);
-  transition: none;
-}
-.tv-celebrate.visible .celebrate-emoji {
-  animation: celebrateBounce 0.55s var(--ease-out-expo) forwards;
-}
-@keyframes celebrateBounce {
-  0% { transform: scale(0.4); opacity: 0; }
-  60% { transform: scale(1.12); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
 .celebrate-product-img {
-  width: 120px;
-  height: 120px;
-  border-radius: 16px;
-  background: var(--surface-dim);
+  width: 132px; height: 132px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 400ms 200ms var(--ease-out-expo), transform 400ms 200ms var(--ease-out-expo);
+  transform: translateY(10px) scale(0.96);
+  transition: opacity 480ms 100ms var(--ease-out-quart),
+              transform 520ms 100ms var(--ease-out-quart);
 }
-.tv-celebrate.visible .celebrate-product-img { opacity: 1; transform: translateY(0); }
-.celebrate-product-img img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+.tv-celebrate.visible .celebrate-product-img { opacity: 1; transform: none; }
+.celebrate-product-img img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+
+.celebrate-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 8px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 400ms 240ms var(--ease-out-quart),
+              transform 400ms 240ms var(--ease-out-quart);
+}
+.tv-celebrate.visible .celebrate-eyebrow { opacity: 1; transform: none; }
+
 .celebrate-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 600;
   color: var(--text);
   letter-spacing: -0.5px;
   margin-bottom: 6px;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 400ms 300ms var(--ease-out-expo), transform 400ms 300ms var(--ease-out-expo);
+  transition: opacity 420ms 320ms var(--ease-out-quart),
+              transform 420ms 320ms var(--ease-out-quart);
 }
-.tv-celebrate.visible .celebrate-title { opacity: 1; transform: translateY(0); }
+.tv-celebrate.visible .celebrate-title { opacity: 1; transform: none; }
 .celebrate-subtitle {
-  font-size: 18px;
+  font-size: 14px;
   color: var(--text-2);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 400ms 400ms var(--ease-out-expo), transform 400ms 400ms var(--ease-out-expo);
+  transition: opacity 420ms 400ms var(--ease-out-quart),
+              transform 420ms 400ms var(--ease-out-quart);
 }
-.tv-celebrate.visible .celebrate-subtitle { opacity: 1; transform: translateY(0); }
-.celebrate-delivery {
+.tv-celebrate.visible .celebrate-subtitle { opacity: 1; transform: none; }
+
+.celebrate-handoff {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 24px;
-  background: var(--green-light);
-  color: var(--green);
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--rose-soft);
+  border: 1px solid var(--copper-line);
+  color: var(--rose);
   border-radius: 9999px;
-  font-size: 14px;
-  font-weight: 600;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 400ms 500ms var(--ease-out-expo), transform 400ms 500ms var(--ease-out-expo);
+  transition: opacity 420ms 520ms var(--ease-out-quart),
+              transform 420ms 520ms var(--ease-out-quart);
 }
-.tv-celebrate.visible .celebrate-delivery { opacity: 1; transform: translateY(0); }
-.celebrate-delivery .material-symbols-outlined { font-size: 18px; }
-
-/* Confetti */
-.confetti-container {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
+.tv-celebrate.visible .celebrate-handoff { opacity: 1; transform: none; }
+.celebrate-handoff-arrow {
+  display: inline-block;
+  transition: transform 360ms var(--ease-out-quart);
 }
-.confetti-piece {
-  position: absolute;
-  top: -10px;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  animation: confettiFall linear forwards;
-}
-@keyframes confettiFall {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  90% { opacity: 1; }
-  100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+.tv-celebrate.visible .celebrate-handoff:hover .celebrate-handoff-arrow {
+  transform: translateX(3px);
 }
 
-/* ═══ PHONE ═══ */
-.phone-wrapper {
+/* ═══════════════════════════════════════════════════════════
+   PHONE — purchase console (canonical iPhone 15 Pro frame)
+   ═══════════════════════════════════════════════════════════ */
+.phone-stage {
+  position: relative;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  transition: transform 500ms var(--ease), opacity 500ms var(--ease);
+  gap: 14px;
 }
-.phone-frame {
-  width: 320px;
-  height: 680px;
-  background: #1a1a1c;
-  border-radius: 48px;
-  overflow: hidden;
+.phone-stage .iphone15pro {
+  --iphone-w: 320px;
+  filter: drop-shadow(0 30px 50px rgba(0,0,0,0.20));
+}
+
+.phone-screen-content {
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--text);
   position: relative;
-  box-shadow:
-    0 24px 60px rgba(0,0,0,.45),
-    0 0 0 1px rgba(255,255,255,.14);
-  transition: width 500ms var(--ease), height 500ms var(--ease);
+  overflow: hidden;
 }
-.phone-frame::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 50%; transform: translateX(-50%);
-  width: 120px; height: 28px;
-  background: #111;
-  border-radius: 18px;
-  z-index: 10;
-}
-.phone-status-bar {
-  height: 52px;
-  padding: 30px 24px 0;
+
+/* Status bar — shows time + cast indicator (replaces phone-status-bar) */
+.ph-status {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 14px 26px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.ph-status-icons { display: flex; gap: 4px; align-items: center; }
+
+/* Cast badge — pinned strip below status bar, animates in when casting */
+.ph-cast-strip {
+  flex-shrink: 0;
+  margin: 6px 14px 0;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gray-50);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 360ms var(--ease-out-quart),
+              transform 360ms var(--ease-out-quart);
+}
+.phone.cast .ph-cast-strip { opacity: 1; transform: none; transition-delay: 200ms; }
+.ph-cast-icon {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--gray-900);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ph-cast-icon svg { width: 13px; height: 13px; }
+.ph-cast-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.ph-cast-line1 {
+  font-size: 11px; font-weight: 600; color: var(--text); letter-spacing: -0.1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ph-cast-line2 {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; color: var(--text-3); letter-spacing: 0.4px; text-transform: uppercase;
+}
+.ph-cast-x {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-3); flex-shrink: 0;
+  transition: background 150ms var(--ease-out-quart);
+}
+.ph-cast-x:hover { background: var(--gray-100); color: var(--text); }
+
+/* ═══ PHONE BROWSE (pre-cast) — list of candidates ═══ */
+.ph-browse {
+  position: absolute;
+  inset: 44px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  transition: opacity 360ms var(--ease-out-quart),
+              transform 360ms var(--ease-out-quart);
+}
+.phone.cast .ph-browse { opacity: 0; transform: scale(0.985); pointer-events: none; }
+
+.ph-browse-header {
+  flex-shrink: 0;
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.ph-browse-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin-bottom: 4px;
+}
+.ph-browse-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+.ph-browse-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.ph-browse-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 14px 96px;
+  scrollbar-width: none;
+}
+.ph-browse-list::-webkit-scrollbar { display: none; }
+
+.ph-browse-card {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 150ms var(--ease-out-quart);
+  align-items: center;
+}
+.ph-browse-card:hover { background: var(--gray-50); }
+.ph-browse-img {
+  width: 52px; height: 52px;
+  border-radius: 8px;
+  background: var(--gray-50);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.ph-browse-img img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+.ph-browse-info { flex: 1; min-width: 0; }
+.ph-browse-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ph-browse-row2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.ph-browse-price {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.3px;
+}
+.ph-browse-conf {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.ph-browse-conf.b { background: var(--gray-100); color: var(--text-2); }
+.ph-browse-conf.a { background: var(--warn-soft); color: var(--warn); }
+.ph-browse-ship {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.3px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Cast button — the moment of handoff to the family */
+.cast-btn {
+  position: absolute;
+  bottom: 32px;
+  left: 14px;
+  right: 14px;
+  height: 50px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  background: var(--gray-900);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 180ms var(--ease-out-quart),
+              transform 120ms var(--ease-out-quart),
+              opacity 280ms var(--ease-out-quart);
+  z-index: 8;
+  box-shadow: 0 6px 20px -8px rgba(10,10,10,0.45);
+}
+.cast-btn:hover  { background: #000; }
+.cast-btn:active { transform: scale(0.985); }
+.phone.cast .cast-btn { opacity: 0; pointer-events: none; }
+
+.cast-btn svg { width: 18px; height: 18px; }
+
+/* Fade above cast button so list bottom blends */
+.cast-btn-fade {
+  position: absolute;
+  bottom: 88px;
+  left: 0; right: 0;
+  height: 36px;
+  background: linear-gradient(to bottom, transparent, var(--surface));
+  pointer-events: none;
+  z-index: 7;
+  transition: opacity 240ms var(--ease-out-quart);
+}
+.phone.cast .cast-btn-fade { opacity: 0; }
+
+/* ═══ PHONE CAST VIEW (post-cast) ═══
+   Two stacked zones, both visible at all times during casting:
+   - TOP   — persona chip + compact product card (image + brand + name +
+             match + price + Buy / +Bag actions). Updates live as TV focus moves.
+   - BOTTOM — D-pad (4-way arrows + OK center). Always tappable so the user
+             can keep navigating cards while the purchase console is on screen.
+   This is a single combined state — no more controller↔console toggle.
+   ═══════════════════════════════════════════════════════════ */
+.ph-cast-view {
+  position: absolute;
+  inset: 100px 0 0 0;       /* below status (44) + cast strip (~56) */
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 16px;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 360ms 280ms var(--ease-out-quart),
+              transform 360ms 280ms var(--ease-out-quart);
+}
+.phone.cast .ph-cast-view { opacity: 1; pointer-events: auto; transform: none; }
+
+/* TOP — compact product card */
+.ph-cast-product {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* BOTTOM — D-pad zone */
+.ph-cast-dpad {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+/* Persona chip — Marcus / Amara identity + cart count */
+.ph-persona {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--copper-soft);
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: background 380ms var(--ease-out-quart);
+}
+.ph-persona.amara { background: var(--rose-soft); }
+.ph-persona-avatar {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 380ms var(--ease-out-quart);
+}
+.ph-persona.amara .ph-persona-avatar { background: var(--surface); border-color: var(--line); }
+.ph-persona-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.ph-persona-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  transition: color 380ms var(--ease-out-quart);
+}
+.ph-persona.amara .ph-persona-eyebrow { color: var(--text-2); }
+.ph-persona-name {
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
-  background: var(--surface);
-  position: relative;
-  z-index: 5;
-}
-.phone-status-icons {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-}
-.phone-status-icons .material-symbols-outlined { font-size: 15px; }
-
-.phone-body {
-  height: calc(100% - 52px - 30px);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
   overflow: hidden;
-  position: relative;
-  background: var(--surface);
+  text-overflow: ellipsis;
 }
-.phone-home {
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--surface-dim);
-}
-.phone-home-bar {
-  width: 110px;
-  height: 4px;
-  background: var(--text);
-  border-radius: 9999px;
-  opacity: .2;
-}
-
-/* ═══ Phone Browse ═══ */
-.phone-browse {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--surface);
-  padding: 16px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  transition: opacity 400ms var(--ease), transform 400ms var(--ease);
-}
-.phone-browse::-webkit-scrollbar { display: none; }
-
-.browse-gemini {
+.ph-cart-badge {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--blue);
-  margin-bottom: 14px;
-}
-.browse-gemini .material-symbols-outlined { font-size: 18px; }
-.browse-label { font-size: 12px; color: var(--text-3); margin-bottom: 12px; }
-
-.browse-card {
+  padding: 4px 9px;
   background: var(--surface);
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 8px;
-  display: flex;
-  gap: 10px;
-  border: 1px solid var(--border-light);
-  cursor: pointer;
-  transition: border-color 150ms ease-out, transform 100ms ease-out, box-shadow 150ms ease-out;
-}
-.browse-card:active { transform: scale(0.98); box-shadow: 0 0 0 2px var(--blue-dim); }
-.browse-card-img {
-  width: 52px; height: 52px;
-  border-radius: 8px;
-  background: var(--surface-dim);
-  overflow: hidden;
+  border: 1px solid var(--copper-line);
+  border-radius: 9999px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: var(--copper);
   flex-shrink: 0;
+  transition: border-color 380ms var(--ease-out-quart), color 380ms var(--ease-out-quart);
 }
-.browse-card-img img { width: 100%; height: 100%; object-fit: contain; }
-.browse-card-info { flex: 1; min-width: 0; }
-.browse-card-name { font-size: 13px; font-weight: 600; color: var(--text); }
-.browse-card-price { font-size: 17px; font-weight: 700; color: var(--text); margin: 1px 0; }
-.browse-card-meta {
-  font-size: 11px;
-  color: var(--text-2);
-  display: flex;
-  gap: 8px;
-  align-items: center;
+.ph-persona.amara .ph-cart-badge { border-color: var(--copper-line); color: var(--rose); }
+.ph-cart-icon { width: 12px; height: 12px; }
+.ph-cart-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: var(--copper); color: #fff;
+  font-size: 9px; font-weight: 600;
+  transition: background 380ms var(--ease-out-quart);
 }
-.browse-conf { font-weight: 600; }
-.browse-conf.g { color: var(--green); }
-.browse-conf.b { color: var(--blue); }
-.browse-conf.a { color: var(--amber); }
-.browse-bar { width: 40px; height: 3px; background: var(--surface-container); border-radius: 2px; overflow: hidden; }
-.browse-bar-fill { height: 100%; border-radius: 2px; }
-.browse-delivery {
-  font-size: 11px;
-  color: var(--text-3);
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.browse-delivery .material-symbols-outlined { font-size: 13px; }
+.ph-persona.amara .ph-cart-count { background: var(--rose); }
 
-.cast-btn {
+/* Selection card — compact horizontal layout (image left, info right) */
+.ph-selection {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 76px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+.ph-sel-img {
+  flex: 0 0 76px;
+  background: var(--gray-50);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: calc(100% - 32px);
-  padding: 14px;
-  border-radius: 9999px;
-  background: var(--blue);
-  color: #fff;
-  font-family: inherit;
-  font-size: 15px;
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid var(--line);
+}
+.ph-sel-img img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 8px;
+  transition: opacity 280ms var(--ease-out-quart),
+              transform 280ms var(--ease-out-quart);
+}
+.ph-sel-img.swap img { opacity: 0; transform: scale(0.96); }
+
+.ph-sel-pos {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 8px;
   font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: background 150ms ease-out, box-shadow 150ms ease-out, transform 100ms ease-out;
-  box-shadow: 0 2px 8px rgba(26,115,232,.3);
-  /* Fixed at bottom of phone screen, above home bar */
-  position: absolute;
-  bottom: 44px;
-  left: 16px;
-  z-index: 10;
-}
-.cast-btn:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) {
-  .cast-btn:hover { background: #1765CC; box-shadow: 0 4px 16px rgba(26,115,232,.4); }
-}
-.cast-btn .material-symbols-outlined { font-size: 20px; }
-/* Fade gradient above cast-btn so scroll content blends */
-.cast-btn-fade {
-  position: absolute;
-  bottom: 96px;
-  left: 0; right: 0;
-  height: 48px;
-  background: linear-gradient(to bottom, transparent, var(--surface));
-  pointer-events: none;
-  z-index: 9;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--surface);
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
 }
 
-/* ═══ Phone Remote ═══ */
-.phone-remote {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--surface-dim);
+.ph-sel-info {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 400ms var(--ease);
+  justify-content: center;
+  gap: 3px;
 }
-
-.connected-badge {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 10px 16px;
-  background: var(--blue-light);
-  font-size: 12px;
+.ph-sel-brand {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
   font-weight: 500;
-  color: var(--blue);
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 300ms 500ms var(--ease), transform 300ms 500ms var(--ease);
-}
-.connected-badge .material-symbols-outlined { font-size: 16px; }
-.close-x {
-  cursor: pointer;
-  width: 24px; height: 24px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 50%;
-  transition: background 150ms;
-}
-
-.dpad-area {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: scale(0.95); opacity: 0;
-  transition: transform 500ms 200ms var(--ease), opacity 500ms 200ms var(--ease);
-}
-.dpad {
-  width: 200px; height: 200px;
-  background: #ECEDEF;
-  border-radius: 50%;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,.06);
-}
-.dpad-btn {
-  position: absolute;
-  width: 48px; height: 48px;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,.08);
-  transition: background 120ms, box-shadow 120ms, transform 120ms;
-  -webkit-tap-highlight-color: transparent;
-}
-.dpad-btn:active { background: var(--blue-light); }
-.dpad-btn svg { width: 18px; height: 18px; fill: var(--text-2); }
-.dpad-up    { top: 10px; left: 50%; transform: translateX(-50%); }
-.dpad-down  { bottom: 10px; left: 50%; transform: translateX(-50%); }
-.dpad-left  { left: 10px; top: 50%; transform: translateY(-50%); }
-.dpad-right { right: 10px; top: 50%; transform: translateY(-50%); }
-/* Combine centering + press scale to prevent jump */
-.dpad-up:active    { transform: translateX(-50%) scale(.93); }
-.dpad-down:active  { transform: translateX(-50%) scale(.93); }
-.dpad-left:active  { transform: translateY(-50%) scale(.93); }
-.dpad-right:active { transform: translateY(-50%) scale(.93); }
-
-.dpad-ok {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: var(--blue);
-  border: none;
-  cursor: pointer;
-  color: #fff;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  box-shadow: 0 4px 14px rgba(26,115,232,.35);
-  transition: background 120ms, transform 120ms;
-}
-.dpad-ok:active { transform: scale(.93); }
-@media (hover: hover) and (pointer: fine) {
-  .dpad-ok:hover { background: #1765CC; box-shadow: 0 6px 20px rgba(26,115,232,.45); }
-}
-
-.remote-panel {
-  width: 100%;
-  background: var(--surface);
-  border-radius: 20px 20px 0 0;
-  padding: 20px 20px 12px;
-  box-shadow: 0 -4px 20px rgba(0,0,0,.08);
-  transform: translateY(100%);
-  transition: transform 500ms 350ms var(--ease);
-  position: relative;
-}
-.remote-panel::before {
-  content: '';
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 32px;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-}
-.remote-product { font-size: 15px; font-weight: 600; color: var(--text); }
-.remote-price { font-size: 22px; font-weight: 700; color: var(--text); margin: 2px 0; }
-.remote-meta {
-  font-size: 12px;
-  color: var(--text-2);
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.remote-meta .conf { font-weight: 600; }
-.remote-meta .conf.g { color: var(--green); }
-.remote-meta .conf.b { color: var(--blue); }
-.remote-meta .conf.a { color: var(--amber); }
-
-.buy-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 9999px;
-  background: var(--blue);
-  color: #fff;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: background 150ms ease-out, transform 100ms ease-out;
-}
-.buy-btn:active { transform: scale(0.97); }
-.buy-btn.success { background: var(--green); }
-
-.disclosure-note {
-  font-size: 11px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
   color: var(--text-3);
-  text-align: center;
-  margin-top: 8px;
+}
+.ph-sel-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ph-sel-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
+  gap: 6px;
+  margin-top: 2px;
+  flex-wrap: wrap;
 }
-.disclosure-note .material-symbols-outlined { font-size: 14px; }
-
-/* ═══ Phase transitions ═══ */
-.phone-frame.cast .phone-browse { opacity: 0; transform: scale(.92); pointer-events: none; }
-.phone-frame.cast .cast-btn { opacity: 0; pointer-events: none; transition: opacity 300ms ease; }
-.phone-frame.cast .cast-btn-fade { opacity: 0; }
-.phone-frame.cast .phone-remote { opacity: 1; pointer-events: auto; }
-.phone-frame.cast .connected-badge { opacity: 1; transform: translateY(0); }
-.phone-frame.cast .dpad-area { transform: scale(1); opacity: 1; }
-.phone-frame.cast .remote-panel { transform: translateY(0); }
-.phone-frame.cast .phone-home { background: var(--surface-dim); }
-
-/* ═══ Labels ═══ */
-.frame-label {
-  text-align: center;
-  margin-top: 10px;
-  font-size: 11px;
-  color: rgba(255,255,255,.3);
+.ph-sel-match {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.ph-sel-match.b { background: var(--gray-100); color: var(--text-2); }
+.ph-sel-match.a { background: var(--warn-soft); color: var(--warn); }
+.ph-sel-ship {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  color: var(--text-3);
   letter-spacing: 0.3px;
 }
 
-/* ═══ Step indicator ═══ */
+/* Intent line — price + Buy CTA. Single most important moment. */
+.ph-intent {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+.ph-price-block {
+  flex: 0 0 auto;
+  min-width: 80px;
+  padding: 7px 11px;
+  background: var(--copper-soft);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  transition: background 380ms var(--ease-out-quart);
+}
+.phone.cast.amara .ph-price-block { background: var(--rose-soft); }
+.phone.cast.amara .ph-price-eyebrow { color: var(--rose); }
+.ph-price-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+.ph-price-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-top: 1px;
+}
+.ph-price-private {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-top: 4px;
+  display: flex; align-items: center; gap: 3px;
+}
+
+.ph-actions { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.btn-bag {
+  flex: 0 0 18px;
+  height: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 150ms var(--ease-out-quart),
+              border-color 150ms var(--ease-out-quart);
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.btn-bag:hover { background: var(--gray-50); border-color: var(--line-2); }
+.btn-bag.added { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+
+.btn-buy {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  background: var(--copper);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  transition: background 180ms var(--ease-out-quart),
+              transform 120ms var(--ease-out-quart);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 4px 12px -4px rgba(160,92,53,0.45);
+}
+.btn-buy:hover { background: var(--copper-deep); }
+.btn-buy:active { transform: scale(0.985); }
+.btn-buy.success { background: var(--ok); box-shadow: 0 6px 16px -6px rgba(47,111,62,0.45); }
+.btn-buy.amara { background: var(--rose); box-shadow: 0 6px 16px -6px rgba(176,106,82,0.45); }
+.btn-buy.amara:hover { background: var(--copper-deep); }
+
+/* ═══════════════════════════════════════════════════════════
+   D-PAD — lives inside .ph-cast-dpad. Always visible during cast,
+   stacked below the compact product card. The user can navigate
+   TV cards (arrows) AND tap Buy / +Bag at the same time.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Hint above pad */
+.cast-hint {
+  flex-shrink: 0;
+  text-align: center;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; font-weight: 500; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--text-4);
+  padding: 2px 0 4px;
+}
+
+/* Pad — D-pad cross + OK center. Compact size to share screen with product card. */
+.cast-pad {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dpad {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+}
+.dpad-btn {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 140ms var(--ease-out-quart),
+              color 140ms var(--ease-out-quart),
+              border-color 140ms var(--ease-out-quart),
+              transform 90ms var(--ease-out-quart);
+}
+.dpad-btn:hover { background: var(--gray-50); color: var(--text); border-color: var(--line-2); }
+.dpad-btn:active,
+.dpad-btn.pressed { background: var(--gray-900); color: #fff; border-color: var(--gray-900); transform: scale(0.96); }
+
+/* Cross arms — top / right / bottom / left */
+.dpad-up,
+.dpad-down {
+  left: 33.33%;
+  width: 33.33%;
+  height: 33.33%;
+}
+.dpad-up    { top: 0;    border-top-left-radius: 10px;    border-top-right-radius: 10px; border-bottom: none; }
+.dpad-down  { bottom: 0; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; border-top: none; }
+
+.dpad-left,
+.dpad-right {
+  top: 33.33%;
+  height: 33.33%;
+  width: 33.33%;
+}
+.dpad-left  { left: 0;  border-top-left-radius: 10px;  border-bottom-left-radius: 10px;  border-right: none; }
+.dpad-right { right: 0; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-left: none; }
+
+/* OK center button — copper, the "select" moment */
+.dpad-ok {
+  position: absolute;
+  left: 33.33%;
+  top: 33.33%;
+  width: 33.33%;
+  height: 33.33%;
+  background: var(--copper);
+  border: 1px solid var(--copper);
+  color: #fff;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  border-radius: 0;
+  box-shadow: 0 4px 14px -6px rgba(160,92,53,0.55);
+  z-index: 2;
+}
+.dpad-ok:hover { background: var(--copper-deep); border-color: var(--copper-deep); color: #fff; }
+.dpad-ok:active,
+.dpad-ok.pressed { background: var(--copper-deep); border-color: var(--copper-deep); transform: scale(0.96); color: #fff; }
+
+.phone.cast.amara .dpad-ok {
+  background: var(--rose);
+  border-color: var(--rose);
+  box-shadow: 0 4px 14px -6px rgba(176,106,82,0.55);
+}
+
+/* Frame label — outside iPhone */
+.frame-label {
+  text-align: center;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+body.noframe .frame-label,
+body.noframe .tv-stand,
+body.noframe .tv-bezel { /* keep for visual accuracy when standalone */ }
+
+/* ═══ Step indicator — refined ═══ */
 .steps {
   position: fixed;
-  bottom: 24px;
+  bottom: 28px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(24,24,24,.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  padding: 10px 18px;
+  background: rgba(23,23,23,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 10px 16px;
   border-radius: 9999px;
   z-index: 100;
+  box-shadow: 0 8px 24px -10px rgba(0,0,0,0.4);
 }
+body.noframe .steps { display: none; }
 .step-dot {
-  width: 8px; height: 8px;
+  width: 6px; height: 6px;
   border-radius: 50%;
-  background: rgba(255,255,255,.2);
-  transition: background 300ms var(--ease), width 300ms var(--ease), border-radius 300ms var(--ease);
+  background: rgba(255,255,255,0.22);
+  transition: background 300ms var(--ease-out-quart),
+              width 300ms var(--ease-out-quart),
+              border-radius 300ms var(--ease-out-quart);
 }
-.step-dot.active {
-  background: var(--blue);
-  width: 22px;
-  border-radius: 4px;
-}
+.step-dot.active { background: var(--copper); width: 22px; border-radius: 4px; }
+.step-dot.amara.active { background: var(--rose); }
 .step-label {
-  font-size: 12px;
-  color: rgba(255,255,255,.55);
-  margin-left: 2px;
-  padding-left: 10px;
-  border-left: 1px solid rgba(255,255,255,.15);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  margin-left: 4px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(255,255,255,0.18);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .td-back:hover { color: var(--blue); background: var(--blue-light); }
-  .td-thumb:hover { border-color: var(--blue-dim); }
-  .browse-card:hover { border-color: var(--blue); box-shadow: 0 2px 8px rgba(26,115,232,.08); }
-  /* cast-btn hover defined in cast-btn block above — not duplicated here */
-  .dpad-btn:hover { background: #F8F9FA; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
-  .dpad-ok:hover { background: #1765CC; }
-  .buy-btn:hover { background: #1765CC; }
-  .close-x:hover { background: rgba(0,0,0,.06); }
-}
+.icon-nav { font-size: 12px; color: currentColor; line-height: 1; display: inline-block; }
 
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -1129,9 +1483,15 @@ body::before {
   }
 }
 
-/* ── Scene Badge — hidden ── */
+/* Hide unused legacy badges */
 .scene-badge { display: none !important; }
 </style>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
 </head>
 <body>
 
@@ -1141,126 +1501,34 @@ body::before {
   <div class="tv-wrapper" id="tvWrapper">
     <div class="tv-frame" id="tvFrame">
       <div class="tv-content" id="tvContent">
+
+        <!-- Header — persona shelf identity -->
         <div class="tv-header">
-          <div class="tv-header-left">
-            <div class="tv-gemini-star">✦</div>
-            <div class="tv-title">Which one do you like?</div>
+          <div class="tv-shelf">
+            <div class="tv-shelf-avatar" id="tvShelfAvatar">M</div>
+            <div class="tv-shelf-text">
+              <div class="tv-shelf-eyebrow">Family Cast · Living Room</div>
+              <div class="tv-shelf-title" id="tvShelfTitle">
+                Winter shoes for <em id="tvShelfPerson">Marcus</em>
+              </div>
+            </div>
           </div>
-          <div class="tv-subtitle">
-            <span class="material-symbols-outlined" style="font-size:14px">gamepad</span>
-            Use remote to browse
+          <div class="tv-meta" id="tvMeta">
+            <span class="tv-meta-dot"></span>
+            <span id="tvMetaText">Live · 8 picks</span>
           </div>
         </div>
-        <div class="tv-cards" id="tvCards">
 
-          <div class="tv-card focused" data-i="0">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack Hiker Mid WP"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">Fastpack Hiker Mid WP</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">The North Face</span>
-                <span class="tv-tag tv-tag--blue">Waterproof! 🌧</span>
-              </div>
-            </div>
-          </div>
+        <!-- Cards grid — gets re-keyed on Marcus → Amara handoff -->
+        <div class="tv-cards" id="tvCards"></div>
 
-          <div class="tv-card" data-i="1">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB 6 NSW Leather"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">SFB 6" NSW Leather</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">Nike</span>
-                <span class="tv-tag tv-tag--blue">Tough! 💪</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tv-card" data-i="2">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif" alt="On Cloudrock Mid WP"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">Cloudrock Mid WP</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">On</span>
-                <span class="tv-tag tv-tag--blue">Super comfy! ☁</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tv-card" data-i="3">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif" alt="Adidas Terrex Anylander Mid"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">Terrex Anylander Mid</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">Adidas</span>
-                <span class="tv-tag tv-tag--amber"><span class="tv-card-warning"><span class="material-symbols-outlined">warning</span>Stiff sole</span></span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tv-card" data-i="4">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp" alt="Salomon XA Pro V8 Mid"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">XA Pro V8 Mid</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">Salomon</span>
-                <span class="tv-tag tv-tag--blue">Lightweight! 🪶</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tv-card" data-i="5">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png" alt="Puma RS-X Mid"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">RS-X Mid Black Ice</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">Puma</span>
-                <span class="tv-tag tv-tag--blue">Athletic! 🏃</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tv-card" data-i="6">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif" alt="Vans Sk8-Hi GORE-TEX"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">Sk8-Hi GORE-TEX</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">Vans</span>
-                <span class="tv-tag tv-tag--amber"><span class="tv-card-warning"><span class="material-symbols-outlined">warning</span>Heavy for PE</span></span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tv-card" data-i="7">
-            <div class="tv-card-img"><img src="../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif" alt="Ecco Mid Boot GTX"></div>
-            <div class="tv-card-bar">
-              <div class="tv-card-name">Mid Boot GTX</div>
-              <div class="tv-card-meta-row">
-                <span class="tv-card-brand">Ecco</span>
-                <span class="tv-tag tv-tag--amber"><span class="tv-card-warning"><span class="material-symbols-outlined">warning</span>Few reviews</span></span>
-              </div>
-            </div>
-          </div>
-        </div>
         <div class="tv-nav-hint">
-          <kbd>↑↓←→</kbd> Browse &nbsp;
-          <kbd>OK</kbd> Details
+          <kbd>↑↓←→</kbd> Browse
+          <kbd>OK</kbd> Open
         </div>
       </div>
 
-      <!-- ═══ TV Celebration ═══ -->
-      <div class="tv-celebrate" id="tvCelebrate">
-        <div class="confetti-container" id="confettiContainer"></div>
-        <div class="celebrate-emoji">🎉</div>
-        <div class="celebrate-product-img" id="celebrateImg"><img id="celebrateImgSrc" src="" alt=""></div>
-        <div class="celebrate-title" id="celebrateTitle">Great choice!</div>
-        <div class="celebrate-subtitle" id="celebrateSubtitle">Order placed for Marcus</div>
-        <div class="celebrate-delivery">
-          <span class="material-symbols-outlined">local_shipping</span>
-          <span id="celebrateShip">Arriving Friday</span>
-        </div>
-      </div>
-
-      <!-- ═══ Detail Overlay ═══ -->
+      <!-- Detail overlay -->
       <div class="tv-detail" id="tvDetail">
         <div class="td-gallery">
           <div class="td-main-img"><img id="tdMainImg" src="" alt=""></div>
@@ -1268,7 +1536,7 @@ body::before {
         </div>
         <div class="td-info">
           <div class="td-back" id="tdBack">
-            <span class="material-symbols-outlined">arrow_back</span>
+            <span class="icon-nav">←</span>
             Back to all
           </div>
           <div class="td-brand" id="tdBrand"></div>
@@ -1278,213 +1546,210 @@ body::before {
           <div class="td-section-title">Specifications</div>
           <div class="td-specs" id="tdSpecs"></div>
 
-          <div class="td-section-title">Customer Reviews</div>
+          <div class="td-section-title">Customer reviews</div>
           <div class="td-reviews" id="tdReviews"></div>
 
-          <div class="td-section-title">Key Features</div>
+          <div class="td-section-title">Key features</div>
           <div class="td-highlights" id="tdHighlights"></div>
 
           <div id="tdSizeInfo"></div>
 
           <div class="td-price-note">
-            <span class="material-symbols-outlined">visibility_off</span>
-            Pricing and purchase available on parent's device only
+            <span class="icon-nav">○</span>
+            Pricing visible on parent's phone only
           </div>
         </div>
         <div class="detail-nav-hint" id="detailNavHint">
           <div class="detail-nav-hint-item"><kbd>← →</kbd> Photos</div>
           <div class="detail-nav-hint-item"><kbd>↑ ↓</kbd> Scroll</div>
-          <div class="detail-nav-hint-item"><kbd>↑↑</kbd> Back to grid</div>
           <div class="detail-nav-hint-item"><kbd>OK</kbd> Close</div>
+        </div>
+      </div>
+
+      <!-- Celebration -->
+      <div class="tv-celebrate" id="tvCelebrate">
+        <div class="celebrate-product-img" id="celebrateImg"><img id="celebrateImgSrc" src="" alt=""></div>
+        <div class="celebrate-eyebrow" id="celebrateEyebrow">Order placed</div>
+        <div class="celebrate-title" id="celebrateTitle">Great choice</div>
+        <div class="celebrate-subtitle" id="celebrateSubtitle">Order placed for Marcus · Size 3Y</div>
+        <div class="celebrate-handoff" id="celebrateHandoff" style="display:none;">
+          <span>Up next · Amara's shelf</span>
+          <span class="celebrate-handoff-arrow">→</span>
         </div>
       </div>
     </div>
     <div class="tv-bezel"></div>
     <div class="tv-stand"></div>
-    <div class="frame-label">Chromecast — Living Room TV</div>
+    <div class="frame-label" style="margin-top:10px;">Chromecast · Living Room TV</div>
   </div>
 
-  <!-- ═══ Phone ═══ -->
-  <div class="phone-wrapper" id="phoneWrapper">
-    <div class="phone-frame" id="phone">
-      <div class="scene-badge scene-badge--03">
-        <span class="material-symbols-outlined" style="font-size:12px">tv</span>
-        Scene 3 · Living Room
-      </div>
-      <div class="phone-status-bar">
-        <span>9:41</span>
-        <div class="phone-status-icons">
-          <span class="material-symbols-outlined">signal_cellular_alt</span>
-          <span class="material-symbols-outlined">wifi</span>
-          <span class="material-symbols-outlined">battery_full</span>
+  <!-- ═══ PHONE — canonical iPhone 15 Pro frame ═══ -->
+  <div class="phone-stage">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <div class="phone-screen-content phone" id="phone">
+
+          <!-- Status bar -->
+          <div class="ph-status">
+            <span>9:41</span>
+            <div class="ph-status-icons">
+              <svg width="14" height="11" viewBox="0 0 15 12" fill="#171717">
+                <rect x="0" y="8" width="2.5" height="4" opacity="0.3" rx="0.5"/>
+                <rect x="3.5" y="5.5" width="2.5" height="6.5" opacity="0.55" rx="0.5"/>
+                <rect x="7" y="3" width="2.5" height="9" rx="0.5"/>
+                <rect x="10.5" y="0.5" width="2.5" height="11.5" rx="0.5"/>
+              </svg>
+              <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#171717" stroke-width="2.5" stroke-linecap="round">
+                <path d="M1.5 7C5.8 2.7 12 1 12 1S18.2 2.7 22.5 7"/>
+                <path d="M5 10.5C8 7.5 12 6.5 12 6.5S16 7.5 19 10.5"/>
+                <path d="M8.5 14C10 12.5 12 12 12 12S14 12.5 15.5 14"/>
+                <circle cx="12" cy="17" r="1.4" fill="#171717" stroke="none"/>
+              </svg>
+              <svg width="20" height="11" viewBox="0 0 28 14" fill="#171717">
+                <rect x="0.75" y="0.75" width="22.5" height="12.5" rx="2.25" fill="none" stroke="#171717" stroke-width="1.5"/>
+                <rect x="23.5" y="3.5" width="3" height="7" rx="1.5"/>
+                <rect x="2.5" y="2.5" width="18" height="9" rx="1.5"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Cast strip — appears in console mode -->
+          <div class="ph-cast-strip">
+            <div class="ph-cast-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                <path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>
+                <path d="M2 12a9 9 0 0 1 9 9"/>
+                <path d="M2 16a5 5 0 0 1 5 5"/>
+                <line x1="2" y1="20" x2="2.01" y2="20"/>
+              </svg>
+            </div>
+            <div class="ph-cast-text">
+              <span class="ph-cast-line1">Casting to Living Room TV</span>
+              <span class="ph-cast-line2">Family decides · price stays here</span>
+            </div>
+            <div class="ph-cast-x" onclick="disconnect()" title="Stop casting">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- BROWSE (pre-cast) -->
+          <div class="ph-browse" id="phoneBrowse">
+            <div class="ph-browse-header">
+              <div class="ph-browse-eyebrow">Gemini · 8 picks ready</div>
+              <div class="ph-browse-title">Marcus's winter shoes</div>
+              <div class="ph-browse-sub">Saved from your morning commute</div>
+            </div>
+            <div class="ph-browse-list" id="phoneBrowseList"></div>
+
+            <div class="cast-btn-fade"></div>
+            <button class="cast-btn" onclick="castToTV()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>
+                <path d="M2 12a9 9 0 0 1 9 9"/>
+                <path d="M2 16a5 5 0 0 1 5 5"/>
+                <line x1="2" y1="20" x2="2.01" y2="20"/>
+              </svg>
+              Cast to TV — decide together
+            </button>
+          </div>
+
+          <!-- CAST VIEW (post-cast) — combined product card (top) + D-pad (bottom).
+               Both visible at all times so the family can keep navigating TV cards
+               while the purchase console is on screen. -->
+          <div class="ph-cast-view" id="phoneCastView">
+
+            <!-- TOP: persona + product card + price/actions -->
+            <div class="ph-cast-product">
+
+              <!-- Persona chip + cart badge -->
+              <div class="ph-persona" id="phPersona">
+                <div class="ph-persona-avatar" id="phPersonaAvatar">M</div>
+                <div class="ph-persona-text">
+                  <span class="ph-persona-eyebrow" id="phPersonaEyebrow">Shopping for</span>
+                  <span class="ph-persona-name" id="phPersonaName">Marcus · Size 3Y</span>
+                </div>
+                <div class="ph-cart-badge">
+                  <svg class="ph-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                  </svg>
+                  <span>Bag</span>
+                  <span class="ph-cart-count" id="phCartCount">0</span>
+                </div>
+              </div>
+
+              <!-- Selection card — what TV is showing now -->
+              <div class="ph-selection">
+                <div class="ph-sel-img" id="phSelImg">
+                  <div class="ph-sel-pos" id="phSelPos">1 / 8</div>
+                  <img id="phSelImgSrc" src="" alt="">
+                </div>
+                <div class="ph-sel-info">
+                  <div class="ph-sel-brand" id="phSelBrand">The North Face</div>
+                  <div class="ph-sel-name" id="phSelName">Fastpack Hiker Mid WP</div>
+                  <div class="ph-sel-row">
+                    <span class="ph-sel-match" id="phSelMatch">94% match</span>
+                    <span class="ph-sel-ship" id="phSelShip">→ Friday</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Intent line — price + Buy CTA -->
+              <div class="ph-intent">
+                <div class="ph-price-block" id="phPriceBlock">
+                  <span class="ph-price-eyebrow" id="phPriceEyebrow">Your price · hidden on TV</span>
+                  <span class="ph-price-value" id="phPriceValue">$69</span>
+                </div>
+                <div class="ph-actions">
+                  <button class="btn-bag" id="btnBag" onclick="addToBag()">+ Bag</button>
+                  <button class="btn-buy" id="btnBuy" onclick="buyProduct()">
+                    Buy now
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- BOTTOM: D-pad — keeps TV navigation tappable alongside Buy console -->
+            <div class="ph-cast-dpad">
+              <div class="cast-hint">D-pad · OK opens detail</div>
+              <div class="cast-pad">
+                <div class="dpad" id="dpad">
+                  <button class="dpad-btn dpad-up"    data-dir="up"    aria-label="Up">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                  </button>
+                  <button class="dpad-btn dpad-right" data-dir="right" aria-label="Right">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                  <button class="dpad-btn dpad-down"  data-dir="down"  aria-label="Down">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <button class="dpad-btn dpad-left"  data-dir="left"  aria-label="Left">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <button class="dpad-btn dpad-ok" data-dir="ok" aria-label="OK">OK</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </div>
-
-      <div class="phone-body">
-        <!-- Browse -->
-        <div class="phone-browse" id="phoneBrowse">
-          <div class="browse-gemini">
-            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">auto_awesome</span>
-            Gemini · Marcus's Winter Shoes
-          </div>
-          <div class="browse-label">8 kept from your commute · ready to cast</div>
-
-          <div class="browse-card" data-i="0">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp" alt="TNF Fastpack Hiker Mid WP"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">TNF Fastpack Hiker Mid WP</div>
-              <div class="browse-card-price">$69</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf g">94%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:94%;background:var(--green)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="browse-card" data-i="1">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif" alt="Nike SFB 6 NSW Leather"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">Nike SFB 6" NSW Leather</div>
-              <div class="browse-card-price">$120</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf g">91%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:91%;background:var(--green)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="browse-card" data-i="2">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif" alt="On Cloudrock Mid WP"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">On Cloudrock Mid WP</div>
-              <div class="browse-card-price">$190</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf b">88%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:88%;background:var(--blue)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="browse-card" data-i="3">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif" alt="Adidas Terrex Anylander Mid"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">Adidas Terrex Anylander Mid</div>
-              <div class="browse-card-price">$85</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf b">80%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:80%;background:var(--blue)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Sat</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="browse-card" data-i="4">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp" alt="Salomon XA Pro V8 Mid"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">Salomon XA Pro V8 Mid</div>
-              <div class="browse-card-price">$75</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf b">82%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:82%;background:var(--blue)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Sat</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="browse-card" data-i="5">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png" alt="Puma RS-X Mid"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">Puma RS-X Mid Black Ice</div>
-              <div class="browse-card-price">$100</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf b">85%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:85%;background:var(--blue)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Fri</span>
-              </div>
-            </div>
-          </div>
-          <div class="browse-card" data-i="6">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif" alt="Vans Sk8-Hi GORE-TEX"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">Vans Sk8-Hi GORE-TEX</div>
-              <div class="browse-card-price">$140</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf a">79%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:79%;background:var(--amber)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Sat</span>
-              </div>
-            </div>
-          </div>
-          <div class="browse-card" data-i="7">
-            <div class="browse-card-img"><img src="../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif" alt="Ecco Mid Boot GTX"></div>
-            <div class="browse-card-info">
-              <div class="browse-card-name">Ecco Mid Boot GTX</div>
-              <div class="browse-card-price">$125</div>
-              <div class="browse-card-meta">
-                <span class="browse-conf a">71%</span>
-                <div class="browse-bar"><div class="browse-bar-fill" style="width:71%;background:var(--amber)"></div></div>
-                <span class="browse-delivery"><span class="material-symbols-outlined">local_shipping</span> Mon</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Cast button — fixed above home bar, always visible -->
-        <div class="cast-btn-fade"></div>
-        <button class="cast-btn" id="castBtn" onclick="castToTV()">
-          <span class="material-symbols-outlined">cast</span>
-          Cast to TV
-        </button>
-
-        <!-- Remote -->
-        <div class="phone-remote" id="phoneRemote">
-          <div class="connected-badge">
-            <span style="display:flex;align-items:center;gap:4px;">
-              <span class="material-symbols-outlined" style="font-size:16px">tv</span>
-              Connected to Living Room TV
-            </span>
-            <span class="close-x" onclick="disconnect()">
-              <span class="material-symbols-outlined" style="font-size:16px">close</span>
-            </span>
-          </div>
-
-          <div class="dpad-area">
-            <div class="dpad">
-              <button class="dpad-btn dpad-up" onclick="tvNav('up')"><svg viewBox="0 0 24 24"><path d="M12 8l-5 5h10z"/></svg></button>
-              <button class="dpad-btn dpad-down" onclick="tvNav('down')"><svg viewBox="0 0 24 24"><path d="M12 16l5-5H7z"/></svg></button>
-              <button class="dpad-btn dpad-left" onclick="tvNav('left')"><svg viewBox="0 0 24 24"><path d="M8 12l5-5v10z"/></svg></button>
-              <button class="dpad-btn dpad-right" onclick="tvNav('right')"><svg viewBox="0 0 24 24"><path d="M16 12l-5 5V7z"/></svg></button>
-              <button class="dpad-ok" id="okBtn" onclick="tvOK()">OK</button>
-            </div>
-          </div>
-
-          <div class="remote-panel" id="remotePanel">
-            <div class="remote-product" id="rName">The North Face Fastpack Hiker Mid WP</div>
-            <div class="remote-price" id="rPrice">$69</div>
-            <div class="remote-meta">
-              <span class="conf g" id="rConf">94% match</span>
-              <span id="rShip" style="display:flex;align-items:center;gap:3px"><span class="material-symbols-outlined" style="font-size:14px">local_shipping</span> Arrives Friday</span>
-            </div>
-            <button class="buy-btn" id="buyBtn" onclick="buyProduct()">Buy Now</button>
-            <div class="disclosure-note">
-              <span class="material-symbols-outlined">visibility_off</span>
-              Price visible only on parent's phone
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="phone-home"><div class="phone-home-bar"></div></div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
     </div>
-    <div class="frame-label" id="phoneLabel">Pixel 9 Pro — Phone Browse</div>
+    <div class="frame-label">iPhone 15 Pro · Naomi</div>
   </div>
+
 </div>
 
-<!-- Steps -->
+<!-- Step indicator -->
 <div class="steps" id="steps">
   <div class="step-dot active" data-s="0"></div>
   <div class="step-dot" data-s="1"></div>
@@ -1493,353 +1758,354 @@ body::before {
 </div>
 
 <script>
+/* ============================================================
+   P3-03 — controller
+   ------------------------------------------------------------
+   States (phase):
+     0  → phone shows browse list, TV hidden (pre-cast)
+     1  → phone is in CAST view: product card (top) + D-pad (bottom)
+          BOTH visible. TV grid is live. User can navigate via D-pad
+          AND Buy / +Bag at any time.
+     2  → TV detail overlay open. Phone stays in cast view; D-pad
+          remains tappable so the user can keep browsing while
+          inspecting the detail.
+   Persona:
+     'marcus' → copper accent (initial casting — son's shoes)
+     'amara'  → rose accent (after Marcus's purchase, handoff to daughter)
+   ============================================================ */
 const IMG = '../../projects/project-03/image-set03/product';
-const products = [
-  {
-    brand: 'The North Face',
-    name: 'Fastpack Hiker Mid WP',
-    fullName: 'TNF Fastpack Hiker Mid Waterproof',
-    price: '$69',
-    conf: 94, cc: 'g',
-    ship: 'Arrives Friday',
-    imgs: [
-      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp`,
-      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.33.webp`,
-      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.40.webp`,
-      `${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.47.webp`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '268g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'DryVent membrane' },
-      { icon: 'layers', label: 'Upper', value: 'Synthetic mesh' },
-      { icon: 'height', label: 'Height', value: 'Mid-cut' },
-      { icon: 'timeline', label: 'Sole', value: 'TNF rubber outsole' },
-    ],
-    review: { score: 4.3, count: 132, bars: [62, 22, 10, 4, 2] },
-    highlights: [
-      { text: 'DryVent waterproof membrane keeps feet dry in rain and puddles', warn: false },
-      { text: 'Lightweight at 268g — great for PE and outdoor play', warn: false },
-      { text: 'OrthoLite footbed for all-day cushioning', warn: false },
-      { text: 'Mid-cut collar supports ankles during running', warn: false },
-      { text: 'Runs slightly large — consider ordering half size down', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — based on Marcus\'s last purchase (2Y), half size up recommended',
-  },
-  {
-    brand: 'Nike',
-    name: 'SFB 6" NSW Leather',
-    fullName: 'Nike SFB 6" NSW Leather Boot',
-    price: '$120',
-    conf: 91, cc: 'g',
-    ship: 'Arrives Friday',
-    imgs: [
-      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER.avif`,
-      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (1).avif`,
-      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (2).avif`,
-      `${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (3).avif`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '312g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'Water-resistant leather' },
-      { icon: 'layers', label: 'Upper', value: 'Full-grain leather' },
-      { icon: 'height', label: 'Height', value: '6" mid-cut' },
-      { icon: 'timeline', label: 'Sole', value: 'Rubber lug outsole' },
-    ],
-    review: { score: 4.5, count: 187, bars: [72, 18, 6, 2, 2] },
-    highlights: [
-      { text: 'Full-grain leather upper — tough and durable for daily wear', warn: false },
-      { text: 'Foam midsole provides all-day cushioning for active kids', warn: false },
-      { text: 'Rubber lug outsole with aggressive traction pattern', warn: false },
-      { text: 'Mid-cut collar supports ankles during running and climbing', warn: false },
-      { text: 'Reviewers note: runs slightly narrow — consider half size up for wide feet', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — based on Marcus\'s last purchase (2Y), half size up recommended',
-  },
-  {
-    brand: 'On',
-    name: 'Cloudrock Mid WP',
-    fullName: 'On Cloudrock Mid Waterproof',
-    price: '$190',
-    conf: 88, cc: 'b',
-    ship: 'Arrives Friday',
-    imgs: [
-      `${IMG}/On/3944a9b878177e6590b74b7172c353449604e1a1.avif`,
-      `${IMG}/On/b5652b88f1cadc149d06c9d6c92dc46cf6d97628.avif`,
-      `${IMG}/On/9aa81d7ded3195099e914df434dd5336436ea7a8.avif`,
-      `${IMG}/On/aa899f8ed483ea162dd509db3758e0da8a3cf068.avif`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '310g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'Waterproof membrane' },
-      { icon: 'layers', label: 'Upper', value: 'Textile + synthetic' },
-      { icon: 'height', label: 'Height', value: 'Mid-cut' },
-      { icon: 'timeline', label: 'Sole', value: 'CloudTec cushion' },
-    ],
-    review: { score: 4.4, count: 203, bars: [66, 22, 7, 3, 2] },
-    highlights: [
-      { text: 'CloudTec sole provides cloud-like cushioning — super comfortable', warn: false },
-      { text: 'Full waterproof membrane keeps feet completely dry', warn: false },
-      { text: 'Premium build quality — durable for active kids', warn: false },
-      { text: 'Speed-lacing system for easy on/off', warn: false },
-      { text: 'Higher price point — premium comfort comes at a cost', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — On runs narrow, consider sizing up for wide feet',
-  },
-  {
-    brand: 'Adidas',
-    name: 'Terrex Anylander Mid',
-    fullName: 'Adidas Terrex Anylander Leather Mid Climaproof',
-    price: '$85',
-    conf: 80, cc: 'b',
-    ship: 'Arrives Saturday',
-    imgs: [
-      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif`,
-      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_02_standard.avif`,
-      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_03_standard.avif`,
-      `${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_09_standard.avif`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '330g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'Climaproof membrane' },
-      { icon: 'layers', label: 'Upper', value: 'Leather + synthetic' },
-      { icon: 'height', label: 'Height', value: 'Mid-cut' },
-      { icon: 'timeline', label: 'Sole', value: 'Traxion rubber' },
-    ],
-    review: { score: 4.1, count: 98, bars: [52, 28, 12, 5, 3] },
-    highlights: [
-      { text: 'Leather upper is sturdy and durable for rough terrain', warn: false },
-      { text: 'Climaproof membrane provides reliable waterproofing', warn: false },
-      { text: 'Traxion outsole grips well on wet and loose surfaces', warn: false },
-      { text: 'Mid-cut design supports ankles during hikes', warn: false },
-      { text: 'Sole might be stiff for PE — less flexibility than running shoes', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — Adidas runs true to size for this model',
-  },
-  {
-    brand: 'Salomon',
-    name: 'XA Pro V8 Mid',
-    fullName: 'Salomon XA Pro V8 Mid GTX',
-    price: '$75',
-    conf: 82, cc: 'b',
-    ship: 'Arrives Saturday',
-    imgs: [
-      `${IMG}/NG-Salmon/PNG-2000px-max-72dpi.webp`,
-      `${IMG}/NG-Salmon/Salmon-2000px-max-72dpi.webp`,
-      `${IMG}/NG-Salmon/PNG-2000px-max-72dpi-side.webp`,
-      `${IMG}/NG-Salmon/PNG-2000px-max-72dpi-sole.webp`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '240g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'Gore-Tex lining' },
-      { icon: 'layers', label: 'Upper', value: 'Synthetic mesh' },
-      { icon: 'height', label: 'Height', value: 'Mid-cut' },
-      { icon: 'timeline', label: 'Sole', value: 'Contagrip MA' },
-    ],
-    review: { score: 4.3, count: 145, bars: [60, 25, 9, 4, 2] },
-    highlights: [
-      { text: 'Lightweight at 240g — one of the lightest waterproof mid-cuts', warn: false },
-      { text: 'Gore-Tex lining for reliable waterproofing', warn: false },
-      { text: 'Contagrip MA outsole for all-terrain traction', warn: false },
-      { text: 'Quick-lace system — easy for kids to tighten themselves', warn: false },
-      { text: 'Narrow fit — may not suit wide feet without sizing up', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — Salomon runs narrow, consider half size up for wide feet',
-  },
-  {
-    brand: 'Puma',
-    name: 'RS-X Mid Black Ice',
-    fullName: 'Puma RS-X Mid Black Ice',
-    price: '$100',
-    conf: 85, cc: 'b',
-    ship: 'Arrives Friday',
-    imgs: [
-      `${IMG}/Puma/Screenshot 2026-03-27 at 22.16.34.png`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '295g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'Water-resistant coating' },
-      { icon: 'layers', label: 'Upper', value: 'Synthetic + mesh' },
-      { icon: 'height', label: 'Height', value: 'Mid-cut' },
-      { icon: 'timeline', label: 'Sole', value: 'Athletic rubber' },
-    ],
-    review: { score: 4.2, count: 96, bars: [58, 24, 12, 4, 2] },
-    highlights: [
-      { text: 'Athletic sole designed for sport and school', warn: false },
-      { text: 'Lightweight synthetic upper — great for active kids', warn: false },
-      { text: 'Water-resistant coating handles light rain', warn: false },
-      { text: 'RS cushioning for comfort during PE', warn: false },
-      { text: 'Not fully waterproof — avoid heavy rain', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — Puma runs true to size',
-  },
-  {
-    brand: 'Vans',
-    name: 'Sk8-Hi GORE-TEX',
-    fullName: 'Vans Sk8-Hi GORE-TEX',
-    price: '$140',
-    conf: 79, cc: 'a',
-    ship: 'Arrives Saturday',
-    imgs: [
-      `${IMG}/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '420g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'GORE-TEX membrane' },
-      { icon: 'layers', label: 'Upper', value: 'Canvas + suede' },
-      { icon: 'height', label: 'Height', value: 'High-top' },
-      { icon: 'timeline', label: 'Sole', value: 'Waffle rubber' },
-    ],
-    review: { score: 4.0, count: 67, bars: [50, 28, 14, 5, 3] },
-    highlights: [
-      { text: 'GORE-TEX membrane — fully waterproof', warn: false },
-      { text: 'Classic Sk8-Hi style — Marcus loves the look', warn: false },
-      { text: 'Waffle sole provides good traction', warn: false },
-      { text: 'Heavy at 420g — may slow down PE activities', warn: true },
-      { text: 'High-top limits ankle mobility for running', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — Vans runs true to size',
-  },
-  {
-    brand: 'Ecco',
-    name: 'Mid Boot GTX',
-    fullName: 'Ecco Mid Boot GORE-TEX',
-    price: '$125',
-    conf: 71, cc: 'a',
-    ship: 'Arrives Monday',
-    imgs: [
-      `${IMG}/Ecco/824314-51094-front_pair_eCom.avif`,
-    ],
-    specs: [
-      { icon: 'straighten', label: 'Size', value: '3Y (US)' },
-      { icon: 'weight', label: 'Weight', value: '390g / shoe' },
-      { icon: 'water_drop', label: 'Waterproof', value: 'GORE-TEX lining' },
-      { icon: 'layers', label: 'Upper', value: 'Full leather' },
-      { icon: 'height', label: 'Height', value: 'Mid boot' },
-      { icon: 'timeline', label: 'Sole', value: 'Rubber' },
-    ],
-    review: { score: 3.9, count: 34, bars: [44, 30, 16, 6, 4] },
-    highlights: [
-      { text: 'Full leather upper — premium quality and durability', warn: false },
-      { text: 'GORE-TEX lining provides reliable waterproofing', warn: false },
-      { text: 'Premium Ecco quality — built to last', warn: false },
-      { text: 'Limited reviews — only 34 available', warn: true },
-      { text: 'Arrives Monday — latest delivery of all options', warn: true },
-    ],
-    sizeNote: 'Size 3Y in stock — Ecco runs slightly narrow',
-  },
+
+/* Marcus's 8 picks (original data preserved) */
+const productsMarcus = [
+  { brand:'The North Face', name:'Fastpack Hiker Mid WP', fullName:'TNF Fastpack Hiker Mid Waterproof', price:'$69',  conf:94, cc:'g', ship:'Arrives Friday', shortShip:'Fri', tag:'Waterproof', tagKind:'ok',
+    imgs:[`${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp`,`${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.33.webp`,`${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.40.webp`,`${IMG}/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.47.webp`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'268g / shoe'},{label:'Waterproof',value:'DryVent membrane'},{label:'Upper',value:'Synthetic mesh'},{label:'Height',value:'Mid-cut'},{label:'Sole',value:'TNF rubber'}],
+    review:{score:4.3,count:132,bars:[62,22,10,4,2]},
+    highlights:[{text:'DryVent waterproof membrane keeps feet dry in rain and puddles',warn:false},{text:'Lightweight at 268g — great for PE and outdoor play',warn:false},{text:'OrthoLite footbed for all-day cushioning',warn:false},{text:'Mid-cut collar supports ankles during running',warn:false},{text:'Runs slightly large — consider half size down',warn:true}],
+    sizeNote:'Size 3Y in stock — based on Marcus\'s last purchase (2Y), half size up recommended' },
+  { brand:'Nike', name:'SFB 6" NSW Leather', fullName:'Nike SFB 6" NSW Leather Boot', price:'$120', conf:91, cc:'g', ship:'Arrives Friday', shortShip:'Fri', tag:'Tough', tagKind:'ok',
+    imgs:[`${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER.avif`,`${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (1).avif`,`${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (2).avif`,`${IMG}/Nike/NIKE+SFB+6_+NSW+LEATHER (3).avif`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'312g / shoe'},{label:'Waterproof',value:'Water-resistant'},{label:'Upper',value:'Full-grain leather'},{label:'Height',value:'6" mid-cut'},{label:'Sole',value:'Rubber lug'}],
+    review:{score:4.5,count:187,bars:[72,18,6,2,2]},
+    highlights:[{text:'Full-grain leather upper — tough and durable for daily wear',warn:false},{text:'Foam midsole provides all-day cushioning for active kids',warn:false},{text:'Rubber lug outsole with aggressive traction pattern',warn:false},{text:'Mid-cut collar supports ankles during running',warn:false},{text:'Runs slightly narrow — consider half size up for wide feet',warn:true}],
+    sizeNote:'Size 3Y in stock — half size up recommended' },
+  { brand:'On', name:'Cloudrock Mid WP', fullName:'On Cloudrock Mid Waterproof', price:'$190', conf:88, cc:'b', ship:'Arrives Friday', shortShip:'Fri', tag:'Comfy', tagKind:'ok',
+    imgs:[`${IMG}/On/3944a9b878177e6590b74b7172c353449604e1a1.avif`,`${IMG}/On/b5652b88f1cadc149d06c9d6c92dc46cf6d97628.avif`,`${IMG}/On/9aa81d7ded3195099e914df434dd5336436ea7a8.avif`,`${IMG}/On/aa899f8ed483ea162dd509db3758e0da8a3cf068.avif`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'310g / shoe'},{label:'Waterproof',value:'Membrane'},{label:'Upper',value:'Textile + synthetic'},{label:'Height',value:'Mid-cut'},{label:'Sole',value:'CloudTec'}],
+    review:{score:4.4,count:203,bars:[66,22,7,3,2]},
+    highlights:[{text:'CloudTec sole provides cloud-like cushioning',warn:false},{text:'Full waterproof membrane keeps feet completely dry',warn:false},{text:'Premium build quality — durable for active kids',warn:false},{text:'Speed-lacing system for easy on/off',warn:false},{text:'Higher price point — premium comfort comes at a cost',warn:true}],
+    sizeNote:'Size 3Y in stock — On runs narrow, consider sizing up' },
+  { brand:'Adidas', name:'Terrex Anylander Mid', fullName:'Adidas Terrex Anylander Leather Mid', price:'$85', conf:80, cc:'b', ship:'Arrives Saturday', shortShip:'Sat', tag:'Stiff sole', tagKind:'warn',
+    imgs:[`${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif`,`${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_02_standard.avif`,`${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_03_standard.avif`,`${IMG}/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_09_standard.avif`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'330g / shoe'},{label:'Waterproof',value:'Climaproof'},{label:'Upper',value:'Leather + synthetic'},{label:'Height',value:'Mid-cut'},{label:'Sole',value:'Traxion rubber'}],
+    review:{score:4.1,count:98,bars:[52,28,12,5,3]},
+    highlights:[{text:'Leather upper is sturdy and durable for rough terrain',warn:false},{text:'Climaproof membrane provides reliable waterproofing',warn:false},{text:'Traxion outsole grips well on wet and loose surfaces',warn:false},{text:'Mid-cut design supports ankles during hikes',warn:false},{text:'Sole might be stiff for PE — less flexibility than running shoes',warn:true}],
+    sizeNote:'Size 3Y in stock — Adidas runs true to size' },
+  { brand:'Salomon', name:'XA Pro V8 Mid', fullName:'Salomon XA Pro V8 Mid GTX', price:'$75', conf:82, cc:'b', ship:'Arrives Saturday', shortShip:'Sat', tag:'Lightweight', tagKind:'ok',
+    imgs:[`${IMG}/NG-Salmon/PNG-2000px-max-72dpi.webp`,`${IMG}/NG-Salmon/Salmon-2000px-max-72dpi.webp`,`${IMG}/NG-Salmon/PNG-2000px-max-72dpi-side.webp`,`${IMG}/NG-Salmon/PNG-2000px-max-72dpi-sole.webp`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'240g / shoe'},{label:'Waterproof',value:'Gore-Tex'},{label:'Upper',value:'Synthetic mesh'},{label:'Height',value:'Mid-cut'},{label:'Sole',value:'Contagrip MA'}],
+    review:{score:4.3,count:145,bars:[60,25,9,4,2]},
+    highlights:[{text:'Lightweight at 240g — one of the lightest waterproof mid-cuts',warn:false},{text:'Gore-Tex lining for reliable waterproofing',warn:false},{text:'Contagrip MA outsole for all-terrain traction',warn:false},{text:'Quick-lace system — easy for kids to tighten themselves',warn:false},{text:'Narrow fit — may not suit wide feet without sizing up',warn:true}],
+    sizeNote:'Size 3Y in stock — runs narrow' },
+  { brand:'Puma', name:'RS-X Mid Black Ice', fullName:'Puma RS-X Mid Black Ice', price:'$100', conf:85, cc:'b', ship:'Arrives Friday', shortShip:'Fri', tag:'Athletic', tagKind:'ok',
+    imgs:[`${IMG}/Puma/Screenshot 2026-03-27 at 22.16.34.png`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'295g / shoe'},{label:'Waterproof',value:'Water-resistant'},{label:'Upper',value:'Synthetic + mesh'},{label:'Height',value:'Mid-cut'},{label:'Sole',value:'Athletic rubber'}],
+    review:{score:4.2,count:96,bars:[58,24,12,4,2]},
+    highlights:[{text:'Athletic sole designed for sport and school',warn:false},{text:'Lightweight synthetic upper — great for active kids',warn:false},{text:'Water-resistant coating handles light rain',warn:false},{text:'RS cushioning for comfort during PE',warn:false},{text:'Not fully waterproof — avoid heavy rain',warn:true}],
+    sizeNote:'Size 3Y in stock — Puma runs true to size' },
+  { brand:'Vans', name:'Sk8-Hi GORE-TEX', fullName:'Vans Sk8-Hi GORE-TEX', price:'$140', conf:79, cc:'a', ship:'Arrives Saturday', shortShip:'Sat', tag:'Heavy for PE', tagKind:'warn',
+    imgs:[`${IMG}/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'420g / shoe'},{label:'Waterproof',value:'GORE-TEX'},{label:'Upper',value:'Canvas + suede'},{label:'Height',value:'High-top'},{label:'Sole',value:'Waffle rubber'}],
+    review:{score:4.0,count:67,bars:[50,28,14,5,3]},
+    highlights:[{text:'GORE-TEX membrane — fully waterproof',warn:false},{text:'Classic Sk8-Hi style — Marcus loves the look',warn:false},{text:'Waffle sole provides good traction',warn:false},{text:'Heavy at 420g — may slow down PE activities',warn:true},{text:'High-top limits ankle mobility for running',warn:true}],
+    sizeNote:'Size 3Y in stock — Vans runs true to size' },
+  { brand:'Ecco', name:'Mid Boot GTX', fullName:'Ecco Mid Boot GORE-TEX', price:'$125', conf:71, cc:'a', ship:'Arrives Monday', shortShip:'Mon', tag:'Few reviews', tagKind:'warn',
+    imgs:[`${IMG}/Ecco/824314-51094-front_pair_eCom.avif`],
+    specs:[{label:'Size',value:'3Y (US)'},{label:'Weight',value:'390g / shoe'},{label:'Waterproof',value:'GORE-TEX lining'},{label:'Upper',value:'Full leather'},{label:'Height',value:'Mid boot'},{label:'Sole',value:'Rubber'}],
+    review:{score:3.9,count:34,bars:[44,30,16,6,4]},
+    highlights:[{text:'Full leather upper — premium quality and durability',warn:false},{text:'GORE-TEX lining provides reliable waterproofing',warn:false},{text:'Premium Ecco quality — built to last',warn:false},{text:'Limited reviews — only 34 available',warn:true},{text:'Arrives Monday — latest delivery of all options',warn:true}],
+    sizeNote:'Size 3Y in stock — Ecco runs slightly narrow' },
 ];
 
+/* Amara's shelf — generated from same data, but persona-relabeled for the demo.
+   In production these would be Amara's actual saved candidates.
+   For the demo we keep visual variety by reordering + relabeling. */
+const productsAmara = [
+  { ...productsMarcus[2], price:'$95',  conf:96, cc:'g', tag:'Comfy',       tagKind:'ok' },   // On Cloudrock first — Amara likes comfy
+  { ...productsMarcus[4], price:'$75',  conf:92, cc:'g', tag:'Lightweight', tagKind:'ok' },
+  { ...productsMarcus[0], price:'$69',  conf:90, cc:'g', tag:'Waterproof',  tagKind:'ok' },
+  { ...productsMarcus[5], price:'$100', conf:84, cc:'b', tag:'Style',       tagKind:'ok' },
+  { ...productsMarcus[1], price:'$120', conf:81, cc:'b', tag:'Tough',       tagKind:'ok' },
+  { ...productsMarcus[3], price:'$85',  conf:78, cc:'b', tag:'Stiff sole',  tagKind:'warn' },
+  { ...productsMarcus[6], price:'$140', conf:74, cc:'a', tag:'Heavy',       tagKind:'warn' },
+  { ...productsMarcus[7], price:'$125', conf:70, cc:'a', tag:'Few reviews', tagKind:'warn' },
+];
+
+let persona = 'marcus';        // 'marcus' | 'amara'
+let products = productsMarcus;
 let focusIdx = 0;
 let thumbIdx = 0;
 let phase = 0;
-const stepLabels = ['Phone Browse', 'TV + Remote', 'Product Detail'];
+let cartCount = 0;
+const stepLabels = ['Phone browse', 'Cast · navigate + buy', 'Product detail'];
+
+/* ── render helpers ── */
+function buildTVCard(p, i, opts = {}) {
+  const tagClass = p.tagKind === 'warn' ? 'tv-tag--warn' : 'tv-tag--ok';
+  const focused = i === focusIdx ? ' focused' : '';
+  const animClass = opts.animateIn ? ' handoff-in' : '';
+  const delay = opts.animateIn ? `style="animation-delay:${i * 50}ms"` : '';
+  return `
+    <div class="tv-card${focused}${animClass}" data-i="${i}" ${delay} onclick="onTVCardClick(${i})">
+      <div class="tv-card-img"><img src="${p.imgs[0]}" alt="${p.brand} ${p.name}"></div>
+      <div class="tv-card-bar">
+        <div class="tv-card-name">${p.name}</div>
+        <div class="tv-card-meta-row">
+          <span class="tv-card-brand">${p.brand}</span>
+          <span class="tv-tag ${tagClass}">${p.tag}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildBrowseCard(p, i) {
+  const confClass = p.cc === 'g' ? '' : (p.cc === 'b' ? 'b' : 'a');
+  return `
+    <div class="ph-browse-card" data-i="${i}">
+      <div class="ph-browse-img"><img src="${p.imgs[0]}" alt=""></div>
+      <div class="ph-browse-info">
+        <div class="ph-browse-name">${p.brand} ${p.name}</div>
+        <div class="ph-browse-row2">
+          <span class="ph-browse-price">${p.price}</span>
+          <span class="ph-browse-conf ${confClass}">${p.conf}%</span>
+          <span class="ph-browse-ship">→ ${p.shortShip}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderTVCards(opts = {}) {
+  document.getElementById('tvCards').innerHTML = products.map((p, i) => buildTVCard(p, i, opts)).join('');
+}
+
+function renderBrowseList() {
+  document.getElementById('phoneBrowseList').innerHTML = products.map(buildBrowseCard).join('');
+}
 
 function setStep(n) {
-  document.querySelectorAll('.step-dot').forEach((d, i) => d.classList.toggle('active', i === n));
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === n);
+    d.classList.toggle('amara', persona === 'amara');
+  });
   document.getElementById('stepLabel').textContent = stepLabels[n];
 }
 
-function updateRemote() {
+/* ── persona accent ── */
+function applyPersona() {
+  const isAmara = persona === 'amara';
+  const personaName  = isAmara ? 'Amara' : 'Marcus';
+  const personaSize  = isAmara ? '3Y'    : '3Y';
+  const personaInit  = isAmara ? 'A'     : 'M';
+
+  // TV header
+  document.getElementById('tvShelfPerson').textContent = personaName;
+  document.getElementById('tvShelfTitle').classList.toggle('amara', isAmara);
+  document.getElementById('tvShelfAvatar').textContent = personaInit;
+  document.getElementById('tvShelfAvatar').classList.toggle('amara', isAmara);
+  document.getElementById('tvMeta').classList.toggle('amara', isAmara);
+
+  // Phone persona chip + phone-level accent class (drives D-pad OK + price tint)
+  document.getElementById('phone').classList.toggle('amara', isAmara);
+  document.getElementById('phPersona').classList.toggle('amara', isAmara);
+  document.getElementById('phPersonaAvatar').textContent = personaInit;
+  document.getElementById('phPersonaName').textContent = `${personaName} · Size ${personaSize}`;
+
+  // Buy button persona color
+  document.getElementById('btnBuy').classList.toggle('amara', isAmara);
+
+  // Step dots accent
+  document.querySelectorAll('.step-dot').forEach(d => d.classList.toggle('amara', isAmara));
+
+  // Reset cart for new shelf
+  cartCount = 0;
+  document.getElementById('phCartCount').textContent = '0';
+}
+
+/* ── selection sync (TV focus → phone product card) ──
+   The phone product card lives inside .ph-cast-view and is visible
+   alongside the D-pad. As the user navigates the TV grid, this card
+   updates live with the focused product. */
+function updateSelection() {
   const p = products[focusIdx];
-  document.getElementById('rName').textContent = p.brand + ' ' + p.name;
-  document.getElementById('rPrice').textContent = p.price;
-  const c = document.getElementById('rConf');
-  c.textContent = p.conf + '% match';
-  c.className = 'conf ' + p.cc;
-  document.getElementById('rShip').innerHTML =
-    '<span class="material-symbols-outlined" style="font-size:14px">local_shipping</span> ' + p.ship;
+  // Animate image swap
+  const imgWrap = document.getElementById('phSelImg');
+  imgWrap.classList.add('swap');
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.getElementById('phSelImgSrc').src = p.imgs[0];
+      document.getElementById('phSelImgSrc').alt = p.fullName;
+      imgWrap.classList.remove('swap');
+    }, 140);
+  });
+  document.getElementById('phSelPos').textContent = `${focusIdx + 1} / ${products.length}`;
+  document.getElementById('phSelBrand').textContent = p.brand;
+  document.getElementById('phSelName').textContent = p.name;
+
+  const matchEl = document.getElementById('phSelMatch');
+  matchEl.textContent = `${p.conf}% match`;
+  matchEl.className = 'ph-sel-match' + (p.cc === 'g' ? '' : (p.cc === 'b' ? ' b' : ' a'));
+
+  document.getElementById('phSelShip').textContent = `→ ${p.shortShip}`;
+  document.getElementById('phPriceValue').textContent = p.price;
+
+  // TV focus ring
+  document.querySelectorAll('.tv-card').forEach((c, i) => c.classList.toggle('focused', i === focusIdx));
+  // Live count
+  document.getElementById('tvMetaText').textContent = `Live · ${focusIdx + 1} of ${products.length}`;
 }
 
-function updateTVFocus() {
-  const cards = document.querySelectorAll('.tv-card');
-  cards.forEach((c, i) => c.classList.toggle('focused', i === focusIdx));
-  // Update subtitle position indicator
-  const sub = document.querySelector('.tv-subtitle');
-  if (sub) sub.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px">gamepad</span> ${focusIdx + 1} / ${products.length} &nbsp;·&nbsp; Use remote to browse`;
+/* ── actions ── */
+function onTVCardClick(i) {
+  focusIdx = i;
+  updateSelection();
+  if (phase === 0) {
+    // From browse view — opening TV is the same as casting
+    castToTV();
+  } else if (phase === 1) {
+    // In cast mode, clicking a card on the TV is the same as pressing OK
+    tvOK();
+  }
 }
 
-/* ═══ Detail Overlay ═══ */
+/* Phase 0 → 1 : phone enters CAST view (product card + D-pad both visible),
+   TV lights up. */
+function castToTV() {
+  if (phase !== 0) return;
+  phase = 1;
+  document.getElementById('tvWrapper').classList.add('visible');
+  const phoneEl = document.getElementById('phone');
+  setTimeout(() => {
+    phoneEl.classList.add('cast');
+    updateSelection();
+  }, 380);
+  setStep(1);
+}
+
+function disconnect() {
+  if (phase === 2) closeDetail();
+  phase = 0;
+  const phoneEl = document.getElementById('phone');
+  phoneEl.classList.remove('cast');
+  setTimeout(() => {
+    document.getElementById('tvWrapper').classList.remove('visible');
+  }, 280);
+  resetBuy();
+  setStep(0);
+}
+
+function tvNav(dir) {
+  if (phase === 2) {
+    const p = products[focusIdx];
+    if (dir === 'left' || dir === 'right') {
+      if (dir === 'left')  thumbIdx = Math.max(0, thumbIdx - 1);
+      if (dir === 'right') thumbIdx = Math.min(p.imgs.length - 1, thumbIdx + 1);
+      switchThumb(thumbIdx);
+    }
+    if (dir === 'up') {
+      const infoEl = document.querySelector('.td-info');
+      if (infoEl && infoEl.scrollTop <= 0) {
+        document.getElementById('tdBack').classList.add('remote-focused');
+      } else if (infoEl) {
+        infoEl.scrollBy({ top: -120, behavior: 'smooth' });
+      }
+    }
+    if (dir === 'down') {
+      document.getElementById('tdBack').classList.remove('remote-focused');
+      const infoEl = document.querySelector('.td-info');
+      infoEl && infoEl.scrollBy({ top: 120, behavior: 'smooth' });
+    }
+    return;
+  }
+  // Grid 4-col 2D nav
+  const len = products.length;
+  const COLS = 4;
+  const row = Math.floor(focusIdx / COLS);
+  const col = focusIdx % COLS;
+  if (dir === 'left')  focusIdx = row * COLS + Math.max(0, col - 1);
+  else if (dir === 'right') focusIdx = row * COLS + Math.min(COLS - 1, col + 1, len - 1 - row * COLS);
+  else if (dir === 'up')    { if (row > 0) focusIdx = (row - 1) * COLS + col; }
+  else if (dir === 'down')  { const ni = (row + 1) * COLS + col; if (ni < len) focusIdx = ni; }
+  updateSelection();
+}
+
+function tvOK() {
+  if (phase === 2) {
+    if (document.getElementById('tdBack').classList.contains('remote-focused')) {
+      document.getElementById('tdBack').classList.remove('remote-focused');
+      closeDetail();
+      return;
+    }
+    closeDetail();
+    return;
+  }
+  if (phase === 1) {
+    // OK opens product detail on TV. Phone stays in cast view —
+    // D-pad + product card remain visible/tappable.
+    phase = 2;
+    showDetail();
+    setStep(2);
+  }
+}
+
 function showDetail() {
   thumbIdx = 0;
   const p = products[focusIdx];
-
   document.getElementById('tdMainImg').src = p.imgs[0];
   document.getElementById('tdMainImg').alt = p.fullName;
 
-  // Thumbnails
-  const thumbsEl = document.getElementById('tdThumbs');
-  thumbsEl.innerHTML = p.imgs.map((src, i) =>
+  document.getElementById('tdThumbs').innerHTML = p.imgs.map((src, i) =>
     `<div class="td-thumb ${i === 0 ? 'active' : ''}" onclick="switchThumb(${i})">
-      <img src="${src}" alt="View ${i + 1}">
-    </div>`
-  ).join('');
+       <img src="${src}" alt="View ${i + 1}">
+     </div>`).join('');
 
   document.getElementById('tdBrand').textContent = p.brand;
   document.getElementById('tdName').textContent = p.name;
 
   const matchEl = document.getElementById('tdMatch');
   matchEl.className = 'td-match ' + p.cc;
-  matchEl.innerHTML =
-    `<span class="material-symbols-outlined">${p.cc === 'g' ? 'verified' : p.cc === 'b' ? 'thumb_up' : 'info'}</span>
-     ${p.conf}% match for Marcus`;
+  matchEl.innerHTML = `<span class="icon-nav">${p.cc === 'g' ? '✓' : p.cc === 'b' ? '↑' : '!'}</span> ${p.conf}% match`;
 
-  // Specs
   document.getElementById('tdSpecs').innerHTML = p.specs.map(s =>
-    `<div class="td-spec">
-      <span class="material-symbols-outlined">${s.icon}</span>
-      <div class="td-spec-text">
-        <span class="td-spec-label">${s.label}</span>
-        <span class="td-spec-value">${s.value}</span>
-      </div>
-    </div>`
-  ).join('');
+    `<div class="td-spec"><span class="td-spec-label">${s.label}</span><span class="td-spec-value">${s.value}</span></div>`).join('');
 
-  // Reviews
   const r = p.review;
   const fullStars = Math.floor(r.score);
-  const halfStar = r.score % 1 >= 0.3;
+  const halfStar  = r.score % 1 >= 0.3;
   let starsHTML = '';
   for (let i = 0; i < 5; i++) {
-    if (i < fullStars) starsHTML += '<span class="material-symbols-outlined">star</span>';
-    else if (i === fullStars && halfStar) starsHTML += '<span class="material-symbols-outlined">star_half</span>';
-    else starsHTML += '<span class="material-symbols-outlined dim">star</span>';
+    if (i < fullStars) starsHTML += '<span class="star-full">★</span>';
+    else if (i === fullStars && halfStar) starsHTML += '<span class="star-full">★</span>';
+    else starsHTML += '<span class="star-empty">☆</span>';
   }
   document.getElementById('tdReviews').innerHTML =
     `<div class="td-review-header">
-      <div class="td-stars">${starsHTML}</div>
-      <span class="td-review-score">${r.score}</span>
-      <span class="td-review-count">${r.count} reviews</span>
-    </div>
-    <div class="td-review-bars">
-      ${r.bars.map((pct, i) =>
-        `<div class="td-review-bar">
-          <span class="td-review-bar-label">${5 - i}</span>
-          <div class="td-review-bar-track"><div class="td-review-bar-fill" style="width:${pct}%"></div></div>
-        </div>`
-      ).join('')}
-    </div>`;
+       <div class="td-stars">${starsHTML}</div>
+       <span class="td-review-score">${r.score}</span>
+       <span class="td-review-count">${r.count} reviews</span>
+     </div>
+     <div class="td-review-bars">
+       ${r.bars.map((pct, i) =>
+         `<div class="td-review-bar">
+            <span class="td-review-bar-label">${5 - i}</span>
+            <div class="td-review-bar-track"><div class="td-review-bar-fill" style="width:${pct}%"></div></div>
+          </div>`).join('')}
+     </div>`;
 
-  // Highlights
   document.getElementById('tdHighlights').innerHTML = p.highlights.map(h =>
-    `<div class="td-highlight ${h.warn ? 'warn' : ''}">
-      <span class="material-symbols-outlined">${h.warn ? 'info' : 'check_circle'}</span>
-      ${h.text}
-    </div>`
-  ).join('');
+    `<div class="td-highlight ${h.warn ? 'warn' : ''}"><span class="icon-nav">${h.warn ? '!' : '✓'}</span>${h.text}</div>`).join('');
 
-  // Size info
   document.getElementById('tdSizeInfo').innerHTML =
-    `<div class="td-size-info">
-      <span class="material-symbols-outlined">checkroom</span>
-      ${p.sizeNote}
-    </div>`;
+    `<div class="td-size-info"><span class="icon-nav">✓</span>${p.sizeNote}</div>`;
 
   document.getElementById('tvDetail').classList.add('visible');
 }
@@ -1848,184 +2114,182 @@ function switchThumb(idx) {
   const p = products[focusIdx];
   document.getElementById('tdMainImg').src = p.imgs[idx];
   document.querySelectorAll('.td-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
+  thumbIdx = idx;
 }
 
 function closeDetail() {
-  phase = 1;
+  if (phase === 2) {
+    // Return to cast view — phone state is unchanged (D-pad + product card
+    // were visible the whole time); just reset phase.
+    phase = 1;
+    setStep(1);
+  }
   document.getElementById('tvDetail').classList.remove('visible');
-  setStep(1);
 }
 
-/* ═══ Actions ═══ */
-function castToTV() {
-  phase = 1;
-  document.getElementById('tvWrapper').classList.add('visible');
+function addToBag() {
+  cartCount += 1;
+  document.getElementById('phCartCount').textContent = String(cartCount);
+  const bagBtn = document.getElementById('btnBag');
+  const original = bagBtn.textContent;
+  bagBtn.textContent = '✓ Added';
+  bagBtn.classList.add('added');
   setTimeout(() => {
-    document.getElementById('phone').classList.add('cast');
-    document.getElementById('phoneLabel').textContent = 'Pixel 9 Pro — Remote';
-  }, 400);
-  setStep(1);
+    bagBtn.textContent = '+ Bag';
+    bagBtn.classList.remove('added');
+  }, 1100);
 }
 
-function disconnect() {
-  if (phase === 2) closeDetail();
-  phase = 0;
-  document.getElementById('phone').classList.remove('cast');
-  document.getElementById('phoneLabel').textContent = 'Pixel 9 Pro — Phone Browse';
-  setTimeout(() => {
-    document.getElementById('tvWrapper').classList.remove('visible');
-  }, 300);
-  const btn = document.getElementById('buyBtn');
-  btn.textContent = 'Buy Now';
+function resetBuy() {
+  const btn = document.getElementById('btnBuy');
+  btn.textContent = 'Buy now';
   btn.classList.remove('success');
-  setStep(0);
-}
-
-function tvNav(dir) {
-  if (phase === 2) {
-    // Detail view: left/right swap photos, up/down scroll info
-    // Up twice or pressing Up when at photo 0 → focus Back to All
-    const p = products[focusIdx];
-    if (dir === 'left' || dir === 'right') {
-      if (dir === 'left') thumbIdx = Math.max(0, thumbIdx - 1);
-      if (dir === 'right') thumbIdx = Math.min(p.imgs.length - 1, thumbIdx + 1);
-      switchThumb(thumbIdx);
-      updateThumbFocus();
-    }
-    if (dir === 'up') {
-      const infoEl = document.querySelector('.td-info');
-      const scrollTop = infoEl ? infoEl.scrollTop : 0;
-      if (scrollTop <= 0) {
-        // Focus "Back to All"
-        const backEl = document.getElementById('tdBack');
-        backEl.classList.add('remote-focused');
-        backEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        infoEl && infoEl.scrollBy({ top: -120, behavior: 'smooth' });
-      }
-    }
-    if (dir === 'down') {
-      // Remove back focus if present
-      document.getElementById('tdBack').classList.remove('remote-focused');
-      const infoEl = document.querySelector('.td-info');
-      infoEl && infoEl.scrollBy({ top: 120, behavior: 'smooth' });
-    }
-    return;
-  }
-  // Grid view: 2D navigation (4 per row)
-  const len = products.length;
-  const COLS = 4;
-  const row = Math.floor(focusIdx / COLS);
-  const col = focusIdx % COLS;
-  if (dir === 'left') {
-    focusIdx = row * COLS + Math.max(0, col - 1);
-  } else if (dir === 'right') {
-    focusIdx = row * COLS + Math.min(COLS - 1, col + 1, len - 1 - row * COLS);
-  } else if (dir === 'up') {
-    if (row > 0) focusIdx = (row - 1) * COLS + col;
-  } else if (dir === 'down') {
-    const newIdx = (row + 1) * COLS + col;
-    if (newIdx < len) focusIdx = newIdx;
-  }
-  updateTVFocus();
-  updateRemote();
-}
-
-function tvOK() {
-  if (phase === 2) {
-    // If Back to All is focused, go back to grid
-    const backEl = document.getElementById('tdBack');
-    if (backEl.classList.contains('remote-focused')) {
-      backEl.classList.remove('remote-focused');
-      closeDetail();
-      return;
-    }
-    closeDetail();
-    return;
-  }
-  phase = 2;
-  showDetail();
-  const ok = document.getElementById('okBtn');
-  ok.style.background = 'var(--green)';
-  ok.textContent = '\u2713';
-  setTimeout(() => { ok.style.background = ''; ok.textContent = 'OK'; }, 500);
-  setStep(2);
-}
-
-function updateThumbFocus() {
-  document.querySelectorAll('.td-thumb').forEach((t, i) => {
-    t.classList.toggle('active', i === thumbIdx);
-  });
+  btn.disabled = false;
+  btn.style.opacity = '';
 }
 
 function buyProduct() {
-  const btn = document.getElementById('buyBtn');
-  btn.textContent = 'Purchasing...';
-  btn.style.opacity = '.7';
+  const btn = document.getElementById('btnBuy');
+  btn.textContent = 'Placing order…';
+  btn.style.opacity = '.85';
   btn.disabled = true;
 
   setTimeout(() => {
-    btn.textContent = '\u2713 Purchase Complete';
+    btn.textContent = '✓ Ordered';
     btn.classList.add('success');
     btn.style.opacity = '';
 
-    // Show TV celebration
     const p = products[focusIdx];
     document.getElementById('celebrateImgSrc').src = p.imgs[0];
     document.getElementById('celebrateImgSrc').alt = p.fullName;
-    document.getElementById('celebrateTitle').textContent = p.name + ' — it\'s yours! 🎉';
-    document.getElementById('celebrateSubtitle').textContent = 'Order placed for Marcus · Size 3Y';
-    document.getElementById('celebrateShip').textContent = p.ship;
+    document.getElementById('celebrateEyebrow').textContent = persona === 'marcus' ? 'Order placed for Marcus' : 'Order placed for Amara';
+    document.getElementById('celebrateTitle').textContent = `${p.name} — yours.`;
+    document.getElementById('celebrateSubtitle').textContent = `${p.ship} · Size ${persona === 'marcus' ? '3Y' : '3Y'}`;
 
-    const cel = document.getElementById('tvCelebrate');
-    cel.classList.add('visible');
+    // After Marcus's purchase, surface the handoff CTA on the celebration card.
+    const handoff = document.getElementById('celebrateHandoff');
+    if (persona === 'marcus') {
+      handoff.style.display = 'inline-flex';
+      handoff.onclick = startHandoffToAmara;
+    } else {
+      handoff.style.display = 'none';
+    }
 
-    // Confetti
-    spawnConfetti();
+    document.getElementById('tvCelebrate').classList.add('visible');
 
-    // Auto-dismiss TV celebration after 4 seconds
+    // Auto: Marcus → after 3.6s, kick off handoff. Amara → just dismiss after 4s.
     setTimeout(() => {
-      cel.classList.remove('visible');
-      setTimeout(() => closeDetail(), 400);
-    }, 4000);
-
-    btn.disabled = false;
-  }, 1200);
+      document.getElementById('tvCelebrate').classList.remove('visible');
+      setTimeout(() => {
+        if (persona === 'marcus') {
+          startHandoffToAmara();
+        } else {
+          closeDetail();
+          resetBuy();
+        }
+      }, 380);
+    }, 3600);
+  }, 1100);
 }
 
-function spawnConfetti() {
-  const container = document.getElementById('confettiContainer');
-  if (!container) return;
-  container.innerHTML = '';
-  const colors = ['#1A73E8','#1E8E3E','#F9AB00','#E94235','#E91E8C','#6C82FE'];
-  for (let i = 0; i < 40; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.left = Math.random() * 100 + '%';
-    el.style.background = colors[Math.floor(Math.random() * colors.length)];
-    el.style.width = (6 + Math.random() * 6) + 'px';
-    el.style.height = (6 + Math.random() * 6) + 'px';
-    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    el.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
-    el.style.animationDelay = (Math.random() * 0.8) + 's';
-    container.appendChild(el);
-  }
+/* ============================================================
+   Marcus → Amara handoff
+   ------------------------------------------------------------
+   Three orchestrated beats:
+   1) shelf-out: Marcus's 8 cards file out (-12px, blur, fade)
+   2) persona morph: TV header + phone persona chip cross-fade
+      to Amara accent (rose), avatar swaps, copper → rose
+   3) shelf-in: Amara's 8 cards file in (+14px, stagger 50ms each)
+   Total ~520ms. Single concurrent fade between TV and phone so
+   the two surfaces feel like one stage resetting.
+   ============================================================ */
+function startHandoffToAmara() {
+  // Close any overlays
+  document.getElementById('tvCelebrate').classList.remove('visible');
+  document.getElementById('tvDetail').classList.remove('visible');
+  resetBuy();
+
+  // 1. Shelf out — apply handoff-out to all Marcus cards
+  document.querySelectorAll('.tv-card').forEach((c, i) => {
+    c.style.animationDelay = `${i * 24}ms`;
+    c.classList.add('handoff-out');
+  });
+
+  // 2. Mid-handoff (~280ms): swap dataset + persona accent
+  setTimeout(() => {
+    persona = 'amara';
+    products = productsAmara;
+    focusIdx = 0;
+    applyPersona();
+    renderTVCards({ animateIn: true });
+    renderBrowseList();
+    updateSelection();
+    // Phone stays in cast view — D-pad + product card remain visible.
+    // Product card now reflects Amara's first selection (rose accent).
+    phase = 1;
+  }, 320);
+
+  setStep(1);
 }
 
-document.getElementById('tdBack').addEventListener('click', closeDetail);
+/* ============================================================
+   D-pad button bindings — driving the same nav as the TV remote
+   ============================================================ */
+function pulseDpad(dir) {
+  const sel = `.dpad-btn[data-dir="${dir}"]`;
+  const btn = document.querySelector(sel);
+  if (!btn) return;
+  btn.classList.add('pressed');
+  setTimeout(() => btn.classList.remove('pressed'), 140);
+}
 
-// Keyboard
-document.addEventListener('keydown', e => {
-  if (phase === 0 && e.key === 'Enter') { castToTV(); return; }
-  if (phase >= 1) {
-    if (e.key === 'ArrowLeft') tvNav('left');
-    if (e.key === 'ArrowRight') tvNav('right');
-    if (e.key === 'ArrowUp') { e.preventDefault(); tvNav('up'); }
-    if (e.key === 'ArrowDown') { e.preventDefault(); tvNav('down'); }
-    if (e.key === 'Enter') tvOK();
-    if (e.key === 'Escape') { phase === 2 ? closeDetail() : disconnect(); }
-  }
-});
+function dpadAct(dir) {
+  if (phase < 1) return;
+  pulseDpad(dir);
+  if (dir === 'ok') { tvOK(); return; }
+  tvNav(dir);
+}
+
+/* ── boot ── */
+function boot() {
+  // Initial state — son's casting (Marcus). The handoff to Amara
+  // is triggered ONLY after Marcus's purchase confirmation, never on load.
+  persona  = 'marcus';
+  products = productsMarcus;
+  focusIdx = 0;
+  phase    = 0;
+
+  renderTVCards();
+  renderBrowseList();
+  applyPersona();
+  // wire browse cards
+  document.getElementById('phoneBrowseList').addEventListener('click', e => {
+    const card = e.target.closest('.ph-browse-card');
+    if (!card) return;
+    focusIdx = parseInt(card.dataset.i, 10) || 0;
+    castToTV();
+  });
+  document.getElementById('tdBack').addEventListener('click', closeDetail);
+
+  // D-pad bindings
+  document.querySelectorAll('.dpad-btn').forEach(btn => {
+    btn.addEventListener('click', () => dpadAct(btn.dataset.dir));
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (phase === 0 && e.key === 'Enter') { castToTV(); return; }
+    if (phase >= 1) {
+      if (e.key === 'ArrowLeft')  { dpadAct('left'); }
+      if (e.key === 'ArrowRight') { dpadAct('right'); }
+      if (e.key === 'ArrowUp')    { e.preventDefault(); dpadAct('up'); }
+      if (e.key === 'ArrowDown')  { e.preventDefault(); dpadAct('down'); }
+      if (e.key === 'Enter')      { dpadAct('ok'); }
+      if (e.key === 'Escape')     { phase === 2 ? closeDetail() : disconnect(); }
+    }
+  });
+}
+boot();
 </script>
 </body>
 </html>

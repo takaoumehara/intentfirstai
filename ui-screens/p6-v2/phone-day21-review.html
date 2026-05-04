@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · iPhone · Day 21 · Mid-Month Review | P6 Life Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<style>
+  /* iPhone UI · Day 21 · Mid-Month Review
+     - Lena's actual review screen (interactive — Approve/Hold buttons)
+     - Progress bar 21/30
+     - 2 dial-change proposals + 1 ritual proposal
+     - Trust log mini-strip */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe { background: transparent !important; min-height: auto !important; padding: 0 !important; display: block; }
+  body.noframe .qa-frame { display: none; }
+
+  .screen {
+    position: absolute; inset: 0;
+    background: #0a0a0c;
+    color: #f0ede8;
+    border-radius: inherit;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+  }
+  body.noframe .screen { position: relative; inset: auto; width: 100vw; min-height: 100vh; border-radius: 0; }
+
+  /* Status bar */
+  .status-bar {
+    flex-shrink: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 28px 0 28px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .status-bar__icons { display: flex; align-items: center; gap: 5px; }
+
+  /* Scroll container */
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 6px 0 28px;
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Header */
+  .header {
+    padding: 16px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .header__eyebrow {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(232, 165, 87, 0.85);
+  }
+  .header__title {
+    font-family: 'Geist', sans-serif;
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: #fff;
+    margin: 0;
+  }
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .progress__bar {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 70%;
+    background: #e8a557;
+    border-radius: 3px;
+  }
+  .progress__count {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: rgba(240, 237, 232, 0.6);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+    min-width: 56px;
+    text-align: right;
+  }
+  .progress__count strong { color: #fff; font-weight: 600; }
+
+  /* Section block (anti-card: divider rhythm) */
+  .block {
+    padding: 18px 20px 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .block__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .block__label {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(240, 237, 232, 0.50);
+  }
+  .block__count {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: rgba(240, 237, 232, 0.40);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Proposal card (with action) */
+  .proposal {
+    background: #11111a;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .proposal:last-child { margin-bottom: 0; }
+  .proposal__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .proposal__agent {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .dial-pill {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .dial-pill--current { background: rgba(255,255,255,0.06); color: rgba(240, 237, 232, 0.62); }
+  .dial-pill--next    { background: rgba(232, 165, 87, 0.16); color: #e8a557; }
+  .dial-arrow {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    color: rgba(240, 237, 232, 0.45);
+    font-size: 13px;
+  }
+
+  .proposal__body {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(240, 237, 232, 0.85);
+    margin: 0;
+  }
+  .proposal__body strong { color: #fff; font-weight: 600; }
+
+  .proposal__evidence {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.30);
+    border-radius: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .proposal__evidence::-webkit-scrollbar { display: none; }
+  .evidence-tick {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    background: rgba(160, 200, 170, 0.18);
+    color: #a0c8aa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .evidence-tick--miss { background: rgba(232, 144, 144, 0.16); color: #e89090; }
+  .evidence-tick--empty { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.20); }
+  .evidence-tick svg { display: block; width: 10px; height: 10px; }
+
+  .proposal__buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .pbtn {
+    min-height: 40px;
+    padding: 10px 14px;
+    border-radius: 9px;
+    border: 0;
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: -0.01em;
+    transition: filter 200ms ease, transform 100ms ease, background 200ms ease;
+  }
+  .pbtn--approve { background: #e8a557; color: #1a0e02; }
+  .pbtn--hold    { background: rgba(255,255,255,0.06); color: rgba(240, 237, 232, 0.78); }
+  @media (hover: hover) and (pointer: fine) {
+    .pbtn--approve:hover { filter: brightness(1.06); }
+    .pbtn--hold:hover { background: rgba(255,255,255,0.10); color: #fff; }
+  }
+  .pbtn:active { transform: translateY(1px) scale(0.98); }
+  .pbtn:focus-visible { outline: 2px solid #e8a557; outline-offset: 2px; }
+
+  /* Trust log strip */
+  .log-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .log-card {
+    background: #0e0e14;
+    padding: 14px 10px;
+    text-align: left;
+  }
+  .log-card__num {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: #fff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .log-card__label {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(240, 237, 232, 0.45);
+    margin-top: 6px;
+  }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.32);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="qa-frame iphone15pro iphone15pro--lg">
+  <img class="iphone15pro__chrome"
+       src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+       alt="" aria-hidden="true">
+  <div class="iphone15pro__screen">
+    <div class="screen">
+      <div class="status-bar">
+        <span>9:15</span>
+        <div class="status-bar__icons" aria-hidden="true">
+          <svg width="16" height="12" viewBox="0 0 18 12" fill="currentColor">
+            <rect x="0" y="7" width="3" height="5" rx="0.5"/>
+            <rect x="4" y="5" width="3" height="7" rx="0.5"/>
+            <rect x="8" y="3" width="3" height="9" rx="0.5"/>
+            <rect x="12" y="1" width="3" height="11" rx="0.5"/>
+          </svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+            <path d="M2 5C5.5 1.8 10.5 1.8 14 5"/>
+            <path d="M4.5 7.5C6.5 5.7 9.5 5.7 11.5 7.5"/>
+            <circle cx="8" cy="10" r="0.8" fill="currentColor"/>
+          </svg>
+          <svg width="24" height="12" viewBox="0 0 24 12">
+            <rect x="0.5" y="0.5" width="20" height="11" rx="2.5" stroke="currentColor" stroke-opacity="0.5" fill="none"/>
+            <rect x="2" y="2" width="17" height="8" rx="1.5" fill="currentColor"/>
+            <rect x="21" y="4" width="2" height="4" rx="0.6" fill="currentColor" fill-opacity="0.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <header class="header">
+          <div class="header__eyebrow">Day 21 · Mid-Month</div>
+          <h1 class="header__title">Three things to decide.</h1>
+          <div class="progress" aria-label="21 of 30 days">
+            <div class="progress__bar"><div class="progress__fill"></div></div>
+            <div class="progress__count"><strong>21</strong> / 30</div>
+          </div>
+        </header>
+
+        <!-- Dial proposals -->
+        <section class="block">
+          <div class="block__head">
+            <span class="block__label">Dial · proposals</span>
+            <span class="block__count">2</span>
+          </div>
+
+          <article class="proposal">
+            <div class="proposal__head">
+              <span class="proposal__agent">Health</span>
+              <span class="dial-pill dial-pill--current">Confirm</span>
+              <span class="dial-arrow" aria-hidden="true">→</span>
+              <span class="dial-pill dial-pill--next">Auto</span>
+            </div>
+            <p class="proposal__body"><strong>21 days, zero misses.</strong> Last 7 decisions matched what you actually did. Promote Health to Auto?</p>
+            <div class="proposal__evidence" aria-label="Last 7 decisions, all approved">
+              <span class="evidence-tick" aria-hidden="true"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5 L4 7 L8 3"/></svg></span>
+              <span class="evidence-tick" aria-hidden="true"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5 L4 7 L8 3"/></svg></span>
+              <span class="evidence-tick" aria-hidden="true"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5 L4 7 L8 3"/></svg></span>
+              <span class="evidence-tick" aria-hidden="true"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5 L4 7 L8 3"/></svg></span>
+              <span class="evidence-tick" aria-hidden="true"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5 L4 7 L8 3"/></svg></span>
+              <span class="evidence-tick" aria-hidden="true"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5 L4 7 L8 3"/></svg></span>
+              <span class="evidence-tick" aria-hidden="true"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5 L4 7 L8 3"/></svg></span>
+            </div>
+            <div class="proposal__buttons">
+              <button type="button" class="pbtn pbtn--approve">Approve</button>
+              <button type="button" class="pbtn pbtn--hold">Hold</button>
+            </div>
+          </article>
+
+          <article class="proposal">
+            <div class="proposal__head">
+              <span class="proposal__agent">Finance</span>
+              <span class="dial-pill dial-pill--current">Notify · low</span>
+              <span class="dial-arrow" aria-hidden="true">→</span>
+              <span class="dial-pill dial-pill--next">Notify · high</span>
+            </div>
+            <p class="proposal__body"><strong>3 dismisses last week, then a budget overrun.</strong> Raise the notification tone so it stops slipping past?</p>
+            <div class="proposal__evidence">
+              <span class="evidence-tick evidence-tick--miss">×</span>
+              <span class="evidence-tick evidence-tick--miss">×</span>
+              <span class="evidence-tick evidence-tick--miss">×</span>
+              <span class="evidence-tick evidence-tick--miss">!</span>
+              <span class="evidence-tick evidence-tick--empty">—</span>
+              <span class="evidence-tick evidence-tick--empty">—</span>
+              <span class="evidence-tick evidence-tick--empty">—</span>
+            </div>
+            <div class="proposal__buttons">
+              <button type="button" class="pbtn pbtn--approve">Approve</button>
+              <button type="button" class="pbtn pbtn--hold">Hold</button>
+            </div>
+          </article>
+        </section>
+
+        <!-- Ritual proposal -->
+        <section class="block">
+          <div class="block__head">
+            <span class="block__label">Ritual · observed</span>
+            <span class="block__count">1</span>
+          </div>
+          <article class="proposal">
+            <div class="proposal__head">
+              <span class="proposal__agent">Post-gym protein</span>
+              <span class="dial-pill dial-pill--next">→ Protected</span>
+            </div>
+            <p class="proposal__body"><strong>11 of 12 times,</strong> you've chosen the protein yourself after the gym. Promote this moment to a Protected Ritual — Shopping Agent will go silent in that 30-min window.</p>
+            <div class="proposal__buttons">
+              <button type="button" class="pbtn pbtn--approve">Make it a Ritual</button>
+              <button type="button" class="pbtn pbtn--hold">Skip</button>
+            </div>
+          </article>
+        </section>
+
+        <!-- Trust log -->
+        <section class="block">
+          <div class="block__head">
+            <span class="block__label">Trust log · 21 days</span>
+            <span class="block__count">summary</span>
+          </div>
+          <div class="log-strip">
+            <div class="log-card">
+              <div class="log-card__num">2</div>
+              <div class="log-card__label">Override</div>
+            </div>
+            <div class="log-card">
+              <div class="log-card__num">8</div>
+              <div class="log-card__label">Drive Me</div>
+            </div>
+            <div class="log-card">
+              <div class="log-card__num">2</div>
+              <div class="log-card__label">Driver Mode</div>
+            </div>
+            <div class="log-card">
+              <div class="log-card__num">11</div>
+              <div class="log-card__label">Rituals fired</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="home-indicator" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="iphone15pro__island" aria-hidden="true"></div>
+</div>
+</body>
+</html>

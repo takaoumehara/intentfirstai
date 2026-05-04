@@ -9,14 +9,14 @@
 
 | # | ファイル | 修正内容 |
 |---|---------|---------|
-| 1 | `grammar/index.html` | Rule Engine末尾に「Rule Engine deep-dive + design-rules.yaml」リンクボックス追加 |
-| 2 | `grammar/index.html` | CTAに「23 AX Patterns」「YAML Spec」ボタン+「Back to Overview」追加 |
+| 1 | `tokens/index.html` | Rule Engine末尾に「Rule Engine deep-dive + design-rules.yaml」リンクボックス追加 |
+| 2 | `tokens/index.html` | CTAに「23 AX Patterns」「YAML Spec」ボタン+「Back to Overview」追加 |
 | 3 | `brain/index.html` | L3「8 Context Tokens」をGrammarへリンク化+「See each token in detail →」追加 |
 | 4 | `brain/index.html` | Disposable Brainセクションに「P2: The Family Trip応用例」リンク追加 |
 | 5 | `brain/index.html` | CTAに「8 Tokens」「brain-schema.yaml」ボタン+「Back to Overview」追加 |
 | 6 | `trust-design/index.html` | Dynamic Friction末尾に「33 design rules → design-rules.yaml」リンクボックス追加 |
 | 7 | `trust-design/index.html` | CTAに「23 AX Patterns」「YAML Spec」ボタン+「Back to Overview」追加 |
-| 8 | `context-grammar/index.html` | GrammarのTOCカード説明に「Substitution Modes」追加 |
+| 8 | `context-tokens/index.html` | GrammarのTOCカード説明に「Substitution Modes」追加 |
 
 **注:** Intent (`intent/index.html`) とRule Engine (`rule-engine/index.html`) は実在ページ。監査の「孤立」記述は不正確だった。Grammarからこれら専用ページへのリンクは今回追加した(修正#1)。
 
@@ -99,8 +99,8 @@
 
 | # | ファイル | 復元内容 |
 |---|---------|---------|
-| 1 | `grammar/index.html` | "Why Tokens?" を3段落の完全形に戻す(h2は "The Waiter Who Notices" に復帰、killer lineは本文中の太字へ) |
-| 2 | `grammar/index.html` | Token 1, 2, 3, 5, 6のRestaurantメタファーを完全形に戻す(2つの対比例構造を復元) |
+| 1 | `tokens/index.html` | "Why Tokens?" を3段落の完全形に戻す(h2は "The Waiter Who Notices" に復帰、killer lineは本文中の太字へ) |
+| 2 | `tokens/index.html` | Token 1, 2, 3, 5, 6のRestaurantメタファーを完全形に戻す(2つの対比例構造を復元) |
 | 3 | `brain/index.html` | Disposable Brainの "Birthday party" Restaurantアサイドを復元(lifecycle gridの抽象を具体に接続) |
 | 4 | `trust-design/index.html` | Paradoxセクションを元の順序に(Lead → Restaurant → Pullquote → Body → Highlight box)。説得アーク(類比 → 認識 → 主張 → ルール)を復元 |
 | 5 | `trust-design/index.html` | Trust Breach Accountabilityの "The restaurant says..." 復元 + 末尾の "In restaurant terms..." 段落復元(感情的アンカー) |
@@ -198,7 +198,7 @@ Specs ──────→ Index（CTA）
 
 ### 1. ルールエンジンの説明がGrammarページに存在する理由と問題
 
-**問題:** `grammar/index.html` の最後に「Rule Engine」セクションがある。  
+**問題:** `tokens/index.html` の最後に「Rule Engine」セクションがある。  
 **疑問:** なぜここにあるのか？Grammar = Token定義のページのはず。
 
 **評価:**
@@ -299,7 +299,7 @@ Specs ──────→ Index（CTA）
 | ページ | 翻訳 | 状況 |
 |--------|------|------|
 | Index | ja/context-grammar/ | 存在確認できず |
-| Grammar | ja/context-grammar/grammar/ | 完全翻訳 |
+| Grammar | ja/context-grammar/tokens/ | 完全翻訳 |
 | Brain | ja/context-grammar/brain/ | 翻訳なし |
 | Trust Design | ja/context-grammar/trust-design/ | 翻訳なし |
 | AX Patterns | ja/context-grammar/ax-patterns/ | 翻訳なし |

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Meeting Brain | P4 Project Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-2);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+
+  .artifact {
+    width: 100%;
+    max-width: 1200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .live-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--chip-green-text);
+    background: var(--chip-green-bg);
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--color-success);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .title {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+  }
+  .project-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    padding: 5px 10px;
+    background: var(--bg-3);
+    border-radius: 5px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Body: split */
+  .body {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 0;
+  }
+
+  /* ─── Timeline panel ─── */
+  .timeline-panel {
+    padding: 24px 28px 24px;
+    border-right: 1px solid var(--border);
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+  .panel-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .panel-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 22px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px; top: 6px; bottom: 6px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .meeting {
+    position: relative;
+    padding: 10px 0 10px 14px;
+    cursor: pointer;
+  }
+  .meeting::before {
+    content: '';
+    position: absolute;
+    left: -19px;
+    top: 14px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+  }
+  .meeting.is-expanded::before {
+    background: var(--illust-red);
+    border-color: var(--illust-red);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15);
+  }
+
+  .meeting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .meeting-main {
+    min-width: 0;
+    flex: 1;
+  }
+  .meeting-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text-3);
+    margin-bottom: 3px;
+  }
+  .meeting-title {
+    font-family: var(--font-jp);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.1px;
+    line-height: 1.35;
+  }
+  .meeting-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .meeting.is-expanded {
+    background: var(--bg-2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 4px -16px 4px -18px;
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .meeting.is-expanded::before {
+    left: -3px;
+  }
+
+  .expand-content {
+    margin-top: 12px;
+  }
+
+  .transcript-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: var(--font-jp);
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .transcript-line {
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .transcript-line:last-child { border-bottom: none; }
+  .transcript-line strong {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-right: 6px;
+  }
+  .transcript-line--decision {
+    background: var(--chip-amber-bg);
+    border-radius: 5px;
+    padding: 6px 10px;
+    margin-top: 6px;
+  }
+  .transcript-line--decision strong { color: var(--chip-amber-text); }
+
+  .expand-footer {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .participant-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+  }
+  .participant-av {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--text);
+    color: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    border: 2px solid var(--bg);
+    margin-left: -4px;
+  }
+  .participant-av:first-child { margin-left: 0; }
+  .participant-av--blue   { background: var(--chip-blue-text); }
+  .participant-av--amber  { background: var(--chip-amber-text); }
+  .participant-av--green  { background: var(--chip-green-text); }
+  .participant-av--purple { background: var(--chip-purple-text); }
+  .participant-label {
+    margin-left: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+
+  .decision-chips {
+    display: inline-flex;
+    gap: 4px;
+  }
+  .dec-chip {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--chip-amber-bg);
+    color: var(--chip-amber-text);
+  }
+
+  /* ─── Query panel ─── */
+  .query-panel {
+    padding: 24px 24px 24px;
+    background: var(--bg-2);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .query-input-wrap {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .query-icon {
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+  .query-icon svg { width: 14px; height: 14px; }
+  .query-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: var(--font-jp);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+  }
+  .query-kbd {
+    display: inline-flex;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+  .query-kbd kbd {
+    background: var(--bg-3);
+    color: var(--text-2);
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    font-family: inherit;
+  }
+
+  .response {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .response-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .brain-icon {
+    width: 14px; height: 14px;
+    color: var(--color-success);
+  }
+  .response-body {
+    font-family: var(--font-jp);
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.65;
+    margin-bottom: 12px;
+  }
+  .response-body .cite {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--chip-blue-text);
+    background: var(--chip-blue-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 1px;
+    cursor: pointer;
+  }
+  .response-links {
+    display: flex;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  .response-link {
+    color: var(--text-2);
+    text-decoration: none;
+    padding: 4px 8px;
+    background: var(--bg-3);
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .response-link:hover { color: var(--text); }
+
+  .history {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .history-head {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 2px;
+  }
+  .history-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-jp);
+    font-size: 12px;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: border-color 120ms var(--ease-out);
+  }
+  .history-chip:hover { border-color: var(--border-hover); color: var(--text); }
+  .history-chip-icon {
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+  .history-chip-icon svg { width: 11px; height: 11px; }
+  .history-chip-ts {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 14px 28px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .footer-stats {
+    display: inline-flex;
+    gap: 16px;
+  }
+  .footer-24 {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .footer-24 svg { width: 11px; height: 11px; }
+
+  @media (max-width: 900px) {
+    .body { grid-template-columns: 1fr; }
+    .timeline-panel { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div class="artifact">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title-wrap">
+      <span class="live-chip"><span class="live-dot"></span>Live</span>
+      <span class="title">Living Meeting Brain</span>
+    </div>
+    <span class="project-chip">Project Atlas · 2026</span>
+  </header>
+
+  <div class="body">
+
+    <!-- LEFT: Timeline -->
+    <section class="timeline-panel">
+      <div class="panel-head">
+        <span class="panel-label">Meeting Timeline</span>
+        <span class="panel-count">6 of 14 shown</span>
+      </div>
+
+      <div class="timeline">
+
+        <div class="meeting">
+          <div class="meeting-row">
+            <div class="meeting-main">
+              <div class="meeting-date">2026-01-15 · 10:00</div>
+              <div class="meeting-title">Kickoff — プロジェクト発足。L1 Intent確定</div>
+            </div>
+            <div class="meeting-meta">92min · 8ppl</div>
+          </div>
+        </div>
+
+        <div class="meeting">
+          <div class="meeting-row">
+            <div class="meeting-main">
+              <div class="meeting-date">2026-03-10 · 14:00</div>
+              <div class="meeting-title">Sprint 1 Planning — 探索UI方向性決定</div>
+            </div>
+            <div class="meeting-meta">48min · 5ppl</div>
+          </div>
+        </div>
+
+        <div class="meeting">
+          <div class="meeting-row">
+            <div class="meeting-main">
+              <div class="meeting-date">2026-03-24 · 14:00</div>
+              <div class="meeting-title">Sprint 2 Review — デザイン選択肢3案評価</div>
+            </div>
+            <div class="meeting-meta">55min · 6ppl</div>
+          </div>
+        </div>
+
+        <!-- EXPANDED: Sprint 3 -->
+        <div class="meeting is-expanded">
+          <div class="meeting-row">
+            <div class="meeting-main">
+              <div class="meeting-date">2026-04-08 · 14:00</div>
+              <div class="meeting-title">Sprint 3 Planning — Crisis: Dev performance判断 → ナビ変更</div>
+            </div>
+            <div class="meeting-meta">63min · 4ppl</div>
+          </div>
+
+          <div class="expand-content">
+            <div class="transcript-block">
+              <div class="transcript-line">
+                <strong>Dev (Raj)</strong>現在の探索フロー、FCP 3.2秒。最短化すべき。
+              </div>
+              <div class="transcript-line">
+                <strong>Priya (PO)</strong>意図は「迷いを歓迎する」。変更は方向性に反しないか？
+              </div>
+              <div class="transcript-line">
+                <strong>Design (Mei)</strong>パフォーマンス側の改善で、回遊要素は一部残せる余地あり。
+              </div>
+              <div class="transcript-line transcript-line--decision">
+                <strong>Decision</strong>パフォーマンス優先、探索要素は維持。Intent再確認は次Sprintに持ち越し。
+              </div>
+            </div>
+
+            <div class="expand-footer">
+              <div>
+                <span class="participant-row">
+                  <span class="participant-av participant-av--amber">K</span>
+                  <span class="participant-av participant-av--blue">R</span>
+                  <span class="participant-av participant-av--green">M</span>
+                  <span class="participant-av participant-av--purple">L</span>
+                </span>
+                <span class="participant-label">4 participants</span>
+              </div>
+              <span class="decision-chips">
+                <span class="dec-chip">DEC-14</span>
+                <span class="dec-chip">DEC-15</span>
+                <span class="dec-chip">DEC-16</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="meeting">
+          <div class="meeting-row">
+            <div class="meeting-main">
+              <div class="meeting-date">2026-04-22 · 14:00</div>
+              <div class="meeting-title">Sprint 4 Planning — Intent Fidelity監視導入</div>
+            </div>
+            <div class="meeting-meta">51min · 5ppl</div>
+          </div>
+        </div>
+
+        <div class="meeting">
+          <div class="meeting-row">
+            <div class="meeting-main">
+              <div class="meeting-date">2026-05-06 · 14:00</div>
+              <div class="meeting-title">Sprint 5 Review — 方向修正と計測</div>
+            </div>
+            <div class="meeting-meta">42min · 5ppl</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RIGHT: Query panel -->
+    <section class="query-panel">
+      <div class="panel-head">
+        <span class="panel-label">Ask the Meeting Brain</span>
+        <span class="panel-count">24/7 · 0.8s avg</span>
+      </div>
+
+      <!-- Input -->
+      <div class="query-input-wrap">
+        <span class="query-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input class="query-input" value="Sprint 2でなぜナビゲーションを変更したか？" readonly>
+        <span class="query-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
+      </div>
+
+      <!-- Response -->
+      <div class="response">
+        <div class="response-head">
+          <svg class="brain-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+          Atlas Brain · Answer
+        </div>
+        <div class="response-body">
+          厳密には Sprint 2 ではなく、<span class="cite">Sprint 3 Planning</span> (2026-04-08) で決定されています。Devからの「FCP 3.2秒」というパフォーマンス根拠が採用され、探索要素の一部を維持する条件で最短導線への転換が合意されました <span class="cite">DEC-15</span>。決定者は Priya、反対意見は記録にありません。
+        </div>
+        <div class="response-links">
+          <a class="response-link" href="#">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+            jump to Sprint 3 Planning
+          </a>
+          <a class="response-link" href="#">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+            DEC-15 detail
+          </a>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="history">
+        <div class="history-head">Prior queries · this week</div>
+        <div class="history-chip">
+          <span class="history-chip-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span>Priya joinした日は？</span>
+          <span class="history-chip-ts">3日前</span>
+        </div>
+        <div class="history-chip">
+          <span class="history-chip-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span>Brand Owner 最後の参加は？</span>
+          <span class="history-chip-ts">5日前</span>
+        </div>
+        <div class="history-chip">
+          <span class="history-chip-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          <span>最重要決定 TOP 5</span>
+          <span class="history-chip-ts">1週間前</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="footer-stats">
+      <span>14 meetings recorded</span>
+      <span>47 decisions tracked</span>
+    </span>
+    <span class="footer-24">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Query anytime · 24/7
+    </span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2 Concept 03 — Disclosure Dial in action</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/bts-frame.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: transparent;
+    min-height: 100vh;
+    padding: 24px;
+    color: var(--text);
+  }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .intro {
+    margin-bottom: 14px;
+  }
+  .title {
+    font-size: clamp(24px, 2.4vw, 32px);
+    font-weight: 600;
+    letter-spacing: -0.6px;
+    line-height: 1.15;
+    color: var(--gray-900);
+    margin-bottom: 6px;
+  }
+  .lede {
+    font-size: 14px;
+    color: var(--gray-600);
+    font-weight: 500;
+    max-width: 720px;
+    line-height: 1.5;
+  }
+
+  .fact-strip {
+    background: var(--gray-100);
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .fact-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    padding-right: 14px;
+    border-right: 1px solid var(--gray-300);
+  }
+  .fact-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-900);
+  }
+  .fact-text strong { color: #c2410c; }
+
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .msg-card {
+    border-radius: 14px;
+    padding: 18px 18px 20px;
+    position: relative;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+  }
+  .msg-card.m-full {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+  }
+  .msg-card.m-soft {
+    background: #fdf4e8;
+    border: 1px solid #e6d1a8;
+  }
+  .msg-card.m-kid {
+    background: #eef8f0;
+    border: 1px solid #b6dcc1;
+  }
+
+  .msg-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+  .m-full .avatar { background: #4a6a90; }
+  .m-soft .avatar { background: #c2410c; }
+  .m-kid .avatar { background: #30c969; }
+  .msg-to .label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+  }
+  .msg-to .who {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-top: 1px;
+  }
+
+  .level {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-left: auto;
+  }
+  .m-full .level { background: #e0ebf7; color: #2c4f75; }
+  .m-soft .level { background: #f3dbc0; color: #7a3608; }
+  .m-kid .level { background: #cfebd5; color: #1d6c32; }
+
+  .msg-body {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--gray-800);
+    flex: 1;
+  }
+  .msg-body ul { padding-left: 16px; margin: 6px 0; }
+  .msg-body ul li { margin-bottom: 3px; }
+  .msg-body strong { color: var(--gray-900); font-weight: 600; }
+
+  /* Diagram below */
+  .dial-diagram {
+    background: var(--gray-100);
+    border-radius: 14px;
+    padding: 22px 20px;
+  }
+  .diag-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .diag-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+    letter-spacing: -0.2px;
+  }
+  .diag-note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gray-500);
+    letter-spacing: 0.5px;
+  }
+
+  .diag-flow {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .fact-node {
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .fact-node-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--gray-500);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .fact-node-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    position: relative;
+  }
+  .filters::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    width: 20px;
+    height: 1px;
+    background: var(--gray-400);
+  }
+
+  .filter-col {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid var(--gray-200);
+  }
+  .filter-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 8px;
+  }
+  .dial-meter {
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: 3px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .dial-fill {
+    position: absolute;
+    left: 0; top: 0;
+    height: 100%;
+    border-radius: 3px;
+  }
+  .filter-col.c1 .dial-fill { width: 100%; background: #4a6a90; }
+  .filter-col.c2 .dial-fill { width: 45%; background: #c2410c; }
+  .filter-col.c3 .dial-fill { width: 25%; background: #30c969; }
+  .filter-val {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  .rule-box {
+    margin-top: 18px;
+    background: var(--gray-900);
+    color: #f1ecdf;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .rule-box strong {
+    color: #30c969;
+    font-weight: 600;
+  }
+  .rule-box .mono {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: rgba(241,236,223,0.55);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 760px) {
+    .cols { grid-template-columns: 1fr; }
+    .diag-flow { grid-template-columns: 1fr; }
+    .filters::before { display: none; }
+  }
+
+  body.noframe { background: transparent !important; padding: 16px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bts-frame" data-kind="concept">
+    <div class="bts-frame__chip">CONCEPT · Disclosure Dial in action</div>
+    <div class="bts-frame__body">
+
+      <div class="intro">
+        <h1 class="title">One fact. Three different messages.</h1>
+        <p class="lede">The Disclosure Dial controls how much of a single situation each relationship actually sees — filtered by what each person needs to know, per domain.</p>
+      </div>
+
+      <div class="fact-strip">
+        <span class="fact-label">Source fact</span>
+        <span class="fact-text">Kai has a <strong>low fever</strong> — <strong>37.8°C</strong>, 6:47 AM, no other symptoms.</span>
+      </div>
+
+      <div class="cols">
+
+        <div class="msg-card m-full">
+          <div class="msg-head">
+            <div class="avatar">S</div>
+            <div class="msg-to">
+              <div class="label">To</div>
+              <div class="who">Sarah (mom)</div>
+            </div>
+            <span class="level">Full</span>
+          </div>
+          <div class="msg-body">
+            <strong>Kai 37.8°C</strong> · low fever
+            <ul>
+              <li>Indoor day recommended</li>
+              <li>3 clinics within 10 min walk</li>
+              <li>Observe: hydration, rest</li>
+              <li>No antipyretics yet</li>
+            </ul>
+            Next check: 10:00 AM.
+          </div>
+        </div>
+
+        <div class="msg-card m-soft">
+          <div class="msg-head">
+            <div class="avatar">H</div>
+            <div class="msg-to">
+              <div class="label">To</div>
+              <div class="who">Kyoto grandparents</div>
+            </div>
+            <span class="level">Soft</span>
+          </div>
+          <div class="msg-body">
+            Kai is feeling a bit under the weather today. We're having a rest day at the ryokan — he's fine, just a little tired.
+            <br><br>
+            We've got it covered. Thank you for the sweets yesterday!
+          </div>
+        </div>
+
+        <div class="msg-card m-kid">
+          <div class="msg-head">
+            <div class="avatar">K</div>
+            <div class="msg-to">
+              <div class="label">To</div>
+              <div class="who">Kai himself</div>
+            </div>
+            <span class="level">Kid</span>
+          </div>
+          <div class="msg-body">
+            Your body's doing some extra work today. <strong>Nintendo day? 🎮</strong>
+            <br><br>
+            Drink water. Nap when tired. Tell mom if anything feels weird.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dial-diagram">
+        <div class="diag-head">
+          <div class="diag-title">The Disclosure Dial filters the same fact three ways</div>
+          <div class="diag-note">Per relationship · Per domain</div>
+        </div>
+
+        <div class="diag-flow">
+          <div class="fact-node">
+            <div class="fact-node-label">Single fact</div>
+            <div class="fact-node-value">37.8°C<br>low fever</div>
+          </div>
+
+          <div class="filters">
+            <div class="filter-col c1">
+              <div class="filter-label">→ Sarah · Medical</div>
+              <div class="dial-meter"><div class="dial-fill"></div></div>
+              <div class="filter-val">Full clinical detail</div>
+            </div>
+            <div class="filter-col c2">
+              <div class="filter-label">→ Grandparents</div>
+              <div class="dial-meter"><div class="dial-fill"></div></div>
+              <div class="filter-val">Reassuring summary</div>
+            </div>
+            <div class="filter-col c3">
+              <div class="filter-label">→ Kai · Age-safe</div>
+              <div class="dial-meter"><div class="dial-fill"></div></div>
+              <div class="filter-val">Kid framing + action</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rule-box">
+          <span class="mono">Rule · Disclosure ≥ Autonomy</span>
+          <strong>Autonomy is capped by Disclosure.</strong> The system can only act independently on things it has been told to share. "Don't tell × Let decide" is logically impossible — the same fact is sculpted per relationship, not broadcast.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

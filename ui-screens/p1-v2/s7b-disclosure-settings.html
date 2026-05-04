@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S7b — Disclosure Settings (Mai · admin)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="_avatars.css">
+<style>
+  /* ──────────────────────────────────────────────────────────
+     S7b · Disclosure Settings — iPad landscape, user UI
+     Aspect: 1194 × 834 (iPad Pro 11" landscape)
+     ────────────────────────────────────────────────────────── */
+
+  :root {
+    --ds-bg:          #f4f2ec;      /* warm paper */
+    --ds-surface:     #ffffff;
+    --ds-surface-2:   #faf8f3;
+    --ds-ink:         #1a1816;
+    --ds-ink-2:       #504a42;
+    --ds-ink-3:       #8a8277;
+    --ds-line:        #e5e0d6;
+    --ds-line-2:      #ede8dc;
+
+    /* Profile pill tones (muted, calm) */
+    --pill-open-bg:   #f8ebd3;
+    --pill-open-ink:  #7a5317;
+    --pill-open-dot:  #c08a3c;
+
+    --pill-obs-bg:    #ece5f3;
+    --pill-obs-ink:   #5a4482;
+    --pill-obs-dot:   #8a6ab0;
+
+    --pill-safe-bg:   #e1ecdd;
+    --pill-safe-ink:  #3b5e35;
+    --pill-safe-dot:  #6c9062;
+
+    --pill-lock-bg:   #e7e5e0;
+    --pill-lock-ink:  #55514a;
+    --pill-lock-dot:  #8a8277;
+
+    --brand-home:     #8a6ab0;      /* H badge purple (Home Brain) */
+
+    --radius-card:    14px;
+    --radius-pill:    999px;
+
+    --font-sans: 'Satoshi', 'Inter', -apple-system, 'SF Pro Text', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  html { overflow: hidden; height: 100%; }
+  body {
+    background: linear-gradient(135deg, #eeece5 0%, #e2dfd6 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    font-family: var(--font-sans);
+    color: var(--ds-ink);
+    user-select: none;
+    overflow: hidden;
+  }
+
+  /* ── iPad bezel ── */
+  .ipad {
+    width: 1194px;
+    height: 834px;
+    background: #1b1b1e;
+    border-radius: 28px;
+    padding: 14px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 40px) / 862px), calc((100vw - 40px) / 1222px)));
+    box-shadow:
+      0 2px 3px rgba(0,0,0,0.08),
+      0 12px 28px rgba(0,0,0,0.14),
+      0 40px 90px rgba(0,0,0,0.08),
+      inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .ipad::before,
+  .ipad::after {
+    /* aluminum bezel highlight + camera dot */
+    content: '';
+    position: absolute;
+  }
+  .ipad::before {
+    inset: 0;
+    border-radius: 28px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 40%);
+    pointer-events: none;
+  }
+  .ipad::after {
+    /* front-camera */
+    top: 50%;
+    left: 6px;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #0a0a0c;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: var(--ds-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Noframe mode ── */
+  body.noframe {
+    background: transparent;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  body.noframe .ipad {
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    width: 100vw;
+    height: 100vh;
+  }
+  body.noframe .ipad::before,
+  body.noframe .ipad::after { display: none; }
+  body.noframe .screen { border-radius: 0; }
+
+  /* ══════════ APP LAYOUT ══════════ */
+  .app {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 36px 18px;
+    border-bottom: 1px solid var(--ds-line);
+    background: var(--ds-surface);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .app-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: var(--brand-home);
+    color: #fff;
+    font-weight: 700;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.25),
+      0 1px 2px rgba(138,106,176,0.3);
+    font-family: var(--font-sans);
+    letter-spacing: -0.02em;
+  }
+  .app-title-group { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .app-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ds-ink);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .app-sub {
+    font-size: 12px;
+    color: var(--ds-ink-3);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px 6px 6px;
+    background: var(--ds-surface-2);
+    border: 1px solid var(--ds-line);
+    border-radius: var(--radius-pill);
+  }
+  .topbar-right .who {
+    display: flex; flex-direction: column; gap: 0; line-height: 1.15;
+  }
+  .topbar-right .who-name {
+    font-size: 13px; font-weight: 600; color: var(--ds-ink);
+  }
+  .topbar-right .who-role {
+    font-size: 10.5px; font-family: var(--font-mono);
+    color: var(--ds-ink-3); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  /* ── Body (scrollable if needed) ── */
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 26px 36px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .body::-webkit-scrollbar { width: 0; height: 0; }
+
+  .body-intro {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  .body-intro h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ds-ink-2);
+    letter-spacing: -0.005em;
+  }
+  .body-intro .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--ds-ink-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ══════════ MEMBER ROW ══════════ */
+  .row {
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-line);
+    border-radius: var(--radius-card);
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 240px 1fr 220px;
+    align-items: center;
+    gap: 20px;
+    transition: border-color 0.2s ease;
+  }
+  .row:hover { border-color: #d8d2c4; }
+
+  .row.is-you {
+    background: #fdfcf8;
+    border-color: #e8e0ce;
+    border-style: dashed;
+  }
+  .row.is-expanded {
+    background: rgba(138, 106, 176, 0.03);
+    border-color: #d8ccea;
+    padding-bottom: 0;
+    grid-template-columns: 240px 1fr 220px;
+    grid-template-rows: auto auto auto;
+  }
+  .row.is-expanded > .row-drawer,
+  .row.is-expanded > .row-footchip {
+    grid-column: 1 / -1;
+  }
+
+  /* LEFT — person */
+  .person { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .person-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .person-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ds-ink);
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .person-name .you-chip {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #2a241c;
+    color: #f6efd9;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .person-role {
+    font-size: 12px;
+    color: var(--ds-ink-3);
+    font-weight: 500;
+  }
+
+  /* CENTER — profile pill + description */
+  .profile { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    padding: 6px 12px 6px 10px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pill::before {
+    content: '';
+    width: 8px; height: 8px; border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+  }
+  .pill--open  { background: var(--pill-open-bg); color: var(--pill-open-ink); }
+  .pill--obs   { background: var(--pill-obs-bg);  color: var(--pill-obs-ink); }
+  .pill--safe  { background: var(--pill-safe-bg); color: var(--pill-safe-ink); }
+  .pill--lock  { background: var(--pill-lock-bg); color: var(--pill-lock-ink); }
+  .pill--admin {
+    background: #2a241c;
+    color: #f6efd9;
+  }
+
+  .profile-desc {
+    font-size: 13px;
+    color: var(--ds-ink-2);
+    line-height: 1.45;
+    max-width: 360px;
+  }
+
+  /* RIGHT — stats */
+  .stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: 0;
+  }
+  .stats-line {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ds-ink-3);
+    letter-spacing: 0.04em;
+  }
+  .stats-line strong {
+    color: var(--ds-ink);
+    font-weight: 600;
+  }
+  .customize {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: var(--ds-surface-2);
+    border: 1px solid var(--ds-line);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ds-ink);
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .customize:hover { background: #f1ece0; border-color: #d8d2c4; }
+  .customize .arrow { font-family: var(--font-mono); color: var(--ds-ink-3); }
+
+  /* ══════════ EXPANDED DRAWER (Aoi) ══════════ */
+  .row-drawer {
+    margin-top: 14px;
+    padding: 16px 4px 10px;
+    border-top: 1px dashed #d8ccea;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .agent-cell {
+    background: var(--ds-surface);
+    border: 1px solid #e5dcf0;
+    border-radius: 10px;
+    padding: 12px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 84px;
+  }
+  .agent-cell .agent-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--pill-obs-ink);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .agent-cell .agent-state {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ds-ink);
+  }
+  .agent-cell .agent-state .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .agent-cell[data-state="yes"]     .dot { background: #6c9062; }
+  .agent-cell[data-state="limited"] .dot { background: #c08a3c; }
+  .agent-cell[data-state="no"]      .dot { background: #a07070; }
+  .agent-cell[data-state="titles"]  .dot { background: #8a6ab0; }
+  .agent-cell .agent-note {
+    font-size: 11px;
+    color: var(--ds-ink-3);
+    line-height: 1.35;
+    font-weight: 500;
+  }
+
+  .row-footchip {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 9px 12px;
+    background: rgba(138, 106, 176, 0.07);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--pill-obs-ink);
+    letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .row-footchip::before {
+    content: '';
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--pill-obs-dot);
+    flex-shrink: 0;
+  }
+
+  /* ══════════ FOOTER ══════════ */
+  .footer {
+    padding: 14px 36px;
+    border-top: 1px solid var(--ds-line);
+    background: var(--ds-surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .footer-note {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ds-ink-3);
+    letter-spacing: 0.04em;
+  }
+  .footer-note strong { color: var(--ds-ink-2); font-weight: 600; }
+  .footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ds-ink);
+    text-decoration: none;
+    letter-spacing: -0.005em;
+  }
+  .footer-link:hover { background: var(--ds-surface-2); }
+  .footer-link .arrow { font-family: var(--font-mono); color: var(--ds-ink-3); }
+</style>
+</head>
+<body>
+
+<div class="ipad" role="presentation">
+  <div class="screen">
+    <div class="app">
+
+      <!-- ══════════ TOP BAR ══════════ -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="app-icon" aria-hidden="true">H</div>
+          <div class="app-title-group">
+            <div class="app-title">Disclosure Settings</div>
+            <div class="app-sub">Who knows what about your family</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="av av--md av--mai" aria-hidden="true">M</span>
+          <div class="who">
+            <span class="who-name">Mai</span>
+            <span class="who-role">admin</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ══════════ BODY ══════════ -->
+      <main class="body">
+
+        <div class="body-intro">
+          <h2>Family members · 5</h2>
+          <span class="eyebrow">Tap a row to customize</span>
+        </div>
+
+        <!-- ── Row 1 · Kiran (OPEN) ── -->
+        <section class="row" aria-label="Kiran, partner">
+          <div class="person">
+            <span class="av av--lg av--kiran" aria-hidden="true">K</span>
+            <div class="person-text">
+              <span class="person-name">Kiran</span>
+              <span class="person-role">Dad · 38</span>
+            </div>
+          </div>
+          <div class="profile">
+            <span class="pill pill--open">Open</span>
+            <p class="profile-desc">Full visibility for partner. Both dials set to Open across all shared domains.</p>
+          </div>
+          <div class="stats">
+            <span class="stats-line"><strong>5</strong> agents · <strong>14</strong> domains shared</span>
+            <a class="customize" href="#" role="button">Customize <span class="arrow">→</span></a>
+          </div>
+        </section>
+
+        <!-- ── Row 2 · Mai (YOU) ── -->
+        <section class="row is-you" aria-label="Mai, you, admin">
+          <div class="person">
+            <span class="av av--lg av--mai" aria-hidden="true">M</span>
+            <div class="person-text">
+              <span class="person-name">Mai <span class="you-chip">You</span></span>
+              <span class="person-role">Mom · 36</span>
+            </div>
+          </div>
+          <div class="profile">
+            <span class="pill pill--admin">Admin</span>
+            <p class="profile-desc">Sets the policies below. Your own disclosure is managed from your personal settings.</p>
+          </div>
+          <div class="stats">
+            <span class="stats-line"><strong>5</strong> agents · <strong>16</strong> domains shared</span>
+            <a class="customize" href="#" role="button">Open my profile <span class="arrow">→</span></a>
+          </div>
+        </section>
+
+        <!-- ── Row 3 · Aoi (OBSERVATIONAL · EXPANDED) ── -->
+        <section class="row is-expanded" aria-label="Aoi, teen, observational profile, expanded">
+          <div class="person">
+            <span class="av av--lg av--aoi" aria-hidden="true">A</span>
+            <div class="person-text">
+              <span class="person-name">Aoi</span>
+              <span class="person-role">Teen · 15 · they / them</span>
+            </div>
+          </div>
+          <div class="profile">
+            <span class="pill pill--obs">Observational</span>
+            <p class="profile-desc">Shares titles + calendar. Keeps journal entries and mood logs private.</p>
+          </div>
+          <div class="stats">
+            <span class="stats-line"><strong>5</strong> agents · <strong>12</strong> domains shared</span>
+            <a class="customize" href="#" role="button">Customize <span class="arrow">→</span></a>
+          </div>
+
+          <!-- Expanded agent grid -->
+          <div class="row-drawer" aria-label="Aoi agent-by-agent disclosure">
+            <div class="agent-cell" data-state="yes">
+              <span class="agent-label">Education</span>
+              <span class="agent-state"><span class="dot"></span>Yes, full</span>
+              <span class="agent-note">School portal, grades, teacher notes</span>
+            </div>
+            <div class="agent-cell" data-state="limited">
+              <span class="agent-label">Health</span>
+              <span class="agent-state"><span class="dot"></span>Yes, limited</span>
+              <span class="agent-note">Physical only · no mental-health notes</span>
+            </div>
+            <div class="agent-cell" data-state="limited">
+              <span class="agent-label">Home</span>
+              <span class="agent-state"><span class="dot"></span>Soft prompts</span>
+              <span class="agent-note">Can suggest · never auto-act on their schedule</span>
+            </div>
+            <div class="agent-cell" data-state="no">
+              <span class="agent-label">Finance</span>
+              <span class="agent-state"><span class="dot"></span>No</span>
+              <span class="agent-note">Teen allowance agent only</span>
+            </div>
+            <div class="agent-cell" data-state="titles">
+              <span class="agent-label">Family</span>
+              <span class="agent-state"><span class="dot"></span>Titles only</span>
+              <span class="agent-note">As set by Aoi — not by admin</span>
+            </div>
+          </div>
+
+          <div class="row-footchip">
+            Aoi can change their own dial at any time. Last updated: today.
+          </div>
+        </section>
+
+        <!-- ── Row 4 · Leo (FAMILY-SAFE) ── -->
+        <section class="row" aria-label="Leo, child, family-safe profile">
+          <div class="person">
+            <span class="av av--lg av--leo" aria-hidden="true">L</span>
+            <div class="person-text">
+              <span class="person-name">Leo</span>
+              <span class="person-role">Child · 9</span>
+            </div>
+          </div>
+          <div class="profile">
+            <span class="pill pill--safe">Family-Safe</span>
+            <p class="profile-desc">Age-appropriate, encouraging-only. No financial prompts, no social-media surfaces.</p>
+          </div>
+          <div class="stats">
+            <span class="stats-line"><strong>4</strong> agents · <strong>9</strong> domains shared</span>
+            <a class="customize" href="#" role="button">Customize <span class="arrow">→</span></a>
+          </div>
+        </section>
+
+        <!-- ── Row 5 · Sota (FAMILY-SAFE) ── -->
+        <section class="row" aria-label="Sota, child, family-safe profile">
+          <div class="person">
+            <span class="av av--lg av--sota" aria-hidden="true">S</span>
+            <div class="person-text">
+              <span class="person-name">Sota</span>
+              <span class="person-role">Child · 6</span>
+            </div>
+          </div>
+          <div class="profile">
+            <span class="pill pill--safe">Family-Safe</span>
+            <p class="profile-desc">Age-appropriate, household default. Parent-only overrides for every agent.</p>
+          </div>
+          <div class="stats">
+            <span class="stats-line"><strong>4</strong> agents · <strong>7</strong> domains shared</span>
+            <a class="customize" href="#" role="button">Customize <span class="arrow">→</span></a>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ══════════ FOOTER ══════════ -->
+      <footer class="footer">
+        <div class="footer-note">
+          Last changed: <strong>today</strong> · Aoi updated their own dial
+        </div>
+        <a class="footer-link" href="#">See full matrix view <span class="arrow">→</span></a>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Noframe handler ──────────────────────────────────────────
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('noframe') === '1') {
+      document.body.classList.add('noframe');
+    }
+  })();
+</script>
+
+</body>
+</html>

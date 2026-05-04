@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S11 — Autonomy Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_tokens.css">
+<style>
+  /* ── iPad landscape ── */
+  html { overflow: hidden; height: 100%; }
+  body {
+    background: #E8EAED;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .tab-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .tab-frame::before,
+  body.noframe .tab-frame::after,
+  body.noframe .tab-cam { display: none; }
+  body.noframe .tab-screen { border-radius: 0; }
+  body.noframe .tab-status { display: none; }
+  body.noframe .tab-home { display: none; }
+
+  .tab-frame {
+    width: 1194px;
+    height: 834px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 44px;
+    padding: 22px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 32px) / 834px), calc((100vw - 32px) / 1194px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 12px 32px rgba(0,0,0,0.16),
+      0 32px 64px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .tab-frame::before {
+    content: ''; position: absolute;
+    left: -2px; top: 70px;
+    width: 3px; height: 60px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 2px 0 0 2px;
+  }
+  .tab-frame::after {
+    content: ''; position: absolute;
+    right: -2px; bottom: 70px;
+    width: 3px; height: 50px;
+    background: linear-gradient(to bottom, #3a3a3c, #2a2a2c);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 -60px 0 #2a2a2c;
+  }
+  .tab-cam {
+    position: absolute;
+    top: 50%; left: 10px;
+    transform: translateY(-50%);
+    width: 8px; height: 8px;
+    background: #0a0a0a; border-radius: 50%;
+    border: 1px solid #222; z-index: 100;
+  }
+  .tab-screen {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    border-radius: 22px;
+    overflow: hidden;
+    position: relative;
+  }
+  .tab-status {
+    height: 24px;
+    padding: 4px 24px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 600; color: var(--fg);
+    font-family: var(--font-sans);
+    position: relative; z-index: 50;
+    background: transparent;
+  }
+  .tab-status-right { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+  .tab-status-right svg { width: 14px; height: 14px; stroke-width: 2; }
+  .tab-home {
+    position: absolute; bottom: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 280px; height: 5px;
+    background: #202124; border-radius: 100px;
+    opacity: 0.25; z-index: 52;
+  }
+
+  .content {
+    position: absolute;
+    top: 24px; bottom: 20px; left: 0; right: 0;
+    overflow: hidden;
+    background: var(--bg);
+    display: grid;
+    grid-template-columns: 1fr 348px;
+  }
+
+  /* ── Left (chart) ── */
+  .chart-col {
+    padding: 24px 28px 20px;
+    display: flex; flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .chart-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px;
+  }
+  .page-title-block { display: flex; flex-direction: column; gap: 4px; }
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--fg);
+    line-height: 1.15;
+  }
+  .page-subtitle {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.15px;
+  }
+  .chart-meta {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .range-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    background: var(--bg);
+  }
+  .range-toggle button {
+    border: none;
+    background: transparent;
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .range-toggle button.is-active { background: var(--gray-100); color: var(--fg); }
+
+  /* Legend row */
+  .legend-row {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle);
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 7px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg);
+    letter-spacing: 0.2px;
+  }
+  .legend-line {
+    width: 18px; height: 2px; border-radius: 1px;
+  }
+  .legend-line.home { background: var(--agent-home); }
+  .legend-line.calendar { background: var(--agent-calendar); }
+  .legend-line.education { background: var(--agent-education); }
+  .legend-line.finance { background: var(--agent-finance); }
+  .legend-item .muted { color: var(--fg-muted); }
+
+  /* Chart SVG container */
+  .chart-box {
+    flex: 1;
+    min-height: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    padding: 14px 16px 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  .chart-svg {
+    flex: 1;
+    width: 100%;
+    overflow: visible;
+  }
+
+  /* ── Right rail ── */
+  .rail {
+    border-left: 1px solid var(--border);
+    background: var(--bg-subtle);
+    padding: 22px 20px;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 12px;
+  }
+  .rail-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    margin-bottom: 2px;
+  }
+
+  .agent-row {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .agent-row-head {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .agent-icon-sm {
+    width: 26px; height: 26px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; flex-shrink: 0;
+  }
+  .agent-icon-sm svg { width: 13px; height: 13px; stroke-width: 1.75; }
+  .agent-icon-sm.home { background: var(--agent-home); }
+  .agent-icon-sm.calendar { background: var(--agent-calendar); }
+  .agent-icon-sm.education { background: var(--agent-education); }
+  .agent-icon-sm.finance { background: var(--agent-finance); }
+
+  .agent-name-block {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+  }
+  .agent-name {
+    font-size: var(--fs-base);
+    font-weight: var(--fw-medium);
+    color: var(--fg);
+    letter-spacing: -0.1px;
+  }
+  .agent-rel {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.2px;
+  }
+  .level-badge {
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .level-badge.auto { background: var(--green-bg); color: var(--green); }
+  .level-badge.notify { background: var(--blue-bg); color: var(--blue); }
+  .level-badge.confirm { background: var(--amber-bg); color: var(--amber); }
+  .level-badge.suggest { background: var(--gray-100); color: var(--gray-600); }
+
+  .agent-row-stats {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 10px;
+  }
+  .stat-num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--fg);
+  }
+  .stat-num strong { font-weight: var(--fw-semibold); color: var(--fg); }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-subtle);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .spark {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+  .spark span {
+    width: 3px; border-radius: 1px; opacity: 0.7;
+  }
+
+  .summary-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    font-size: var(--fs-sm);
+    color: var(--fg);
+    line-height: 1.5;
+    margin-top: auto;
+  }
+  .summary-card strong { font-weight: var(--fw-semibold); }
+  .summary-card-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--fg-muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="tab-frame">
+  <div class="tab-cam"></div>
+  <div class="tab-screen">
+    <div class="tab-status">
+      <span>9:41 Mon 21</span>
+      <div class="tab-status-right">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/><rect x="4" y="9" width="12" height="6" rx="0.5" fill="currentColor" stroke="none"/></svg>
+        <span>87%</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── Chart column ── -->
+      <section class="chart-col">
+        <header class="chart-header">
+          <div class="page-title-block">
+            <h1 class="page-title">Autonomy timeline</h1>
+            <span class="page-subtitle">12 months of trust accumulation · per-domain curves</span>
+          </div>
+          <div class="chart-meta">
+            <div class="range-toggle">
+              <button>3M</button>
+              <button>6M</button>
+              <button class="is-active">12M</button>
+              <button>All</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="legend-row">
+          <span class="legend-item">
+            <span class="legend-line home"></span>
+            Home Agent <span class="muted">· Omakase</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-line calendar"></span>
+            Calendar Agent <span class="muted">· Infrastructure</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-line education"></span>
+            Education Agent <span class="muted">· Collaborator</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-line finance"></span>
+            Finance Agent <span class="muted">· Steward</span>
+          </span>
+        </div>
+
+        <div class="chart-box">
+          <!--
+            Chart geometry
+            SVG viewBox: 0 0 800 420
+            Plot area: x 90 → 760 (670 wide), y 30 → 360 (330 tall)
+            X ticks (Day1, M1, M3, M6, M9, M12) at x:
+              Day1 = 90, M1 = 146, M3 = 258, M6 = 425, M9 = 593, M12 = 760
+            Y bands (4 levels), mid-lines at y:
+              Auto    = 60
+              Notify  = 140
+              Confirm = 220
+              Suggest = 300
+          -->
+          <svg class="chart-svg" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+            <!-- background band shading (alternating light gray for Auto/Confirm) -->
+            <rect x="90" y="30"  width="670" height="80" fill="#fafafa"/>
+            <rect x="90" y="110" width="670" height="80" fill="#ffffff"/>
+            <rect x="90" y="190" width="670" height="80" fill="#fafafa"/>
+            <rect x="90" y="270" width="670" height="80" fill="#ffffff"/>
+
+            <!-- Y-axis band labels -->
+            <g font-family="Geist Mono, monospace" font-size="11" fill="#999999">
+              <text x="82" y="74"  text-anchor="end">AUTO</text>
+              <text x="82" y="154" text-anchor="end">NOTIFY</text>
+              <text x="82" y="234" text-anchor="end">CONFIRM</text>
+              <text x="82" y="314" text-anchor="end">SUGGEST</text>
+            </g>
+
+            <!-- Y-band dividers -->
+            <g stroke="#e5e5e5" stroke-width="1">
+              <line x1="90" y1="30"  x2="760" y2="30"/>
+              <line x1="90" y1="110" x2="760" y2="110"/>
+              <line x1="90" y1="190" x2="760" y2="190"/>
+              <line x1="90" y1="270" x2="760" y2="270"/>
+              <line x1="90" y1="350" x2="760" y2="350"/>
+            </g>
+
+            <!-- X gridlines (dashed) -->
+            <g stroke="#e5e5e5" stroke-width="1" stroke-dasharray="2 3">
+              <line x1="146" y1="30" x2="146" y2="350"/>
+              <line x1="258" y1="30" x2="258" y2="350"/>
+              <line x1="425" y1="30" x2="425" y2="350"/>
+              <line x1="593" y1="30" x2="593" y2="350"/>
+            </g>
+
+            <!-- X-axis labels -->
+            <g font-family="Geist Mono, monospace" font-size="11" fill="#666666" text-anchor="middle">
+              <text x="90"  y="378">Day 1</text>
+              <text x="146" y="378">Month 1</text>
+              <text x="258" y="378">3</text>
+              <text x="425" y="378">6</text>
+              <text x="593" y="378">9</text>
+              <text x="760" y="378">12</text>
+            </g>
+
+            <!-- ══ Finance curve (teal) — stays near Suggest ══ -->
+            <path d="M 90 305
+                     C 180 302, 260 300, 340 298
+                     S 520 294, 620 292
+                     S 720 290, 760 288"
+                  stroke="#0d7a7a" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="760" cy="288" r="3.5" fill="#0d7a7a"/>
+
+            <!-- ══ Education curve (indigo) — slower, stabilizes Confirm ══ -->
+            <path d="M 90 305
+                     C 160 295, 210 275, 258 250
+                     S 360 220, 425 220
+                     S 593 220, 760 220"
+                  stroke="#5b4fb0" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="760" cy="220" r="3.5" fill="#5b4fb0"/>
+
+            <!-- ══ Calendar curve (blue) — plateaus Notify ══ -->
+            <path d="M 90 305
+                     C 160 280, 220 250, 258 210
+                     S 360 165, 425 150
+                     S 540 142, 593 140
+                     S 720 140, 760 140"
+                  stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="760" cy="140" r="3.5" fill="#2563eb"/>
+
+            <!-- ══ Home curve (orange) — climbs steadily to Auto by M10 ══ -->
+            <path d="M 90 305
+                     C 150 270, 200 230, 258 195
+                     S 360 140, 425 110
+                     S 540 80, 620 65
+                     S 720 60, 760 60"
+                  stroke="#c2671c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <circle cx="760" cy="60" r="3.5" fill="#c2671c"/>
+
+            <!-- ══ Tooltip on Home curve at Month 6 (x=425, y=110) ══ -->
+            <g>
+              <line x1="425" y1="110" x2="425" y2="175" stroke="#c2671c" stroke-width="1" stroke-dasharray="2 2"/>
+              <circle cx="425" cy="110" r="5" fill="#ffffff" stroke="#c2671c" stroke-width="2"/>
+              <!-- Tooltip box -->
+              <g transform="translate(330, 30)">
+                <rect x="0" y="0" width="200" height="54" rx="6" fill="#ffffff" stroke="#e5e5e5" stroke-width="1"/>
+                <text x="12" y="18" font-family="Geist Mono, monospace" font-size="10" fill="#999" letter-spacing="0.4">MONTH 6 · HOME</text>
+                <text x="12" y="36" font-family="Geist, sans-serif" font-size="13" font-weight="500" fill="#0a0a0a">87 Auto decisions</text>
+                <text x="12" y="50" font-family="Geist Mono, monospace" font-size="10" fill="#666">reversible within 24h</text>
+              </g>
+            </g>
+
+            <!-- ══ Endpoint labels ══ -->
+            <g font-family="Geist, sans-serif" font-size="11" font-weight="500">
+              <!-- Home -->
+              <g>
+                <rect x="662" y="48" width="96" height="22" rx="11" fill="#ffffff" stroke="#c2671c" stroke-width="1"/>
+                <text x="710" y="63" text-anchor="middle" fill="#c2671c">Home · Omakase</text>
+              </g>
+              <!-- Calendar -->
+              <g>
+                <rect x="632" y="128" width="126" height="22" rx="11" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+                <text x="695" y="143" text-anchor="middle" fill="#2563eb">Calendar · Infrastructure</text>
+              </g>
+              <!-- Education -->
+              <g>
+                <rect x="634" y="228" width="124" height="22" rx="11" fill="#ffffff" stroke="#5b4fb0" stroke-width="1"/>
+                <text x="696" y="243" text-anchor="middle" fill="#5b4fb0">Education · Collaborator</text>
+              </g>
+              <!-- Finance -->
+              <g>
+                <rect x="656" y="296" width="104" height="22" rx="11" fill="#ffffff" stroke="#0d7a7a" stroke-width="1"/>
+                <text x="708" y="311" text-anchor="middle" fill="#0d7a7a">Finance · Steward</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ── Right rail ── -->
+      <aside class="rail g-scroll">
+        <span class="rail-label">Current state · April 2025</span>
+
+        <!-- Home -->
+        <article class="agent-row">
+          <div class="agent-row-head">
+            <span class="agent-icon-sm home">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 22V12h6v10"/></svg>
+            </span>
+            <div class="agent-name-block">
+              <span class="agent-name">Home</span>
+              <span class="agent-rel">Omakase · trust-led</span>
+            </div>
+            <span class="level-badge auto">Auto</span>
+          </div>
+          <div class="agent-row-stats">
+            <div>
+              <div class="stat-num"><strong>142</strong> / month</div>
+              <span class="stat-label">Auto decisions</span>
+            </div>
+            <div class="spark">
+              <span style="height:4px;background:#c2671c;"></span>
+              <span style="height:5px;background:#c2671c;"></span>
+              <span style="height:7px;background:#c2671c;"></span>
+              <span style="height:8px;background:#c2671c;"></span>
+              <span style="height:10px;background:#c2671c;"></span>
+              <span style="height:12px;background:#c2671c;"></span>
+              <span style="height:14px;background:#c2671c;"></span>
+              <span style="height:15px;background:#c2671c;"></span>
+              <span style="height:16px;background:#c2671c;"></span>
+              <span style="height:18px;background:#c2671c;"></span>
+              <span style="height:17px;background:#c2671c;"></span>
+              <span style="height:18px;background:#c2671c;"></span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Calendar -->
+        <article class="agent-row">
+          <div class="agent-row-head">
+            <span class="agent-icon-sm calendar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            <div class="agent-name-block">
+              <span class="agent-name">Calendar</span>
+              <span class="agent-rel">Infrastructure · quiet</span>
+            </div>
+            <span class="level-badge notify">Notify</span>
+          </div>
+          <div class="agent-row-stats">
+            <div>
+              <div class="stat-num"><strong>58</strong> / month</div>
+              <span class="stat-label">Notifications sent</span>
+            </div>
+            <div class="spark">
+              <span style="height:3px;background:#2563eb;"></span>
+              <span style="height:5px;background:#2563eb;"></span>
+              <span style="height:7px;background:#2563eb;"></span>
+              <span style="height:10px;background:#2563eb;"></span>
+              <span style="height:12px;background:#2563eb;"></span>
+              <span style="height:13px;background:#2563eb;"></span>
+              <span style="height:14px;background:#2563eb;"></span>
+              <span style="height:14px;background:#2563eb;"></span>
+              <span style="height:14px;background:#2563eb;"></span>
+              <span style="height:14px;background:#2563eb;"></span>
+              <span style="height:15px;background:#2563eb;"></span>
+              <span style="height:14px;background:#2563eb;"></span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Education -->
+        <article class="agent-row">
+          <div class="agent-row-head">
+            <span class="agent-icon-sm education">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </span>
+            <div class="agent-name-block">
+              <span class="agent-name">Education</span>
+              <span class="agent-rel">Collaborator · discuss</span>
+            </div>
+            <span class="level-badge confirm">Confirm</span>
+          </div>
+          <div class="agent-row-stats">
+            <div>
+              <div class="stat-num"><strong>24</strong> / month</div>
+              <span class="stat-label">Confirmations</span>
+            </div>
+            <div class="spark">
+              <span style="height:3px;background:#5b4fb0;"></span>
+              <span style="height:4px;background:#5b4fb0;"></span>
+              <span style="height:6px;background:#5b4fb0;"></span>
+              <span style="height:8px;background:#5b4fb0;"></span>
+              <span style="height:10px;background:#5b4fb0;"></span>
+              <span style="height:10px;background:#5b4fb0;"></span>
+              <span style="height:11px;background:#5b4fb0;"></span>
+              <span style="height:11px;background:#5b4fb0;"></span>
+              <span style="height:10px;background:#5b4fb0;"></span>
+              <span style="height:11px;background:#5b4fb0;"></span>
+              <span style="height:12px;background:#5b4fb0;"></span>
+              <span style="height:11px;background:#5b4fb0;"></span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Finance -->
+        <article class="agent-row">
+          <div class="agent-row-head">
+            <span class="agent-icon-sm finance">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+            </span>
+            <div class="agent-name-block">
+              <span class="agent-name">Finance</span>
+              <span class="agent-rel">Steward · read-only</span>
+            </div>
+            <span class="level-badge suggest">Suggest</span>
+          </div>
+          <div class="agent-row-stats">
+            <div>
+              <div class="stat-num"><strong>6</strong> / month</div>
+              <span class="stat-label">Suggestions surfaced</span>
+            </div>
+            <div class="spark">
+              <span style="height:3px;background:#0d7a7a;"></span>
+              <span style="height:2px;background:#0d7a7a;"></span>
+              <span style="height:4px;background:#0d7a7a;"></span>
+              <span style="height:3px;background:#0d7a7a;"></span>
+              <span style="height:4px;background:#0d7a7a;"></span>
+              <span style="height:3px;background:#0d7a7a;"></span>
+              <span style="height:3px;background:#0d7a7a;"></span>
+              <span style="height:4px;background:#0d7a7a;"></span>
+              <span style="height:3px;background:#0d7a7a;"></span>
+              <span style="height:4px;background:#0d7a7a;"></span>
+              <span style="height:3px;background:#0d7a7a;"></span>
+              <span style="height:4px;background:#0d7a7a;"></span>
+            </div>
+          </div>
+        </article>
+
+        <div class="summary-card">
+          <div class="summary-card-title">Your trust pattern</div>
+          <strong>Per-domain.</strong> Unlike a single assistant, every domain here has its own trust curve. Home is Omakase. Finance stays Steward. That's by design, not drift.
+        </div>
+      </aside>
+
+    </div>
+
+    <div class="tab-home"></div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

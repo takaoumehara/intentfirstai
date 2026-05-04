@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S4 — L2 Learning Map (12 months)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_tokens.css">
+<link rel="stylesheet" href="_avatars.css">
+<style>
+  /* ── iPad frame (inlined, landscape) ── */
+  html { overflow: hidden; height: 100%; }
+  body {
+    background: transparent;  /* studio grey removed — sits on parent bg when embedded */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body.noframe { background: #fff; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .tab-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .tab-frame::before,
+  body.noframe .tab-frame::after,
+  body.noframe .tab-cam { display: none; }
+  body.noframe .tab-screen { border-radius: 0; }
+  body.noframe .tab-status { display: none; }
+  body.noframe .tab-home { display: none; }
+
+  /* Lighter iPad body — silver-on-white so it doesn't leave a dark grey block
+     at the bottom of the embed. Still identifiably a tablet. */
+  .tab-frame {
+    width: 1194px;
+    height: 834px;
+    background: transparent;
+    border-radius: 36px;
+    padding: 14px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 32px) / 834px), calc((100vw - 32px) / 1194px)));
+    box-shadow:
+      inset 0 0 0 1.5px rgba(0,0,0,0.10),
+      0 1px 3px rgba(0,0,0,0.04),
+      0 12px 32px rgba(0,0,0,0.06);
+  }
+  /* side buttons removed — were adding dark bars, not needed on this subtle frame */
+  .tab-cam {
+    position: absolute;
+    top: 50%; left: 10px;
+    transform: translateY(-50%);
+    width: 8px; height: 8px;
+    background: #0a0a0a; border-radius: 50%;
+    border: 1px solid #222;
+    z-index: 100;
+  }
+  .tab-screen {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    border-radius: 22px;
+    overflow: hidden;
+    position: relative;
+  }
+  .tab-status {
+    height: 24px;
+    padding: 4px 24px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 600; color: var(--fg);
+    font-family: var(--font-sans);
+    position: relative; z-index: 50;
+    background: transparent;
+  }
+  .tab-status-right { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+  .tab-status-right svg { width: 14px; height: 14px; stroke-width: 2; }
+  .tab-home {
+    position: absolute; bottom: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 280px; height: 5px;
+    background: #202124; border-radius: 100px;
+    opacity: 0.25; z-index: 52; pointer-events: none;
+  }
+
+  .content {
+    position: absolute;
+    top: 24px; bottom: 20px; left: 0; right: 0;
+    overflow: hidden;
+    background: var(--bg);
+    display: grid;
+    grid-template-columns: 240px 1fr 280px;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    display: flex; flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    background: var(--bg-subtle);
+  }
+  .sb-section { display: flex; flex-direction: column; gap: 6px; }
+  .sb-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+    margin-bottom: 2px;
+  }
+  .sb-filter {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-base);
+    color: var(--fg);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 120ms;
+  }
+  .sb-filter:hover { background: var(--gray-100); }
+  .sb-filter.is-active {
+    background: var(--bg);
+    border-color: var(--border);
+    font-weight: var(--fw-medium);
+  }
+  .sb-filter-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sb-filter-dot.all { background: var(--gray-400); }
+  .sb-filter-dot.calendar { background: var(--agent-calendar); }
+  .sb-filter-dot.education { background: var(--agent-education); }
+  .sb-filter-dot.home { background: var(--agent-home); }
+  .sb-filter-dot.finance { background: var(--agent-finance); }
+  .sb-filter-dot.travel { background: var(--agent-travel); }
+  .sb-filter-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-subtle);
+  }
+
+  .sb-date {
+    display: flex; gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg);
+    align-items: center;
+  }
+  .sb-date svg { width: 14px; height: 14px; color: var(--fg-muted); stroke-width: 1.5; }
+
+  .sb-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 12px;
+    background: var(--fg);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-medium);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    justify-content: center;
+  }
+  .sb-btn svg { width: 14px; height: 14px; stroke-width: 1.75; }
+
+  /* ── Main area ── */
+  .main {
+    padding: 20px 24px 16px;
+    overflow: auto;
+    display: flex; flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .main-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px;
+  }
+  .main-title-block { display: flex; flex-direction: column; gap: 4px; }
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    color: var(--fg);
+    line-height: 1.1;
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.1px;
+  }
+
+  .density-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    background: var(--bg);
+  }
+  .density-toggle button {
+    border: none;
+    background: transparent;
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .density-toggle button.is-active {
+    background: var(--gray-100);
+    color: var(--fg);
+  }
+
+  /* ── Grid ── */
+  .grid-wrap {
+    flex: 1;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .grid-scroll { overflow: auto; }
+
+  .learning-grid {
+    display: grid;
+    grid-template-columns: 76px repeat(12, 1fr);
+    min-width: 800px;
+  }
+  .grid-cell {
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 6px;
+    min-height: 74px;
+    display: flex; flex-direction: column;
+    gap: 4px;
+    position: relative;
+  }
+  .grid-cell:last-child,
+  .learning-grid > :nth-child(13n) { border-right: none; }
+
+  .row-header {
+    position: sticky; left: 0;
+    background: var(--bg-subtle);
+    z-index: 2;
+    display: flex; align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    font-size: var(--fs-base);
+    font-weight: var(--fw-medium);
+    color: var(--fg);
+    border-right: 1px solid var(--border);
+  }
+
+  .month-header-row {
+    position: sticky; top: 0;
+    z-index: 3;
+    background: var(--bg-subtle);
+  }
+  .month-header {
+    padding: 8px 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: var(--fg-muted);
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .month-header:last-child { border-right: none; }
+  .corner-cell {
+    position: sticky; top: 0; left: 0; z-index: 4;
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  /* ── Pattern tag ── */
+  .pattern {
+    display: flex; align-items: flex-start; gap: 5px;
+    padding: 4px 6px;
+    border-radius: var(--radius-xs);
+    font-size: 10px;
+    line-height: 1.25;
+    color: var(--fg);
+    background: var(--gray-50);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 120ms;
+  }
+  .pattern:hover { border-color: var(--border-strong); }
+  .pattern.is-selected {
+    border-color: var(--fg);
+    background: var(--bg);
+    box-shadow: 0 0 0 2px rgba(10,10,10,0.04);
+  }
+  .pattern-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .pattern-dot.calendar { background: var(--agent-calendar); }
+  .pattern-dot.education { background: var(--agent-education); }
+  .pattern-dot.home { background: var(--agent-home); }
+  .pattern-dot.finance { background: var(--agent-finance); }
+  .pattern-dot.travel { background: var(--agent-travel); }
+  .pattern-text { flex: 1; min-width: 0; }
+
+  .grid-cell.new-ring {
+    box-shadow: inset 0 0 0 2px rgba(194, 65, 12, 0.35);
+    background: rgba(194, 65, 12, 0.03);
+  }
+  .new-badge {
+    position: absolute;
+    top: 4px; right: 4px;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  /* spans multi-month patterns */
+  .pattern.span {
+    position: relative;
+  }
+
+  /* legend row */
+  .grid-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+  }
+  .legend { display: flex; gap: 14px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+
+  /* ── Right rail ── */
+  .rail {
+    border-left: 1px solid var(--border);
+    padding: 20px 20px 16px;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 14px;
+    background: var(--bg);
+  }
+  .rail-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .rail-title {
+    font-size: var(--fs-md);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.1px;
+    color: var(--fg);
+  }
+  .rail-close {
+    width: 26px; height: 26px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--fg-muted);
+    cursor: pointer;
+  }
+  .rail-close svg { width: 12px; height: 12px; stroke-width: 1.75; }
+
+  .rail-cell-info {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .rail-cell-info .av { width: 28px; height: 28px; font-size: 11px; }
+  .rail-cell-info-text {
+    display: flex; flex-direction: column;
+    gap: 2px;
+    font-size: var(--fs-sm);
+    color: var(--fg);
+  }
+  .rail-cell-info-meta {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    letter-spacing: 0.2px;
+  }
+
+  .rail-pattern {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .rail-pattern-title {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-semibold);
+    color: var(--fg);
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+    line-height: 1.25;
+  }
+  .rail-pattern-sub {
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+    line-height: 1.45;
+    margin-bottom: 14px;
+  }
+
+  .rail-meta-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+  .rail-meta-row:first-of-type { border-top: none; }
+  .rail-meta-key { color: var(--fg-muted); letter-spacing: 0.2px; text-transform: uppercase; }
+  .rail-meta-val { color: var(--fg); }
+
+  .agent-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    background: var(--amber-bg);
+    color: var(--amber);
+  }
+
+  .rail-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .rail-action {
+    padding: 8px 4px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-xs);
+    font-family: var(--font-mono);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.2px;
+    color: var(--fg);
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .rail-action:hover { background: var(--bg-subtle); }
+  .rail-action.keep {
+    background: var(--fg);
+    color: #fff;
+    border-color: var(--fg);
+  }
+
+  .rail-source {
+    padding: 14px;
+    background: var(--bg-subtle);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+    color: var(--fg-muted);
+    line-height: 1.5;
+  }
+  .rail-source strong { color: var(--fg); font-weight: var(--fw-medium); }
+
+  .confidence-bar-wrap {
+    display: flex; flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .confidence-bar {
+    height: 4px;
+    background: var(--gray-100);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .confidence-bar-fill {
+    height: 100%;
+    background: var(--agent-home);
+    width: 82%;
+  }
+  .confidence-label {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="tab-frame">
+  <div class="tab-cam"></div>
+  <div class="tab-screen">
+    <div class="tab-status">
+      <span>9:41 Mon 21</span>
+      <div class="tab-status-right">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/><rect x="4" y="9" width="12" height="6" rx="0.5" fill="currentColor" stroke="none"/></svg>
+        <span>87%</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Sidebar -->
+      <aside class="sidebar g-scroll">
+        <div class="sb-section">
+          <span class="sb-label">Agents</span>
+          <div class="sb-filter is-active">
+            <span class="sb-filter-dot all"></span>
+            <span>All agents</span>
+            <span class="sb-filter-count">47</span>
+          </div>
+          <div class="sb-filter">
+            <span class="sb-filter-dot calendar"></span>
+            <span>Calendar</span>
+            <span class="sb-filter-count">12</span>
+          </div>
+          <div class="sb-filter">
+            <span class="sb-filter-dot education"></span>
+            <span>Education</span>
+            <span class="sb-filter-count">9</span>
+          </div>
+          <div class="sb-filter">
+            <span class="sb-filter-dot home"></span>
+            <span>Home</span>
+            <span class="sb-filter-count">18</span>
+          </div>
+          <div class="sb-filter">
+            <span class="sb-filter-dot finance"></span>
+            <span>Finance</span>
+            <span class="sb-filter-count">5</span>
+          </div>
+          <div class="sb-filter">
+            <span class="sb-filter-dot travel"></span>
+            <span>Travel</span>
+            <span class="sb-filter-count">3</span>
+          </div>
+        </div>
+
+        <div class="sb-section">
+          <span class="sb-label">Date range</span>
+          <div class="sb-date">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>May 2024 – Apr 2025</span>
+          </div>
+        </div>
+
+        <div class="sb-section">
+          <span class="sb-label">Filter by</span>
+          <div class="sb-filter">
+            <span class="sb-filter-dot" style="background:var(--amber);"></span>
+            <span>New this month</span>
+            <span class="sb-filter-count">3</span>
+          </div>
+          <div class="sb-filter">
+            <span class="sb-filter-dot" style="background:var(--gray-400);"></span>
+            <span>Low confidence</span>
+            <span class="sb-filter-count">4</span>
+          </div>
+        </div>
+
+        <button class="sb-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Add manual pattern</span>
+        </button>
+      </aside>
+
+      <!-- Main -->
+      <section class="main">
+        <div class="main-header">
+          <div class="main-title-block">
+            <h1 class="page-title">Learned patterns</h1>
+            <span class="page-subtitle">L2 Accumulated Learning · 12 months</span>
+          </div>
+          <div class="density-toggle">
+            <button>Compact</button>
+            <button class="is-active">Comfortable</button>
+            <button>Roomy</button>
+          </div>
+        </div>
+
+        <div class="grid-wrap">
+          <div class="grid-scroll g-scroll">
+            <div class="learning-grid">
+              <!-- Month header row -->
+              <div class="corner-cell"></div>
+              <div class="month-header">May</div>
+              <div class="month-header">Jun</div>
+              <div class="month-header">Jul</div>
+              <div class="month-header">Aug</div>
+              <div class="month-header">Sep</div>
+              <div class="month-header">Oct</div>
+              <div class="month-header">Nov</div>
+              <div class="month-header">Dec</div>
+              <div class="month-header">Jan</div>
+              <div class="month-header">Feb</div>
+              <div class="month-header">Mar</div>
+              <div class="month-header">Apr</div>
+
+              <!-- Mai row -->
+              <div class="row-header">
+                <span class="av av--sm av--mai">MY</span>
+                <span>Mai</span>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot calendar"></span>
+                  <span class="pattern-text">Gym Tue/Thu 6:30 AM</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Back-to-school prep</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot calendar"></span>
+                  <span class="pattern-text">Tue: late dinner Kiran works late</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Holiday gift planning</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Allergy season — stocks saline spray</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot finance"></span>
+                  <span class="pattern-text">Tax-season receipts folder</span>
+                </div>
+              </div>
+
+              <!-- Kiran row -->
+              <div class="row-header">
+                <span class="av av--sm av--kiran">K</span>
+                <span>Kiran</span>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot calendar"></span>
+                  <span class="pattern-text">Remote Fri</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot travel"></span>
+                  <span class="pattern-text">Tokyo trip · 1 wk</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot calendar"></span>
+                  <span class="pattern-text">IC1 review season</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Cooks curry weekends</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot calendar"></span>
+                  <span class="pattern-text">Morning meetings 6 AM PT w/ Bangalore</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot calendar"></span>
+                  <span class="pattern-text">Bangalore standups continue</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot calendar"></span>
+                  <span class="pattern-text">Bangalore standups continue</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+
+              <!-- Aoi row -->
+              <div class="row-header">
+                <span class="av av--sm av--aoi">A</span>
+                <span>Aoi</span>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Final exams</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Back-to-school Gr 10</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Orchestra Thu 4 PM</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Halloween costume — DIY</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Prefers late dinners</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Orchestra Thu 4 PM</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Spring concert prep</span>
+                </div>
+              </div>
+              <div class="grid-cell new-ring">
+                <span class="new-badge">New</span>
+                <div class="pattern is-selected">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Tried oat milk (positive)</span>
+                </div>
+              </div>
+
+              <!-- Leo row -->
+              <div class="row-header">
+                <span class="av av--sm av--leo">L</span>
+                <span>Leo</span>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Soccer season — extra snacks</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Summer camp bento</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Math anxiety before tests</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Likes curry rice, not spicy</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Reading log Gr 4</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Soccer season — snacks</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Soccer continues</span>
+                </div>
+              </div>
+
+              <!-- Sota row -->
+              <div class="row-header">
+                <span class="av av--sm av--sota">S</span>
+                <span>Sota</span>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">No spicy foods</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Naps at 2 PM</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">K1 drop-off 8:15</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">No spicy foods</span>
+                </div>
+              </div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot education"></span>
+                  <span class="pattern-text">Starts gymnastics</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">Loves onigiri</span>
+                </div>
+              </div>
+              <div class="grid-cell"></div>
+              <div class="grid-cell">
+                <div class="pattern">
+                  <span class="pattern-dot home"></span>
+                  <span class="pattern-text">No spicy foods</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-footer">
+            <div class="legend">
+              <span class="legend-item"><span class="sb-filter-dot calendar"></span>Calendar</span>
+              <span class="legend-item"><span class="sb-filter-dot education"></span>Education</span>
+              <span class="legend-item"><span class="sb-filter-dot home"></span>Home</span>
+              <span class="legend-item"><span class="sb-filter-dot finance"></span>Finance</span>
+              <span class="legend-item"><span class="sb-filter-dot travel"></span>Travel</span>
+            </div>
+            <span>47 patterns · 5 people · confidence avg 0.74</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right rail -->
+      <aside class="rail g-scroll">
+        <div class="rail-header">
+          <span class="rail-title">Pattern detail</span>
+          <button class="rail-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="rail-cell-info">
+          <div class="av av--aoi">A</div>
+          <div class="rail-cell-info-text">
+            <span>Aoi · April 2025</span>
+            <span class="rail-cell-info-meta">Observed 4 days ago</span>
+          </div>
+        </div>
+
+        <div class="rail-pattern">
+          <h3 class="rail-pattern-title">Tried oat milk (positive)</h3>
+          <p class="rail-pattern-sub">Aoi ordered oat milk at 2 cafés and asked Mai to add it to the grocery list. Positive signal strong enough to propose a pantry rule.</p>
+
+          <div class="rail-meta-row">
+            <span class="rail-meta-key">Source agent</span>
+            <span class="rail-meta-val">
+              <span class="agent-chip">
+                <span class="sb-filter-dot home"></span>
+                Home
+              </span>
+            </span>
+          </div>
+          <div class="rail-meta-row">
+            <span class="rail-meta-key">Observations</span>
+            <span class="rail-meta-val">3 events</span>
+          </div>
+          <div class="rail-meta-row">
+            <span class="rail-meta-key">First seen</span>
+            <span class="rail-meta-val">Apr 11 · Blue Bottle</span>
+          </div>
+          <div class="rail-meta-row">
+            <span class="rail-meta-key">Confidence</span>
+            <span class="rail-meta-val">0.82</span>
+          </div>
+
+          <div class="confidence-bar-wrap">
+            <div class="confidence-bar"><div class="confidence-bar-fill"></div></div>
+            <div class="confidence-label">
+              <span>Low</span>
+              <span>High</span>
+            </div>
+          </div>
+
+          <div class="rail-actions">
+            <button class="rail-action">Edit</button>
+            <button class="rail-action">Forget</button>
+            <button class="rail-action keep">Keep</button>
+          </div>
+        </div>
+
+        <div class="rail-source">
+          <strong>Why this matters.</strong> Keeping turns this observation into a weight on Aoi's profile. Home Agent will suggest oat milk next time dairy runs low. You can always change it later.
+        </div>
+      </aside>
+
+    </div>
+
+    <div class="tab-home"></div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(window.location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

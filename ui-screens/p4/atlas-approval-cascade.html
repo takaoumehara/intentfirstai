@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas · Priya · Approval Cascade · Friday 4:48 PM</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Design tokens -->
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     Standalone QA frame (suppressed in noframe)
+     ═══════════════════════════════════════════════════════════ */
+  html { overflow: hidden; height: 100%; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-sans);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    width: 100vw; height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    overflow: hidden;
+  }
+  body:not(.noframe) { background: #eef1f4; }
+
+  body.noframe { background: transparent !important; align-items: flex-start; justify-content: flex-start; }
+  body.noframe .phone-frame {
+    width: 100vw; height: 100vh;
+    background: transparent; border-radius: 0; padding: 0;
+    box-shadow: none; transform: none;
+  }
+  body.noframe .phone-frame::before, body.noframe .phone-frame::after { display: none; }
+  body.noframe .screen { border-radius: 0; width: 100%; height: 100%; }
+  body.noframe .notch, body.noframe .status-bar, body.noframe .scene-badge { display: none !important; }
+  /* Dynamic Island clearance: outer .iphone15pro__island band sits on top of the screen */
+  body.noframe .hdr { padding-top: 44px; }
+
+  .phone-frame {
+    width: 390px; height: 844px;
+    background: linear-gradient(145deg, #2d2d2f, #1a1a1c);
+    border-radius: 48px;
+    padding: 11px;
+    position: relative;
+    flex-shrink: 0;
+    transform-origin: center center;
+    transform: scale(min(1, calc((100vh - 16px) / 844px)));
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.12),
+      0 8px 24px rgba(0,0,0,0.14),
+      0 24px 48px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  .notch {
+    position: absolute; top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 126px; height: 34px;
+    background: #000; border-radius: 20px; z-index: 100;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     Screen — Friday end-of-day warm dusk wash
+     ═══════════════════════════════════════════════════════════ */
+  .screen {
+    position: relative;
+    width: 100%; height: 100%;
+    border-radius: 40px;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+  .screen::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 90% 40% at 50% 0%, rgba(160, 112, 64, 0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 100% 50% at 50% 100%, rgba(160, 112, 64, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    height: 54px;
+    padding: 18px 28px 0;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.1px;
+  }
+  .status-bar__right { display: flex; gap: 6px; align-items: center; opacity: 0.85; }
+
+  /* ═══════════════════════════════════════════════════════════
+     Header block
+     ═══════════════════════════════════════════════════════════ */
+  .hdr {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    padding: 4px 22px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    opacity: 0;
+    animation: fade-up 360ms cubic-bezier(0.22, 0.8, 0.36, 1) 80ms forwards;
+  }
+  .hdr__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-intent);
+  }
+  .hdr__eyebrow::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--grad-mid);
+    box-shadow: 0 0 0 4px rgba(160, 112, 64, 0.14);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(160, 112, 64, 0.35); }
+    50%      { box-shadow: 0 0 0 5px rgba(160, 112, 64, 0); }
+  }
+
+  .hdr__title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    color: var(--text);
+  }
+  .hdr__sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    letter-spacing: -0.1px;
+  }
+
+  .hair {
+    margin: 0 22px;
+    height: 1px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     Stack
+     ═══════════════════════════════════════════════════════════ */
+  .stack {
+    position: relative; z-index: 2;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 14px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 13px 14px 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02), 0 8px 18px rgba(10, 10, 10, 0.04);
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 12px; bottom: 12px; left: 0;
+    width: 2px;
+    border-radius: 0 2px 2px 0;
+    background: linear-gradient(180deg, var(--grad-mid) 0%, rgba(160, 112, 64, 0.25) 100%);
+  }
+
+  .card__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+  .card__kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: rgba(160, 112, 64, 0.08);
+    color: var(--color-intent);
+  }
+  .card__meta {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: #737373;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card__await {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: var(--radius-full, 999px);
+    background: rgba(160, 112, 64, 0.12);
+    color: var(--color-intent);
+    border: 1px solid rgba(122, 85, 32, 0.22);
+    white-space: nowrap;
+  }
+
+  .card__title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+    line-height: 1.25;
+    margin: 2px 0 6px;
+  }
+
+  /* Preview block — the actual draft */
+  .preview {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 11px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--text-2);
+    letter-spacing: -0.05px;
+    margin-bottom: 9px;
+  }
+  .preview em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* Trail line — "Marketing drafted · legal cleared · final voice awaits you" */
+  .trail {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 9px;
+  }
+  .trail__step {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .trail__step--done { color: var(--color-success); }
+  .trail__step--done::before {
+    content: "";
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--color-success);
+  }
+  .trail__step--active { color: var(--color-intent); font-weight: 600; }
+  .trail__step--active::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--grad-mid);
+    box-shadow: 0 0 0 3px rgba(160, 112, 64, 0.14);
+  }
+  .trail__sep {
+    color: #d4d4d8;
+    font-weight: 400;
+  }
+
+  /* Action row */
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    flex: 1 1 0;
+    min-height: 38px;
+    padding: 0 10px;
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-2);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 120ms ease, background 180ms ease;
+  }
+  .btn svg { width: 13px; height: 13px; }
+  .btn:active { transform: scale(0.98); }
+  .btn--primary {
+    background: var(--text);
+    color: var(--bg);
+    border-color: transparent;
+  }
+  .btn--ghost:hover { background: rgba(255, 255, 255, 0.9); }
+
+  /* Card entrance — staggered slide-in (vertical only; no X nudge against the
+     left-border accent) */
+  .card--1 {
+    opacity: 0;
+    transform: translateY(4px);
+    animation: card-slide-in 460ms cubic-bezier(0.22, 0.8, 0.36, 1) 240ms forwards;
+  }
+  .card--2 {
+    opacity: 0;
+    transform: translateY(4px);
+    animation: card-slide-in 460ms cubic-bezier(0.22, 0.8, 0.36, 1) 390ms forwards;
+  }
+
+  @keyframes card-slide-in {
+    from { opacity: 0; transform: translateY(4px); filter: blur(1.5px); }
+    to   { opacity: 1; transform: translateY(0);  filter: blur(0); }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     "9 other items completed automatically" — collapsed row
+     ═══════════════════════════════════════════════════════════ */
+  .auto {
+    margin-top: 4px;
+    padding: 11px 12px 10px;
+    background: rgba(58, 106, 58, 0.05);
+    border: 1px solid rgba(58, 106, 58, 0.14);
+    border-radius: 14px;
+    opacity: 0;
+    animation: fade-up 420ms cubic-bezier(0.22, 0.8, 0.36, 1) 620ms forwards;
+  }
+  .auto__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: default;
+  }
+  .auto__dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: rgba(58, 106, 58, 0.12);
+    color: var(--color-success);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .auto__dot svg { width: 9px; height: 9px; }
+  .auto__title {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.1px;
+  }
+  .auto__title strong {
+    font-weight: 700;
+    color: var(--color-success);
+  }
+  .auto__toggle {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #737373;
+  }
+
+  .auto__list {
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px dashed rgba(58, 106, 58, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .auto__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-2);
+    letter-spacing: -0.05px;
+  }
+  .auto__row__tick {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: rgba(58, 106, 58, 0.14);
+    color: var(--color-success);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .auto__row__tick svg { width: 7px; height: 7px; }
+  .auto__row__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .auto__row__time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--gray-400);
+    letter-spacing: 0.05em;
+  }
+
+  /* Footer */
+  .footer {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    padding: 14px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    animation: fade-up 420ms cubic-bezier(0.22, 0.8, 0.36, 1) 780ms forwards;
+  }
+  .footer__caption {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    text-align: center;
+  }
+  .footer__caption em {
+    font-style: normal;
+    color: var(--color-intent);
+    font-weight: 600;
+  }
+
+  .home-indicator {
+    width: 134px; height: 5px;
+    border-radius: 100px;
+    background: var(--text);
+    opacity: 0.55;
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hdr, .card--1, .card--2, .auto, .footer {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+    .hdr__eyebrow::before { animation: none !important; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="phone-frame">
+  <div class="screen" role="img"
+       aria-label="Friday 4:48 PM. Two cascaded items await Priya's approval; Atlas has completed nine others automatically.">
+    <div class="notch" aria-hidden="true"></div>
+
+    <!-- Status bar -->
+    <div class="status-bar" aria-hidden="true">
+      <span>4:48</span>
+      <span class="status-bar__right">
+        <svg viewBox="0 0 17 11" fill="currentColor" width="15" height="10">
+          <rect x="0"  y="7" width="3" height="4"  rx="0.6"/>
+          <rect x="4"  y="5" width="3" height="6"  rx="0.6"/>
+          <rect x="8"  y="3" width="3" height="8"  rx="0.6"/>
+          <rect x="12" y="1" width="3" height="10" rx="0.6"/>
+        </svg>
+        <svg viewBox="0 0 15 11" fill="none" stroke="currentColor" stroke-width="1.2" width="15" height="10">
+          <path d="M1 4.2 A10 10 0 0 1 14 4.2"/>
+          <path d="M3 6.4 A7 7 0 0 1 12 6.4"/>
+          <path d="M5 8.6 A4 4 0 0 1 10 8.6"/>
+          <circle cx="7.5" cy="10" r="0.8" fill="currentColor" stroke="none"/>
+        </svg>
+        <svg viewBox="0 0 25 11" fill="none" stroke="currentColor" stroke-width="1" width="24" height="10">
+          <rect x="0.5" y="0.5" width="22" height="10" rx="2.5"/>
+          <rect x="23"  y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor"/>
+          <rect x="2"   y="2"   width="13" height="7" rx="1.4" fill="currentColor"/>
+        </svg>
+      </span>
+    </div>
+
+    <!-- Header -->
+    <header class="hdr">
+      <span class="hdr__eyebrow">Cascade · awaiting you</span>
+      <h1 class="hdr__title">2 items waiting</h1>
+      <p class="hdr__sub">Approved by you only · Friday · 4:48 PM</p>
+    </header>
+
+    <div class="hair" aria-hidden="true"></div>
+
+    <!-- Cards -->
+    <div class="stack" role="list" aria-label="Items awaiting Priya's approval">
+
+      <!-- Card 1 — Tweet draft -->
+      <article class="card card--1" role="listitem" aria-label="External tweet draft">
+        <div class="card__head">
+          <span class="card__kind">Tweet · external</span>
+          <span class="card__meta">@apollo · 37k</span>
+          <span class="card__await">Awaiting</span>
+        </div>
+        <h3 class="card__title">External tweet draft — ready to send</h3>
+        <div class="preview">
+          We've crossed <em>10,000 teams</em>. Thank you for trusting us with the work that matters.
+        </div>
+        <div class="trail" aria-label="Approval trail">
+          <span class="trail__step trail__step--done">Marketing drafted</span>
+          <span class="trail__sep">›</span>
+          <span class="trail__step trail__step--done">Legal cleared</span>
+          <span class="trail__sep">›</span>
+          <span class="trail__step trail__step--active">Final voice · you</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn--primary" type="button">
+            <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7 L6 10 L11 4"/>
+            </svg>
+            Approve &amp; send
+          </button>
+          <button class="btn btn--ghost" type="button">Edit</button>
+        </div>
+      </article>
+
+      <!-- Card 2 — Press quote -->
+      <article class="card card--2" role="listitem" aria-label="Press quote for TechCrunch">
+        <div class="card__head">
+          <span class="card__kind">Press · TechCrunch</span>
+          <span class="card__meta">Embargo · Mon 9:00</span>
+          <span class="card__await">Awaiting</span>
+        </div>
+        <h3 class="card__title">Press quote — approve before filing</h3>
+        <div class="preview">
+          "<em>What we built is a shared memory for teams</em> — so the next person never starts from zero."
+        </div>
+        <div class="trail" aria-label="Approval trail">
+          <span class="trail__step trail__step--done">PR drafted</span>
+          <span class="trail__sep">›</span>
+          <span class="trail__step trail__step--done">Leena cleared</span>
+          <span class="trail__sep">›</span>
+          <span class="trail__step trail__step--active">Final voice · you</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn--primary" type="button">
+            <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 7 L6 10 L11 4"/>
+            </svg>
+            Approve &amp; send
+          </button>
+          <button class="btn btn--ghost" type="button">Edit</button>
+        </div>
+      </article>
+
+      <!-- 9 completed automatically -->
+      <section class="auto" aria-label="9 items completed automatically">
+        <div class="auto__head">
+          <div class="auto__dot" aria-hidden="true">
+            <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 5 L4.2 7.2 L8 3"/>
+            </svg>
+          </div>
+          <span class="auto__title"><strong>9</strong> other items completed automatically</span>
+          <span class="auto__toggle">Today</span>
+        </div>
+        <ul class="auto__list" aria-label="Sample of completed items">
+          <li class="auto__row">
+            <span class="auto__row__tick" aria-hidden="true">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 5 L4.2 7.2 L8 3"/>
+              </svg>
+            </span>
+            <span class="auto__row__label">Customer email reply sent · Tier 1</span>
+            <span class="auto__row__time">11:42</span>
+          </li>
+          <li class="auto__row">
+            <span class="auto__row__tick" aria-hidden="true">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 5 L4.2 7.2 L8 3"/>
+              </svg>
+            </span>
+            <span class="auto__row__label">Feature flag enabled · 2% cohort</span>
+            <span class="auto__row__time">02:15</span>
+          </li>
+          <li class="auto__row">
+            <span class="auto__row__tick" aria-hidden="true">
+              <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 5 L4.2 7.2 L8 3"/>
+              </svg>
+            </span>
+            <span class="auto__row__label">Release notes published · v3.14</span>
+            <span class="auto__row__time">04:02</span>
+          </li>
+        </ul>
+      </section>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer__caption">
+        Autonomy Dial · external voice = <em>Confirm</em>
+      </div>
+      <div class="home-indicator" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+
+  // Buttons are visual only
+  document.querySelectorAll('.btn').forEach(function (el) {
+    el.addEventListener('click', function (e) { e.preventDefault(); });
+  });
+</script>
+
+</body>
+</html>

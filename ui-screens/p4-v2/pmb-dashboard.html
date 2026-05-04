@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Project Master Brain — Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    /* Only dashboard-specific colors that tokens.css doesn't define */
+    --accent: #a07040;
+    --research: #4a6a90;
+    --research-bg: rgba(74,106,144,0.08);
+    --signal: #c44a2a;
+    --signal-bg: rgba(196,74,42,0.08);
+    --running: #3a7a4a;
+    --held: #8a7a3a;
+    --proposed: #6a4a90;
+    --b2b: #4a6a90;
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  .dash {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    width: 100%;
+  }
+  /* ── Header bar ─────────────────────────────────────────── */
+  .dash__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .dash__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .dash__brand-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(160,112,64,0.18);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 3px rgba(160,112,64,0.18); }
+    50%     { box-shadow: 0 0 0 6px rgba(160,112,64,0.04); }
+  }
+  .dash__user {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--text-2);
+  }
+  .dash__avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d6b48f, #a07040);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dash__time {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 1px;
+    color: var(--text-3);
+    text-transform: uppercase;
+  }
+
+  /* ── Body grid ─────────────────────────────────────────── */
+  .dash__body {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 0;
+    overflow: hidden;
+  }
+  .dash__main {
+    padding: 22px 24px;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+  }
+  .dash__side {
+    padding: 22px 22px;
+    overflow-y: auto;
+    background: linear-gradient(180deg, rgba(0,0,0,0.012), transparent);
+  }
+
+  /* ── Section head ─────────────────────────────────────── */
+  .sec-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .sec-head__label {
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .sec-head__count {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    min-width: 18px; height: 18px;
+    padding: 0 6px;
+    border-radius: 9px;
+    background: var(--gray-100, rgba(10,10,10,0.06));
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    color: var(--text-2);
+  }
+  .sec-head__sep { flex: 1; height: 1px; background: var(--border); }
+  .sec-head + * { margin-top: 0; }
+
+  /* ── New Signal card (hero) ────────────────────────────── */
+  .signal {
+    border: 1px solid var(--signal);
+    border-radius: 8px;
+    padding: 16px 18px;
+    background: var(--signal-bg);
+    margin-bottom: 22px;
+    position: relative;
+  }
+  .signal::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--signal);
+    border-radius: 8px 0 0 8px;
+  }
+  .signal__head {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 8px;
+  }
+  .signal__head-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--signal);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .signal__title {
+    font-size: 16px; font-weight: 600;
+    letter-spacing: -0.2px; color: var(--text);
+    margin-bottom: 4px;
+  }
+  .signal__meta {
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--text-3);
+    letter-spacing: 0.4px;
+    margin-bottom: 10px;
+  }
+  .signal__body {
+    font-size: 12.5px; color: var(--text-2);
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+  .signal__actions {
+    display: flex; gap: 8px;
+  }
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .btn--primary {
+    background: var(--text);
+    color: var(--surface);
+    border-color: var(--text);
+  }
+
+  /* ── Project list ───────────────────────────────────── */
+  .plist {
+    display: flex; flex-direction: column;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .pitem {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    font-size: 12.5px;
+  }
+  .pitem__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pitem__dot--running { background: var(--running); }
+  .pitem__dot--held    { background: var(--held); }
+  .pitem__dot--proposed { background: var(--proposed); }
+  .pitem__name {
+    font-weight: 500; color: var(--text);
+    letter-spacing: -0.1px;
+  }
+  .pitem__meta {
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--text-3);
+    letter-spacing: 0.4px;
+  }
+  .pitem__match {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    color: var(--text-2);
+    letter-spacing: 0.4px;
+  }
+  .pitem__match--warn { color: var(--signal); }
+
+  /* ── Proposal card ─────────────────────────────────── */
+  .proposal {
+    border: 1px dashed var(--proposed);
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: rgba(106,74,144,0.04);
+    margin-bottom: 22px;
+  }
+  .proposal__head {
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--proposed);
+    margin-bottom: 8px;
+  }
+  .proposal__title {
+    font-size: 14px; font-weight: 600;
+    color: var(--text); margin-bottom: 6px;
+    letter-spacing: -0.1px;
+  }
+  .proposal__derived {
+    font-family: var(--font-mono);
+    font-size: 10.5px; color: var(--text-3);
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
+  }
+  .proposal__derived strong { color: var(--text-2); }
+  .proposal__body {
+    font-size: 12px; color: var(--text-2);
+    line-height: 1.55; margin-bottom: 10px;
+  }
+
+  /* ── Side: ambient feed ───────────────────────────── */
+  .ambient {
+    display: flex; flex-direction: column;
+    gap: 10px;
+  }
+  .amb {
+    padding: 12px 14px;
+    border-left: 2px solid var(--research);
+    background: var(--research-bg);
+    border-radius: 0 6px 6px 0;
+  }
+  .amb--b2b { border-left-color: var(--b2b); background: rgba(74,106,144,0.06); }
+  .amb--vendor { border-left-color: var(--text-3); background: rgba(122,118,111,0.05); }
+  .amb__head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 1.3px; text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+  .amb__source { color: var(--text-2); }
+  .amb__title {
+    font-size: 12.5px; font-weight: 500;
+    color: var(--text); letter-spacing: -0.1px;
+    margin-bottom: 4px;
+  }
+  .amb__body {
+    font-size: 11.5px; color: var(--text-2);
+    line-height: 1.5;
+  }
+  .amb__disc {
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-size: 9px; letter-spacing: 0.6px;
+    color: var(--text-3);
+  }
+
+  /* ── Identity Layer card (sidebar foot) ─────────── */
+  .strat {
+    margin-top: 22px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(10,10,10,0.02);
+  }
+  .strat__head {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 8px;
+  }
+  .strat__rule {
+    font-size: 11.5px; color: var(--text-2);
+    line-height: 1.55;
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .strat__rule:last-child { border-bottom: 0; }
+  .strat__rule strong { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="dash">
+
+  <!-- Header bar -->
+  <header class="dash__bar">
+    <div class="dash__brand">
+      <span class="dash__brand-dot"></span>
+      <span>Project Master Brain · B2C Portfolio</span>
+    </div>
+    <div class="dash__user">
+      <span class="dash__time">Mon · 08 : 31 AM</span>
+      <span class="dash__avatar">P</span>
+      <span>Priya</span>
+    </div>
+  </header>
+
+  <div class="dash__body">
+
+    <!-- ─── MAIN COLUMN ─── -->
+    <div class="dash__main">
+
+      <!-- New Signal -->
+      <div class="signal" role="status">
+        <div class="signal__head">
+          <span class="signal__head-dot"></span>
+          <span>New Signal · from Research Brain</span>
+        </div>
+        <div class="signal__title">Checkout abandonment ↑ 18% · segment "millennials"</div>
+        <div class="signal__meta">First flagged Friday 16:42 · confidence high · 7-day moving</div>
+        <div class="signal__body">
+          PMB matched 3 past projects with similar pattern. Brand Brain · B2C suggests
+          "trust over conversion tricks." Org capacity: Maya 60% available, Dev 80%.
+        </div>
+        <div class="signal__actions">
+          <button class="btn btn--primary">Discuss with PMB</button>
+          <button class="btn">Open detail</button>
+          <button class="btn">Snooze 24h</button>
+        </div>
+      </div>
+
+      <!-- Running -->
+      <div class="sec-head">
+        <span class="sec-head__label">Running</span>
+        <span class="sec-head__count">4</span>
+        <span class="sec-head__sep"></span>
+      </div>
+      <div class="plist">
+        <div class="pitem">
+          <span class="pitem__dot pitem__dot--running"></span>
+          <div>
+            <div class="pitem__name">Holiday Campaign 2026</div>
+            <div class="pitem__meta">Sprint 3 · Maya, Dev, Priya · 12-week</div>
+          </div>
+          <span class="pitem__match pitem__match--warn">match 67% ↓</span>
+        </div>
+        <div class="pitem">
+          <span class="pitem__dot pitem__dot--running"></span>
+          <div>
+            <div class="pitem__name">Pricing v3 Test</div>
+            <div class="pitem__meta">Sprint 5 · Dev lead · A/B running</div>
+          </div>
+          <span class="pitem__match">match 89%</span>
+        </div>
+        <div class="pitem">
+          <span class="pitem__dot pitem__dot--running"></span>
+          <div>
+            <div class="pitem__name">Onboarding Refresh</div>
+            <div class="pitem__meta">Sprint 2 · Maya lead · blocker on Leena review</div>
+          </div>
+          <span class="pitem__match">match 84%</span>
+        </div>
+        <div class="pitem">
+          <span class="pitem__dot pitem__dot--running"></span>
+          <div>
+            <div class="pitem__name">Mobile Nav Study</div>
+            <div class="pitem__meta">Concluding Friday · summary auto-drafted</div>
+          </div>
+          <span class="pitem__match">match 92%</span>
+        </div>
+      </div>
+
+      <!-- Held -->
+      <div class="sec-head">
+        <span class="sec-head__label">Held</span>
+        <span class="sec-head__count">2</span>
+        <span class="sec-head__sep"></span>
+      </div>
+      <div class="plist">
+        <div class="pitem">
+          <span class="pitem__dot pitem__dot--held"></span>
+          <div>
+            <div class="pitem__name">Loyalty Tier Redesign</div>
+            <div class="pitem__meta">awaiting CFO sign-off · pause day 14</div>
+          </div>
+          <span class="pitem__match">paused</span>
+        </div>
+        <div class="pitem">
+          <span class="pitem__dot pitem__dot--held"></span>
+          <div>
+            <div class="pitem__name">Asia Localization</div>
+            <div class="pitem__meta">legal review · 3 weeks held</div>
+          </div>
+          <span class="pitem__match">paused</span>
+        </div>
+      </div>
+
+      <!-- Proposal -->
+      <div class="proposal">
+        <div class="proposal__head">PMB Proposes · 1 new project</div>
+        <div class="proposal__title">Address checkout abandonment (millennials segment)</div>
+        <div class="proposal__derived">
+          derived from: <strong>Research signal</strong> × <strong>Brand B2C constraints</strong> × <strong>Org capacity</strong>
+        </div>
+        <div class="proposal__body">
+          6-week project. Suggested team: Maya (design), Dev (eng). Consult Leena and Kenji
+          for B2B-side learning (Test #243, ran 8 months ago). Estimated ROI tier: 2.4×.
+        </div>
+        <div class="signal__actions">
+          <button class="btn btn--primary">Open conversation</button>
+          <button class="btn">See pattern matches</button>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ─── SIDE COLUMN ─── -->
+    <div class="dash__side">
+
+      <div class="sec-head">
+        <span class="sec-head__label">Ambient · cross-team feed</span>
+        <span class="sec-head__sep"></span>
+      </div>
+
+      <div class="ambient">
+
+        <div class="amb amb--b2b">
+          <div class="amb__head">
+            <span class="amb__source">From B2B · Kenji's PMB</span>
+            <span>just now</span>
+          </div>
+          <div class="amb__title">Auth-flow consolidation finalized.</div>
+          <div class="amb__body">
+            Pattern: same checkout bottleneck shape you're seeing.
+            Test #243 (8 months ago) may transfer.
+          </div>
+          <div class="amb__disc">disclosure · cross-team high · sanitized</div>
+        </div>
+
+        <div class="amb">
+          <div class="amb__head">
+            <span class="amb__source">From Research Brain</span>
+            <span>2 hr ago</span>
+          </div>
+          <div class="amb__title">Millennials NPS · 3rd consecutive weekly drop.</div>
+          <div class="amb__body">
+            Signal correlates with checkout abandonment. Confidence rising.
+          </div>
+          <div class="amb__disc">disclosure · full</div>
+        </div>
+
+        <div class="amb amb--vendor">
+          <div class="amb__head">
+            <span class="amb__source">Studio Helsinki · vendor</span>
+            <span>last week</span>
+          </div>
+          <div class="amb__title">Phase 2 deliverables · on track.</div>
+          <div class="amb__body">
+            Status only — specifics arrive at handoff.
+          </div>
+          <div class="amb__disc">disclosure · status-only · vendor</div>
+        </div>
+
+        <div class="amb">
+          <div class="amb__head">
+            <span class="amb__source">Auto-shared to CFO</span>
+            <span>weekly · Mondays</span>
+          </div>
+          <div class="amb__title">Holiday Campaign Intent Match dropped to 67%.</div>
+          <div class="amb__body">
+            Auto-summary sent. CFO will see this when they open mail.
+          </div>
+          <div class="amb__disc">disclosure · exec layer · auto</div>
+        </div>
+
+      </div>
+
+      <!-- Strategy -->
+      <div class="strat">
+        <div class="strat__head">PMB Identity · portfolio strategy</div>
+        <div class="strat__rule"><strong>≤ 4 active</strong> B2C projects at a time.</div>
+        <div class="strat__rule"><strong>Kill criteria:</strong> ROI &lt; 2× at midpoint.</div>
+        <div class="strat__rule"><strong>Capacity split:</strong> B2C : B2B = 60 : 40 design.</div>
+        <div class="strat__rule"><strong>Brand override:</strong> Leena Veto on brand-DNA conflicts.</div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

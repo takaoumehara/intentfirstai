@@ -32,7 +32,219 @@ Design portfolio by Takao. "Context Grammar" is a design language for the post-a
 | Autonomy Dial | Synchro Rate |
 | Disclosure Dial | (new, no old name) |
 | 8 Context Tokens | 7 Context Tokens |
+| Context Tokens (Floor 2 label / page title) | Grammar (legacy — body-copy synonym only) |
+| `context-grammar/tokens/` (folder path) | `context-grammar/grammar/` (renamed 2026-04-27) |
+| AX Patterns (Floor 5) | Response, Output |
 | Week 1 → Month 6 (P1 timeline) | Month 1 → Year 1 |
+| Context Brain · Level 1 — Identity Layer | L1, Level 1, "Identity" alone |
+| Context Brain · Level 2 — Learning Layer | L2, Level 2, "Accumulated" |
+| Context Brain · Level 3 — Now Layer | L3, Level 3, "Right Now" alone |
+| **Project 04: Enterprise Context Brain** | Project Atlas, Atlas (renamed 2026-04-29) |
+| **Project Master Brain (PMB)** | Atlas, Project Atlas |
+| **Intent Match** (EN) / **Intentとの一致度** (JP) | Intent Fidelity |
+| **Learning Returns Home** | Ambient Absorption |
+
+## Project 04 — Enterprise Context Brain Architecture (5 Brains, as of 2026-04-29)
+
+P4 uses a 5-Brain model — the enterprise extension of P1's single Context Brain:
+
+```
+ENTERPRISE CONTEXT BRAIN  (umbrella · the company's whole memory system)
+│
+├─ Org Brain              全社の永続的な土台（組織図・ポリシー・用語集・歴史）
+├─ Brand Brain × N        判断DNA（multi-brand 対応：B2C / B2B など並列インスタンス可）
+├─ Research Brain         ユーザー理解 + 継続流入する外部データ（売上/サポート/CRM等）
+├─ Project Master Brain   戦略を考える脳・プロジェクト群を統括し、新プロジェクトの起案を支援
+│   └─ Project Brain × N  時限付き・各プロジェクトの実行
+```
+
+### Universal anatomy
+Every Brain (including Project Brain) has the same 3-layer structure:
+- **Identity Layer** — what doesn't change
+- **Learning Layer** — what accumulates
+- **Now Layer** — what's in flux right now
+
+### Core principle
+- **Layer** = universal memory anatomy. Present in every brain.
+- **Brain** = a coherent memory entity owning 3 layers. Individual = 1 brain. Organization = many brains (distributed cognition).
+- **Project Master Brain** is the orchestrator: reads Research signals × Brand constraints × Org capacity × past project patterns, supports the PO in deciding what to start/hold/kill, spawns Project Brains. Never auto-decides.
+
+### Multi-Brand
+A company can run multiple Brand Brain instances in parallel (B2C, B2B, regional brands). Brand Director oversees all instances; per-brand POs read their own.
+
+### Five Brain Diagram (canonical name, 2026-04-30)
+The animated SVG showing the 5-Brain hierarchy — Org foundation, Brand B2C / Brand B2B / Research as middle tier, Project Master Brain as the strategist, Project Brain (time-bound, with 3 inner layers) at top — is officially called the **Five Brain Diagram**. Use this name in code comments, alt text, captions, aria-labels, and any reader-facing reference.
+
+- Component slot: `data-ga-slot="p4-brain-hierarchy"` → `brain-architecture` (in `assets/js/green-animation.js`)
+- Highlight a specific brain via `data-highlight="org|brand|brand-b2c|brand-b2b|research|pmb|project"` — the highlighted brain pulses green and the others dim, marking "you are here" for the section
+- The Five Brain Diagram is the canonical "you are here" wayfinding inside every Brain section (`#org-brain`, `#brand-brain`, `#research-brain`, `#project-master`, `#project-brain`). Do not use the legacy `brain-hierarchy-diagram-en.html` iframe in those sections — it has been replaced.
+
+### P4 Cast (6 protagonists)
+- **Priya** — B2C PO, 31, main protagonist
+- **Maya** — Design Lead, 29, cross-brand
+- **Dev** — Engineering Lead, 34, cross-brand
+- **Leena** — Brand Director, 41, judgment for both brands
+- **Kenji** — B2B PO, 35, cameo for cross-team / Ambient Awareness scenes
+- **Arman** — incoming PO, 28, arrives 2029 (inheritance arc in CH 08)
+
+## Background Color Semantics (P4 → to be globalized)
+
+- **White / light bg** → User experience surfaces (what users actually see)
+- **Black / dark bg** → Technical / Backstage explanations (Brain internals, API, schema, AI mechanics)
+- **Warm Sand (`.section--feature`, `#f0e8d8`)** → Spotlight — a design concept or key decision that belongs to neither the user story nor the backstage. Used for PMB section, Intent Match scene, and other pivotal design moves. Class defined in each page `<style>` block; global rule lives in PORTFOLIO_GLOBAL_RULES.md §2.4.
+- **Full-bleed photo** → Chapter dividers / emotional pivots
+
+Formalized 2026-04-28 (memory ID 5853 / 5840). Warm Sand added 2026-04-30.
+
+## Portfolio Global Rules (MANDATORY for every project)
+
+**All cross-project rules live in [`Global_Assets/PORTFOLIO_GLOBAL_RULES.md`](Global_Assets/PORTFOLIO_GLOBAL_RULES.md)** — the complete rollout checklist for TOC Rail, UI taxonomy, device frames, canonical terms, content style, dividers, transparent backgrounds, viewport-wide animation embeds, and the per-project migration checklist.
+
+**Contract**: before adapting P2, P3, or any future project to match P1's conventions, read that file. When a rule in this CLAUDE.md conflicts with it, the rules doc wins — update CLAUDE.md to match.
+
+- **Chapter divider photos** are MANDATORY between every chapter — see PORTFOLIO_GLOBAL_RULES.md §6.5.
+- **NEVER put a colored stroke / border on a rounded rectangle** — see PORTFOLIO_GLOBAL_RULES.md §9.5. Patterns like `border-top: 3px solid <color>` or `border-top-color` on a card with `border-radius` produce broken corner geometry. Use a colored chip / dot / full-height left bar instead. This is non-negotiable across every page, every UI screen, every animation.
+
+## Canonical Terminology (MANDATORY)
+
+**All terms live in [`Global_Assets/CONTEXT_GRAMMAR_TERMS.md`](Global_Assets/CONTEXT_GRAMMAR_TERMS.md)** — single source of truth for proper names, short definitions, and middle-school restaurant metaphors for every Context Grammar concept.
+
+**Contract**:
+- Before writing or editing any page that mentions Context Grammar concepts, read that file.
+- When you rename, add, or re-scope a concept, update that file in the same pass.
+- If a page contradicts the terms file, **the terms file wins** — fix the page.
+- NEVER use abbreviations (`L1`, `L2`, `L3`, "Accumulated") in page copy, headings, or eyebrow labels. Always the full canonical name. Short forms are permitted ONLY once the parent concept ("Context Brain") is clearly established in the surrounding paragraph.
+
+## UI Taxonomy (MANDATORY)
+
+Every UI mockup in the portfolio must be clearly labeled as one of three kinds. Mixing them without a label is forbidden — the reader must always know what they are looking at.
+
+| Kind | When to use | Framing |
+|---|---|---|
+| **User UI** | What the family / user actually sees | Real device frames — iPhone 15 Pro, iPad, fridge, CarPlay dashboard |
+| **Concept Explainer** | For the reader/designer, not the user | `.bts-frame` with chip `CONCEPT · [topic]` (amber dot) |
+| **Backstage** | AI internals — the user never sees this | `.bts-frame` (or `.bts-frame--dark`) with chip `BACKSTAGE · [topic]` (purple dot) |
+
+**BACKSTAGE** is the canonical single word for "the AI is running, the user does not see this screen." Use it instead of longer variants like "Behind the Scenes — Context Brain — Now Layer". The chip text should be: `BACKSTAGE · [short topic]`. Never wordier.
+
+Shared behind-the-scenes + concept-explainer CSS: [`assets/css/bts-frame.css`](assets/css/bts-frame.css) — linked from the page that uses it.
+
+## Device Frames (MANDATORY — single source of truth)
+
+**All device-frame rules live in [`Global_Assets/DEVICE_FRAME_STANDARD.md`](Global_Assets/DEVICE_FRAME_STANDARD.md)** — canonical iPhone 15 Pro / iPad / Samsung Family Hub components, the outer-page / inner-UI `?noframe=1` contract, forbidden patterns, and the per-file audit checklist.
+
+**Contract:**
+- Before creating or editing any UI mockup (phone, iPad, fridge, TV, watch, etc.) read that file.
+- The outer portfolio page owns the frame (`.iphone15pro`, `.ipad11`, `.samfh`) — the inner UI-screen file is **content-only** when loaded via `?noframe=1`.
+- No handrolled `.phone-frame` CSS, no `aspect-ratio: 9/19.5` wrappers, no studio-grey `#E8EAED` iframe backgrounds.
+- Concept Explainer and Backstage views do NOT use device frames — they use `.bts-frame`.
+- When renaming, adding, or removing a canonical frame, update the standard file in the same pass. The standard file wins when a page contradicts it.
+
+Quick reference — iPhone 15 Pro:
+```html
+<link rel="stylesheet" href="[rel]/assets/css/device-frame-iphone.css">
+
+<div class="iphone15pro iphone15pro--lg">
+  <img class="iphone15pro__chrome"
+       src="[rel]/Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+       alt="" aria-hidden="true">
+  <div class="iphone15pro__screen">
+    <iframe src="[rel]/ui-screens/.../screen.html?noframe=1" ...></iframe>
+  </div>
+  <div class="iphone15pro__island" aria-hidden="true"></div>
+</div>
+```
+
+## Scroll-Page Style = the Only Style (MANDATORY)
+
+The portfolio has standardized on the **scroll-narrative** style (long single-page story, auto-play iframes for UI demos, TOC rail on the left). The older **slide-deck** style is retired.
+
+**Rules**:
+- Do NOT include links like `<a>Slide</a>` / `p1_presentation.html` in the top header of any project page. Remove them on sight.
+- Do NOT write the word "scroll" in the UI (eyebrow text, buttons, labels). The reader can see they're scrolling — naming it is noise.
+- Do NOT create new `*_presentation.html` files. If a slide-deck version is needed, discuss with Takao first.
+- The TOC Rail (below) replaces all in-page navigation.
+
+This applies to **every project** — P1, P2, P3, and any future additions.
+
+## TOC Rail Navigation (MANDATORY on long scroll pages)
+
+Shared chapter-based navigation for scroll pages across ALL projects:
+
+- CSS: [`assets/css/toc-rail.css`](assets/css/toc-rail.css)
+- JS: [`assets/js/toc-rail.js`](assets/js/toc-rail.js)
+
+**Include pattern**:
+
+```html
+<link rel="stylesheet" href="[relative]/assets/css/toc-rail.css">
+
+<script>
+  window.TOC_RAIL = {
+    panelTitle: 'Project 02 · Family Trip',
+    chapters: [
+      {
+        num: '01', title: 'The Setup',
+        sections: [
+          { id: 'intro',    num: '01', label: 'Opening' },
+          { id: 'problem',  num: '02', label: 'The problem today' }
+          // optional: { ..., dark: true } for dark-themed sections
+        ]
+      },
+      { num: '02', title: 'A Morning', sections: [ … ] }
+    ]
+  };
+</script>
+<script src="[relative]/assets/js/toc-rail.js" defer></script>
+```
+
+**Provides automatically**:
+- Left-side vertical rail with chapter groups + section ticks
+- Hover anywhere on the rail → slide-in panel with chapter titles + section numbers
+- Active section/chapter detection via IntersectionObserver (scroll position)
+- `T` key toggles panel · `Esc` closes · click-outside closes
+- Auto dark theme on `dark: true` sections
+- Mobile (≤768px): hidden (room-constrained)
+- **Auto-prefixes every `.eyebrow` / `.pronoun-eyebrow` with its `CH XX · NN` chip** — numbering is derived from `TOC_RAIL` config, so editing the config propagates to both the TOC panel AND every in-page eyebrow. Never hand-write `CH 01 · 02` in a page's HTML; let the lib inject it.
+
+**TOC/Page Title Unification Rule**: the `label` in `TOC_RAIL` config MUST describe the same thing as the section's `.eyebrow` + `h2.title` on the page. When you rewrite an h2 title in a page, update the TOC label in the same pass.
+
+**Rules**:
+- Use on every project's scroll page (P1, P2, P3, future P4/P5).
+- Chapter/section numbers MUST be consistent with the narrative structure of the page.
+- NEVER build a project-specific dotnav or second navigation — the TOC Rail is the only nav.
+- To change behavior globally, edit ONLY `toc-rail.css` / `toc-rail.js` — propagates everywhere.
+
+## Behind-the-Scenes / Concept Explainer Frame (MANDATORY for non-User UI)
+
+Shared CSS class for UIs that are NOT what the user sees:
+
+- CSS: [`assets/css/bts-frame.css`](assets/css/bts-frame.css)
+
+**Usage**:
+
+```html
+<div class="bts-frame" data-kind="concept">
+  <div class="bts-frame__chip">CONCEPT · Dynamic Friction</div>
+  <div class="bts-frame__body">
+    <!-- the explainer content -->
+  </div>
+</div>
+
+<div class="bts-frame bts-frame--dark" data-kind="backstage">
+  <div class="bts-frame__chip">BACKSTAGE · Now Layer</div>
+  <div class="bts-frame__body">
+    <!-- the AI internals view -->
+  </div>
+</div>
+```
+
+**Rules**:
+- Thin dashed border, subtle background. NOT a device frame.
+- Top-left mono chip declares `CONCEPT · …` or `BEHIND THE SCENES · …`.
+- Dark variant (`.bts-frame--dark`) for "AI is thinking, user doesn't see" panels.
+- Never mix this frame with an iPhone/iPad/CarPlay frame.
+- To restyle globally, edit only `bts-frame.css` — propagates everywhere.
 
 ## Critical Factual Rules
 
@@ -48,6 +260,46 @@ Design portfolio by Takao. "Context Grammar" is a design language for the post-a
 - Written primarily in Japanese.
 - Takao values intellectual honesty — verify factual claims about industry state before writing. If something is wrong, own it and fix it.
 
+### Content Writing — STYLE_GUIDE is mandatory (MUST READ before writing any copy)
+
+**Before writing or editing any prose, heading, caption, or lede in any portfolio file:**
+1. Read [`Global_Assets/_Content_Writing_Guide/STYLE_GUIDE.md`](Global_Assets/_Content_Writing_Guide/STYLE_GUIDE.md)
+2. Apply §1–§6 (universal) + §7 (Japanese-specific) before committing any text
+3. Run the §4 checklist on every paragraph
+4. Banned expressions in §5 + §7.8 + §7.9 are **non-negotiable** — remove on sight
+
+**Key violations to catch** (from §7.9, added 2026-04-28):
+- 「〜こそがデザインだ」/ 「自制こそがデザインだ」 → delete
+- 三重否定の修辞 「〜でもなく、〜でもなく、ただ〜として。」 → 1事実に圧縮
+- メタナラティブ クロージング 「どのバージョンが正しいかは重要ではない」 → delete
+- Brain を否定的・無能に見せる表現 (「何も知らない」「データをゼロ保持」) → 何をしているかで書く
+- TED/ポエム調 → Samsung/Google 製品ページ口調に
+
+### Em-dash rule — single em-dash only (MANDATORY, all content, all languages)
+
+- ✅ Use single em-dash: `—` (one character)
+- ❌ NEVER use double em-dash: `——` (two consecutive em-dash characters)
+- This applies to **every file in the portfolio** — HTML body copy, Markdown, captions, headlines, JSON prompts.
+- Reason: `——` reads as broken typography, especially in Japanese where the em-dash already has more visual weight than English. One em-dash carries the same rhetorical pause without the typographic noise.
+- When you encounter `——` while editing any file, **fix it on sight** — even if it's not in the section you're working on.
+- Single source of truth: this rule. (Formalized 2026-04-29.)
+
+### Copy Style — single unified doc (MANDATORY, all portfolio pages)
+
+**Before writing or editing any heading, eyebrow, lede, caption, or body line, read** [`Global_Assets/COPY_STYLE_UNIFIED.md`](Global_Assets/COPY_STYLE_UNIFIED.md). It is the canonical source for:
+
+- Heading stand-alone test (single-read comprehension)
+- Anti-duplication rule (eyebrow ≠ heading ≠ lede ≠ caption)
+- Skim-readability priority (headings carry the story alone)
+- Direct copy — no clever metaphors (P1–P5, OVERVIEW)
+- Restaurant scaffolding exception (`context-grammar/` pages only)
+- Banned expressions table (English + Japanese)
+- Per-page audit checklist
+
+The two earlier docs — `COPY_STYLE_DIRECT.md` and `PAGE_REFACTOR_PROMPT.md` Phase 2 — are **superseded** by the unified doc. They remain as historical reference only. The em-dash rule above is independent and still applies.
+
+Apply on sight: when you encounter clever / abstract / cute copy or duplicated heading-and-lede in any portfolio file, fix it on the spot — same protocol as the em-dash rule. Formalized 2026-05-01. Unified 2026-05-01.
+
 ### Editorial rule — Restaurant metaphors are scaffolding, not decoration
 
 The Context Grammar pages target a **"中学生でも分かる" (understandable to a middle schooler)** reader. For that audience, the recurring restaurant/waiter/reservation-book metaphor is the **on-ramp** that lets abstract concepts (Tokens, Brain layers, Disclosure Dial, Trust Breach) land.
@@ -57,6 +309,10 @@ When auditing or editing prose:
 - **DO NOT cut metaphor scaffolding** — restaurant examples that ground an abstract concept with a concrete parallel. Cutting these speeds up reading for an expert but breaks comprehension for a first-encounter reader.
 - A subagent that recommends "tighten this metaphor" or "cut this restaurant aside" is optimizing for the wrong reader. Push back.
 - See `context-grammar/_content-audit.md` "復元ログ" section for the case study.
+
+### Restaurant metaphor icon — MANDATORY (added 2026-05-02)
+
+Every `.restaurant-aside` block sitewide MUST display the canonical restaurant icon (`assets/img/icons/restaurant.svg`) next to its label, so the metaphor is recognizable on sight. This is enforced globally by [`assets/css/restaurant-aside.css`](assets/css/restaurant-aside.css) — link it in the page `<head>` and the icon attaches automatically to `.restaurant-aside-label::before`. Do NOT inline the SVG per-page. Full rule: [`Global_Assets/PORTFOLIO_GLOBAL_RULES.md`](Global_Assets/PORTFOLIO_GLOBAL_RULES.md) §9.6.
 
 ### Knowledge base — `_my-understanding.md` is the source of truth
 
@@ -114,13 +370,13 @@ When writing about tokens, be honest about what ships today vs what's speculativ
 - **Shipping in dev tools**: Autonomy Dial (3-stage modes are standard in agent frameworks)
 - **New/undefined**: Disclosure Dial (per-domain privacy controls exist but not as unified dial)
 
-## Design System — F-Dark + F3 Muted Echo (MANDATORY)
+## Design System — Vercel Geist (MANDATORY)
 
-**Direction adopted 2026-04-09. Full specifications in [`docs/design-system/`](docs/design-system/).**
+**Direction adopted 2026-04-21 (Migrated from legacy F-Dark). Based on https://vercel.com/geist/introduction**
 
 | Reference | Contents |
 |-----------|----------|
-| [colors.md](docs/design-system/colors.md) | Color variables, semantic colors, forbidden colors |
+| [colors.md](docs/design-system/colors.md) | Vercel Geist neutral scales, semantic colors, forbidden colors |
 | [typography.md](docs/design-system/typography.md) | Type scale, font weights, font CDN links |
 | [layout.md](docs/design-system/layout.md) | Max-widths, section padding, illustration widths |
 | [components.md](docs/design-system/components.md) | Hero, section, CTA, footer, part-banner HTML patterns |
@@ -128,16 +384,17 @@ When writing about tokens, be honest about what ships today vs what's speculativ
 
 ### Quick Reference (critical rules only)
 
-- Token file: `assets/css/tokens.css` (all pages must link this)
+- Token file: `assets/css/tokens.css` (all pages must link this. Do NOT hardcode colors in local files).
 - Shared components: `assets/css/components.css`
 - Context Grammar section: `assets/css/context-grammar.css`
-- Fonts: Satoshi (`--font-sans`) + Geist Mono (`--font-mono`) — NOT Google Sans, DM Mono, Outfit
+- Fonts: Geist / Geist Sans (`--font-sans`) + Geist Mono (`--font-mono`) — NOT Satoshi, Google Sans, DM Mono, Outfit
+- UI Surfaces: Strictly rely on Geist neutral scale (`--gray-50` to `--gray-950`). Do not use custom hex grays.
 - No gradient text on headings
 - No rounded corners + color borders
 - Minimum font size: 12px labels, 15px body text, 17px card body
-- No weight 200 on headings (minimum 500)
 - No single brand accent color; no Tailwind blue; no Material colors
 - **Title > Subtitle > Body hierarchy** — the title must always be the largest text in a block, subtitle smaller than title but larger than body, eyebrow/mono label smallest. See [typography.md](docs/design-system/typography.md#title--subtitle-hierarchy-mandatory).
+- **Section names must be `<h2>`, never eyebrow** — "Context Grammar", "Projects", "Journal" and any other section/category proper noun must be the large `h2`, NOT a tiny `ed-eyebrow`. The eyebrow pattern (tiny label → large headline) only works when the large headline is self-explanatory alone. When the tagline ("Seven entries. One framework.") depends on the section name to make sense, the section name is the headline. Putting a proper noun in an 11px eyebrow while a dependent tagline is 44px forces two-pass reading and breaks navigation clarity.
 
 ## Slide Layout System (MANDATORY)
 
@@ -148,38 +405,9 @@ When writing about tokens, be honest about what ships today vs what's speculativ
 <link rel="stylesheet" href="[relative-path]/assets/css/device-frames.css">
 ```
 
-### Device Embeds (MANDATORY for UI screen iframes)
+### Device Embeds — see `DEVICE_FRAME_STANDARD.md`
 
-**DO NOT wrap iframes in `.phone-frame`.** The UI screen files (e.g. `ui-screens/p3/p3-01-browse.html`) have their own iPhone 15 Pro frame with Dynamic Island built in.
-
-Use `.device-embed` containers to size the iframe:
-
-| Class | Size | Usage |
-|---|---|---|
-| `device-embed--phone` | 400px | Standard phone display |
-| `device-embed--phone-lg` | 440px | Phone-context layout (50% column) |
-| `device-embed--phone-sm` | 260px | Side-by-side / secondary |
-| `device-embed--tv` | 100% max-w 1100px | TV screen display |
-| `device-embed--faded` | Modifier | 40% opacity for before state |
-| `device-dual` | Container | Two phones + arrow |
-
-```html
-<!-- Single phone -->
-<div class="device-embed device-embed--phone">
-  <iframe src="../../ui-screens/p3/p3-01-browse.html" loading="lazy"></iframe>
-</div>
-
-<!-- Two phones (before → after) -->
-<div class="device-dual">
-  <div class="device-embed device-embed--phone-sm device-embed--faded">
-    <iframe src="..." loading="lazy"></iframe>
-  </div>
-  <div class="device-dual-arrow">→</div>
-  <div class="device-embed device-embed--phone-sm">
-    <iframe src="..." loading="lazy"></iframe>
-  </div>
-</div>
-```
+For any phone / iPad / fridge iframe, follow [`Global_Assets/DEVICE_FRAME_STANDARD.md`](Global_Assets/DEVICE_FRAME_STANDARD.md) — outer page owns the canonical frame, inner UI file is content-only via `?noframe=1`. The legacy `.device-embed--phone` / `.phone-embed` transparent sizer pattern (which relied on the INNER UI file drawing its own phone) is **deprecated** for new work and being migrated out of existing pages. Only `.device-embed--tv` remains valid while the TV canonical component is pending.
 
 Path examples by depth:
 - Root level: `assets/css/slide-layouts.css`
@@ -208,6 +436,36 @@ Path examples by depth:
 **When modifying layouts:** Edit `assets/css/slide-layouts.css` — changes propagate to ALL slide files automatically.
 
 **Template reference:** `presentation/layoput-instruction/slide-template.html` — contains one example of each layout type.
+
+## Device Captions (MANDATORY — global rule for all project pages)
+
+**Scene labels and captions go BELOW the device frame, never above.** Use the canonical `.ui-caption` pattern (globally styled in `tokens.css`) — see [`Global_Assets/PORTFOLIO_GLOBAL_RULES.md`](Global_Assets/PORTFOLIO_GLOBAL_RULES.md) §2 for the full UI taxonomy contract.
+
+- Every UI iframe/embed gets a `<p class="ui-caption">` underneath with a `<span class="ui-caption__kind">` badge declaring **User UI · [surface]**, **Concept · [topic]**, or **Backstage · [topic]**.
+- **NEVER use `.scene-tag`** (absolute-positioned chip above a device). Remove any existing `.scene-tag` elements when editing project pages.
+- **Do NOT use the legacy `.device-caption`** — it was replaced by `.ui-caption` during the April 2026 migration. Any remaining `.device-caption` instances should be rewritten to the `.ui-caption` pattern.
+- Applies to phone iframes, TV frames, tablet frames, and every other device embed across all scroll narrative and slide pages.
+
+```html
+<!-- Correct pattern -->
+<div class="iphone15pro iphone15pro--lg">
+  <img class="iphone15pro__chrome"
+       src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+       alt="" aria-hidden="true">
+  <div class="iphone15pro__screen">
+    <iframe src="../../ui-screens/.../screen.html?noframe=1" loading="lazy"></iframe>
+  </div>
+  <div class="iphone15pro__island" aria-hidden="true"></div>
+</div>
+<p class="ui-caption">
+  <span class="ui-caption__kind">User UI · iPhone</span>
+  Train swipe mode. Thumb-zone only. 08:15, one stop to London Bridge.
+</p>
+
+<!-- WRONG — do not do this -->
+<span class="scene-tag">08:05 · Platform 12</span>  <!-- absolute-positioned above device -->
+<div class="phone-embed phone-embed--lg">...</div>
+```
 
 ## Slide Deck Navigation (MANDATORY)
 

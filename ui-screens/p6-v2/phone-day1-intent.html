@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · iPhone · Day 1 · Intent Declaration | P6 Life Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: #1c1c1e;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    display: block;
+  }
+  body.noframe .qa-frame { display: none; }
+
+  /* ── The phone screen content ── */
+  .screen {
+    position: absolute;
+    inset: 0;
+    background: #0a0a0c;
+    color: #f0ede8;
+    border-radius: inherit;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+  }
+  body.noframe .screen {
+    position: relative;
+    inset: auto;
+    width: 100vw;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    flex-shrink: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px 0 28px;
+    font-family: 'Geist', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+    padding-top: 12px;
+  }
+  .status-bar__icons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #ffffff;
+  }
+  .status-bar__icons svg { display: block; width: 16px; height: 12px; }
+
+  /* ── Scroll container ── */
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 6px 0 24px;
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* ── Header (asymmetric, NOT centered) ── */
+  .app-header {
+    padding: 14px 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .app-header__date {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(232, 165, 87, 0.85);
+    margin-bottom: 4px;
+  }
+  .app-header__title {
+    font-family: 'Geist', sans-serif;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+  }
+  .app-header__sub {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: rgba(240, 237, 232, 0.55);
+    margin-top: 6px;
+    max-width: 320px;
+  }
+
+  /* ── Section block (no card, just left-divider rhythm) ── */
+  .block {
+    padding: 20px 20px 14px;
+    border-top: 1px solid rgba(240, 237, 232, 0.08);
+  }
+  .block:first-of-type { border-top: 0; }
+  .block__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .block__label {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(240, 237, 232, 0.45);
+  }
+  .block__count {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    color: rgba(240, 237, 232, 0.35);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Goal rows (anti-card: divider rhythm) ── */
+  .goal-row, .ritual-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(240, 237, 232, 0.06);
+  }
+  .goal-row:last-child, .ritual-row:last-child { border-bottom: 0; }
+  .goal-row__main, .ritual-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .goal-row__title, .ritual-row__title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #ffffff;
+    letter-spacing: -0.005em;
+  }
+  .goal-row__sub, .ritual-row__sub {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    color: rgba(240, 237, 232, 0.42);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .goal-row__value {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+  }
+  .goal-row__value-unit {
+    font-size: 11px;
+    color: rgba(240, 237, 232, 0.45);
+    font-weight: 500;
+    margin-left: 2px;
+  }
+
+  /* ── Ritual: shield mark right-aligned ── */
+  .ritual-row__mark {
+    width: 18px;
+    height: 18px;
+    color: rgba(232, 165, 87, 0.78);
+    flex-shrink: 0;
+  }
+  .ritual-row__mark svg { display: block; width: 100%; height: 100%; }
+
+  /* ── Domain agents: 2x2 asymmetric grid (per taste-skill: NOT 4 equal cards horizontal) ── */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(240, 237, 232, 0.06);
+    margin-top: 4px;
+  }
+  .agent {
+    background: #0a0a0c;
+    padding: 14px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 88px;
+  }
+  .agent__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .agent__name {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(240, 237, 232, 0.92);
+  }
+  .agent__dial {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 2.5px 7px;
+    border-radius: 3px;
+    background: rgba(232, 165, 87, 0.14);
+    color: #e8a557;
+  }
+  .agent__note {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+    color: rgba(240, 237, 232, 0.50);
+    letter-spacing: -0.005em;
+  }
+  /* Per-agent dial color tinting */
+  .agent--health .agent__dial   { background: rgba(160, 200, 170, 0.14); color: #a0c8aa; }
+  .agent--finance .agent__dial  { background: rgba(232, 165, 87, 0.14);  color: #e8a557; }
+  .agent--location .agent__dial { background: rgba(155, 180, 212, 0.14); color: #9bb4d4; }
+  .agent--shopping .agent__dial { background: rgba(196, 168, 224, 0.14); color: #c4a8e0; }
+
+  /* ── Spin-up indicator: tiny pulsing pip ── */
+  .agent__spinup {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    margin-left: -2px;
+    animation: spinupPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes spinupPulse {
+    0%, 100% { opacity: 0.45; }
+    50%      { opacity: 1; }
+  }
+
+  /* ── Bottom CTA bar (sticky) ── */
+  .cta-bar {
+    flex-shrink: 0;
+    padding: 14px 20px 28px;
+    background: linear-gradient(180deg, rgba(10,10,12,0) 0%, #0a0a0c 32%);
+    position: relative;
+  }
+  .cta-bar__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 52px;
+    padding: 14px 22px;
+    border-radius: 14px;
+    border: 0;
+    background: #e8a557;
+    color: #1a0e02;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition: filter 120ms ease, transform 100ms ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cta-bar__btn:hover { filter: brightness(1.06); }
+  }
+  .cta-bar__btn:active { transform: translateY(1px); }
+  .cta-bar__btn:focus-visible { outline: 2px solid #e8a557; outline-offset: 3px; }
+  .cta-bar__hint {
+    margin-top: 10px;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: rgba(240, 237, 232, 0.32);
+    text-align: center;
+  }
+
+  /* ── Home indicator ── */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.32);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .agent__spinup { animation: none; opacity: 0.7; }
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="qa-frame iphone15pro iphone15pro--lg">
+  <img class="iphone15pro__chrome"
+       src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+       alt="" aria-hidden="true">
+  <div class="iphone15pro__screen">
+    <div class="screen" id="screen">
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-bar__icons" aria-hidden="true">
+          <!-- Cellular -->
+          <svg viewBox="0 0 18 12" fill="currentColor">
+            <rect x="0"  y="7" width="3" height="5" rx="0.5"/>
+            <rect x="4"  y="5" width="3" height="7" rx="0.5"/>
+            <rect x="8"  y="3" width="3" height="9" rx="0.5"/>
+            <rect x="12" y="1" width="3" height="11" rx="0.5"/>
+          </svg>
+          <!-- Wifi -->
+          <svg viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+            <path d="M2 5C5.5 1.8 10.5 1.8 14 5"/>
+            <path d="M4.5 7.5C6.5 5.7 9.5 5.7 11.5 7.5"/>
+            <circle cx="8" cy="10" r="0.8" fill="currentColor"/>
+          </svg>
+          <!-- Battery -->
+          <svg viewBox="0 0 24 12" fill="none">
+            <rect x="0.5" y="0.5" width="20" height="11" rx="2.5" stroke="currentColor" stroke-opacity="0.5"/>
+            <rect x="2"   y="2"   width="17" height="8"  rx="1.5" fill="currentColor"/>
+            <rect x="21"  y="4"   width="2"  height="4"  rx="0.6" fill="currentColor" fill-opacity="0.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Scrollable content -->
+      <div class="scroll">
+        <header class="app-header">
+          <div class="app-header__date">April 1 · Day 1</div>
+          <h1 class="app-header__title">This Month's Intent.</h1>
+          <p class="app-header__sub">3つの目標と、AIが立ち入らない2つの儀式。30日間、Life Brain がこの宣言で動く。</p>
+        </header>
+
+        <!-- Goals -->
+        <section class="block">
+          <div class="block__head">
+            <span class="block__label">Goals</span>
+            <span class="block__count">3 / 3</span>
+          </div>
+          <div class="goal-row">
+            <div class="goal-row__main">
+              <div class="goal-row__title">体重を落とす</div>
+              <div class="goal-row__sub">月末までに、ゆるやかに</div>
+            </div>
+            <div class="goal-row__value">−1.0<span class="goal-row__value-unit">kg</span></div>
+          </div>
+          <div class="goal-row">
+            <div class="goal-row__main">
+              <div class="goal-row__title">ランチ予算</div>
+              <div class="goal-row__sub">平日20日 × ¥1,000</div>
+            </div>
+            <div class="goal-row__value">¥20,000<span class="goal-row__value-unit">/ mo</span></div>
+          </div>
+          <div class="goal-row">
+            <div class="goal-row__main">
+              <div class="goal-row__title">セーブ店を訪問</div>
+              <div class="goal-row__sub">Instagram の保存から2軒</div>
+            </div>
+            <div class="goal-row__value">2<span class="goal-row__value-unit">軒</span></div>
+          </div>
+        </section>
+
+        <!-- Protected Rituals -->
+        <section class="block">
+          <div class="block__head">
+            <span class="block__label">Protected Rituals · AIは立ち入らない</span>
+            <span class="block__count">2</span>
+          </div>
+          <div class="ritual-row">
+            <div class="ritual-row__main">
+              <div class="ritual-row__title">Friday Frappuccino</div>
+              <div class="ritual-row__sub">Fri 15:00–17:00 · Starbucks 100m · 月4回</div>
+            </div>
+            <span class="ritual-row__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2.5 L4 5.5 V12 C4 16.5 7 19.5 12 21.5 C17 19.5 20 16.5 20 12 V5.5 Z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="ritual-row">
+            <div class="ritual-row__main">
+              <div class="ritual-row__title">Partner Dinner</div>
+              <div class="ritual-row__sub">パートナー近接 × 夕食時間 × 外食検出</div>
+            </div>
+            <span class="ritual-row__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2.5 L4 5.5 V12 C4 16.5 7 19.5 12 21.5 C17 19.5 20 16.5 20 12 V5.5 Z"/>
+              </svg>
+            </span>
+          </div>
+        </section>
+
+        <!-- Domain Agents -->
+        <section class="block">
+          <div class="block__head">
+            <span class="block__label">Domain Agents · 起動準備</span>
+            <span class="block__count">4</span>
+          </div>
+          <div class="agents-grid">
+            <div class="agent agent--health">
+              <div class="agent__head">
+                <span class="agent__name">Health</span>
+                <span class="agent__dial">Confirm<span class="agent__spinup" aria-hidden="true"></span></span>
+              </div>
+              <div class="agent__note">体重・運動・睡眠を慎重に観察。判断はあなた。</div>
+            </div>
+            <div class="agent agent--finance">
+              <div class="agent__head">
+                <span class="agent__name">Finance</span>
+                <span class="agent__dial">Notify<span class="agent__spinup" aria-hidden="true"></span></span>
+              </div>
+              <div class="agent__note">予算超過のときだけ知らせる。判断は介入しない。</div>
+            </div>
+            <div class="agent agent--location">
+              <div class="agent__head">
+                <span class="agent__name">Location</span>
+                <span class="agent__dial">Suggest<span class="agent__spinup" aria-hidden="true"></span></span>
+              </div>
+              <div class="agent__note">提案までで止める。最終決定はあなた。</div>
+            </div>
+            <div class="agent agent--shopping">
+              <div class="agent__head">
+                <span class="agent__name">Shopping</span>
+                <span class="agent__dial">Auto<span class="agent__spinup" aria-hidden="true"></span></span>
+              </div>
+              <div class="agent__note">日用品の定番購入は、任せる。</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Sticky CTA bar -->
+      <div class="cta-bar">
+        <button class="cta-bar__btn" type="button">
+          Declare Intent · 月を始める
+        </button>
+        <div class="cta-bar__hint">いつでも変更できる · Day 21 にレビュー</div>
+      </div>
+
+      <span class="home-indicator" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="iphone15pro__island" aria-hidden="true"></div>
+</div>
+</body>
+</html>

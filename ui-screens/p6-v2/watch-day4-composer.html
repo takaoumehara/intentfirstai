@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · Apple Watch · Day 4 Composer | P6 Life Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-watch.css">
+<style>
+  /*
+    Watch UI · Day 4 · Moment Composer
+    Per APPLE_WATCH_HIG_REFERENCE.md:
+    - Smart Stack widget pattern (header strip + body + actions)
+    - SF Compact substitute = Geist (Latin) + Noto Sans JP (Japanese)
+    - 1pt ≈ 1 CSS px at default --watch-w: 380px (screen ~285pt × 345pt)
+    - Pure #000 background (OLED)
+    - 8pt minimum margins
+    - Headline 16pt Semibold · Title 3 19pt Display Regular · Caption 1 12pt Regular
+    - 44pt minimum tap target
+  */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    display: block;
+  }
+  body.noframe .qa-frame { display: none; }
+
+  /* ── Watch face content (Smart Stack widget pattern) ── */
+  .face {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+    display: grid;
+    /* header (28pt) | body (1fr) | actions (44pt) */
+    grid-template-rows: clamp(28px, 11.5cqw, 50px) 1fr auto;
+    /* HIG §2.3: 8pt minimum side margins, 4-8pt top/bottom */
+    padding: clamp(8px, 3.2cqw, 14px) clamp(10px, 4cqw, 18px) clamp(10px, 4cqw, 18px);
+    gap: clamp(6px, 2.4cqw, 10px);
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+  }
+  body.noframe .face {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    inset: auto;
+  }
+
+  /* ── HEADER STRIP (Smart Stack pattern) ──
+       Left: app indicator (amber dot) + caption-2 label
+       Right: time (Caption 1 mono) */
+  .face__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(6px, 2.4cqw, 9px);
+    padding: clamp(2px, 0.8cqw, 3px) clamp(2px, 0.8cqw, 3px);
+  }
+  .face__app {
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 1.6cqw, 6px);
+    min-width: 0;
+  }
+  .face__app-mark {
+    width: clamp(8px, 3.2cqw, 13px);
+    height: clamp(8px, 3.2cqw, 13px);
+    border-radius: 50%;
+    background: #e8a557;
+    box-shadow: 0 0 9px 1px rgba(232, 165, 87, 0.50);
+    flex-shrink: 0;
+  }
+  .face__app-name {
+    /* Caption 2 · 11pt · Medium 500 · 0.06em tracking */
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(12px, 4.6cqw, 22px);
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(232, 165, 87, 0.78);
+    line-height: 1;
+  }
+  .face__time {
+    /* Caption 1 mono · 12pt · 0.02em */
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(13px, 5.2cqw, 22px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── BODY: vertically centered hero message ── */
+  .face__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(8px, 3cqw, 14px);
+    min-height: 0;
+    padding: 0 clamp(2px, 0.8cqw, 4px);
+  }
+  .face__headline {
+    /* Title 3 · 19pt · Semibold (heavier than Apple default for emphasis on a Watch proposal) */
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(20px, 7.5cqw, 36px);
+    font-weight: 600;
+    line-height: 1.20;
+    letter-spacing: -0.012em;
+    color: #fff;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .face__sub {
+    /* Caption 1 · 12pt · Regular · 0.02em */
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(13px, 4.8cqw, 22px);
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.72);
+    font-variant-numeric: tabular-nums;
+    margin: 0;
+  }
+  .face__sub-sep { opacity: 0.40; margin: 0 0.4em; }
+
+  /* ── 4 signal weight bars (compact, just above actions) ── */
+  .signals {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(4px, 1.6cqw, 8px);
+    margin-top: clamp(4px, 1.6cqw, 8px);
+  }
+  .signal {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2px, 0.8cqw, 4px);
+    align-items: stretch;
+  }
+  .signal__bar {
+    height: 2px;
+    background: rgba(232, 165, 87, 0.10);
+    border-radius: 1px;
+    position: relative;
+    overflow: hidden;
+  }
+  .signal__bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: var(--w, 50%);
+    background: #e8a557;
+    border-radius: 1px;
+  }
+  .signal__name {
+    /* Subtle complication label — Caption 2 small */
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: clamp(8px, 3cqw, 14px);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.30);
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1;
+  }
+
+  /* ── ACTIONS row (HIG §6.1): pill buttons, 44pt min-height ── */
+  .face__actions {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: clamp(5px, 2cqw, 8px);
+  }
+  .face__btn {
+    /* Body 16pt (HIG) · pill */
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(15px, 5.8cqw, 30px);
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    /* HIG §6.4: 44pt min tap target */
+    min-height: clamp(44px, 18cqw, 84px);
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 0;
+    cursor: pointer;
+    letter-spacing: -0.005em;
+    transition: filter 200ms ease, transform 100ms ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .face__btn--primary { background: #e8a557; color: #1a0e02; }
+  .face__btn--secondary {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.78);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.20);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .face__btn:hover { filter: brightness(1.08); }
+    .face__btn--secondary:hover {
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+      color: #fff;
+    }
+  }
+  .face__btn:active { transform: translateY(1px) scale(0.98); }
+  .face__btn:focus-visible { outline: 2px solid #e8a557; outline-offset: 2px; }
+
+  /* ── 10-second window indicator (subtle, no animation if reduced-motion) ── */
+  .face__window {
+    position: absolute;
+    top: 0; left: 0;
+    height: 1.5px;
+    background: linear-gradient(90deg, #e8a557 0%, rgba(232, 165, 87, 0) 100%);
+    width: 100%;
+    animation: windowDecay 10s linear forwards;
+  }
+  @keyframes windowDecay {
+    from { width: 100%; opacity: 0.85; }
+    to   { width: 0%;   opacity: 0.40; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .face__window { animation: none; opacity: 0.5; width: 60%; }
+    .face__app-mark { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<!-- Standalone QA: SVG watch frame wrapping the face -->
+<div class="qa-frame applewatch applewatch--xxl">
+  <img class="applewatch__chrome"
+       src="../../Global_Assets/DeviceFrame/AppleWatch42mm.svg"
+       alt="" aria-hidden="true">
+  <div class="applewatch__screen">
+    <div class="face" id="qa-face"></div>
+  </div>
+</div>
+
+<!-- Embedded mode: face fills iframe (parent provides frame) -->
+<div class="face" id="embed-face" style="display:none;"></div>
+
+<template id="face-tpl">
+  <span class="face__window" aria-hidden="true"></span>
+
+  <!-- Smart Stack header strip -->
+  <header class="face__header">
+    <div class="face__app">
+      <span class="face__app-mark" aria-hidden="true"></span>
+      <span class="face__app-name">Moment</span>
+    </div>
+    <time class="face__time" datetime="2026-04-04T08:32">8:32</time>
+  </header>
+
+  <!-- Hero body -->
+  <main class="face__body">
+    <h1 class="face__headline">One stop early?</h1>
+    <p class="face__sub">+1,200 steps<span class="face__sub-sep">·</span>9:30 mtg on time</p>
+    <div class="signals" aria-hidden="true">
+      <div class="signal"><div class="signal__bar" style="--w:18%"></div><div class="signal__name">Wx</div></div>
+      <div class="signal"><div class="signal__bar" style="--w:32%"></div><div class="signal__name">Loc</div></div>
+      <div class="signal"><div class="signal__bar" style="--w:22%"></div><div class="signal__name">Cal</div></div>
+      <div class="signal"><div class="signal__bar" style="--w:28%"></div><div class="signal__name">Hlth</div></div>
+    </div>
+  </main>
+
+  <!-- Actions -->
+  <footer class="face__actions">
+    <button class="face__btn face__btn--primary" type="button">Yes</button>
+    <button class="face__btn face__btn--secondary" type="button">Later</button>
+  </footer>
+</template>
+
+<script>
+  var tpl = document.getElementById('face-tpl').content.cloneNode(true);
+  if (document.body.classList.contains('noframe')) {
+    document.querySelector('.qa-frame').remove();
+    var ef = document.getElementById('embed-face');
+    ef.style.display = 'grid';
+    ef.appendChild(tpl);
+  } else {
+    document.getElementById('embed-face').remove();
+    document.getElementById('qa-face').appendChild(tpl);
+  }
+</script>
+</body>
+</html>

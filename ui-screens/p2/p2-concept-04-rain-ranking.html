@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2 Concept 04 — Alternative ranking</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/bts-frame.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: transparent;
+    min-height: 100vh;
+    padding: 24px;
+    color: #f1ecdf;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  .title {
+    font-size: clamp(26px, 2.6vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.6px;
+    color: #f1ecdf;
+    margin-bottom: 6px;
+  }
+  .lede {
+    font-size: 14px;
+    color: rgba(241,236,223,0.6);
+    margin-bottom: 20px;
+    max-width: 720px;
+    line-height: 1.5;
+  }
+
+  .forecast-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(74, 106, 144, 0.1);
+    border: 1px solid rgba(74, 106, 144, 0.3);
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 18px;
+  }
+  .forecast-icon {
+    font-size: 22px;
+  }
+  .forecast-text {
+    font-size: 13px;
+    color: rgba(241,236,223,0.85);
+    font-weight: 500;
+  }
+  .forecast-text strong { color: #6a8eae; font-weight: 600; }
+  .forecast-tag {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    color: #f59e0b;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: rgba(245,158,11,0.14);
+    border-radius: 4px;
+  }
+
+  .table-wrap {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  th {
+    text-align: left;
+    padding: 12px 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: rgba(241,236,223,0.5);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.2);
+  }
+  th.num, td.num { text-align: center; }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(241,236,223,0.85);
+  }
+  tr:last-child td { border-bottom: none; }
+
+  tr.dim td {
+    color: rgba(241,236,223,0.5);
+  }
+  tr.winner {
+    background: rgba(48, 201, 105, 0.08);
+  }
+  tr.winner td {
+    color: #f1ecdf;
+  }
+  tr.winner td:first-child {
+    border-left: 3px solid #30c969;
+  }
+
+  .rank {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(241,236,223,0.4);
+    letter-spacing: 0.3px;
+    display: inline-block;
+    width: 18px;
+  }
+
+  .score-cell {
+    font-family: var(--font-mono);
+    font-weight: 500;
+  }
+  .score-kai { color: #6a8eae; }
+  .score-mia { color: #d47f8c; }
+  .score-gp  { color: #c2b88a; }
+  .score-feas { color: rgba(241,236,223,0.75); }
+
+  .cost {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: rgba(241,236,223,0.65);
+    letter-spacing: 0.3px;
+  }
+
+  .total {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+    color: #f1ecdf;
+  }
+  tr.winner .total { color: #30c969; }
+
+  .winner-tag {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #30c969;
+    background: rgba(48,201,105,0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+
+  .rule-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .rule-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: #30c969;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .rule-body {
+    font-size: 13px;
+    color: rgba(241,236,223,0.85);
+    line-height: 1.55;
+  }
+  .rule-body strong { color: #f1ecdf; font-weight: 600; }
+  .rule-body em {
+    color: #30c969;
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  @media (max-width: 780px) {
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 720px; }
+  }
+
+  body.noframe { background: transparent !important; padding: 16px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bts-frame bts-frame--dark" data-kind="backstage">
+    <div class="bts-frame__chip">BACKSTAGE · Alternative ranking</div>
+    <div class="bts-frame__body">
+
+      <h1 class="title">Seven candidates. Three make the cut.</h1>
+      <p class="lede">Weather forces a replan. The Rule Engine scores indoor alternatives against per-person fit, feasibility, and cost — then surfaces only what clears the family's fairness floor.</p>
+
+      <div class="forecast-bar">
+        <span class="forecast-icon">🌧️</span>
+        <span class="forecast-text">Day 3–4 forecast · <strong>rain 90%</strong> · outdoor plans flagged (Fushimi Inari, Arashiyama)</span>
+        <span class="forecast-tag">Replan triggered</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th class="num">Kai fit</th>
+              <th class="num">Mia fit</th>
+              <th class="num">Grandp. fit</th>
+              <th class="num">Feasibility</th>
+              <th class="num">Cost</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="winner">
+              <td><span class="rank">#1</span> Bamboo weaving workshop <span class="winner-tag">Winner</span></td>
+              <td class="num score-cell score-kai">6</td>
+              <td class="num score-cell score-mia">10</td>
+              <td class="num score-cell score-gp">8</td>
+              <td class="num score-cell score-feas">8</td>
+              <td class="num cost">¥¥</td>
+              <td class="num total">8.0</td>
+            </tr>
+            <tr>
+              <td><span class="rank">#2</span> Ninja Experience (indoor dojo)</td>
+              <td class="num score-cell score-kai">9</td>
+              <td class="num score-cell score-mia">6</td>
+              <td class="num score-cell score-gp">7</td>
+              <td class="num score-cell score-feas">9</td>
+              <td class="num cost">¥¥</td>
+              <td class="num total">7.8</td>
+            </tr>
+            <tr>
+              <td><span class="rank">#3</span> Samurai Armor Museum</td>
+              <td class="num score-cell score-kai">8</td>
+              <td class="num score-cell score-mia">5</td>
+              <td class="num score-cell score-gp">8</td>
+              <td class="num score-cell score-feas">10</td>
+              <td class="num cost">¥</td>
+              <td class="num total">7.5</td>
+            </tr>
+            <tr class="dim">
+              <td><span class="rank">#4</span> Manga Museum</td>
+              <td class="num score-cell score-kai">8</td>
+              <td class="num score-cell score-mia">7</td>
+              <td class="num score-cell score-gp">4</td>
+              <td class="num score-cell score-feas">9</td>
+              <td class="num cost">¥</td>
+              <td class="num total">7.0</td>
+            </tr>
+            <tr class="dim">
+              <td><span class="rank">#5</span> Kyoto Railway Museum</td>
+              <td class="num score-cell score-kai">7</td>
+              <td class="num score-cell score-mia">4</td>
+              <td class="num score-cell score-gp">6</td>
+              <td class="num score-cell score-feas">8</td>
+              <td class="num cost">¥¥</td>
+              <td class="num total">6.3</td>
+            </tr>
+            <tr class="dim">
+              <td><span class="rank">#6</span> Sweets-making class</td>
+              <td class="num score-cell score-kai">5</td>
+              <td class="num score-cell score-mia">8</td>
+              <td class="num score-cell score-gp">7</td>
+              <td class="num score-cell score-feas">7</td>
+              <td class="num cost">¥¥¥</td>
+              <td class="num total">6.2</td>
+            </tr>
+            <tr class="dim">
+              <td><span class="rank">#7</span> Department store arcade</td>
+              <td class="num score-cell score-kai">6</td>
+              <td class="num score-cell score-mia">5</td>
+              <td class="num score-cell score-gp">3</td>
+              <td class="num score-cell score-feas">10</td>
+              <td class="num cost">¥</td>
+              <td class="num total">5.5</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rule-box">
+        <span class="rule-chip">Rule Engine input</span>
+        <div class="rule-body">
+          <strong>Priority Weight</strong> = kids' mood &gt; cost (rainy-day context).
+          <br>
+          <strong>Care Architecture constraint</strong>: <em>each child must get ≥ 1 high-fit activity (≥ 8)</em> across Day 3–4. Candidate #1 gives Mia a 10 and pairs with Ninja Experience (#2, Kai 9) on the next slot — both kids satisfied, grandparents comfortable, weather-proof.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

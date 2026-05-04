@@ -1,20 +1,21 @@
 # Typography
 
-## Font Stack
+## Font Stack (updated 2026-04-21 — Vercel Geist)
 
 | Variable | Value | Use for |
 |----------|-------|---------|
-| `--font-sans` | Satoshi, Noto Sans JP, system | Body, headings, UI |
+| `--font-sans` | Geist, Geist Sans, Noto Sans JP, system | Body, headings, UI |
 | `--font-mono` | Geist Mono | Labels, code, badges |
 | `--font-jp` | Noto Sans JP | Japanese text |
 
-**DO NOT use:** Google Sans, Google Sans Text, DM Mono, Outfit.
+**DO NOT use:** Google Sans, Google Sans Text, DM Mono, Outfit, Satoshi (legacy).
 
 CDN links (required in every HTML `<head>`):
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
-<link rel="stylesheet" href="[path]/assets/css/tokens.css">  <!-- loads Satoshi via @import -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="[path]/assets/css/tokens.css">
 ```
 
 ## Weight Map

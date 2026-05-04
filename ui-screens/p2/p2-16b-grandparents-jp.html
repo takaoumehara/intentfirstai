@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2-16b — LINE to Kyoto Grandparents</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: transparent;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    gap: 12px;
+  }
+
+  .caption-banner {
+    max-width: 390px;
+    width: 100%;
+    background: var(--gray-900);
+    color: #f1ecdf;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .caption-banner .label {
+    color: #30c969;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .caption-banner .val { color: rgba(241,236,223,0.7); }
+
+  .screen {
+    width: 390px;
+    height: 800px;
+    background: #8ac5d5;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+
+  .status-bar {
+    height: 44px;
+    padding: 14px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+    background: #8ac5d5;
+  }
+  .status-right { display: flex; gap: 5px; align-items: center; font-size: 11px; }
+
+  .line-header {
+    height: 54px;
+    padding: 0 16px;
+    background: #8ac5d5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .back { font-size: 22px; color: var(--gray-900); font-weight: 300; }
+  .contact {
+    display: flex; align-items: center; gap: 10px; flex: 1;
+  }
+  .contact-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #ff8aa0;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .contact-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+  .contact-sub {
+    font-size: 11px;
+    color: var(--gray-700);
+  }
+  .header-icons {
+    display: flex; gap: 14px;
+    font-size: 20px;
+    color: var(--gray-800);
+  }
+
+  .chat {
+    height: calc(100% - 44px - 54px);
+    background: #8ac5d5;
+    padding: 16px 14px 20px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .chat::-webkit-scrollbar { display: none; }
+
+  .date-divider {
+    text-align: center;
+    margin: 6px 0 14px;
+  }
+  .date-divider span {
+    background: rgba(255,255,255,0.35);
+    padding: 3px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: rgba(0,0,0,0.55);
+    font-weight: 500;
+  }
+
+  .msg-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: flex-end;
+  }
+  .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #ff8aa0;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .msg-group {
+    flex: 1;
+    max-width: 70%;
+  }
+  .msg-name {
+    font-size: 11px;
+    color: rgba(0,0,0,0.6);
+    margin-bottom: 3px;
+    margin-left: 4px;
+  }
+  .bubble {
+    background: white;
+    border-radius: 14px;
+    padding: 10px 13px;
+    font-size: 13px;
+    color: var(--gray-900);
+    line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .bubble.media {
+    padding: 0;
+    overflow: hidden;
+  }
+  .video-thumb {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(135deg, #8b6f47 0%, #3d5a3a 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-thumb::after {
+    content: '▶';
+    width: 46px; height: 46px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: var(--gray-900);
+    padding-left: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .video-thumb .chip {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .video-meta {
+    padding: 8px 12px;
+    background: white;
+    font-size: 12px;
+    color: var(--gray-800);
+    font-weight: 500;
+  }
+  .video-meta small {
+    display: block;
+    font-size: 10px;
+    color: var(--gray-500);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    padding: 4px;
+  }
+  .photo-thumb {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  .photo-thumb:nth-child(1) { background: linear-gradient(135deg, #a8c686, #7ba55c); }
+  .photo-thumb:nth-child(2) { background: linear-gradient(135deg, #e8b864, #c99849); }
+  .photo-thumb:nth-child(3) { background: linear-gradient(135deg, #d47f8c, #b86071); }
+  .photo-thumb:nth-child(4) { background: linear-gradient(135deg, #6a8eae, #4a6d8a); }
+  .photo-thumb:nth-child(5) { background: linear-gradient(135deg, #e8a87c, #d17a4a); }
+  .photo-thumb:nth-child(6) { background: linear-gradient(135deg, #9b7cb6, #7856a3); }
+  .photo-thumb:nth-child(7) { background: linear-gradient(135deg, #7fb069, #558a3f); position: relative; }
+  .photo-thumb:nth-child(7)::after {
+    content: '+1';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .audio-bubble {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border-radius: 14px;
+    padding: 10px 14px;
+    min-width: 200px;
+  }
+  .audio-play {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #30c969;
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    padding-left: 2px;
+  }
+  .audio-wave {
+    flex: 1;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .audio-wave span {
+    flex: 1;
+    background: var(--gray-400);
+    border-radius: 2px;
+  }
+  .audio-wave span:nth-child(1) { height: 6px; background: #30c969; }
+  .audio-wave span:nth-child(2) { height: 12px; background: #30c969; }
+  .audio-wave span:nth-child(3) { height: 8px; background: #30c969; }
+  .audio-wave span:nth-child(4) { height: 14px; }
+  .audio-wave span:nth-child(5) { height: 10px; }
+  .audio-wave span:nth-child(6) { height: 6px; }
+  .audio-wave span:nth-child(7) { height: 12px; }
+  .audio-wave span:nth-child(8) { height: 4px; }
+  .audio-wave span:nth-child(9) { height: 8px; }
+  .audio-wave span:nth-child(10) { height: 14px; }
+  .audio-wave span:nth-child(11) { height: 6px; }
+  .audio-wave span:nth-child(12) { height: 10px; }
+  .audio-duration {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--gray-600);
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: rgba(0,0,0,0.45);
+    margin-top: 3px;
+    padding-left: 4px;
+  }
+
+  .home-indicator {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px; height: 5px;
+    background: var(--gray-900);
+    opacity: 0.3;
+    border-radius: 999px;
+  }
+
+  body.noframe { background: transparent !important; padding: 0; gap: 0; }
+  body.noframe .caption-banner {
+    display: none;
+  }
+  body.noframe .screen {
+    width: 100vw; height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  body.noframe .home-indicator { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="caption-banner">
+  <span class="label">Full share · LINE to Kyoto grandparents</span>
+  <span class="val">Home Brain disclosure: FULL</span>
+</div>
+
+<div class="screen">
+  <div class="status-bar">
+    <span>8:42 PM</span>
+    <div class="status-right">
+      <span>📶</span>
+      <span>📡</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <div class="line-header">
+    <span class="back">‹</span>
+    <div class="contact">
+      <div class="contact-avatar">S</div>
+      <div>
+        <div class="contact-name">Sarah (米国)</div>
+        <div class="contact-sub">online</div>
+      </div>
+    </div>
+    <div class="header-icons">
+      <span>☎</span>
+      <span>≡</span>
+    </div>
+  </div>
+
+  <div class="chat">
+    <div class="date-divider"><span>Today · 4/14 Tue</span></div>
+
+    <div class="msg-row">
+      <div class="msg-avatar">S</div>
+      <div class="msg-group">
+        <div class="msg-name">Sarah</div>
+        <div class="bubble media">
+          <div class="video-thumb">
+            <span class="chip">AUTO</span>
+          </div>
+          <div class="video-meta">
+            Day 2 · Arashiyama
+            <small>2:18 min · generated from 47 clips</small>
+          </div>
+        </div>
+        <div class="msg-time">8:42 PM</div>
+      </div>
+    </div>
+
+    <div class="msg-row">
+      <div class="msg-avatar">S</div>
+      <div class="msg-group">
+        <div class="bubble" style="padding: 6px;">
+          <div class="photo-grid">
+            <div class="photo-thumb">🌳</div>
+            <div class="photo-thumb">🦌</div>
+            <div class="photo-thumb">🏺</div>
+            <div class="photo-thumb">⛩️</div>
+            <div class="photo-thumb">🍜</div>
+            <div class="photo-thumb">🎋</div>
+            <div class="photo-thumb">🌸</div>
+          </div>
+        </div>
+        <div class="msg-time">8:43 PM</div>
+      </div>
+    </div>
+
+    <div class="msg-row">
+      <div class="msg-avatar">S</div>
+      <div class="msg-group">
+        <div class="bubble">Kai says thank you for the sweets! 🍡</div>
+        <div class="audio-bubble" style="margin-top:6px;">
+          <div class="audio-play">▶</div>
+          <div class="audio-wave">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="audio-duration">0:08</div>
+        </div>
+        <div class="msg-time">8:44 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

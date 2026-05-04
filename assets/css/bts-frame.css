@@ -1,0 +1,128 @@
+/* ═══════════════════════════════════════════════════════════
+   bts-frame — Behind-the-Scenes / Concept Explainer frame
+
+   Use this for any UI that is NOT what the user sees. Never
+   mix with a device frame (iPhone, iPad, CarPlay). The chip at
+   top-left declares what kind of UI this is.
+
+   Usage (unified chip terminology — 2026-04-23):
+     BACKSTAGE = the single word we use to say "AI is working, user does not see this".
+     CONCEPT   = designer/reader explainer, not an AI view.
+
+     <div class="bts-frame" data-kind="concept">
+       <div class="bts-frame__chip">CONCEPT · [topic]</div>
+       <div class="bts-frame__body">…</div>
+     </div>
+
+     <div class="bts-frame bts-frame--dark" data-kind="backstage">
+       <div class="bts-frame__chip">BACKSTAGE · [topic]</div>
+       <div class="bts-frame__body">…</div>
+     </div>
+
+   Rules:
+   - Thin dashed border + subtle bg
+   - Top-left chip always present
+   - Dark variant for AI-internals views
+   - Never wraps a device frame
+   ─────────────────────────────────────────────────────────── */
+
+.bts-frame {
+  position: relative;
+  background: var(--bg, #fff);
+  border: 1.5px dashed var(--border-strong, rgba(0, 0, 0, 0.18));
+  border-radius: 12px;
+  padding: 44px 28px 28px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.bts-frame__chip {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-2, #525252);
+  padding: 6px 12px;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.bts-frame__chip::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-2, #525252);
+  opacity: 0.6;
+}
+.bts-frame[data-kind="concept"]   .bts-frame__chip::before { background: var(--amber, #c2410c); opacity: 0.7; }
+.bts-frame[data-kind="backstage"] .bts-frame__chip::before { background: var(--color-brain, #8a6ab0); opacity: 0.85; }
+/* Legacy alias: data-kind="behind" still works but BACKSTAGE is the canonical term */
+.bts-frame[data-kind="behind"]    .bts-frame__chip::before { background: var(--color-brain, #8a6ab0); opacity: 0.85; }
+
+.bts-frame__body {
+  position: relative;
+}
+
+/* Optional: subtitle row right below the chip */
+.bts-frame__note {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: var(--text-2, #525252);
+  font-weight: 500;
+  max-width: 60%;
+  text-align: right;
+  line-height: 1.4;
+}
+
+/* ═══ Dark variant — for Behind-the-Scenes AI internals ═══ */
+.bts-frame--dark {
+  background: #0d0c10;
+  border-color: rgba(240, 236, 228, 0.14);
+  color: #e8dfd0;
+  box-shadow: inset 0 0 0 1px rgba(240, 236, 228, 0.02),
+              0 24px 56px rgba(0, 0, 0, 0.12);
+}
+.bts-frame--dark .bts-frame__chip {
+  background: #14131a;
+  border-color: rgba(240, 236, 228, 0.12);
+  color: rgba(240, 236, 228, 0.75);
+}
+.bts-frame--dark .bts-frame__note {
+  color: rgba(240, 236, 228, 0.45);
+}
+
+/* ═══ Floating variant — no border, just a shadow-floated panel ═══ */
+.bts-frame--floating {
+  border: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04),
+              0 24px 56px rgba(0, 0, 0, 0.08),
+              inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.bts-frame--floating.bts-frame--dark {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
+              0 32px 64px rgba(0, 0, 0, 0.35),
+              inset 0 0 0 1px rgba(240, 236, 228, 0.04);
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .bts-frame { padding: 44px 18px 20px; }
+  .bts-frame__chip { font-size: 9px; padding: 5px 10px; left: 12px; top: 10px; }
+  .bts-frame__note {
+    position: static;
+    margin-top: 6px;
+    text-align: left;
+    max-width: 100%;
+  }
+}

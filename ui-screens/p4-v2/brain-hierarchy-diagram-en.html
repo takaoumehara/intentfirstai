@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Brain Hierarchy — structural diagram</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<style>
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: rgba(10,10,10,0.10);
+    --text: #1a1816;
+    --text-2: #4a4742;
+    --text-3: #7a766f;
+    --org:      #a07040;
+    --brand:    #b07a3a;
+    --research: #4a6a90;
+    --pmb:      #6a4a90;
+    --project:  #3a7a4a;
+    --font-sans: 'Geist', -apple-system, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage {
+    width: 100%;
+    height: 100%;
+    padding: 28px 36px;
+    display: flex;
+    flex-direction: column;
+  }
+  .stage__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+  .stage__title {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    color: var(--text);
+  }
+  .stage__sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    color: var(--text-2);
+    text-transform: uppercase;
+  }
+
+  /* Stack: bottom to top — Org, Brand+Research, PMB, Project Brains */
+  .stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 14px;
+    min-height: 0;
+  }
+
+  .tier {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .tier__sidebar {
+    width: 96px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 0;
+  }
+  .tier__num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: #1a1a1a;
+    text-transform: uppercase;
+  }
+  .tier__role {
+    font-size: 12px;
+    font-weight: 500;
+    color: #3f3f46;
+    line-height: 1.4;
+  }
+
+  .tier__main {
+    flex: 1;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+  .tier--org    .tier__main { grid-template-columns: 1fr; }
+  .tier--brand  .tier__main { grid-template-columns: 1fr 1fr 1fr; }
+  .tier--pmb    .tier__main { grid-template-columns: 1fr; }
+  .tier--projects .tier__main { grid-template-columns: repeat(4, 1fr); }
+
+  .brain {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 56px;
+  }
+  .brain::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--text-3);
+  }
+  .brain__name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.2px;
+    line-height: 1.3;
+  }
+  .brain__hint {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #3f3f46;
+    letter-spacing: 0.4px;
+    line-height: 1.45;
+  }
+  .brain__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: #3f3f46;
+  }
+  .brain__chip--bullet::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .brain--org      { background: rgba(160,112,64,0.05); border-color: rgba(160,112,64,0.30); }
+  .brain--org::before      { background: var(--org); }
+  .brain--brand    { background: rgba(176,122,58,0.04); border-color: rgba(176,122,58,0.28); }
+  .brain--brand::before    { background: var(--brand); }
+  .brain--research { background: rgba(74,106,144,0.04); border-color: rgba(74,106,144,0.28); }
+  .brain--research::before { background: var(--research); }
+  .brain--pmb      { background: rgba(106,74,144,0.05); border-color: rgba(106,74,144,0.32); border-width: 1.5px; }
+  .brain--pmb::before      { background: var(--pmb); width: 4px; }
+  .brain--project  { background: rgba(58,122,74,0.04); border-color: rgba(58,122,74,0.28); }
+  .brain--project::before  { background: var(--project); }
+  .brain--project-future { opacity: 0.5; border-style: dashed; }
+
+  /* "You are here" highlight — green border + green-tinted fill + pulse.
+     Activated via URL param ?highlight=org-brain|brand|research|pmb|project
+     which sets a class on .stage. */
+  .stage--here-org      .brain--org,
+  .stage--here-brand    .brain--brand,
+  .stage--here-research .brain--research,
+  .stage--here-pmb      .brain--pmb,
+  .stage--here-project  .brain--project:not(.brain--project-future) {
+    border-color: #30c969 !important;
+    border-width: 2px !important;
+    background: rgba(48,201,105,0.14) !important;
+    box-shadow: 0 0 0 0 rgba(48,201,105,0.55);
+    animation: bh-glow 2.4s ease-in-out infinite;
+  }
+  .stage--here-org      .brain--org::before,
+  .stage--here-brand    .brain--brand::before,
+  .stage--here-research .brain--research::before,
+  .stage--here-pmb      .brain--pmb::before,
+  .stage--here-project  .brain--project:not(.brain--project-future)::before {
+    background: #30c969;
+  }
+  @keyframes bh-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(48,201,105,0.55); }
+    50%      { box-shadow: 0 0 0 8px rgba(48,201,105,0); }
+  }
+  /* Compact mode — hide principles footer for use as section header */
+  .stage--compact .principles { display: none; }
+  .stage--compact { padding: 18px 24px; }
+  .stage--compact .stage__head { margin-bottom: 12px; }
+  .stage--compact .tier { gap: 10px; }
+  .stage--compact .brain { min-height: 48px; padding: 10px 12px; }
+  .stage--compact .stack { gap: 10px; }
+
+  /* Footer principles row — kept brief, no info duplication */
+  .principles {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .principle { display: flex; flex-direction: column; gap: 3px; }
+  .principle__num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: var(--text-2);
+    text-transform: uppercase;
+  }
+  .principle__text {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .principle__text strong { color: var(--text); font-weight: 600; }
+
+  @media (max-width: 900px) {
+    .stage { padding: 18px 20px; }
+    .tier__sidebar { width: 80px; }
+    .tier--projects .tier__main { grid-template-columns: repeat(2, 1fr); }
+    .principles { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="stage__head">
+    <div class="stage__title">Enterprise Context Brain · structural diagram</div>
+    <div class="stage__sub">bottom-up · 4 tiers · same 3-layer anatomy in every brain</div>
+  </div>
+
+  <div class="stack">
+
+    <!-- TIER 1 (foundation) -->
+    <div class="tier tier--org">
+      <div class="tier__sidebar">
+        <div class="tier__num">Tier 01</div>
+        <div class="tier__role">Foundation. Permanent.</div>
+      </div>
+      <div class="tier__main">
+        <div class="brain brain--org">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--org);">Org Brain</div>
+          <div class="brain__name">What the company knows about itself</div>
+          <div class="brain__hint">org chart · policies · glossary · history · capacity · time zones</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIER 2: Standing knowledge brains -->
+    <div class="tier tier--brand">
+      <div class="tier__sidebar">
+        <div class="tier__num">Tier 02</div>
+        <div class="tier__role">Standing knowledge. Read by everyone.</div>
+      </div>
+      <div class="tier__main">
+        <div class="brain brain--brand">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--brand);">Brand Brain · B2C</div>
+          <div class="brain__name">Judgment DNA · consumer brand</div>
+          <div class="brain__hint">voice · color rationale · edge-case rulings</div>
+        </div>
+        <div class="brain brain--brand">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--brand);">Brand Brain · B2B</div>
+          <div class="brain__name">Judgment DNA · platform brand</div>
+          <div class="brain__hint">voice · contract style · enterprise tone</div>
+        </div>
+        <div class="brain brain--research">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--research);">Research Brain</div>
+          <div class="brain__name">User understanding · live data inflow</div>
+          <div class="brain__hint">personas · behavior patterns · sales / support / NPS streams</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIER 3 -->
+    <div class="tier tier--pmb">
+      <div class="tier__sidebar">
+        <div class="tier__num">Tier 03</div>
+        <div class="tier__role">Strategist. Reads tiers 1 + 2.</div>
+      </div>
+      <div class="tier__main">
+        <div class="brain brain--pmb">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--pmb);">Project Master Brain</div>
+          <div class="brain__name">Decides what to start, hold, kill</div>
+          <div class="brain__hint">portfolio strategy · pattern bank · live signals · dialogue surface for the PO</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIER 4 -->
+    <div class="tier tier--projects">
+      <div class="tier__sidebar">
+        <div class="tier__num">Tier 04</div>
+        <div class="tier__role">Time-bound. Spawned by PMB.</div>
+      </div>
+      <div class="tier__main">
+        <div class="brain brain--project">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--project);">Project Brain</div>
+          <div class="brain__name">Holiday Campaign 2026</div>
+          <div class="brain__hint">running · sprint 3</div>
+        </div>
+        <div class="brain brain--project">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--project);">Project Brain</div>
+          <div class="brain__name">Pricing v3 Test</div>
+          <div class="brain__hint">running · sprint 5</div>
+        </div>
+        <div class="brain brain--project">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--project);">Project Brain</div>
+          <div class="brain__name">Onboarding Refresh</div>
+          <div class="brain__hint">running · sprint 2</div>
+        </div>
+        <div class="brain brain--project brain--project-future">
+          <div class="brain__chip brain__chip--bullet" style="color: var(--project);">Project Brain</div>
+          <div class="brain__name">+ N more</div>
+          <div class="brain__hint">spawned as needed · die on close</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="principles" aria-label="Four principles">
+    <div class="principle">
+      <div class="principle__num">Principle 01</div>
+      <div class="principle__text"><strong>One Layer model, every Brain.</strong> Identity / Learning / Now everywhere.</div>
+    </div>
+    <div class="principle">
+      <div class="principle__num">Principle 02</div>
+      <div class="principle__text"><strong>Higher tiers read lower tiers.</strong> Never the other way around.</div>
+    </div>
+    <div class="principle">
+      <div class="principle__num">Principle 03</div>
+      <div class="principle__text"><strong>Multiple brands → multiple instances.</strong> Brand Brain forks, Org Brain doesn't.</div>
+    </div>
+    <div class="principle">
+      <div class="principle__num">Principle 04</div>
+      <div class="principle__text"><strong>Project Brains die.</strong> Their Learning graduates upward into Org Brain.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Read URL params: ?highlight=org-brain|brand|research|pmb|project · ?compact=1
+  (function () {
+    var params = new URLSearchParams(location.search);
+    var stage = document.querySelector('.stage');
+    if (!stage) return;
+    var highlight = (params.get('highlight') || '').toLowerCase();
+    var validHighlights = { 'org': 1, 'org-brain': 1, 'brand': 1, 'research': 1, 'pmb': 1, 'project': 1, 'project-master': 1 };
+    if (validHighlights[highlight]) {
+      var key = highlight === 'org-brain' ? 'org' : (highlight === 'project-master' ? 'pmb' : highlight);
+      stage.classList.add('stage--here-' + key);
+    }
+    if (params.get('compact') === '1') {
+      stage.classList.add('stage--compact');
+    }
+  })();
+</script>
+
+</body>
+</html>

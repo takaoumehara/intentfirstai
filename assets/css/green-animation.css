@@ -1,0 +1,2239 @@
+/* ═══════════════════════════════════════════════════════════════
+   Green Animation — Design System
+   Slug: green-simple-bold-animation-interaction
+
+   Visual language for Context Grammar illustrations, derived from
+   _tower-explorations.html. Treat this as a strict contract.
+
+   THE AESTHETIC CONTRACT
+   ──────────────────────
+   1. ONE SHAPE · ONE ACCENT · ONE LABEL per illustration.
+      Inside the SVG: primary geometry + a single green motion + only
+      labels essential to read the diagram. Everything else (examples,
+      sub-descriptions, narratives) lives OUTSIDE the SVG — in the
+      surrounding card text or meta tag.
+
+   2. STROKES are 1.5px with vector-effect: non-scaling-stroke.
+      Strokes render at 1.5 screen px regardless of SVG scale.
+
+   3. COLOR is binary: monochrome ink + a single green (#30c969).
+      Allowed: var(--ga-ink) for primary stroke, var(--ga-green) for
+      the moving/accented element, var(--ga-bg) for fills,
+      var(--ga-ink-3) for the meta-tag label only.
+      FORBIDDEN: soft-gray "guide" lines, dashed helper frames,
+      multiple opacity tiers (0.4 / 0.55 / 0.7), gradient fills.
+
+   4. TYPOGRAPHY: Geist Mono uppercase, 9–11px, letter-spacing 1.5–2px.
+
+   5. NATURAL SIZE: ≈360×260 SVG. Display at natural size (don't force
+      width: 100%). The 1.5px strokes look right at this size and
+      stay 1.5px when scaled down on small viewports.
+
+   6. ANIMATION: 5–12s loop, single motion at a time, ease-in-out or
+      cubic-bezier. The accent is what moves; the geometry stays still.
+
+   📝 To embed slots into new pages with another AI agent, see:
+      /Global_Assets/GREEN_ANIMATION_EMBED.md
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Tokens — self-contained (no dependency on external --e-* vars) ───
+   Light defaults at :root. Dark values applied automatically when:
+     • [data-theme="dark"] is set on html (page-level dark mode)
+     • [data-theme="dark"] is set on any ancestor (section-level dark)
+     • .ga-dark is set on a wrapper (manual override)
+   Drop green-animation.css into ANY page with NO other CSS deps and it works. */
+:root {
+  --ga-ink:      #0a0a0a;
+  --ga-ink-2:    #525252;
+  --ga-ink-3:    #a1a1aa;
+  --ga-line:     #b4b4b8;   /* darker than before — soft lines must read on white bg */
+  --ga-line-2:   #d4d4d8;
+  --ga-bg:       #ffffff;
+  --ga-bg-2:     #fafafa;
+  --ga-bg-card:  #f4f4f5;
+  --ga-green:    #30c969;
+  --ga-green-2:  rgba(48, 201, 105, 0.15);
+  --ga-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ga-ease-std: cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+/* Dark mode — cascades from any ancestor with data-theme="dark" or .ga-dark */
+[data-theme="dark"],
+[data-theme="dark"] .ga,
+.ga-dark,
+.ga-dark.ga,
+.ga-dark .ga {
+  --ga-ink:      rgba(240, 236, 228, 0.92);
+  --ga-ink-2:    rgba(240, 236, 228, 0.65);
+  --ga-ink-3:    rgba(240, 236, 228, 0.45);
+  --ga-line:     rgba(240, 236, 228, 0.45);   /* bumped up — soft lines must read on dark bg */
+  --ga-line-2:   rgba(240, 236, 228, 0.20);
+  --ga-bg:       transparent;
+  --ga-bg-2:     rgba(255, 255, 255, 0.04);
+  --ga-bg-card:  rgba(255, 255, 255, 0.06);
+  --ga-green:    #30c969;
+  --ga-green-2:  rgba(48, 201, 105, 0.15);
+}
+
+/* ─── Container — every GA component lives in a div with class .ga ─── */
+.ga {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  color: var(--ga-ink);
+}
+.ga svg { display: block; overflow: visible; }
+
+
+/* ─── Primitive classes (used inside SVGs) ─────────────────────
+   Stroke classes set fill from CSS (NOT from SVG attribute) because
+   SVG attributes don't support var() reliably across browsers. CSS
+   wins via specificity, so any inline `fill="var(...)"` attributes are
+   safely ignored — the class drives both stroke and fill.
+   • Default fill = bg (white in light, transparent in dark) for closed shapes.
+   • Lines and paths get fill: none via a more-specific rule below. */
+.ga svg .ga-s-main   { stroke: var(--ga-ink);   stroke-width: 1.5; fill: var(--ga-bg); vector-effect: non-scaling-stroke; }
+.ga svg .ga-s-soft   { stroke: var(--ga-line);  stroke-width: 1;   fill: var(--ga-bg); vector-effect: non-scaling-stroke; }
+.ga svg .ga-s-hair   { stroke: var(--ga-ink-3); stroke-width: 0.5; fill: var(--ga-bg); vector-effect: non-scaling-stroke; stroke-dasharray: 2 3; }
+.ga svg .ga-s-green  { stroke: var(--ga-green); stroke-width: 1.5; fill: var(--ga-bg); vector-effect: non-scaling-stroke; }
+/* Lines and open paths must NOT be filled */
+.ga svg line.ga-s-main,  .ga svg path.ga-s-main,
+.ga svg line.ga-s-soft,  .ga svg path.ga-s-soft,
+.ga svg line.ga-s-hair,  .ga svg path.ga-s-hair,
+.ga svg line.ga-s-green, .ga svg path.ga-s-green { fill: none; }
+
+.ga svg .ga-f        { fill: var(--ga-ink); stroke: none; }
+.ga svg .ga-f-accent { fill: var(--ga-green); stroke: none; }
+.ga svg .ga-f-bg     { fill: var(--ga-bg); }
+.ga svg .ga-f-card   { fill: var(--ga-bg-card); }
+
+.ga svg .ga-lbl {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  fill: var(--ga-ink-3);
+  text-transform: uppercase;
+}
+.ga svg .ga-lbl-stage {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  fill: var(--ga-ink-3);
+  text-transform: uppercase;
+}
+.ga svg .ga-lbl-mono {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  fill: var(--ga-ink-3);
+  text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED KEYFRAMES — used across all components
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Pipeline traveler — moves left to right across 6 stages */
+@keyframes ga-travel {
+  0%    { opacity: 0; transform: translateX(0)    translateY(0); }
+  3%    { opacity: 1; }
+  7%    { transform: translateX(90px)  translateY(0); }
+  18%   { transform: translateX(260px) translateY(0); }
+  37%   { transform: translateX(480px) translateY(0); }
+  58%   { transform: translateX(700px) translateY(0); }
+  78%   { transform: translateX(900px) translateY(0); }
+  92%   { transform: translateX(1080px) translateY(var(--ga-target-y, 0px)); opacity: 1; }
+  96%   { opacity: 0; }
+  100%  { opacity: 0; transform: translateX(1080px) translateY(var(--ga-target-y, 0px)); }
+}
+
+/* Stage activations — keyed to traveler position */
+@keyframes ga-pulseHuman {
+  0%, 8%, 100% { stroke: var(--ga-ink); fill: var(--ga-bg); }
+  2%, 6%        { stroke: var(--ga-green); fill: var(--ga-green-2); }
+}
+@keyframes ga-intentCore {
+  0%, 4%, 18%, 100% { transform: scale(0.6); opacity: 0.4; }
+  7%, 14%            { transform: scale(1.2); opacity: 1; }
+}
+@keyframes ga-tokenFlash {
+  0%, 17%, 42%, 100% { stroke: var(--ga-ink); stroke-width: 1.5; }
+  20%, 32%            { stroke: var(--ga-green); stroke-width: 2.5; }
+}
+@keyframes ga-brainPulse {
+  0%, 42%, 68%, 100% { stroke: var(--ga-ink); fill: var(--ga-bg); }
+  48%, 62%            { stroke: var(--ga-green); fill: var(--ga-green-2); }
+}
+@keyframes ga-rhombusFire {
+  0%, 62%, 88%, 100% { stroke: var(--ga-ink); fill: var(--ga-bg); }
+  70%, 82%            { stroke: var(--ga-green); fill: var(--ga-green-2); }
+}
+@keyframes ga-outPathActive {
+  0%, 78%, 96%, 100% { stroke: var(--ga-line); stroke-width: 1; }
+  84%, 92%             { stroke: var(--ga-green); stroke-width: 1.8; }
+}
+@keyframes ga-outEndActive {
+  0%, 78%, 96%, 100% { fill: var(--ga-bg); stroke: var(--ga-ink); }
+  84%, 92%             { fill: var(--ga-green); stroke: var(--ga-green); }
+}
+@keyframes ga-labelDim {
+  0%, 100% { fill: var(--ga-ink-3); }
+  5%, 18%   { fill: var(--ga-ink); font-weight: 500; }
+}
+
+/* Mini dial sweep (Autonomy / Disclosure) */
+@keyframes ga-dialSweep {
+  0%, 20%   { transform: rotate(-50deg); }
+  50%       { transform: rotate(-10deg); }
+  80%, 100% { transform: rotate(40deg); }
+}
+
+/* Feedback loop — green dot returns from output to brain */
+@keyframes ga-learningReturn {
+  0%, 92%, 100%  { offset-distance: 0%;   opacity: 0; }
+  94%             { opacity: 1; }
+  98%             { offset-distance: 100%; opacity: 1; }
+}
+
+/* Brain layer cascade (used in standalone Brain component) */
+@keyframes ga-brainTopPulse {
+  0%, 8%, 38%, 100% { fill: var(--ga-bg); }
+  13%, 30%          { fill: var(--ga-green); }
+}
+@keyframes ga-brainSidePulse {
+  0%, 8%, 38%, 100% { stroke: var(--ga-ink); }
+  13%, 30%          { stroke: var(--ga-green); }
+}
+
+/* Trust thermometer markers (slow oscillation, 16s) */
+@keyframes ga-trustMarkerD {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(60px); }
+}
+@keyframes ga-trustMarkerA {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(-30px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · PIPELINE (full hero)
+   Default: 12s loop, randomized output via JS
+   ═══════════════════════════════════════════════════════════════ */
+.ga-pipeline {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.ga-pipeline .ga-traveler {
+  animation: ga-travel 12s cubic-bezier(0.65, 0.05, 0.36, 1) infinite;
+}
+
+.ga-pipeline .ga-stage-human { animation: ga-pulseHuman 12s ease-in-out infinite; }
+
+.ga-pipeline .ga-intent-core {
+  animation: ga-intentCore 12s ease-in-out infinite;
+  transform-origin: 180px 200px;
+  transform-box: view-box;
+}
+
+.ga-pipeline .ga-tk { animation: ga-tokenFlash 12s ease-in-out infinite; }
+.ga-pipeline .ga-tk-1 { animation-delay: 0s; }
+.ga-pipeline .ga-tk-2 { animation-delay: 0.15s; }
+.ga-pipeline .ga-tk-3 { animation-delay: 0.3s; }
+.ga-pipeline .ga-tk-4 { animation-delay: 0.45s; }
+.ga-pipeline .ga-tk-5 { animation-delay: 0.6s; }
+.ga-pipeline .ga-tk-6 { animation-delay: 0.75s; }
+
+.ga-pipeline .ga-bl { animation: ga-brainPulse 12s ease-in-out infinite; }
+.ga-pipeline .ga-bl-1 { animation-delay: 0s; }
+.ga-pipeline .ga-bl-2 { animation-delay: 0.4s; }
+.ga-pipeline .ga-bl-3 { animation-delay: 0.8s; }
+
+.ga-pipeline .ga-rhombus { animation: ga-rhombusFire 12s ease-in-out infinite; }
+
+/* Ghost base — always-visible gray line, marks where the route IS */
+.ga-pipeline .ga-out-base,
+.ga-pipeline-vertical .ga-out-base,
+.ga-pipeline-min .ga-out-base,
+.ga-rule-engine .ga-out-base {
+  stroke: var(--ga-line);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+/* Green overlay — draws on top of the ghost, no "disappearing" moment */
+.ga-pipeline .ga-out-path {
+  stroke: var(--ga-green);
+  stroke-width: 1.8;
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  animation: ga-pipeOutDraw 12s linear infinite;
+}
+.ga-pipeline .ga-out-end  { fill: var(--ga-bg); stroke: var(--ga-ink); animation: ga-pipeEndAfterDraw 12s linear infinite; vector-effect: non-scaling-stroke; }
+@keyframes ga-pipeOutDraw {
+  0%, 78%   { stroke-dashoffset: 1; }                 /* hidden — ghost is what's visible */
+  90%       { stroke-dashoffset: 0; }                 /* fully drawn */
+  93%       { stroke-dashoffset: 0; }                 /* hold */
+  100%      { stroke-dashoffset: 1; }                 /* fade back to invisible — ghost stays */
+}
+@keyframes ga-pipeEndAfterDraw {
+  0%, 89%, 95%, 100% { fill: var(--ga-bg);    stroke: var(--ga-ink); }
+  90%, 94%           { fill: var(--ga-green); stroke: var(--ga-green); }
+}
+
+/* Output activation gated by data-output attribute */
+.ga-pipeline[data-output="delegate"] .ga-op-2,
+.ga-pipeline[data-output="delegate"] .ga-op-3,
+.ga-pipeline[data-output="delegate"] .ga-oe-2,
+.ga-pipeline[data-output="delegate"] .ga-oe-3,
+.ga-pipeline[data-output="escalate"] .ga-op-1,
+.ga-pipeline[data-output="escalate"] .ga-op-3,
+.ga-pipeline[data-output="escalate"] .ga-oe-1,
+.ga-pipeline[data-output="escalate"] .ga-oe-3,
+.ga-pipeline[data-output="adapt"] .ga-op-1,
+.ga-pipeline[data-output="adapt"] .ga-op-2,
+.ga-pipeline[data-output="adapt"] .ga-oe-1,
+.ga-pipeline[data-output="adapt"] .ga-oe-2 {
+  animation: none;
+}
+
+/* Stage labels — dim by default, bright when stage is active */
+.ga-pipeline .ga-stage-label { animation: ga-labelDim 12s ease-in-out infinite; }
+.ga-pipeline .ga-ll-human   { animation-delay: 0s; }
+.ga-pipeline .ga-ll-intent  { animation-delay: 0.8s; }
+.ga-pipeline .ga-ll-tokens  { animation-delay: 2s; }
+.ga-pipeline .ga-ll-brain   { animation-delay: 5s; }
+.ga-pipeline .ga-ll-rules   { animation-delay: 8s; }
+.ga-pipeline .ga-ll-output  { animation-delay: 9.5s; }
+
+/* Mini dials inside Tokens */
+.ga-pipeline .ga-dial-needle {
+  animation: ga-dialSweep 16s cubic-bezier(0.6, -0.28, 0.735, 0.045) infinite alternate;
+}
+.ga-pipeline .ga-dial-autonomy   { transform-origin: 485px 200px; transform-box: view-box; }
+.ga-pipeline .ga-dial-disclosure { transform-origin: 515px 200px; transform-box: view-box; animation-delay: -4s; }
+
+/* Feedback loop */
+.ga-pipeline .ga-feedback-path {
+  stroke: var(--ga-green); stroke-width: 1.5; fill: none;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.4;
+}
+.ga-pipeline .ga-feedback-dot {
+  fill: var(--ga-green);
+  offset-path: path('M 1055,262 C 1055,310 400,310 670,216');
+  offset-distance: 0%;
+  animation: ga-learningReturn 12s ease-in-out infinite;
+}
+
+/* Hide feedback when data-feedback="false" */
+.ga-pipeline[data-feedback="false"] .ga-feedback-path,
+.ga-pipeline[data-feedback="false"] .ga-feedback-dot {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · TOKENS standalone (zoomed view of 8 tokens)
+   ═══════════════════════════════════════════════════════════════ */
+.ga-tokens .ga-tk { animation: ga-tokenFlash 6s ease-in-out infinite; }
+.ga-tokens .ga-tk-1 { animation-delay: 0s; }
+.ga-tokens .ga-tk-2 { animation-delay: 0.3s; }
+.ga-tokens .ga-tk-3 { animation-delay: 0.6s; }
+.ga-tokens .ga-tk-4 { animation-delay: 0.9s; }
+.ga-tokens .ga-tk-5 { animation-delay: 1.2s; }
+.ga-tokens .ga-tk-6 { animation-delay: 1.5s; }
+.ga-tokens .ga-dial-needle {
+  animation: ga-dialSweep 12s cubic-bezier(0.6, -0.28, 0.735, 0.045) infinite alternate;
+}
+.ga-tokens .ga-dial-autonomy   { transform-origin: 284px 110px; transform-box: view-box; }
+.ga-tokens .ga-dial-disclosure { transform-origin: 324px 110px; transform-box: view-box; animation-delay: -3s; }
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · BRAIN standalone (3 flat pills stacked, tower style)
+   ═══════════════════════════════════════════════════════════════ */
+.ga-brain .ga-bl {
+  animation: ga-brainFlatPulse 6s ease-in-out infinite;
+}
+.ga-brain .ga-bl-1 { animation-delay: 4s; }   /* Identity (bottom) — fires last */
+.ga-brain .ga-bl-2 { animation-delay: 2s; }   /* Learning */
+.ga-brain .ga-bl-3 { animation-delay: 0s; }   /* Now (top) — fires first */
+/* Highlight via stroke only — never fill. Coloring the inside of a
+   rounded rectangle creates an inconsistent "weird shape" against
+   neighboring uncolored pills. Keep fill = --ga-bg, animate the outline. */
+@keyframes ga-brainFlatPulse {
+  0%, 22%, 100% { stroke: var(--ga-ink);   stroke-width: 1.5; }
+  6%, 18%       { stroke: var(--ga-green); stroke-width: 2.5; }
+}
+
+/* Layer label inside each rounded pill */
+.ga-brain .ga-bl-lbl,
+.ga-brain-svg .ga-bl-lbl {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 1.6px;
+  fill: var(--ga-ink-2);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* Information flow — green dots travel between layers (bidirectional)
+   Bottom (Identity) ⇄ Middle (Learning) ⇄ Top (Right Now)
+   Layer centers in viewBox: y=76 (Right Now), y=120 (Learning), y=164 (Identity).
+   Dot starts at cy=76 — translateY shifts it to other layer centers. */
+.ga-brain .ga-bl-dot,
+.ga-brain-svg .ga-bl-dot {
+  fill: var(--ga-green);
+}
+.ga-brain .ga-bl-flow,
+.ga-brain-svg .ga-bl-flow {
+  transform-origin: center;
+  transform-box: view-box;
+}
+.ga-brain .ga-bl-flow-up,
+.ga-brain-svg .ga-bl-flow-up {
+  animation: ga-bl-up 7s cubic-bezier(0.65, 0.05, 0.36, 1) infinite;
+}
+.ga-brain .ga-bl-flow-down,
+.ga-brain-svg .ga-bl-flow-down {
+  animation: ga-bl-down 7s cubic-bezier(0.65, 0.05, 0.36, 1) infinite 2.6s;
+}
+@keyframes ga-bl-up {
+  /* Identity (bottom +88) → pause → Learning (+44) → pause → Now (0) → fade out → reset */
+  0%   { transform: translateY(88px); opacity: 0; }
+  6%   { transform: translateY(88px); opacity: 1; }
+  22%  { transform: translateY(44px); opacity: 1; }
+  32%  { transform: translateY(44px); opacity: 1; }
+  48%  { transform: translateY(0);    opacity: 1; }
+  62%  { transform: translateY(0);    opacity: 1; }
+  72%  { transform: translateY(0);    opacity: 0; }
+  100% { transform: translateY(88px); opacity: 0; }
+}
+@keyframes ga-bl-down {
+  /* Now (0) → pause → Learning (+44) → pause → Identity (+88) → fade out → reset */
+  0%   { transform: translateY(0);    opacity: 0; }
+  6%   { transform: translateY(0);    opacity: 1; }
+  22%  { transform: translateY(44px); opacity: 1; }
+  32%  { transform: translateY(44px); opacity: 1; }
+  48%  { transform: translateY(88px); opacity: 1; }
+  62%  { transform: translateY(88px); opacity: 1; }
+  72%  { transform: translateY(88px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ga-brain .ga-bl-flow-up,
+  .ga-brain .ga-bl-flow-down,
+  .ga-brain-svg .ga-bl-flow-up,
+  .ga-brain-svg .ga-bl-flow-down { animation: none; opacity: 0.5; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · BRAIN-IDENTITY (Layer 1 themed illustration)
+   The "registration card" — permanent identity facts.
+   ═══════════════════════════════════════════════════════════════ */
+.ga-brain-identity .ga-bl-identity-pin {
+  animation: ga-bl-id-stamp 5s ease-in-out infinite;
+  transform-origin: 166px 115px;
+  transform-box: view-box;
+}
+@keyframes ga-bl-id-stamp {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(1.25); opacity: 0.85; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · BRAIN-LEARNING (Layer 2 themed illustration)
+   Accumulating bars — patterns building over time.
+   ═══════════════════════════════════════════════════════════════ */
+.ga-brain-learning .ga-bl-bar {
+  animation: ga-bl-bar-grow 8s ease-in-out infinite;
+  transform-origin: bottom center;
+  transform-box: fill-box;
+}
+.ga-brain-learning .ga-bl-bar-1 { animation-delay: 0s;    }
+.ga-brain-learning .ga-bl-bar-2 { animation-delay: 0.4s;  }
+.ga-brain-learning .ga-bl-bar-3 { animation-delay: 0.8s;  }
+.ga-brain-learning .ga-bl-bar-4 { animation-delay: 1.2s;  }
+.ga-brain-learning .ga-bl-bar-5 { animation-delay: 1.6s;  }
+.ga-brain-learning .ga-bl-bar-6 { animation-delay: 2.0s;  }
+.ga-brain-learning .ga-bl-bar-7 { animation-delay: 2.4s;  }
+@keyframes ga-bl-bar-grow {
+  0%, 38%, 100% { transform: scaleY(1);    stroke: var(--ga-ink); }
+  3%, 14%       { transform: scaleY(1.06); stroke: var(--ga-green); }
+}
+.ga-brain-learning .ga-bl-learning-peak {
+  animation: ga-bl-peak-pulse 8s ease-in-out infinite 2.4s;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes ga-bl-peak-pulse {
+  0%, 90%, 100% { transform: scale(1);   opacity: 1; }
+  10%, 25%      { transform: scale(1.6); opacity: 0.7; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · BRAIN-NOW (Layer 3 themed illustration)
+   8 token signals → live pulse at center.
+   ═══════════════════════════════════════════════════════════════ */
+.ga-brain-now .ga-bl-now-tick {
+  animation: ga-bl-now-tick-flash 4s ease-in-out infinite;
+}
+.ga-brain-now .ga-bl-now-tick:nth-child(1) { animation-delay: 0s;    }
+.ga-brain-now .ga-bl-now-tick:nth-child(2) { animation-delay: 0.5s;  }
+.ga-brain-now .ga-bl-now-tick:nth-child(3) { animation-delay: 1s;    }
+.ga-brain-now .ga-bl-now-tick:nth-child(4) { animation-delay: 1.5s;  }
+.ga-brain-now .ga-bl-now-tick:nth-child(5) { animation-delay: 0.25s; }
+.ga-brain-now .ga-bl-now-tick:nth-child(6) { animation-delay: 0.75s; }
+.ga-brain-now .ga-bl-now-tick:nth-child(7) { animation-delay: 1.25s; }
+.ga-brain-now .ga-bl-now-tick:nth-child(8) { animation-delay: 1.75s; }
+@keyframes ga-bl-now-tick-flash {
+  0%, 30%, 100% { stroke: var(--ga-ink);   stroke-width: 1.5; }
+  10%, 20%      { stroke: var(--ga-green); stroke-width: 2.5; }
+}
+.ga-brain-now .ga-bl-now-ring-1 { animation: ga-bl-now-ripple 4s ease-out infinite;        transform-origin: 110px 80px; transform-box: view-box; }
+.ga-brain-now .ga-bl-now-ring-2 { animation: ga-bl-now-ripple 4s ease-out infinite 0.6s;   transform-origin: 110px 80px; transform-box: view-box; }
+.ga-brain-now .ga-bl-now-ring-3 { animation: ga-bl-now-ripple 4s ease-out infinite 1.2s;   transform-origin: 110px 80px; transform-box: view-box; }
+@keyframes ga-bl-now-ripple {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  80%  { transform: scale(1.2); opacity: 0;   }
+  100% { transform: scale(1.2); opacity: 0;   }
+}
+.ga-brain-now .ga-bl-now-core {
+  animation: ga-bl-now-core-breath 2.4s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes ga-bl-now-core-breath {
+  0%, 100% { transform: scale(1);   }
+  50%      { transform: scale(1.18); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · MULTI-AGENT (Brain coordinating 4 specialist agents)
+   ═══════════════════════════════════════════════════════════════ */
+.ga-multi-agent .ga-ma-agent {
+  animation: ga-ma-agent-pulse 6s ease-in-out infinite;
+}
+.ga-multi-agent .ga-ma-agent-1 { animation-delay: 0s;   }
+.ga-multi-agent .ga-ma-agent-2 { animation-delay: 1.5s; }
+.ga-multi-agent .ga-ma-agent-3 { animation-delay: 3s;   }
+.ga-multi-agent .ga-ma-agent-4 { animation-delay: 4.5s; }
+@keyframes ga-ma-agent-pulse {
+  0%, 92%, 100% { stroke: var(--ga-ink);   }
+  6%, 18%       { stroke: var(--ga-green); }
+}
+.ga-multi-agent .ga-ma-link {
+  stroke: var(--ga-line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  animation: ga-ma-link-flow 6s ease-in-out infinite;
+}
+.ga-multi-agent .ga-ma-link-1 { animation-delay: 0s;   }
+.ga-multi-agent .ga-ma-link-2 { animation-delay: 1.5s; }
+.ga-multi-agent .ga-ma-link-3 { animation-delay: 3s;   }
+.ga-multi-agent .ga-ma-link-4 { animation-delay: 4.5s; }
+@keyframes ga-ma-link-flow {
+  0%, 92%, 100% { stroke: var(--ga-line);  }
+  6%, 18%       { stroke: var(--ga-green); }
+}
+.ga-multi-agent .ga-ma-pulse {
+  animation: ga-ma-pulse-breath 3s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes ga-ma-pulse-breath {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%      { transform: scale(1.6); opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ga-brain-identity .ga-bl-identity-pin,
+  .ga-brain-learning .ga-bl-bar,
+  .ga-brain-learning .ga-bl-learning-peak,
+  .ga-brain-now .ga-bl-now-tick,
+  .ga-brain-now .ga-bl-now-ring-1,
+  .ga-brain-now .ga-bl-now-ring-2,
+  .ga-brain-now .ga-bl-now-ring-3,
+  .ga-brain-now .ga-bl-now-core,
+  .ga-multi-agent .ga-ma-agent,
+  .ga-multi-agent .ga-ma-link,
+  .ga-multi-agent .ga-ma-pulse { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · BRAIN-ARCHITECTURE (Project Atlas 4-Brain hierarchy)
+   Org Brain (foundation) → 3 specialists → Project Brain (3 layers)
+   → graduates to Archive.
+   12-second cycle, all elements pulse in narrative sequence.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Project Brain card — solid border (full ink), accent pulse on inheritance */
+.ga-brain-architecture .ga-ba-projcard {
+  animation: ga-baProjPulse 12s ease-in-out infinite;
+}
+@keyframes ga-baProjPulse {
+  0%, 35%, 100% { stroke: var(--ga-ink); }
+  45%, 70%      { stroke: var(--ga-green); }
+}
+
+/* 3 inner layers cycle (Now → Learning → Identity) — same pattern as ga-brain */
+.ga-brain-architecture .ga-bl {
+  animation: ga-brainFlatPulse 6s ease-in-out infinite;
+}
+.ga-brain-architecture .ga-bl-3 { animation-delay: 0s; }    /* Now first */
+.ga-brain-architecture .ga-bl-2 { animation-delay: 2s; }    /* Learning */
+.ga-brain-architecture .ga-bl-1 { animation-delay: 4s; }    /* Identity last */
+
+/* Specialist brain pills pulse in sequence (Brand → Research → Living Mtg) */
+.ga-brain-architecture .ga-ba-spec {
+  animation: ga-baSpecPulse 12s ease-in-out infinite;
+}
+.ga-brain-architecture .ga-ba-spec-1 { animation-delay: 1.0s; }
+.ga-brain-architecture .ga-ba-spec-2 { animation-delay: 1.6s; }
+.ga-brain-architecture .ga-ba-spec-3 { animation-delay: 2.2s; }
+@keyframes ga-baSpecPulse {
+  0%, 8%, 30%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  14%, 22%          { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Org Brain — gentle steady pulse (the foundation that holds everything) */
+.ga-brain-architecture .ga-ba-org {
+  animation: ga-baOrgPulse 12s ease-in-out infinite;
+}
+@keyframes ga-baOrgPulse {
+  0%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  50%      { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Pulse dots Org Brain → specialists (vertical flow, y=222 → 158) */
+.ga-brain-architecture .ga-ba-base-pulse {
+  opacity: 0;
+  animation: ga-baBaseFlow 12s ease-in-out infinite;
+}
+.ga-brain-architecture .ga-ba-base-pulse-1 { animation-delay: 0.4s; }
+.ga-brain-architecture .ga-ba-base-pulse-2 { animation-delay: 1.0s; }
+.ga-brain-architecture .ga-ba-base-pulse-3 { animation-delay: 1.6s; }
+@keyframes ga-baBaseFlow {
+  0%   { cy: 222; opacity: 0; }
+  10%  { opacity: 1; }
+  18%  { cy: 158; opacity: 0; }
+  100% { cy: 158; opacity: 0; }
+}
+
+/* Pulse dots specialists → PMB (vertical flow, y=158 → 100) */
+.ga-brain-architecture .ga-ba-flow {
+  opacity: 0;
+  animation: ga-baSpecFlow 12s ease-in-out infinite;
+}
+.ga-brain-architecture .ga-ba-flow-1 { animation-delay: 2.4s; }
+.ga-brain-architecture .ga-ba-flow-2 { animation-delay: 3.0s; }
+.ga-brain-architecture .ga-ba-flow-3 { animation-delay: 3.6s; }
+@keyframes ga-baSpecFlow {
+  0%   { cy: 158; opacity: 0; }
+  10%  { opacity: 1; }
+  18%  { cy: 100; opacity: 0; }
+  100% { cy: 100; opacity: 0; }
+}
+
+/* Project Master Brain — strategist tier · pulses after specs activate */
+.ga-brain-architecture .ga-ba-pmb {
+  animation: ga-baPmbPulse 12s ease-in-out infinite;
+}
+@keyframes ga-baPmbPulse {
+  0%, 25%, 55%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  35%, 48%           { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* PMB → Project Brain pulse (vertical, y=100 → 70) */
+.ga-brain-architecture .ga-ba-pmb-up-pulse {
+  opacity: 0;
+  animation: ga-baPmbFlow 12s ease-in-out infinite;
+  animation-delay: 4.2s;
+}
+@keyframes ga-baPmbFlow {
+  0%   { cy: 100; opacity: 0; }
+  10%  { opacity: 1; }
+  20%  { cy: 70; opacity: 0; }
+  100% { cy: 70; opacity: 0; }
+}
+
+/* PMB → Project Brain connector glows briefly */
+.ga-brain-architecture .ga-ba-pmb-up {
+  animation: ga-baPmbUpGlow 12s ease-in-out infinite;
+  animation-delay: 4.2s;
+}
+@keyframes ga-baPmbUpGlow {
+  0%, 8%, 30%, 100% { stroke: var(--ga-ink); }
+  14%, 22%          { stroke: var(--ga-green); }
+}
+
+/* Graduation pulse · Project Brain → Archive (right edge, x=552 → 582) */
+.ga-brain-architecture .ga-ba-gradpulse {
+  opacity: 0;
+  animation: ga-baGradFlow 12s ease-in-out infinite;
+  animation-delay: 7s;
+}
+@keyframes ga-baGradFlow {
+  0%, 100% { cx: 552; opacity: 0; }
+  10%      { opacity: 1; }
+  30%      { cx: 582; opacity: 0; }
+}
+
+/* Graduation arrow line — solid ink, brightens green during grad pulse */
+.ga-brain-architecture .ga-ba-grad {
+  animation: ga-baGradGlow 12s ease-in-out infinite;
+  animation-delay: 7s;
+}
+@keyframes ga-baGradGlow {
+  0%, 8%, 35%, 100% { stroke: var(--ga-ink); }
+  15%, 28%          { stroke: var(--ga-green); }
+}
+
+/* Archive endpoint circle — solid ink ring, briefly fills green when grad pulse arrives */
+.ga-brain-architecture .ga-ba-archive {
+  animation: ga-baArchivePulse 12s ease-in-out infinite;
+  animation-delay: 7s;
+}
+@keyframes ga-baArchivePulse {
+  0%, 18%, 38%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  24%, 32%           { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Labels — Five Brain Diagram (updated 2026-04-30 — Geist Sans per design system) */
+.ga-brain-architecture svg .ga-ba-orglabel,
+.ga-brain-architecture svg .ga-ba-speclabel,
+.ga-brain-architecture svg .ga-ba-archlabel,
+.ga-brain-architecture svg .ga-ba-pmblabel,
+.ga-brain-architecture svg .ga-ba-tierlabel {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  fill: var(--ga-ink);
+  pointer-events: none;
+}
+.ga-brain-architecture svg .ga-ba-orglabel,
+.ga-brain-architecture svg .ga-ba-pmblabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+.ga-brain-architecture svg .ga-ba-speclabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ga-brain-architecture svg .ga-ba-archlabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  fill: var(--ga-ink);
+}
+.ga-brain-architecture svg .ga-ba-tierlabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  fill: var(--ga-ink-2);
+}
+
+/* Reduced motion — pin everything to a calm steady state */
+@media (prefers-reduced-motion: reduce) {
+  .ga-brain-architecture .ga-bl,
+  .ga-brain-architecture .ga-ba-projcard,
+  .ga-brain-architecture .ga-ba-spec,
+  .ga-brain-architecture .ga-ba-pmb,
+  .ga-brain-architecture .ga-ba-pmb-up,
+  .ga-brain-architecture .ga-ba-pmb-up-pulse,
+  .ga-brain-architecture .ga-ba-org,
+  .ga-brain-architecture .ga-ba-base-pulse,
+  .ga-brain-architecture .ga-ba-flow,
+  .ga-brain-architecture .ga-ba-gradpulse,
+  .ga-brain-architecture .ga-ba-grad,
+  .ga-brain-architecture .ga-ba-archive {
+    animation: none !important;
+  }
+  .ga-brain-architecture .ga-ba-base-pulse,
+  .ga-brain-architecture .ga-ba-flow,
+  .ga-brain-architecture .ga-ba-pmb-up-pulse,
+  .ga-brain-architecture .ga-ba-gradpulse {
+    opacity: 0 !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FIVE BRAIN DIAGRAM · "You are here" highlight states
+   When the SVG has class `ga-ba--here-{brain}`, the corresponding
+   shape is pinned to a persistent green state and the rest of the
+   diagram drops into a calmer animation. Used in each Brain
+   section (Org / Brand / Research / PMB / Project) to mark
+   "this is the brain we're explaining now."
+   ═══════════════════════════════════════════════════════════════ */
+.ga-brain-architecture .ga-ba--here-org      .ga-ba-org,
+.ga-brain-architecture .ga-ba--here-brand    .ga-ba-spec-1,
+.ga-brain-architecture .ga-ba--here-brand    .ga-ba-spec-2,
+.ga-brain-architecture .ga-ba--here-brand-b2c .ga-ba-spec-1,
+.ga-brain-architecture .ga-ba--here-brand-b2b .ga-ba-spec-2,
+.ga-brain-architecture .ga-ba--here-research .ga-ba-spec-3,
+.ga-brain-architecture .ga-ba--here-pmb      .ga-ba-pmb,
+.ga-brain-architecture .ga-ba--here-project  .ga-ba-projcard,
+/* Direct match (svg-level class on the SVG element) */
+.ga-brain-architecture svg.ga-ba--here-org      .ga-ba-org,
+.ga-brain-architecture svg.ga-ba--here-brand    .ga-ba-spec-1,
+.ga-brain-architecture svg.ga-ba--here-brand    .ga-ba-spec-2,
+.ga-brain-architecture svg.ga-ba--here-brand-b2c .ga-ba-spec-1,
+.ga-brain-architecture svg.ga-ba--here-brand-b2b .ga-ba-spec-2,
+.ga-brain-architecture svg.ga-ba--here-research .ga-ba-spec-3,
+.ga-brain-architecture svg.ga-ba--here-pmb      .ga-ba-pmb,
+.ga-brain-architecture svg.ga-ba--here-project  .ga-ba-projcard {
+  animation: ga-baHerePulse 2.6s ease-in-out infinite !important;
+  fill: var(--ga-green-2) !important;
+  stroke: var(--ga-green) !important;
+  stroke-width: 2.25 !important;
+}
+@keyframes ga-baHerePulse {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(48,201,105,0.0)); }
+  50%      { filter: drop-shadow(0 0 4px rgba(48,201,105,0.45)); }
+}
+/* Dim the non-highlighted brains slightly so the focus is unmistakable */
+.ga-brain-architecture svg.ga-ba--here-org      .ga-ba-pmb,
+.ga-brain-architecture svg.ga-ba--here-org      .ga-ba-spec,
+.ga-brain-architecture svg.ga-ba--here-org      .ga-ba-projcard,
+.ga-brain-architecture svg.ga-ba--here-brand    .ga-ba-pmb,
+.ga-brain-architecture svg.ga-ba--here-brand    .ga-ba-org,
+.ga-brain-architecture svg.ga-ba--here-brand    .ga-ba-projcard,
+.ga-brain-architecture svg.ga-ba--here-brand-b2c .ga-ba-pmb,
+.ga-brain-architecture svg.ga-ba--here-brand-b2c .ga-ba-org,
+.ga-brain-architecture svg.ga-ba--here-brand-b2c .ga-ba-projcard,
+.ga-brain-architecture svg.ga-ba--here-brand-b2b .ga-ba-pmb,
+.ga-brain-architecture svg.ga-ba--here-brand-b2b .ga-ba-org,
+.ga-brain-architecture svg.ga-ba--here-brand-b2b .ga-ba-projcard,
+.ga-brain-architecture svg.ga-ba--here-research .ga-ba-pmb,
+.ga-brain-architecture svg.ga-ba--here-research .ga-ba-org,
+.ga-brain-architecture svg.ga-ba--here-research .ga-ba-projcard,
+.ga-brain-architecture svg.ga-ba--here-pmb      .ga-ba-org,
+.ga-brain-architecture svg.ga-ba--here-pmb      .ga-ba-spec,
+.ga-brain-architecture svg.ga-ba--here-pmb      .ga-ba-projcard,
+.ga-brain-architecture svg.ga-ba--here-project  .ga-ba-pmb,
+.ga-brain-architecture svg.ga-ba--here-project  .ga-ba-org,
+.ga-brain-architecture svg.ga-ba--here-project  .ga-ba-spec {
+  animation: none !important;
+  opacity: 0.45;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · HOME-FIVE-BRAINS (Project 01 · 5-Brain home hierarchy)
+   Household Brain (foundation) → Person×5 → Domain×5 → Coordinator
+   → Event Brain×4 (with 3 inner stripes) → graduates to Archive.
+   P1 analog of brain-architecture. 12-second cycle.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Event Brain card — solid border, accent pulse on inheritance */
+.ga-home-five-brains .ga-hb-eventcard {
+  animation: ga-hbEventPulse 12s ease-in-out infinite;
+}
+@keyframes ga-hbEventPulse {
+  0%, 35%, 100% { stroke: var(--ga-ink); }
+  45%, 70%      { stroke: var(--ga-green); }
+}
+
+/* 3 inner layers cycle — same as brain-architecture (Now → Learning → Identity) */
+.ga-home-five-brains .ga-bl {
+  animation: ga-brainFlatPulse 6s ease-in-out infinite;
+}
+.ga-home-five-brains .ga-bl-3 { animation-delay: 0s; }
+.ga-home-five-brains .ga-bl-2 { animation-delay: 2s; }
+.ga-home-five-brains .ga-bl-1 { animation-delay: 4s; }
+
+/* Person Brain pills pulse in sequence (Mai → Kiran → Aoi → Sota → Leo) */
+.ga-home-five-brains .ga-hb-person {
+  animation: ga-hbPersonPulse 12s ease-in-out infinite;
+}
+.ga-home-five-brains .ga-hb-person-1 { animation-delay: 1.0s; }
+.ga-home-five-brains .ga-hb-person-2 { animation-delay: 1.4s; }
+.ga-home-five-brains .ga-hb-person-3 { animation-delay: 1.8s; }
+.ga-home-five-brains .ga-hb-person-4 { animation-delay: 2.2s; }
+.ga-home-five-brains .ga-hb-person-5 { animation-delay: 2.6s; }
+@keyframes ga-hbPersonPulse {
+  0%, 8%, 30%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  14%, 22%          { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Domain Brain pills pulse — staggered after Persons */
+.ga-home-five-brains .ga-hb-domain {
+  animation: ga-hbDomainPulse 12s ease-in-out infinite;
+}
+.ga-home-five-brains .ga-hb-domain-1 { animation-delay: 3.2s; }
+.ga-home-five-brains .ga-hb-domain-2 { animation-delay: 3.6s; }
+.ga-home-five-brains .ga-hb-domain-3 { animation-delay: 4.0s; }
+.ga-home-five-brains .ga-hb-domain-4 { animation-delay: 4.4s; }
+.ga-home-five-brains .ga-hb-domain-5 { animation-delay: 4.8s; }
+@keyframes ga-hbDomainPulse {
+  0%, 8%, 30%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  14%, 22%          { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Household Brain — gentle steady pulse (the foundation) */
+.ga-home-five-brains .ga-hb-household {
+  animation: ga-hbHouseholdPulse 12s ease-in-out infinite;
+}
+@keyframes ga-hbHouseholdPulse {
+  0%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  50%      { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Pulse dots Household → Persons (vertical flow, y=298 → 234) */
+.ga-home-five-brains .ga-hb-base-pulse {
+  opacity: 0;
+  animation: ga-hbBaseFlow 12s ease-in-out infinite;
+}
+.ga-home-five-brains .ga-hb-base-pulse-1 { animation-delay: 0.4s; }
+.ga-home-five-brains .ga-hb-base-pulse-2 { animation-delay: 0.7s; }
+.ga-home-five-brains .ga-hb-base-pulse-3 { animation-delay: 1.0s; }
+.ga-home-five-brains .ga-hb-base-pulse-4 { animation-delay: 1.3s; }
+.ga-home-five-brains .ga-hb-base-pulse-5 { animation-delay: 1.6s; }
+@keyframes ga-hbBaseFlow {
+  0%   { cy: 298; opacity: 0; }
+  10%  { opacity: 1; }
+  18%  { cy: 234; opacity: 0; }
+  100% { cy: 234; opacity: 0; }
+}
+
+/* Pulse dot Domain row → Person row (vertical, y=182 → 208) */
+.ga-home-five-brains .ga-hb-tier-pulse {
+  opacity: 0;
+  animation: ga-hbTierFlow 12s ease-in-out infinite;
+  animation-delay: 5.0s;
+}
+@keyframes ga-hbTierFlow {
+  0%   { cy: 182; opacity: 0; }
+  10%  { opacity: 1; }
+  18%  { cy: 208; opacity: 0; }
+  100% { cy: 208; opacity: 0; }
+}
+
+/* Coordinator pill — orchestrator pulse */
+.ga-home-five-brains .ga-hb-coord {
+  animation: ga-hbCoordPulse 12s ease-in-out infinite;
+}
+@keyframes ga-hbCoordPulse {
+  0%, 25%, 55%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  35%, 48%           { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Coordinator → Event Brain pulse (vertical, y=114 → 86) */
+.ga-home-five-brains .ga-hb-coord-up-pulse {
+  opacity: 0;
+  animation: ga-hbCoordFlow 12s ease-in-out infinite;
+  animation-delay: 6.0s;
+}
+@keyframes ga-hbCoordFlow {
+  0%   { cy: 100; opacity: 0; }
+  10%  { opacity: 1; }
+  20%  { cy: 86; opacity: 0; }
+  100% { cy: 86; opacity: 0; }
+}
+
+/* Coordinator → Event Brain connectors glow briefly */
+.ga-home-five-brains .ga-hb-coord-up {
+  animation: ga-hbCoordUpGlow 12s ease-in-out infinite;
+  animation-delay: 6.0s;
+}
+@keyframes ga-hbCoordUpGlow {
+  0%, 8%, 30%, 100% { stroke: var(--ga-ink); }
+  14%, 22%          { stroke: var(--ga-green); }
+}
+
+/* Graduation pulse · Event Brain → Archive (right edge, x=552 → 582) */
+.ga-home-five-brains .ga-hb-gradpulse {
+  opacity: 0;
+  animation: ga-hbGradFlow 12s ease-in-out infinite;
+  animation-delay: 9s;
+}
+@keyframes ga-hbGradFlow {
+  0%, 100% { cx: 552; opacity: 0; }
+  10%      { opacity: 1; }
+  30%      { cx: 582; opacity: 0; }
+}
+.ga-home-five-brains .ga-hb-grad {
+  animation: ga-hbGradGlow 12s ease-in-out infinite;
+  animation-delay: 9s;
+}
+@keyframes ga-hbGradGlow {
+  0%, 8%, 35%, 100% { stroke: var(--ga-ink); }
+  15%, 28%          { stroke: var(--ga-green); }
+}
+.ga-home-five-brains .ga-hb-archive {
+  animation: ga-hbArchivePulse 12s ease-in-out infinite;
+  animation-delay: 9s;
+}
+@keyframes ga-hbArchivePulse {
+  0%, 18%, 38%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  24%, 32%           { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* Labels — Five Home Brains Diagram (Geist Sans per design system).
+   These labels stack with .ga-lbl-mono in the SVG markup, so every fill
+   declaration uses !important to ensure the legible ink color wins over
+   the faint --ga-ink-3 default in .ga svg .ga-lbl-mono. */
+.ga-home-five-brains svg .ga-hb-householdlabel,
+.ga-home-five-brains svg .ga-hb-coordlabel,
+.ga-home-five-brains svg .ga-hb-personlabel,
+.ga-home-five-brains svg .ga-hb-domainlabel,
+.ga-home-five-brains svg .ga-hb-eventlabel,
+.ga-home-five-brains svg .ga-hb-archlabel,
+.ga-home-five-brains svg .ga-hb-tierlabel {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  fill: var(--ga-ink) !important;
+  stroke: none !important;
+  pointer-events: none;
+  paint-order: stroke fill;
+}
+.ga-home-five-brains svg .ga-hb-householdlabel,
+.ga-home-five-brains svg .ga-hb-coordlabel {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+.ga-home-five-brains svg .ga-hb-personlabel,
+.ga-home-five-brains svg .ga-hb-domainlabel {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ga-home-five-brains svg .ga-hb-eventlabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ga-home-five-brains svg .ga-hb-archlabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+.ga-home-five-brains svg .ga-hb-tierlabel {
+  font-size: 11px;
+  font-weight: 800;
+  fill: var(--ga-ink-2) !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  fill: var(--ga-ink-2);
+}
+
+/* Reduced motion — pin to calm steady state */
+@media (prefers-reduced-motion: reduce) {
+  .ga-home-five-brains .ga-bl,
+  .ga-home-five-brains .ga-hb-eventcard,
+  .ga-home-five-brains .ga-hb-person,
+  .ga-home-five-brains .ga-hb-domain,
+  .ga-home-five-brains .ga-hb-coord,
+  .ga-home-five-brains .ga-hb-coord-up,
+  .ga-home-five-brains .ga-hb-coord-up-pulse,
+  .ga-home-five-brains .ga-hb-household,
+  .ga-home-five-brains .ga-hb-base-pulse,
+  .ga-home-five-brains .ga-hb-tier-pulse,
+  .ga-home-five-brains .ga-hb-gradpulse,
+  .ga-home-five-brains .ga-hb-grad,
+  .ga-home-five-brains .ga-hb-archive {
+    animation: none !important;
+  }
+  .ga-home-five-brains .ga-hb-base-pulse,
+  .ga-home-five-brains .ga-hb-tier-pulse,
+  .ga-home-five-brains .ga-hb-coord-up-pulse,
+  .ga-home-five-brains .ga-hb-gradpulse {
+    opacity: 0 !important;
+  }
+}
+
+/* ─── "You are here" highlight states ─────────────────────────
+   When SVG has class `ga-hb--here-{kind}`, the matching brain(s)
+   are pinned to a persistent green state. The rest dim.
+   ─────────────────────────────────────────────────────────── */
+.ga-home-five-brains svg.ga-hb--here-household .ga-hb-household,
+.ga-home-five-brains svg.ga-hb--here-coordinator .ga-hb-coord,
+.ga-home-five-brains svg.ga-hb--here-person .ga-hb-person,
+.ga-home-five-brains svg.ga-hb--here-domain .ga-hb-domain,
+.ga-home-five-brains svg.ga-hb--here-event .ga-hb-eventcard {
+  animation: ga-hbHerePulse 2.6s ease-in-out infinite !important;
+  fill: var(--ga-green-2) !important;
+  stroke: var(--ga-green) !important;
+  stroke-width: 2.25 !important;
+}
+@keyframes ga-hbHerePulse {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(48,201,105,0.0)); }
+  50%      { filter: drop-shadow(0 0 4px rgba(48,201,105,0.45)); }
+}
+/* Dim non-highlighted brains */
+.ga-home-five-brains svg.ga-hb--here-household .ga-hb-coord,
+.ga-home-five-brains svg.ga-hb--here-household .ga-hb-person,
+.ga-home-five-brains svg.ga-hb--here-household .ga-hb-domain,
+.ga-home-five-brains svg.ga-hb--here-household .ga-hb-eventcard,
+.ga-home-five-brains svg.ga-hb--here-coordinator .ga-hb-household,
+.ga-home-five-brains svg.ga-hb--here-coordinator .ga-hb-person,
+.ga-home-five-brains svg.ga-hb--here-coordinator .ga-hb-domain,
+.ga-home-five-brains svg.ga-hb--here-coordinator .ga-hb-eventcard,
+.ga-home-five-brains svg.ga-hb--here-person .ga-hb-household,
+.ga-home-five-brains svg.ga-hb--here-person .ga-hb-coord,
+.ga-home-five-brains svg.ga-hb--here-person .ga-hb-domain,
+.ga-home-five-brains svg.ga-hb--here-person .ga-hb-eventcard,
+.ga-home-five-brains svg.ga-hb--here-domain .ga-hb-household,
+.ga-home-five-brains svg.ga-hb--here-domain .ga-hb-coord,
+.ga-home-five-brains svg.ga-hb--here-domain .ga-hb-person,
+.ga-home-five-brains svg.ga-hb--here-domain .ga-hb-eventcard,
+.ga-home-five-brains svg.ga-hb--here-event .ga-hb-household,
+.ga-home-five-brains svg.ga-hb--here-event .ga-hb-coord,
+.ga-home-five-brains svg.ga-hb--here-event .ga-hb-person,
+.ga-home-five-brains svg.ga-hb--here-event .ga-hb-domain {
+  animation: none !important;
+  opacity: 0.45;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · HOME-BRAIN-AGENT-FLOW (Project 01 · 3-column flow)
+   Left: 5 Brains (memory)  ·  Center: 1 Coordinator  ·  Right: 3 Agents
+   12-second cycle:
+     0-3s   read flow (Brain pulses → travel to Coordinator)
+     3-5s   Coordinator pulse (decision)
+     5-8s   command flow (Coordinator pulse → travel to Agents)
+     8-12s  write-back flow (Agent → Brain, dashed bottom curve)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Column headers ─────────────────────────────────────────── */
+.ga-home-brain-agent-flow svg .ga-baf-colhead {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.ga-home-brain-agent-flow svg .ga-baf-colhead-brain { fill: #6889b4; }   /* memory blue */
+.ga-home-brain-agent-flow svg .ga-baf-colhead-coord { fill: #8a6ab0; }   /* coord purple */
+.ga-home-brain-agent-flow svg .ga-baf-colhead-agent { fill: #c2410c; }   /* agent orange */
+
+/* ── Brain pills ─────────────────────────────────────────────── */
+.ga-home-brain-agent-flow .ga-baf-brain {
+  stroke: #6889b4;
+  stroke-width: 1.5;
+  animation: ga-bafBrainPulse 12s ease-in-out infinite;
+}
+.ga-home-brain-agent-flow .ga-baf-brain-1 { animation-delay: 0.0s; }
+.ga-home-brain-agent-flow .ga-baf-brain-2 { animation-delay: 0.4s; }
+.ga-home-brain-agent-flow .ga-baf-brain-3 { animation-delay: 0.8s; }
+.ga-home-brain-agent-flow .ga-baf-brain-4 { animation-delay: 1.2s; }
+.ga-home-brain-agent-flow .ga-baf-brain-5 { animation-delay: 1.6s; }
+@keyframes ga-bafBrainPulse {
+  0%, 12%, 100% { fill: var(--ga-bg); stroke: #6889b4; }
+  4%, 8%        { fill: rgba(104,137,180,0.18); stroke: #4d6f99; }
+}
+
+.ga-home-brain-agent-flow svg .ga-baf-brainlabel {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  fill: #4d6f99;
+  pointer-events: none;
+}
+
+/* ── Coordinator pill ────────────────────────────────────────── */
+.ga-home-brain-agent-flow .ga-baf-coord {
+  stroke: #8a6ab0;
+  stroke-width: 2;
+  animation: ga-bafCoordPulse 12s ease-in-out infinite;
+}
+@keyframes ga-bafCoordPulse {
+  0%, 18%, 50%, 100% { fill: var(--ga-bg);             stroke: #8a6ab0; }
+  26%, 42%           { fill: rgba(138,106,176,0.18);   stroke: #6e4d96; }
+}
+
+.ga-home-brain-agent-flow svg .ga-baf-coordlabel-1,
+.ga-home-brain-agent-flow svg .ga-baf-coordlabel-2 {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  fill: #6e4d96;
+  pointer-events: none;
+}
+
+/* ── Agent pills ─────────────────────────────────────────────── */
+.ga-home-brain-agent-flow .ga-baf-agent {
+  stroke: #c2410c;
+  stroke-width: 1.5;
+  animation: ga-bafAgentPulse 12s ease-in-out infinite;
+}
+.ga-home-brain-agent-flow .ga-baf-agent-1 { animation-delay: 5.0s; }
+.ga-home-brain-agent-flow .ga-baf-agent-2 { animation-delay: 5.6s; }
+.ga-home-brain-agent-flow .ga-baf-agent-3 { animation-delay: 6.2s; }
+@keyframes ga-bafAgentPulse {
+  0%, 30%, 50%, 100% { fill: var(--ga-bg);             stroke: #c2410c; }
+  38%, 46%           { fill: rgba(194,65,12,0.15);     stroke: #9a3309; }
+}
+
+.ga-home-brain-agent-flow svg .ga-baf-agentlabel {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  fill: #9a3309;
+  pointer-events: none;
+}
+
+/* ── Read flow lines (Brains → Coordinator) ──────────────────── */
+.ga-home-brain-agent-flow .ga-baf-read {
+  stroke: var(--ga-ink-3);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  animation: ga-bafLineGlow 12s ease-in-out infinite;
+}
+.ga-home-brain-agent-flow .ga-baf-read-1 { animation-delay: 0.2s; }
+.ga-home-brain-agent-flow .ga-baf-read-2 { animation-delay: 0.6s; }
+.ga-home-brain-agent-flow .ga-baf-read-3 { animation-delay: 1.0s; }
+.ga-home-brain-agent-flow .ga-baf-read-4 { animation-delay: 1.4s; }
+.ga-home-brain-agent-flow .ga-baf-read-5 { animation-delay: 1.8s; }
+@keyframes ga-bafLineGlow {
+  0%, 6%, 28%, 100% { stroke: var(--ga-ink-3); }
+  12%, 22%          { stroke: var(--ga-green); }
+}
+
+/* Read pulse dots travelling from Brain → Coordinator */
+.ga-home-brain-agent-flow .ga-baf-readpulse {
+  opacity: 0;
+  animation: ga-bafReadFlow 12s ease-in-out infinite;
+  offset-rotate: 0deg;
+}
+.ga-home-brain-agent-flow .ga-baf-readpulse-1 { offset-path: path('M 190 67  Q 245 90  300 145'); animation-delay: 0.3s; }
+.ga-home-brain-agent-flow .ga-baf-readpulse-2 { offset-path: path('M 190 115 Q 245 130 300 155'); animation-delay: 0.7s; }
+.ga-home-brain-agent-flow .ga-baf-readpulse-3 { offset-path: path('M 190 163 L 300 165');         animation-delay: 1.1s; }
+.ga-home-brain-agent-flow .ga-baf-readpulse-4 { offset-path: path('M 190 211 Q 245 200 300 175'); animation-delay: 1.5s; }
+.ga-home-brain-agent-flow .ga-baf-readpulse-5 { offset-path: path('M 190 259 Q 245 220 300 185'); animation-delay: 1.9s; }
+@keyframes ga-bafReadFlow {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  4%   { offset-distance: 0%;   opacity: 1; }
+  18%  { offset-distance: 100%; opacity: 0; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* ── Command flow lines (Coordinator → Agents) ──────────────── */
+.ga-home-brain-agent-flow .ga-baf-cmd {
+  stroke: var(--ga-ink-3);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  animation: ga-bafLineGlow 12s ease-in-out infinite;
+}
+.ga-home-brain-agent-flow .ga-baf-cmd-1 { animation-delay: 5.2s; }
+.ga-home-brain-agent-flow .ga-baf-cmd-2 { animation-delay: 5.8s; }
+.ga-home-brain-agent-flow .ga-baf-cmd-3 { animation-delay: 6.4s; }
+
+.ga-home-brain-agent-flow .ga-baf-cmdpulse {
+  opacity: 0;
+  animation: ga-bafCmdFlow 12s ease-in-out infinite;
+}
+.ga-home-brain-agent-flow .ga-baf-cmdpulse-1 { offset-path: path('M 480 145 Q 520 120 560 115'); animation-delay: 5.3s; }
+.ga-home-brain-agent-flow .ga-baf-cmdpulse-2 { offset-path: path('M 480 165 L 560 163');         animation-delay: 5.9s; }
+.ga-home-brain-agent-flow .ga-baf-cmdpulse-3 { offset-path: path('M 480 185 Q 520 200 560 211'); animation-delay: 6.5s; }
+@keyframes ga-bafCmdFlow {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  4%   { offset-distance: 0%;   opacity: 1; }
+  18%  { offset-distance: 100%; opacity: 0; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* ── Write-back flow (Agents → Brains, slow gray dashed loop) ── */
+.ga-home-brain-agent-flow .ga-baf-writeback {
+  stroke: var(--ga-ink-3);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.55;
+  animation: ga-bafWriteGlow 12s ease-in-out infinite;
+}
+@keyframes ga-bafWriteGlow {
+  0%, 65%, 100%  { stroke: var(--ga-ink-3); opacity: 0.4; }
+  78%, 92%       { stroke: var(--ga-ink-2); opacity: 0.85; }
+}
+
+.ga-home-brain-agent-flow .ga-baf-writepulse {
+  opacity: 0;
+  animation: ga-bafWriteFlow 12s ease-in-out infinite;
+  animation-delay: 8.0s;
+  offset-path: path('M 660 230 Q 660 350 105 320 L 105 280');
+}
+@keyframes ga-bafWriteFlow {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  4%   { offset-distance: 0%;   opacity: 0.9; }
+  40%  { offset-distance: 100%; opacity: 0; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* ── Flow direction labels ──────────────────────────────────── */
+.ga-home-brain-agent-flow svg .ga-baf-flowlabel {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  fill: var(--ga-ink-3);
+  text-transform: lowercase;
+  pointer-events: none;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ga-home-brain-agent-flow .ga-baf-brain,
+  .ga-home-brain-agent-flow .ga-baf-coord,
+  .ga-home-brain-agent-flow .ga-baf-agent,
+  .ga-home-brain-agent-flow .ga-baf-read,
+  .ga-home-brain-agent-flow .ga-baf-cmd,
+  .ga-home-brain-agent-flow .ga-baf-writeback,
+  .ga-home-brain-agent-flow .ga-baf-readpulse,
+  .ga-home-brain-agent-flow .ga-baf-cmdpulse,
+  .ga-home-brain-agent-flow .ga-baf-writepulse {
+    animation: none !important;
+  }
+  .ga-home-brain-agent-flow .ga-baf-readpulse,
+  .ga-home-brain-agent-flow .ga-baf-cmdpulse,
+  .ga-home-brain-agent-flow .ga-baf-writepulse {
+    opacity: 0 !important;
+  }
+}
+
+/* ── "You are here" highlight states ────────────────────────── */
+.ga-home-brain-agent-flow svg.ga-baf--here-brains .ga-baf-brain,
+.ga-home-brain-agent-flow svg.ga-baf--here-coordinator .ga-baf-coord,
+.ga-home-brain-agent-flow svg.ga-baf--here-agents .ga-baf-agent {
+  animation: ga-bafHerePulse 2.6s ease-in-out infinite !important;
+  fill: var(--ga-green-2) !important;
+  stroke: var(--ga-green) !important;
+  stroke-width: 2.25 !important;
+}
+@keyframes ga-bafHerePulse {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(48,201,105,0.0)); }
+  50%      { filter: drop-shadow(0 0 4px rgba(48,201,105,0.45)); }
+}
+.ga-home-brain-agent-flow svg.ga-baf--here-brains .ga-baf-coord,
+.ga-home-brain-agent-flow svg.ga-baf--here-brains .ga-baf-agent,
+.ga-home-brain-agent-flow svg.ga-baf--here-coordinator .ga-baf-brain,
+.ga-home-brain-agent-flow svg.ga-baf--here-coordinator .ga-baf-agent,
+.ga-home-brain-agent-flow svg.ga-baf--here-agents .ga-baf-brain,
+.ga-home-brain-agent-flow svg.ga-baf--here-agents .ga-baf-coord {
+  animation: none !important;
+  opacity: 0.45;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · BRAIN-LAYER-N mini (per-layer indicator for cards)
+   80×56, gentle pulse on the active layer.
+   ═══════════════════════════════════════════════════════════════ */
+/* Active layer pill — green fill + green stroke + gentle pulse.
+   Selector uses `.ga svg` to match specificity of `.ga svg .ga-s-main`,
+   ensuring the active pill overrides the default ink stroke. */
+.ga svg .ga-bli-on {
+  fill: var(--ga-green-2);
+  stroke: var(--ga-green);
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+  animation: ga-bliPulse 3s ease-in-out infinite;
+}
+@keyframes ga-bliPulse {
+  /* Outline-only pulse: never fill the rounded rect, only thicken the stroke */
+  0%, 100% { stroke-width: 2; }
+  50%      { stroke-width: 3; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · RULE-ENGINE standalone (rhombus + 3 outputs random)
+   Output lines DRAW from rhombus → endpoint on activation.
+   Requires pathLength="1" on each <line> element (set in JS).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Draw animation — green overlay grows from origin to endpoint.
+   The ghost base stays visible the whole time, so the line never disappears. */
+@keyframes ga-lineDrawActive {
+  0%, 66%   { stroke-dashoffset: 1; }
+  88%       { stroke-dashoffset: 0; }
+  93%       { stroke-dashoffset: 0; }
+  100%      { stroke-dashoffset: 1; }
+}
+
+.ga-rule-engine .ga-rhombus { animation: ga-rhombusFire 6s ease-in-out infinite; }
+.ga-rule-engine .ga-out-path {
+  stroke: var(--ga-green);
+  stroke-width: 1.8;
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+  animation: ga-lineDrawActive 6s linear infinite;
+}
+.ga-rule-engine .ga-out-end  { fill: var(--ga-bg); stroke: var(--ga-ink); animation: ga-endFillAfterDraw 6s linear infinite; vector-effect: non-scaling-stroke; }
+/* Endpoint stays neutral until the line finishes drawing (line completes at 88%),
+   then snaps green and holds, then returns. */
+@keyframes ga-endFillAfterDraw {
+  0%, 87%, 96%, 100% { fill: var(--ga-bg); stroke: var(--ga-ink); }
+  88%, 94%            { fill: var(--ga-green); stroke: var(--ga-green); }
+}
+
+/* Same data-output gating */
+.ga-rule-engine[data-output="delegate"] .ga-op-2,
+.ga-rule-engine[data-output="delegate"] .ga-op-3,
+.ga-rule-engine[data-output="delegate"] .ga-oe-2,
+.ga-rule-engine[data-output="delegate"] .ga-oe-3,
+.ga-rule-engine[data-output="escalate"] .ga-op-1,
+.ga-rule-engine[data-output="escalate"] .ga-op-3,
+.ga-rule-engine[data-output="escalate"] .ga-oe-1,
+.ga-rule-engine[data-output="escalate"] .ga-oe-3,
+.ga-rule-engine[data-output="adapt"] .ga-op-1,
+.ga-rule-engine[data-output="adapt"] .ga-op-2,
+.ga-rule-engine[data-output="adapt"] .ga-oe-1,
+.ga-rule-engine[data-output="adapt"] .ga-oe-2 {
+  animation: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · INTENT standalone — 4 channels under "Intent" umbrella.
+   No central convergence node. Each channel pulses independently —
+   each is itself an expression of Intent.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Explicit (solid green dot, fastest) */
+.ga-intent .ga-cs-ex-pulse {
+  animation: ga-chPulseSolid 1.8s ease-in-out infinite;
+  transform-origin: 80px 118px;
+  transform-box: view-box;
+}
+/* Active (outlined, medium) */
+.ga-intent .ga-cs-ac-pulse {
+  animation: ga-chPulseOutline 3s ease-in-out infinite;
+  transform-origin: 200px 118px;
+  transform-box: view-box;
+}
+/* Passive (dashed outline, slow) */
+.ga-intent .ga-cs-pa-pulse {
+  animation: ga-chPulseOutlineDashed 4.5s ease-in-out infinite;
+  transform-origin: 260px 118px;
+  transform-box: view-box;
+}
+/* Ambient (faint ring, slowest) */
+.ga-intent .ga-cs-am-pulse {
+  animation: ga-chPulseRing 6s ease-in-out infinite;
+  transform-origin: 320px 118px;
+  transform-box: view-box;
+}
+
+@keyframes ga-chPulseSolid {
+  0%, 80%, 100% { transform: scale(1); fill: var(--ga-green); }
+  20%, 30%      { transform: scale(1.3); fill: var(--ga-green); }
+}
+@keyframes ga-chPulseOutline {
+  0%, 80%, 100% { transform: scale(1); stroke: var(--ga-ink); fill: var(--ga-bg); stroke-width: 1.5; }
+  20%, 30%      { transform: scale(1.3); stroke: var(--ga-green); fill: var(--ga-green-2); stroke-width: 2; }
+}
+@keyframes ga-chPulseOutlineDashed {
+  0%, 80%, 100% { transform: scale(1); stroke: var(--ga-ink); fill: var(--ga-bg); stroke-width: 1.5; }
+  20%, 30%      { transform: scale(1.3); stroke: var(--ga-green); fill: var(--ga-green-2); stroke-width: 2; }
+}
+@keyframes ga-chPulseRing {
+  0%, 80%, 100% { transform: scale(1); stroke: var(--ga-line); stroke-width: 1; }
+  20%, 30%      { transform: scale(1.25); stroke: var(--ga-green); stroke-width: 1.5; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · AX-PATTERNS standalone — horizontal (desktop) + vertical (mobile)
+   ═══════════════════════════════════════════════════════════════ */
+/* Default: show horizontal, hide vertical */
+.ga-ax-patterns .ga-axp-v { display: none; }
+.ga-ax-patterns .ga-axp-h { display: block; }
+/* Mobile: switch */
+@media (max-width: 600px) {
+  .ga-ax-patterns .ga-axp-h { display: none; }
+  .ga-ax-patterns .ga-axp-v { display: block; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · RULE-CONSTELLATION (33 rules in 7 categories)
+   One dot per category lights green in turn (14s cycle, 2s per cluster).
+   ═══════════════════════════════════════════════════════════════ */
+.ga-rule-constellation svg { width: 100%; height: auto; max-width: 360px; }
+@media (max-width: 600px) {
+  /* Small screens: scale up dots so labels stay readable */
+  .ga-rule-constellation svg { max-width: 100%; }
+  .ga-rule-constellation .rc-dot { stroke-width: 2; r: 4; }
+}
+.ga-rule-constellation .rc-dot {
+  fill: var(--ga-bg);
+  stroke: var(--ga-ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.ga-rule-constellation .rc-pick {
+  animation: ga-rcPick 14s ease-in-out infinite;
+}
+.ga-rule-constellation .rc-pick-1 { animation-delay: 0s; }
+.ga-rule-constellation .rc-pick-2 { animation-delay: 2s; }
+.ga-rule-constellation .rc-pick-3 { animation-delay: 4s; }
+.ga-rule-constellation .rc-pick-4 { animation-delay: 6s; }
+.ga-rule-constellation .rc-pick-5 { animation-delay: 8s; }
+.ga-rule-constellation .rc-pick-6 { animation-delay: 10s; }
+.ga-rule-constellation .rc-pick-7 { animation-delay: 12s; }
+@keyframes ga-rcPick {
+  0%, 14%, 100% { fill: var(--ga-bg);    stroke: var(--ga-ink); }
+  3%, 11%       { fill: var(--ga-green); stroke: var(--ga-green); }
+}
+
+/* Default state for all dots in the constellation */
+.ga-ax-patterns .ga-axc-dot {
+  fill: var(--ga-bg);
+  stroke: var(--ga-ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+/* Only the chosen cluster's pick dot lights green per cycle */
+.ga-ax-patterns[data-output="delegate"] .ga-axc-pick-d,
+.ga-ax-patterns[data-output="escalate"] .ga-axc-pick-e,
+.ga-ax-patterns[data-output="adapt"]    .ga-axc-pick-a {
+  animation: ga-axcPick 5s ease-in-out infinite;
+}
+@keyframes ga-axcPick {
+  0%, 30%, 80%, 100% { fill: var(--ga-bg);    stroke: var(--ga-ink); }
+  45%, 70%           { fill: var(--ga-green); stroke: var(--ga-green); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · PIPELINE-MIN (subway-style minimal pipeline)
+
+   Aesthetic: identical to _tower-explorations.html SCAN/FLOW cells.
+   One traveler dot moves left → right; stations flash as it passes;
+   the chosen output line draws + endpoint fills at the end.
+   9s loop per cycle.
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes ga-pmTravel {
+  0%    { opacity: 0; transform: translateX(0)    translateY(0); }
+  3%    { opacity: 1; }
+  10%   { transform: translateX(0)    translateY(0); }                /* Human */
+  22%   { transform: translateX(160px) translateY(0); }               /* Intent */
+  38%   { transform: translateX(320px) translateY(0); }               /* Tokens */
+  54%   { transform: translateX(480px) translateY(0); }               /* Brain */
+  68%   { transform: translateX(640px) translateY(0); }               /* Rules */
+  86%   { opacity: 1; transform: translateX(826px) translateY(var(--ga-target-y, 0px)); }
+  92%   { opacity: 1; transform: translateX(826px) translateY(var(--ga-target-y, 0px)); }
+  98%   { opacity: 0; }
+  100%  { opacity: 0; transform: translateX(826px) translateY(var(--ga-target-y, 0px)); }
+}
+
+@keyframes ga-pmStPulse {
+  0%, 8%, 100% { fill: var(--ga-bg);    stroke: var(--ga-ink); }
+  2%, 6%       { fill: var(--ga-green); stroke: var(--ga-green); }
+}
+
+/* Green overlay draw — base ghost line is always visible */
+@keyframes ga-pmLineDraw {
+  0%, 70%   { stroke-dashoffset: 1; }   /* hidden — ghost shows through */
+  86%       { stroke-dashoffset: 0; }   /* fully drawn green */
+  92%       { stroke-dashoffset: 0; }   /* hold */
+  100%      { stroke-dashoffset: 1; }   /* fade back */
+}
+@keyframes ga-pmEndFlash {
+  0%, 85%, 94%, 100% { fill: var(--ga-bg); stroke: var(--ga-ink); }
+  87%, 92%           { fill: var(--ga-green); stroke: var(--ga-green); }
+}
+
+.ga-pipeline-min {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ga-pipeline-min .ga-pm-traveler {
+  animation: ga-pmTravel 9s cubic-bezier(0.45, 0, 0.15, 1) infinite;
+}
+
+/* Each station pulses green when traveler arrives. Time per stage = 16% (9s × 0.16 = ~1.44s).
+   Pulse window inside the station's animation = 8% of its own cycle. */
+.ga-pipeline-min .ga-pm-st { animation: ga-pmStPulse 9s linear infinite; }
+.ga-pipeline-min .ga-pm-st-1 { animation-delay: 0s;     }
+.ga-pipeline-min .ga-pm-st-2 { animation-delay: -7.92s; } /* fires at 8% mark of next cycle = ~22% absolute */
+.ga-pipeline-min .ga-pm-st-3 { animation-delay: -7.56s; } /* 38% absolute */
+.ga-pipeline-min .ga-pm-st-4 { animation-delay: -7.20s; } /* 54% absolute */
+.ga-pipeline-min .ga-pm-st-5 { animation-delay: -6.84s; } /* 68% absolute */
+
+/* Green overlay (animated draw) */
+.ga-pipeline-min .ga-out-path {
+  stroke: var(--ga-green); stroke-width: 1.8;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  animation: ga-pmLineDraw 9s linear infinite;
+}
+.ga-pipeline-min .ga-out-end {
+  fill: var(--ga-bg); stroke: var(--ga-ink);
+  vector-effect: non-scaling-stroke;
+  animation: ga-pmEndFlash 9s linear infinite;
+}
+
+/* Output gating — only the chosen path/endpoint animates */
+.ga-pipeline-min[data-output="delegate"] .ga-op-2,
+.ga-pipeline-min[data-output="delegate"] .ga-op-3,
+.ga-pipeline-min[data-output="delegate"] .ga-oe-2,
+.ga-pipeline-min[data-output="delegate"] .ga-oe-3,
+.ga-pipeline-min[data-output="escalate"] .ga-op-1,
+.ga-pipeline-min[data-output="escalate"] .ga-op-3,
+.ga-pipeline-min[data-output="escalate"] .ga-oe-1,
+.ga-pipeline-min[data-output="escalate"] .ga-oe-3,
+.ga-pipeline-min[data-output="adapt"] .ga-op-1,
+.ga-pipeline-min[data-output="adapt"] .ga-op-2,
+.ga-pipeline-min[data-output="adapt"] .ga-oe-1,
+.ga-pipeline-min[data-output="adapt"] .ga-oe-2 { animation: none; }
+
+/* Map data-output to traveler target-y (output endpoint vertical offset from y=100) */
+.ga-pipeline-min[data-output="delegate"] .ga-pm-traveler { --ga-target-y: -60px; }
+.ga-pipeline-min[data-output="escalate"] .ga-pm-traveler { --ga-target-y: 0px; }
+.ga-pipeline-min[data-output="adapt"]    .ga-pm-traveler { --ga-target-y: 60px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · PIPELINE-B (Brain as parallel layer)
+   Brain fires in parallel with Tokens; Intent emerges at intersection.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Refined: subtle scale modulation at signal moments + soft landing.
+   The traveler eases into Intent and Rule Engine (small breaths),
+   glides at constant size through interpretation, then expands at landing. */
+@keyframes ga-travel-b {
+  /* Birth: tiny dot grows in */
+  0%    { opacity: 0; transform: translateX(0) translateY(0) scale(0.35); }
+  4%    { opacity: 0.6; transform: translateX(0) translateY(0) scale(0.8); }
+  7%    { opacity: 1; transform: translateX(0) translateY(0) scale(1); }
+
+  /* Glide to Intent */
+  13%   { transform: translateX(90px) translateY(0) scale(1); }
+  /* Subtle breath at Intent */
+  17%   { transform: translateX(90px) translateY(0) scale(1.18); }
+  21%   { transform: translateX(90px) translateY(0) scale(1); }
+
+  /* Glide steadily through Tokens × Brain interpretation */
+  40%   { transform: translateX(380px) translateY(0) scale(1); }
+  54%   { transform: translateX(560px) translateY(0) scale(1); }
+
+  /* Approach Rule Engine — second breath */
+  63%   { transform: translateX(680px) translateY(0) scale(1); }
+  67%   { transform: translateX(680px) translateY(0) scale(1.18); }
+  71%   { transform: translateX(680px) translateY(0) scale(1); }
+
+  /* Curve out to chosen endpoint */
+  84%   { transform: translateX(896px) translateY(var(--ga-target-y, 0px)) scale(1); opacity: 1; }
+  /* Landing flourish */
+  88%   { transform: translateX(896px) translateY(var(--ga-target-y, 0px)) scale(1.45); opacity: 1; }
+  /* Settle and dissolve */
+  93%   { transform: translateX(896px) translateY(var(--ga-target-y, 0px)) scale(1.05); opacity: 0.6; }
+  100%  { transform: translateX(896px) translateY(var(--ga-target-y, 0px)) scale(0.6); opacity: 0; }
+}
+
+/* Halo ring around the traveler — soft expansion at landing */
+@keyframes ga-haloPulseB {
+  0%, 80%   { opacity: 0.3; transform: scale(1); }
+  88%       { opacity: 0.55; transform: scale(1.7); }
+  93%       { opacity: 0; transform: scale(2.3); }
+  100%      { opacity: 0.3; transform: scale(1); }
+}
+
+.ga-pipeline-b {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.ga-pipeline-b .ga-traveler       { animation: ga-travel-b 12s cubic-bezier(0.45, 0, 0.15, 1) infinite; }
+.ga-pipeline-b .ga-traveler .ga-s-green {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: ga-haloPulseB 12s linear infinite;
+}
+.ga-pipeline-b .ga-stage-human    { animation: ga-pulseHuman 12s ease-in-out infinite; }
+.ga-pipeline-b .ga-tk             { animation: ga-tokenFlash 12s ease-in-out infinite; }
+.ga-pipeline-b .ga-tk-1           { animation-delay: 0s; }
+.ga-pipeline-b .ga-tk-2           { animation-delay: 0.15s; }
+.ga-pipeline-b .ga-tk-3           { animation-delay: 0.3s; }
+.ga-pipeline-b .ga-tk-4           { animation-delay: 0.45s; }
+.ga-pipeline-b .ga-tk-5           { animation-delay: 0.6s; }
+.ga-pipeline-b .ga-tk-6           { animation-delay: 0.75s; }
+/* Brain fires overlapping with Tokens (parallel, not sequential) */
+.ga-pipeline-b .ga-bl             { animation: ga-brainPulse 12s ease-in-out infinite; }
+.ga-pipeline-b .ga-bl-1           { animation-delay: 0.6s; }
+.ga-pipeline-b .ga-bl-2           { animation-delay: 1.0s; }
+.ga-pipeline-b .ga-bl-3           { animation-delay: 1.4s; }
+.ga-pipeline-b .ga-rhombus        { animation: ga-rhombusFire 12s ease-in-out infinite; }
+.ga-pipeline-b .ga-out-path       { stroke: var(--ga-line); animation: ga-outPathActive 12s linear infinite; }
+.ga-pipeline-b .ga-out-end        { fill: var(--ga-bg); stroke: var(--ga-ink); animation: ga-outEndActive 12s linear infinite; vector-effect: non-scaling-stroke; }
+.ga-pipeline-b .ga-stage-label    { animation: ga-labelDim 12s ease-in-out infinite; }
+.ga-pipeline-b .ga-ll-human       { animation-delay: 0s; }
+.ga-pipeline-b .ga-ll-intent      { animation-delay: 0.8s; }
+.ga-pipeline-b .ga-ll-tokens      { animation-delay: 2s; }
+.ga-pipeline-b .ga-ll-rules       { animation-delay: 7.5s; }
+.ga-pipeline-b .ga-intent-core    {
+  animation: ga-intentCore 12s ease-in-out infinite;
+  transform-origin: 170px 180px;
+  transform-box: view-box;
+}
+.ga-pipeline-b .ga-dial-needle    { animation: ga-dialSweep 16s cubic-bezier(0.6,-0.28,0.735,0.045) infinite alternate; }
+.ga-pipeline-b .ga-dial-autonomy  { transform-origin: 411px 140px; transform-box: view-box; }
+.ga-pipeline-b .ga-dial-disclosure{ transform-origin: 443px 140px; transform-box: view-box; animation-delay: -4s; }
+.ga-pipeline-b .ga-feedback-path  {
+  stroke: var(--ga-green); stroke-width: 1.5; fill: none;
+  stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; opacity: 0.4;
+}
+.ga-pipeline-b .ga-feedback-dot   {
+  fill: var(--ga-green);
+  offset-path: path('M 976,242 C 976,330 340,330 340,244');
+  offset-distance: 0%;
+  animation: ga-learningReturn 12s ease-in-out infinite;
+}
+/* Output gating — same pattern as pipeline */
+.ga-pipeline-b[data-output="delegate"] .ga-op-2,
+.ga-pipeline-b[data-output="delegate"] .ga-op-3,
+.ga-pipeline-b[data-output="delegate"] .ga-oe-2,
+.ga-pipeline-b[data-output="delegate"] .ga-oe-3,
+.ga-pipeline-b[data-output="escalate"] .ga-op-1,
+.ga-pipeline-b[data-output="escalate"] .ga-op-3,
+.ga-pipeline-b[data-output="escalate"] .ga-oe-1,
+.ga-pipeline-b[data-output="escalate"] .ga-oe-3,
+.ga-pipeline-b[data-output="adapt"] .ga-op-1,
+.ga-pipeline-b[data-output="adapt"] .ga-op-2,
+.ga-pipeline-b[data-output="adapt"] .ga-oe-1,
+.ga-pipeline-b[data-output="adapt"] .ga-oe-2 { animation: none; }
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · PIPELINE-VERTICAL (top-to-bottom, for mobile)
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes ga-travel-v {
+  0%    { opacity: 0; transform: translate(0, 0); }
+  3%    { opacity: 1; }
+  12%   { transform: translate(0, 88px); }
+  28%   { transform: translate(0, 185px); }
+  48%   { transform: translate(0, 305px); }
+  64%   { transform: translate(0, 420px); }
+  82%   { transform: translate(var(--ga-target-x, 0px), 536px); opacity: 1; }
+  95%   { opacity: 0; }
+  100%  { opacity: 0; transform: translate(var(--ga-target-x, 0px), 536px); }
+}
+
+@keyframes ga-learningReturn-v {
+  0%, 92%, 100% { offset-distance: 0%;   opacity: 0; }
+  94%            { opacity: 1; }
+  98%            { offset-distance: 100%; opacity: 1; }
+}
+
+.ga-pipeline-vertical {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+.ga-pipeline-vertical .ga-traveler-v   { animation: ga-travel-v 12s cubic-bezier(0.65, 0.05, 0.36, 1) infinite; }
+.ga-pipeline-vertical .ga-stage-human  { animation: ga-pulseHuman 12s ease-in-out infinite; }
+.ga-pipeline-vertical .ga-intent-core  {
+  animation: ga-intentCore 12s ease-in-out infinite;
+  transform-origin: 160px 136px;
+  transform-box: view-box;
+}
+.ga-pipeline-vertical .ga-tk           { animation: ga-tokenFlash 12s ease-in-out infinite; }
+.ga-pipeline-vertical .ga-tk-1         { animation-delay: 0s; }
+.ga-pipeline-vertical .ga-tk-2         { animation-delay: 0.15s; }
+.ga-pipeline-vertical .ga-tk-3         { animation-delay: 0.3s; }
+.ga-pipeline-vertical .ga-tk-4         { animation-delay: 0.45s; }
+.ga-pipeline-vertical .ga-tk-5         { animation-delay: 0.6s; }
+.ga-pipeline-vertical .ga-tk-6         { animation-delay: 0.75s; }
+.ga-pipeline-vertical .ga-bl           { animation: ga-brainPulse 12s ease-in-out infinite; }
+.ga-pipeline-vertical .ga-bl-1         { animation-delay: 0s; }
+.ga-pipeline-vertical .ga-bl-2         { animation-delay: 0.4s; }
+.ga-pipeline-vertical .ga-bl-3         { animation-delay: 0.8s; }
+.ga-pipeline-vertical .ga-rhombus      { animation: ga-rhombusFire 12s ease-in-out infinite; }
+.ga-pipeline-vertical .ga-out-path     {
+  stroke: var(--ga-green); stroke-width: 1.8;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  animation: ga-pipeOutDraw 12s linear infinite;
+}
+.ga-pipeline-vertical .ga-out-end      { fill: var(--ga-bg); stroke: var(--ga-ink); animation: ga-pipeEndAfterDraw 12s linear infinite; vector-effect: non-scaling-stroke; }
+.ga-pipeline-vertical .ga-stage-label  { animation: ga-labelDim 12s ease-in-out infinite; }
+.ga-pipeline-vertical .ga-ll-human     { animation-delay: 0s; }
+.ga-pipeline-vertical .ga-ll-intent    { animation-delay: 1s; }
+.ga-pipeline-vertical .ga-ll-tokens    { animation-delay: 2.5s; }
+.ga-pipeline-vertical .ga-ll-brain     { animation-delay: 5s; }
+.ga-pipeline-vertical .ga-ll-rules     { animation-delay: 7s; }
+.ga-pipeline-vertical .ga-dial-needle  { animation: ga-dialSweep 16s cubic-bezier(0.6,-0.28,0.735,0.045) infinite alternate; }
+.ga-pipeline-vertical .ga-dial-autonomy  { transform-origin: 135px 258px; transform-box: view-box; }
+.ga-pipeline-vertical .ga-dial-disclosure{ transform-origin: 161px 258px; transform-box: view-box; animation-delay: -4s; }
+.ga-pipeline-vertical .ga-feedback-path {
+  stroke: var(--ga-green); stroke-width: 1.5; fill: none;
+  stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; opacity: 0.4;
+}
+.ga-pipeline-vertical .ga-feedback-dot-v {
+  fill: var(--ga-green);
+  offset-path: path('M 47,580 C 10,580 10,48 146,48');
+  offset-distance: 0%;
+  animation: ga-learningReturn-v 12s ease-in-out infinite;
+}
+/* Output gating */
+.ga-pipeline-vertical[data-output="delegate"] .ga-op-2,
+.ga-pipeline-vertical[data-output="delegate"] .ga-op-3,
+.ga-pipeline-vertical[data-output="delegate"] .ga-oe-2,
+.ga-pipeline-vertical[data-output="delegate"] .ga-oe-3,
+.ga-pipeline-vertical[data-output="escalate"] .ga-op-1,
+.ga-pipeline-vertical[data-output="escalate"] .ga-op-3,
+.ga-pipeline-vertical[data-output="escalate"] .ga-oe-1,
+.ga-pipeline-vertical[data-output="escalate"] .ga-oe-3,
+.ga-pipeline-vertical[data-output="adapt"] .ga-op-1,
+.ga-pipeline-vertical[data-output="adapt"] .ga-op-2,
+.ga-pipeline-vertical[data-output="adapt"] .ga-oe-1,
+.ga-pipeline-vertical[data-output="adapt"] .ga-oe-2 { animation: none; }
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · TRUST-COUPLING (Disclosure × Autonomy dials)
+   Both needles sweep, but Autonomy lags — when Disclosure is low,
+   Autonomy is forced low too. The coupling is asymmetric.
+   ═══════════════════════════════════════════════════════════════ */
+.ga-trust-coupling .ga-tr-needle-d {
+  animation: ga-trustSweepD 8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  transform-origin: 90px 140px;
+  transform-box: view-box;
+}
+.ga-trust-coupling .ga-tr-needle-a {
+  animation: ga-trustSweepA 8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  transform-origin: 270px 140px;
+  transform-box: view-box;
+}
+@keyframes ga-trustSweepD {
+  0%   { transform: rotate(-65deg); }
+  100% { transform: rotate(65deg); }
+}
+@keyframes ga-trustSweepA {
+  /* Autonomy: stays pinned at low until Disclosure crosses ~40%, then catches up */
+  0%   { transform: rotate(-65deg); }
+  35%  { transform: rotate(-55deg); }
+  60%  { transform: rotate(-10deg); }
+  100% { transform: rotate(50deg); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · SUBSTITUTION — 4 modes, each with a literal animation
+   ═══════════════════════════════════════════════════════════════ */
+.ga-substitution .ga-sub-frame {
+  stroke: var(--ga-line-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── Mode 1: Exact — incoming slides in, matches target perfectly ── */
+.ga-substitution .ga-sub-ex-incoming {
+  animation: ga-subExactIn 4s ease-in-out infinite;
+}
+@keyframes ga-subExactIn {
+  0%        { transform: translateX(0);     opacity: 0; }
+  15%       { opacity: 1; }
+  45%, 70%  { transform: translateX(55px);  opacity: 1; }   /* match target */
+  85%       { opacity: 0; }
+  100%      { transform: translateX(0);     opacity: 0; }
+}
+.ga-substitution .ga-sub-target {
+  animation: ga-subExactMatch 4s ease-in-out infinite;
+}
+@keyframes ga-subExactMatch {
+  0%, 40%, 75%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  48%, 68%           { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+
+/* ── Mode 2: Flexible — 3 balls settle into the dashed acceptance zone ── */
+.ga-substitution .ga-sub-fl {
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+.ga-substitution .ga-sub-fl-1 { animation-name: ga-subFlSettle1; }
+.ga-substitution .ga-sub-fl-2 { animation-name: ga-subFlSettle2; animation-delay: 0.5s; }
+.ga-substitution .ga-sub-fl-3 { animation-name: ga-subFlSettle3; animation-delay: 1.0s; }
+/* Each ball arrives from left and settles at a different spot inside the zone */
+@keyframes ga-subFlSettle1 {
+  0%        { transform: translate(0, 0);     opacity: 0; }
+  10%       { opacity: 1; }
+  35%, 80%  { transform: translate(34px, -8px); opacity: 1; }   /* settle upper-left */
+  90%       { opacity: 0; }
+  100%      { transform: translate(0, 0);     opacity: 0; }
+}
+@keyframes ga-subFlSettle2 {
+  0%        { transform: translate(0, 0);     opacity: 0; }
+  10%       { opacity: 1; }
+  35%, 80%  { transform: translate(48px, 0);  opacity: 1; }     /* settle right of center */
+  90%       { opacity: 0; }
+  100%      { transform: translate(0, 0);     opacity: 0; }
+}
+@keyframes ga-subFlSettle3 {
+  0%        { transform: translate(0, 0);     opacity: 0; }
+  10%       { opacity: 1; }
+  35%, 80%  { transform: translate(34px, 8px);  opacity: 1; }   /* settle lower-left */
+  90%       { opacity: 0; }
+  100%      { transform: translate(0, 0);     opacity: 0; }
+}
+.ga-substitution .ga-sub-target-fl {
+  animation: ga-subFlexAccept 5s ease-in-out infinite;
+}
+@keyframes ga-subFlexAccept {
+  0%, 55%, 90%, 100% { stroke: var(--ga-ink);   fill: var(--ga-bg); }
+  65%, 85%           { stroke: var(--ga-green); fill: var(--ga-green-2); }
+}
+
+/* ── Mode 3: Exploring — center → BURST of 5 → zoom into 1 (Google Maps) ── */
+.ga-substitution .ga-sub-ex-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ga-subExLine 5s ease-in-out infinite;
+}
+@keyframes ga-subExLine {
+  0%, 12%   { stroke-dashoffset: 1; opacity: 1; }
+  22%       { stroke-dashoffset: 0; opacity: 1; }
+  60%       { stroke-dashoffset: 0; opacity: 1; }
+  72%       { stroke-dashoffset: 0; opacity: 0; }
+  100%      { stroke-dashoffset: 1; opacity: 0; }
+}
+.ga-substitution .ga-sub-ex-c {
+  animation: ga-subExCircle 5s ease-in-out infinite;
+}
+@keyframes ga-subExCircle {
+  0%, 22%   { r: 0; opacity: 0; }
+  28%       { r: 4; opacity: 1; }
+  60%       { r: 4; opacity: 1; }
+  72%       { r: 0; opacity: 0; }
+  100%      { r: 0; opacity: 0; }
+}
+.ga-substitution .ga-sub-ex-pick {
+  animation: ga-subExPick 5s ease-in-out infinite;
+}
+@keyframes ga-subExPick {
+  0%, 22%  { r: 0;  opacity: 0; fill: var(--ga-bg);    stroke: var(--ga-ink); }
+  28%      { r: 4;  opacity: 1; }
+  55%      { r: 4;  opacity: 1; fill: var(--ga-bg);    stroke: var(--ga-ink); }
+  70%      { r: 22; opacity: 1; fill: var(--ga-green); stroke: var(--ga-green); }   /* zoom in */
+  85%      { r: 22; opacity: 1; fill: var(--ga-green); }
+  92%      { r: 22; opacity: 0; }
+  100%     { r: 0;  opacity: 0; }
+}
+
+/* ── Mode 4: Surprise — irregular shapes BURST out (no lines), one zooms ── */
+.ga-substitution .ga-sub-sp {
+  opacity: 0;
+  fill: var(--ga-bg);
+  stroke: var(--ga-ink);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ga-subSpBurst 5s ease-in-out infinite;
+}
+.ga-substitution .ga-sub-sp-1 { animation-delay: 0s; }
+.ga-substitution .ga-sub-sp-2 { animation-delay: 0.06s; }
+.ga-substitution .ga-sub-sp-3 { animation-delay: 0.12s; }
+.ga-substitution .ga-sub-sp-5 { animation-delay: 0.18s; }
+@keyframes ga-subSpBurst {
+  0%, 14%   { opacity: 0; transform: scale(0); }
+  20%       { opacity: 1; transform: scale(1.4); }   /* explosive pop */
+  30%, 60%  { opacity: 1; transform: scale(1); }     /* settle */
+  72%       { opacity: 0; transform: scale(0); }
+  100%      { opacity: 0; transform: scale(0); }
+}
+/* The chosen one (the star) zooms in at the end */
+.ga-substitution .ga-sub-sp-pick {
+  opacity: 0;
+  fill: var(--ga-bg);
+  stroke: var(--ga-ink);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ga-subSpPickZoom 5s ease-in-out infinite;
+  animation-delay: 0.24s;
+}
+@keyframes ga-subSpPickZoom {
+  0%, 14%  { opacity: 0; transform: scale(0); fill: var(--ga-bg); stroke: var(--ga-ink); }
+  20%      { opacity: 1; transform: scale(1.4); }
+  30%, 55% { opacity: 1; transform: scale(1); fill: var(--ga-bg); stroke: var(--ga-ink); }
+  70%      { opacity: 1; transform: scale(2.5); fill: var(--ga-green); stroke: var(--ga-green); }
+  85%      { opacity: 1; transform: scale(2.5); fill: var(--ga-green); }
+  92%      { opacity: 0; transform: scale(2.5); }
+  100%     { opacity: 0; transform: scale(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · DISPOSABLE-BRAIN (Trip Brain lifecycle, 10s loop)
+   ═══════════════════════════════════════════════════════════════ */
+/* ── Disposable Brain · A — Timeline (5 stages, sequential highlight) ── */
+.ga-disposable-brain-timeline .ga-dbt-stage {
+  opacity: 0.25;
+  animation: ga-dbtFade 10s ease-in-out infinite;
+}
+.ga-disposable-brain-timeline .ga-dbt-1 { animation-delay: 0s; }
+.ga-disposable-brain-timeline .ga-dbt-2 { animation-delay: 2s; }
+.ga-disposable-brain-timeline .ga-dbt-3 { animation-delay: 4s; }
+.ga-disposable-brain-timeline .ga-dbt-4 { animation-delay: 6s; }
+.ga-disposable-brain-timeline .ga-dbt-5 { animation-delay: 8s; }
+@keyframes ga-dbtFade {
+  0%, 19%, 100% { opacity: 0.25; }
+  3%, 16%       { opacity: 1; }
+}
+
+/* ── Disposable Brain · B — Respiration (bubble inflates out of L2, deflates back) ── */
+.ga-disposable-brain-orbit .ga-db-bubble {
+  transform-origin: 160px 116px;
+  transform-box: view-box;
+  animation: ga-dbInflate 8s ease-in-out infinite;
+}
+@keyframes ga-dbInflate {
+  /* Born: inside L2, invisible */
+  0%   { transform: translateX(0)    scale(0); opacity: 0; }
+  /* Emerge: bubble pushes out of L2, growing */
+  20%  { transform: translateX(40px) scale(0.7); opacity: 1; }
+  /* Lives: full size at the right */
+  45%  { transform: translateX(90px) scale(1.4); opacity: 1; }
+  60%  { transform: translateX(90px) scale(1.4); opacity: 1; }
+  /* Returns: shrinks back toward L2 */
+  80%  { transform: translateX(20px) scale(0.6); opacity: 1; }
+  /* Dies: absorbed into L2 */
+  90%  { transform: translateX(0)    scale(0); opacity: 0; }
+  100% { transform: translateX(0)    scale(0); opacity: 0; }
+}
+.ga-disposable-brain-orbit .ga-db-l2 {
+  animation: ga-dbL2Absorb 8s ease-in-out infinite;
+}
+@keyframes ga-dbL2Absorb {
+  /* Pulse green right when bubble is absorbed (~88-95%) */
+  0%, 85%, 96%, 100% { fill: var(--ga-bg);     stroke: var(--ga-ink); }
+  88%, 94%           { fill: var(--ga-green-2); stroke: var(--ga-green); }
+}
+.ga-disposable-brain-orbit .ga-db-trip-label {
+  animation: ga-dbLabelFade 8s ease-in-out infinite;
+}
+@keyframes ga-dbLabelFade {
+  0%, 12%, 88%, 100% { opacity: 0; }
+  22%, 78%           { opacity: 1; }
+}
+
+/* ── Disposable Brain · C — Pair (Home + Trip, learning transfer cycle) ── */
+.ga-disposable-brain-pair .ga-dbp-trip,
+.ga-disposable-brain-pair .ga-dbp-label {
+  opacity: 0;
+  animation: ga-dbpTripLife 10s ease-in-out infinite;
+}
+@keyframes ga-dbpTripLife {
+  0%, 12%, 88%, 100% { opacity: 0; }
+  20%, 80%           { opacity: 1; }
+}
+.ga-disposable-brain-pair .ga-dbp-dot {
+  opacity: 0;
+  animation: ga-dbpDotsLearn 10s ease-in-out infinite;
+}
+.ga-disposable-brain-pair .ga-dbp-dot-1 { animation-delay: 2.5s; }
+.ga-disposable-brain-pair .ga-dbp-dot-2 { animation-delay: 3.0s; }
+.ga-disposable-brain-pair .ga-dbp-dot-3 { animation-delay: 3.5s; }
+.ga-disposable-brain-pair .ga-dbp-dot-4 { animation-delay: 4.0s; }
+.ga-disposable-brain-pair .ga-dbp-dot-5 { animation-delay: 4.5s; }
+@keyframes ga-dbpDotsLearn {
+  0%, 17%, 53%, 100% { opacity: 0; }
+  22%, 50%           { opacity: 1; }
+}
+.ga-disposable-brain-pair .ga-dbp-arrow-out {
+  opacity: 0;
+  animation: ga-dbpArrowOut 10s ease-in-out infinite;
+}
+@keyframes ga-dbpArrowOut {
+  0%, 13%, 25%, 100% { opacity: 0; }
+  16%, 22%           { opacity: 1; }
+}
+.ga-disposable-brain-pair .ga-dbp-arrow-in {
+  opacity: 0;
+  animation: ga-dbpArrowIn 10s ease-in-out infinite;
+}
+@keyframes ga-dbpArrowIn {
+  0%, 53%, 70%, 100% { opacity: 0; }
+  56%, 67%           { opacity: 1; }
+}
+.ga-disposable-brain-pair .ga-dbp-l2 {
+  animation: ga-dbpL2Flash 10s ease-in-out infinite;
+}
+@keyframes ga-dbpL2Flash {
+  0%, 67%, 80%, 100% { stroke: var(--ga-ink); fill: var(--ga-bg); }
+  70%, 78%           { stroke: var(--ga-green); fill: var(--ga-green-2); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT · TEMPORAL-ARC (5 phases of trust over time, 14s loop)
+   ═══════════════════════════════════════════════════════════════ */
+.ga-temporal-arc .ga-arc-dot {
+  offset-path: path('M 30,150 C 70,142 90,116 130,104 C 165,90 195,72 220,68 C 248,74 268,96 310,114 C 332,124 348,82 350,72');
+  offset-distance: 0%;
+  animation: ga-arcTravel 14s ease-in-out infinite;
+}
+@keyframes ga-arcTravel {
+  0%    { offset-distance: 0%;   opacity: 0; }
+  4%    { opacity: 1; }
+  92%   { offset-distance: 100%; opacity: 1; }
+  98%, 100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INTERACTIVE MODE — data-mode="interactive"
+
+   Auto-loop animations pause; user explores via hover.
+   Each component defines its own hover affordances.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Pause every keyframe animation inside an interactive component */
+.ga[data-mode="interactive"] *,
+.ga[data-mode="interactive"] *::before,
+.ga[data-mode="interactive"] *::after {
+  animation-play-state: paused !important;
+}
+/* Hide the pipeline traveler dot in interactive mode (no auto motion) */
+.ga[data-mode="interactive"] .ga-traveler,
+.ga[data-mode="interactive"] .ga-traveler-v,
+.ga[data-mode="interactive"] .ga-feedback-dot,
+.ga[data-mode="interactive"] .ga-feedback-dot-v,
+.ga[data-mode="interactive"] .ga-arc-dot,
+.ga[data-mode="interactive"] .ga-trip-bubble,
+.ga[data-mode="interactive"] .ga-ch-signal {
+  display: none;
+}
+
+/* ── TOKENS · interactive: hover a tick or dial highlights it ── */
+.ga-tokens[data-mode="interactive"] .ga-tk {
+  transition: stroke 0.25s, stroke-width 0.25s;
+  cursor: pointer;
+}
+.ga-tokens[data-mode="interactive"] .ga-tk:hover {
+  stroke: var(--ga-green);
+  stroke-width: 2.5;
+}
+.ga-tokens[data-mode="interactive"] .ga-dial-needle {
+  transition: transform 0.4s var(--ga-ease);
+}
+.ga-tokens[data-mode="interactive"] .ga-dial-autonomy:hover ~ .ga-dial-needle.ga-dial-autonomy,
+.ga-tokens[data-mode="interactive"] .ga-dial-disclosure:hover ~ .ga-dial-needle.ga-dial-disclosure {
+  transform: rotate(40deg);
+}
+
+/* ── BRAIN · interactive: hover a layer highlights it (3 layers) ── */
+.ga-brain[data-mode="interactive"] .ga-layer .ga-iso-face {
+  transition: fill 0.25s, stroke 0.25s;
+  cursor: pointer;
+}
+.ga-brain[data-mode="interactive"] .ga-layer:hover .ga-iso-top  { fill: var(--ga-green); }
+.ga-brain[data-mode="interactive"] .ga-layer:hover .ga-iso-left  { stroke: var(--ga-green); }
+.ga-brain[data-mode="interactive"] .ga-layer:hover .ga-iso-right { stroke: var(--ga-green); }
+
+/* ── RULE-ENGINE · interactive: hover an output to "pick" it ── */
+.ga-rule-engine[data-mode="interactive"] .ga-out-path,
+.ga-rule-engine[data-mode="interactive"] .ga-out-end {
+  transition: stroke 0.25s, fill 0.25s, stroke-width 0.25s, stroke-dashoffset 0.5s;
+  /* Force fully drawn on inactive state in interactive mode */
+  stroke-dashoffset: 0;
+  cursor: pointer;
+}
+.ga-rule-engine[data-mode="interactive"] .ga-op-1:hover,
+.ga-rule-engine[data-mode="interactive"] .ga-oe-1:hover ~ .ga-op-1,
+.ga-rule-engine[data-mode="interactive"] .ga-op-1:hover + .ga-oe-1,
+.ga-rule-engine[data-mode="interactive"] .ga-op-2:hover,
+.ga-rule-engine[data-mode="interactive"] .ga-op-3:hover {
+  stroke: var(--ga-green);
+  stroke-width: 2;
+}
+.ga-rule-engine[data-mode="interactive"] .ga-out-end:hover {
+  fill: var(--ga-green);
+  stroke: var(--ga-green);
+}
+.ga-rule-engine[data-mode="interactive"] .ga-rhombus {
+  transition: stroke 0.25s, fill 0.25s;
+}
+.ga-rule-engine[data-mode="interactive"] .ga-rhombus:hover {
+  stroke: var(--ga-green);
+  fill: var(--ga-green-2);
+}
+
+/* ── INTENT · interactive: hover a channel highlights it ── */
+.ga-intent[data-mode="interactive"] .ga-cs-ex-pulse,
+.ga-intent[data-mode="interactive"] .ga-cs-ac-pulse,
+.ga-intent[data-mode="interactive"] .ga-cs-pa-pulse,
+.ga-intent[data-mode="interactive"] .ga-cs-am-pulse {
+  transition: transform 0.3s var(--ga-ease), stroke 0.3s, fill 0.3s;
+  transform-box: view-box;
+  cursor: pointer;
+}
+.ga-intent[data-mode="interactive"] .ga-cs-ex-pulse { transform-origin: 86px 135px; }
+.ga-intent[data-mode="interactive"] .ga-cs-ac-pulse { transform-origin: 200px 115px; }
+.ga-intent[data-mode="interactive"] .ga-cs-pa-pulse { transform-origin: 200px 148px; }
+.ga-intent[data-mode="interactive"] .ga-cs-am-pulse { transform-origin: 200px 181px; }
+.ga-intent[data-mode="interactive"] .ga-cs-ex-pulse:hover {
+  transform: scale(1.3);
+}
+.ga-intent[data-mode="interactive"] .ga-cs-ac-pulse:hover,
+.ga-intent[data-mode="interactive"] .ga-cs-pa-pulse:hover {
+  transform: scale(1.3);
+  stroke: var(--ga-green);
+  fill: var(--ga-green-2);
+}
+.ga-intent[data-mode="interactive"] .ga-cs-am-pulse:hover {
+  transform: scale(1.25);
+  stroke: var(--ga-green);
+}
+
+/* ── TRUST-COUPLING · interactive: hover Disclosure dial → both move ── */
+.ga-trust-coupling[data-mode="interactive"] .ga-tr-needle {
+  transition: transform 0.5s var(--ga-ease);
+  cursor: pointer;
+}
+.ga-trust-coupling[data-mode="interactive"]:hover .ga-tr-needle-d {
+  transform: rotate(55deg);
+  transform-origin: 100px 150px;
+  transform-box: view-box;
+}
+.ga-trust-coupling[data-mode="interactive"]:hover .ga-tr-needle-a {
+  transform: rotate(45deg);
+  transform-origin: 280px 150px;
+  transform-box: view-box;
+}
+
+/* ── SUBSTITUTION · interactive: hover a mode highlights it ── */
+.ga-substitution[data-mode="interactive"] .ga-sub-cell {
+  cursor: pointer;
+}
+.ga-substitution[data-mode="interactive"] .ga-sub-frame {
+  transition: stroke 0.25s, stroke-width 0.25s;
+}
+.ga-substitution[data-mode="interactive"] .ga-sub-cell:hover .ga-sub-frame {
+  stroke: var(--ga-green);
+  stroke-width: 1.8;
+}
+
+/* ── AX-PATTERNS · interactive: hover an endpoint highlights group ── */
+.ga-ax-patterns[data-mode="interactive"] .ga-out-path,
+.ga-ax-patterns[data-mode="interactive"] .ga-out-end {
+  transition: stroke 0.25s, fill 0.25s, stroke-width 0.25s;
+  cursor: pointer;
+}
+.ga-ax-patterns[data-mode="interactive"] .ga-out-end:hover {
+  fill: var(--ga-green);
+  stroke: var(--ga-green);
+}
+.ga-ax-patterns[data-mode="interactive"] .ga-op-1:hover,
+.ga-ax-patterns[data-mode="interactive"] .ga-op-2:hover,
+.ga-ax-patterns[data-mode="interactive"] .ga-op-3:hover {
+  stroke: var(--ga-green);
+  stroke-width: 2;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .ga * { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,1498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Translation Morph — Disclosure Dial Broadcast</title>
+
+<link rel="stylesheet" href="../../../assets/css/tokens.css" />
+<link rel="stylesheet" href="../../../assets/css/avatars.css" />
+<link rel="stylesheet" href="../../../assets/css/device-frame-iphone.css" />
+
+<style>
+/* ───────────────────────────────────────────────────────────
+   anim-translation-morph.html
+   Static layout — all elements visible at once.
+   Only animation: 3 family-phone notification cards fade in
+   with staggered delays (Mai 0ms, Aoi +400ms, Leo +800ms).
+   ─────────────────────────────────────────────────────────── */
+
+:root {
+  /* Semantic color rails — aligned with design-system tokens.
+     Grammar → Mai column, Brain → Aoi column, Intent → Leo column.
+     Falls back if tokens.css is not loaded. */
+  --tm-grammar:      var(--color-grammar, #4a6a90);
+  --tm-grammar-soft: rgba(74, 106, 144, 0.14);
+  --tm-brain:        var(--color-brain,   #6a4a90);
+  --tm-brain-soft:   rgba(106, 74, 144, 0.14);
+  --tm-intent:       var(--color-intent,  #7a5520);
+  --tm-intent-soft:  rgba(122, 85, 32, 0.12);
+
+  /* Legacy aliases kept so existing selectors still work during refactor */
+  --tm-purple:       var(--tm-brain);
+  --tm-purple-soft:  rgba(106, 74, 144, 0.42);
+  --tm-purple-ink:   #4a3270;
+  --tm-amber:        var(--tm-intent);
+  --tm-amber-soft:   var(--tm-intent-soft);
+  --tm-green:        #3f8f6e;
+  --tm-green-soft:   #dbeadf;
+
+  --tm-ink:         #1a1816;
+  --tm-ink-soft:    #6a665d;
+  --tm-ink-faint:   #a8a399;
+  --tm-paper:       #fdfcfa;
+  --tm-card:        #ffffff;
+  --tm-card-border: rgba(26, 24, 22, 0.09);
+  --tm-card-border-strong: rgba(26, 24, 22, 0.14);
+  --tm-divider:     rgba(26, 24, 22, 0.08);
+  --tm-mono:        var(--font-mono);
+  --tm-sans:        var(--font-sans);
+
+  /* Motion tokens */
+  --tm-ease:        cubic-bezier(0.2, 0.7, 0.2, 1);
+  --tm-ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --tm-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--tm-ink);
+  font-family: var(--tm-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+body.noframe { background: transparent; }
+
+/* ── STAGE ───────────────────────────────────────────────── */
+
+.stage {
+  width: 100vw;
+  min-height: auto;
+  padding: clamp(28px, 5vw, 56px) clamp(20px, 4vw, 48px) clamp(40px, 6vw, 72px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(20px, 3vw, 36px);
+  background: transparent;
+  position: relative;
+}
+
+/* ── SELF-CONTAINED SECTION HEADER ─────────────────────── */
+
+.tm-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  max-width: 640px;
+  padding: 0 16px;
+  margin-bottom: clamp(4px, 1vw, 12px);
+}
+
+.tm-header__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--tm-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tm-brain);
+}
+
+.tm-header__eyebrow::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--tm-brain);
+  box-shadow: 0 0 0 3px rgba(106, 74, 144, 0.14);
+}
+
+.tm-header__title {
+  font-family: var(--tm-sans);
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.018em;
+  color: var(--tm-ink);
+  margin: 0;
+}
+
+.tm-header__title em {
+  font-style: normal;
+  color: var(--tm-brain);
+}
+
+/* ── KIRAN LABEL + PHONE (TOP — source of truth) ───────── */
+
+.kiran-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+}
+
+/* Soft radial aura behind Kiran's phone — marks it as the source node.
+   Kept subtle so it reads as ambient light, not decoration. */
+.kiran-block::before {
+  content: "";
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: clamp(420px, 46vw, 620px);
+  height: clamp(420px, 46vw, 620px);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    closest-side,
+    rgba(106, 74, 144, 0.10) 0%,
+    rgba(106, 74, 144, 0.04) 40%,
+    rgba(106, 74, 144, 0) 70%
+  );
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 900ms var(--tm-ease);
+}
+
+.kiran-block.is-lit::before { opacity: 1; }
+
+.kiran-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--tm-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tm-ink-soft);
+  padding: 6px 12px 6px 6px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--tm-card-border);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(26, 24, 22, 0.04);
+}
+
+.kiran-label .av {
+  border: 1px solid rgba(26, 24, 22, 0.12);
+}
+
+.kiran-label__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid var(--tm-divider);
+  color: var(--tm-brain);
+  font-weight: 600;
+}
+
+.kiran-label__source::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--tm-brain);
+}
+
+.kiran-phone-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.kiran-phone {
+  --iphone-w: clamp(280px, 42vw, 340px);
+}
+
+/* ── KIRAN SCREEN CONTENT ────────────────────────────────── */
+
+.kscreen {
+  padding: 12.5% 7% 5% 7%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  background: #fcfbf9;
+  color: var(--tm-ink);
+  font-family: var(--tm-sans);
+  overflow: hidden;
+  position: relative;
+}
+
+/* iOS-style status bar — sits above the Dynamic Island row */
+.ios-statusbar {
+  position: absolute;
+  top: 4.4%;
+  left: 7%;
+  right: 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--tm-mono);
+  font-feature-settings: 'tnum' 1;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tm-ink);
+  letter-spacing: 0;
+  line-height: 1;
+  pointer-events: none;
+}
+.ios-statusbar__time { min-width: 28%; }
+.ios-statusbar__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 28%;
+  justify-content: flex-end;
+}
+.ios-statusbar__right svg { display: block; }
+
+.ks-header {
+  padding: 6px 4px 0;
+}
+.ks-header__date {
+  font-family: var(--tm-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tm-ink-faint);
+  margin-bottom: 4px;
+}
+.ks-header__title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--tm-ink);
+}
+
+.ks-metric {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--tm-card-border);
+  box-shadow: 0 2px 10px rgba(26,24,22,0.04);
+}
+.ks-metric__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.ks-metric__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tm-ink);
+}
+.ks-metric__status {
+  font-family: var(--tm-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--tm-amber);
+  background: var(--tm-amber-soft);
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+.ks-metric__hero {
+  font-family: var(--tm-mono);
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--tm-amber);
+  line-height: 1;
+  margin-bottom: 14px;
+}
+.ks-metric__unit {
+  font-size: 13px;
+  font-family: var(--tm-sans);
+  color: var(--tm-ink-soft);
+  margin-left: 6px;
+}
+
+.ks-range-bar {
+  height: 4px;
+  background: rgba(26,24,22,0.06);
+  border-radius: 2px;
+  position: relative;
+  margin-bottom: 6px;
+}
+.ks-range-fill {
+  position: absolute;
+  top: 0; left: 0; height: 100%;
+  background: linear-gradient(90deg, #3f8f6e 0%, var(--tm-amber) 100%);
+  border-radius: 2px;
+}
+.ks-range-marker {
+  position: absolute;
+  top: -2px; width: 2px; height: 8px;
+  background: var(--tm-ink);
+  border-radius: 1px;
+}
+.ks-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--tm-mono);
+  font-size: 8px;
+  color: var(--tm-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ks-plan {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.ks-plan__title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tm-ink-soft);
+  margin: 0 0 8px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.ks-plan__list {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ks-plan__list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--tm-card-border);
+  box-shadow: 0 1px 3px rgba(26,24,22,0.02);
+}
+.ks-plan-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: #f0ede6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tm-ink-soft);
+  flex-shrink: 0;
+}
+.ks-plan-icon svg { width: 14px; height: 14px; }
+.ks-plan-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ks-plan-text strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tm-ink);
+}
+.ks-plan-text span {
+  font-size: 11px;
+  color: var(--tm-ink-soft);
+}
+
+.ks-share-btn {
+  margin-top: auto;
+  margin-bottom: 6px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--tm-purple);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-family: var(--tm-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(106,74,144,0.25);
+  transition: transform 150ms var(--tm-ease), box-shadow 150ms var(--tm-ease);
+}
+.ks-share-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(106,74,144,0.15);
+}
+.ks-share-badge {
+  font-family: var(--tm-mono);
+  font-size: 9px;
+  background: rgba(255,255,255,0.2);
+  padding: 3px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+
+/* ── BRANCHING LINES (source → 3 translations) ──────────── */
+
+.branching {
+  width: 100%;
+  max-width: 960px;
+  height: clamp(56px, 8vw, 90px);
+  position: relative;
+  display: block;
+}
+
+.branching svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Each path starts hidden; JS toggles .is-flowing to animate draw-in */
+.branching path {
+  stroke-dasharray: 6 5;
+  stroke-linecap: round;
+  stroke-dashoffset: 0;
+}
+
+.branching path.br-line {
+  stroke: rgba(106, 74, 144, 0.50);
+  stroke-width: 1.4;
+  fill: none;
+  opacity: 0;
+  transition: opacity 400ms var(--tm-ease);
+}
+
+.branching.is-flowing path.br-line {
+  opacity: 1;
+  animation: brFlow 2400ms linear infinite;
+}
+
+/* Dashes drift toward each leaf — reads as "signal flowing outward" */
+@keyframes brFlow {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -22; }
+}
+
+.branching circle.br-origin {
+  fill: var(--tm-brain);
+  opacity: 0;
+  transition: opacity 400ms var(--tm-ease);
+}
+
+.branching.is-flowing circle.br-origin {
+  opacity: 0.95;
+  transform-box: view-box;
+  transform-origin: 480px 0;
+  animation: originPulse 2400ms var(--tm-ease) infinite;
+}
+
+@keyframes originPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.35); }
+}
+
+.branching circle.br-terminus {
+  opacity: 0;
+  transition: opacity 500ms var(--tm-ease) 400ms;
+}
+
+.branching.is-flowing circle.br-terminus {
+  opacity: 0.85;
+}
+
+/* ── COLUMN GRID (avatars / dials / phones) ──────────────── */
+
+.cols {
+  width: 100%;
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 3vw, 48px);
+  row-gap: clamp(20px, 2.5vw, 32px);
+  align-items: start;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 2vw, 20px);
+  min-width: 0;
+}
+
+/* ── AVATAR + LABEL ──────────────────────────────────────── */
+
+.member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.member .av {
+  width: 80px;
+  height: 80px;
+  font-size: 22px;
+  box-shadow: 0 2px 10px rgba(26, 24, 22, 0.08),
+              0 0 0 2px rgba(255, 255, 255, 0.9),
+              0 0 0 3px var(--col-accent-soft),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: box-shadow 320ms var(--tm-ease);
+}
+
+.member:hover .av,
+.col:hover .member .av {
+  box-shadow: 0 4px 14px rgba(26, 24, 22, 0.12),
+              0 0 0 2px rgba(255, 255, 255, 0.9),
+              0 0 0 4px var(--col-accent),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.member__name {
+  font-family: var(--tm-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tm-ink-soft);
+  white-space: nowrap;
+}
+
+.member__name strong {
+  color: var(--tm-ink);
+  font-weight: 600;
+}
+
+/* ── COLUMN ACCENT (per-person) ──────────────────────────
+   Each translation gets a discrete accent that ties avatar
+   ring, dial color, and notif icon together. */
+.col { --col-accent: var(--tm-brain); --col-accent-soft: var(--tm-brain-soft); }
+.col--mai { --col-accent: var(--tm-grammar); --col-accent-soft: var(--tm-grammar-soft); }
+.col--aoi { --col-accent: var(--tm-brain);   --col-accent-soft: var(--tm-brain-soft); }
+.col--leo { --col-accent: var(--tm-intent);  --col-accent-soft: var(--tm-intent-soft); }
+
+/* Top hairline above each column reinforces the accent without adding chrome */
+.col::before {
+  content: "";
+  width: clamp(36px, 5vw, 48px);
+  height: 2px;
+  border-radius: 2px;
+  background: var(--col-accent);
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+
+/* ── DISCLOSURE DIAL CARD ────────────────────────────────── */
+
+.dial-card {
+  width: 100%;
+  max-width: 320px;
+  background: var(--tm-card);
+  border: 1px solid var(--tm-card-border);
+  border-radius: 14px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(26, 24, 22, 0.035),
+              0 8px 24px -12px rgba(26, 24, 22, 0.08);
+  position: relative;
+  transition: box-shadow 260ms var(--tm-ease),
+              transform  260ms var(--tm-ease);
+}
+
+.dial-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 2px rgba(26, 24, 22, 0.04),
+              0 14px 32px -14px rgba(26, 24, 22, 0.14);
+}
+
+/* Subtle accent line tucked into the card's top edge */
+.dial-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 18px; right: 18px;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--col-accent) 50%,
+    transparent 100%);
+  opacity: 0.55;
+}
+
+.dial-card__label {
+  font-family: var(--tm-mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tm-ink-soft);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.dial-card__label strong {
+  color: var(--col-accent);
+  font-weight: 600;
+}
+
+.dial {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 2 / 1;
+  position: relative;
+  color: var(--col-accent, var(--tm-brain));
+}
+
+.dial svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Needle animation — sweeps from "rest" (leftmost, -85°) to its
+   final angle set by the CSS custom property --needle-deg. The length
+   of each sweep encodes disclosure depth: Mai full 170°, Aoi 120°,
+   Leo 50° — so motion itself carries meaning.
+   transform-box: view-box ensures Chrome + Firefox pivot on SVG coords. */
+.dial__needle {
+  transform-box: view-box;
+  transform-origin: 110px 100px;
+  transform: rotate(-90deg);
+  transition: transform 1100ms var(--tm-ease-spring) 300ms;
+  will-change: transform;
+}
+
+.dial.is-in .dial__needle {
+  transform: rotate(var(--needle-deg, 0deg));
+}
+
+/* Active arc: drawn in on reveal */
+.dial__arc-active {
+  stroke: var(--col-accent);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  pathLength: 1;
+  transition: stroke-dashoffset 1100ms var(--tm-ease-out) 200ms;
+}
+
+.dial.is-in .dial__arc-active {
+  stroke-dashoffset: 0;
+}
+
+.dial__stages {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 220px;
+  font-family: var(--tm-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: var(--tm-ink-faint);
+  margin-top: -4px;
+}
+
+.dial__stages span {
+  text-transform: uppercase;
+  flex: 1;
+  text-align: center;
+  transition: color 400ms var(--tm-ease);
+}
+
+.dial__stages .active {
+  color: var(--col-accent);
+  font-weight: 600;
+}
+
+.dial-card__caption {
+  font-size: 12px;
+  color: var(--tm-ink-soft);
+  text-align: center;
+  line-height: 1.45;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.dial-card__caption strong {
+  color: var(--tm-ink);
+  font-weight: 600;
+}
+
+/* ── FAMILY PHONE ────────────────────────────────────────── */
+
+.fam-phone {
+  --iphone-w: clamp(240px, 22vw, 280px);
+}
+
+/* ── FAMILY NOTIFICATION SCREEN (base) ───────────────────── */
+
+.fscreen {
+  padding: 12.5% 6% 6%;   /* top clears Dynamic Island + status bar */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  font-family: var(--tm-sans);
+  color: var(--tm-ink);
+  background: linear-gradient(180deg, #f3f2ee 0%, #fdfcfa 60%);
+  position: relative;
+}
+
+/* Lock-screen style large time (iOS pattern) */
+.fscreen__time {
+  font-family: var(--tm-sans);
+  font-size: 42px;
+  color: var(--tm-ink);
+  text-align: center;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  line-height: 1;
+  margin: 2px 0 4px;
+}
+
+.fscreen__date {
+  font-family: var(--tm-sans);
+  font-size: 11px;
+  color: var(--tm-ink-soft);
+  text-align: center;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+/* The notification card — the only animated element inside the phone. */
+.notif {
+  position: relative;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border-radius: 14px;
+  padding: 10px 11px 11px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 4px 16px rgba(26, 24, 22, 0.08),
+    0 1px 2px rgba(26, 24, 22, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.99);
+  transition:
+    opacity   520ms var(--tm-ease),
+    transform 620ms var(--tm-ease-spring);
+}
+
+.notif.is-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.notif__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.notif__icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--tm-mono);
+  font-weight: 700;
+  font-size: 11px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.notif__icon--amber { background: linear-gradient(135deg, #c9953a 0%, #a26f1f 100%); }
+.notif__icon--purple { background: linear-gradient(135deg, #a48ac7 0%, #7655a5 100%); }
+.notif__icon--green { background: linear-gradient(135deg, #6fae92 0%, #3f8f6e 100%); }
+
+.notif__appname {
+  font-family: var(--tm-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--tm-ink-soft);
+  font-weight: 500;
+  flex: 1;
+}
+
+.notif__now {
+  font-family: var(--tm-mono);
+  font-size: 9px;
+  color: var(--tm-ink-faint);
+  text-transform: lowercase;
+}
+
+.notif__title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--tm-ink);
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+.notif__body {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #2c2824;
+  margin: 0;
+}
+
+.notif__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.chip {
+  font-family: var(--tm-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.04em;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chip--amber { background: var(--tm-amber-soft); color: var(--tm-amber); }
+.chip--purple { background: rgba(138, 106, 176, 0.14); color: var(--tm-purple-ink); }
+.chip--green { background: var(--tm-green-soft); color: var(--tm-green); }
+
+.notif__emoji {
+  font-size: 18px;
+  letter-spacing: 4px;
+  line-height: 1;
+  padding: 2px 0;
+}
+
+.notif__action {
+  font-family: var(--tm-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--tm-purple-ink);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* 2px accent rail on the left — ties notif to column identity
+   without repainting the whole card. */
+.notif::before {
+  content: "";
+  position: absolute;
+  top: 14%;
+  bottom: 14%;
+  left: 3px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--col-accent, var(--tm-brain));
+  opacity: 0;
+  transition: opacity 600ms var(--tm-ease) 300ms;
+}
+
+.notif.is-in::before { opacity: 0.72; }
+
+/* Tiny "arrival pulse" at the top-right of the notif when it appears. */
+.notif__pulse {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tm-purple);
+  opacity: 0;
+}
+
+.notif.is-in .notif__pulse {
+  animation: pulseDot 1100ms ease-out 120ms 1;
+}
+
+@keyframes pulseDot {
+  0% { opacity: 0; transform: scale(0.5); }
+  25% { opacity: 1; transform: scale(1); }
+  70% { opacity: 0.5; transform: scale(1.6); }
+  100% { opacity: 0; transform: scale(2.2); }
+}
+
+/* ── CLOSER LINE ─────────────────────────────────────────── */
+
+.closer {
+  margin-top: clamp(24px, 3.5vw, 40px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border: 1px solid var(--tm-card-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  font-family: var(--tm-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--tm-ink-soft);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity   600ms var(--tm-ease),
+    transform 600ms var(--tm-ease);
+}
+
+.closer::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--tm-brain);
+  box-shadow: 0 0 0 3px rgba(106, 74, 144, 0.14);
+}
+
+.closer.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.closer em {
+  font-style: normal;
+  color: var(--tm-brain);
+  font-weight: 600;
+}
+
+/* ── MOBILE STACK ────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .cols {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    row-gap: 32px;
+  }
+
+  .branching { display: none; }
+
+  .col {
+    border-top: 1px dashed var(--tm-purple-soft);
+    padding-top: 24px;
+  }
+
+  .col:first-child { border-top: none; padding-top: 0; }
+
+  .fam-phone { --iphone-w: clamp(240px, 60vw, 280px); }
+}
+
+/* ── REDUCED MOTION ──────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .notif {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .notif.is-in .notif__pulse { animation: none; }
+  .closer { transition: none; opacity: 1; transform: none; }
+
+  /* Skip needle + arc animations — show final state immediately */
+  .dial__needle { transition: none; transform: rotate(var(--needle-deg, 0deg)); }
+  .dial__arc-active { transition: none; stroke-dashoffset: 0; }
+
+  /* Stop the perpetually-flowing dashes */
+  .branching.is-flowing path.br-line { animation: none; opacity: 1; }
+  .branching.is-flowing circle.br-origin { animation: none; opacity: 0.95; transform: none; }
+  .kiran-block::before { transition: none; opacity: 1; }
+}
+
+/* ── FOCUS STATES ────────────────────────────────────────── */
+
+.dial-card:focus-visible,
+.kiran-phone:focus-visible,
+.fam-phone:focus-visible {
+  outline: 2px solid var(--tm-brain);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+</style>
+</head>
+<body>
+
+<main class="stage" role="main" aria-label="Translation morph: Disclosure Dial broadcasting Kiran's health update to three family members">
+
+  <!-- ═══ SECTION HEADER (self-contained for readers landing mid-page) ═══ -->
+  <header class="tm-header">
+    <span class="tm-header__eyebrow">Axis 01 · Disclosure Cascade</span>
+    <h2 class="tm-header__title">One fact. Three <em>translations</em>.</h2>
+  </header>
+
+  <!-- ═══ KIRAN'S PHONE (TOP, CENTERED — source of truth) ═══ -->
+  <section class="kiran-block" aria-label="Kiran's annual physical — the source">
+    <div class="kiran-label">
+      <span class="av av--sm av--kiran" aria-hidden="true">K</span>
+      <span>Kiran &middot; dad &middot; 38</span>
+      <span class="kiran-label__source">Source</span>
+    </div>
+
+    <div class="kiran-phone-wrap">
+      <div class="iphone15pro iphone15pro--lg kiran-phone" role="img" aria-label="Kiran's iPhone showing annual physical result">
+        <img class="iphone15pro__chrome"
+             src="../../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <div class="kscreen">
+            <div class="ios-statusbar" aria-hidden="true">
+              <span class="ios-statusbar__time">4:12</span>
+              <span class="ios-statusbar__right">
+                <svg width="14" height="8" viewBox="0 0 14 8" fill="none"><rect x="0" y="4" width="2.2" height="4" rx="0.5" fill="currentColor"/><rect x="3.2" y="2.8" width="2.2" height="5.2" rx="0.5" fill="currentColor"/><rect x="6.4" y="1.4" width="2.2" height="6.6" rx="0.5" fill="currentColor"/><rect x="9.6" y="0" width="2.2" height="8" rx="0.5" fill="currentColor"/></svg>
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M6 7.2c1.4 0 2.7-.52 3.7-1.4.2-.18.2-.5.02-.68l-.66-.66a.48.48 0 0 0-.64-.02 3.56 3.56 0 0 1-4.84 0 .48.48 0 0 0-.64.02l-.66.66a.48.48 0 0 0 .02.68A5.56 5.56 0 0 0 6 7.2Z" fill="currentColor"/><path d="M6 4.3c.65 0 1.26.23 1.74.64.18.16.46.15.62-.02l.68-.7a.48.48 0 0 0-.02-.7A4.46 4.46 0 0 0 6 2.4c-1.12 0-2.2.4-3.02 1.12a.48.48 0 0 0-.02.7l.68.7c.16.17.44.18.62.02A2.7 2.7 0 0 1 6 4.3Z" fill="currentColor" opacity="0.6"/></svg>
+                <svg width="22" height="9" viewBox="0 0 22 9" fill="none"><rect x="0.5" y="0.5" width="18" height="8" rx="2" stroke="currentColor" fill="none" opacity="0.5"/><rect x="2" y="2" width="12" height="5" rx="1" fill="currentColor"/><rect x="19" y="3" width="1.5" height="3" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+              </span>
+            </div>
+
+            <header class="ks-header">
+              <div class="ks-header__date">Oct 24, 2026</div>
+              <h2 class="ks-header__title">Lab Results</h2>
+            </header>
+
+            <div class="ks-metric">
+              <div class="ks-metric__head">
+                <span class="ks-metric__name">&gamma;-GTP</span>
+                <span class="ks-metric__status">Action Required</span>
+              </div>
+              <div class="ks-metric__hero">
+                82<span class="ks-metric__unit">U/L</span>
+              </div>
+              <div class="ks-metric__range">
+                <div class="ks-range-bar">
+                  <div class="ks-range-fill" style="width: 85%;"></div>
+                  <div class="ks-range-marker" style="left: 10%;"></div>
+                  <div class="ks-range-marker" style="left: 45%;"></div>
+                </div>
+                <div class="ks-range-labels">
+                  <span>0</span>
+                  <span>Normal (10&ndash;45)</span>
+                  <span>High</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ks-plan">
+              <h3 class="ks-plan__title">Care Plan</h3>
+              <ul class="ks-plan__list">
+                <li>
+                  <div class="ks-plan-icon ks-plan-icon--exercise">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  </div>
+                  <div class="ks-plan-text">
+                    <strong>Exercise</strong>
+                    <span>150 min / week</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="ks-plan-icon ks-plan-icon--weight">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01"/></svg>
+                  </div>
+                  <div class="ks-plan-text">
+                    <strong>Weight target</strong>
+                    <span>&minus;3 kg by Dec</span>
+                  </div>
+                </li>
+                <li>
+                  <div class="ks-plan-icon ks-plan-icon--diet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
+                  </div>
+                  <div class="ks-plan-text">
+                    <strong>Alcohol</strong>
+                    <span>Prefer whisky</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <button class="ks-share-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+              <span>Share with family</span>
+              <span class="ks-share-badge">Auto</span>
+            </button>
+          </div>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ BRANCHING LINES — animated signal flowing outward ═══ -->
+  <div class="branching" aria-hidden="true">
+    <svg viewBox="0 0 960 90" preserveAspectRatio="none">
+      <path class="br-line br-line--mai"
+            d="M480,0 C480,30 200,40 160,90"/>
+      <path class="br-line br-line--aoi"
+            d="M480,0 L480,90"/>
+      <path class="br-line br-line--leo"
+            d="M480,0 C480,30 760,40 800,90"/>
+      <!-- Origin pulse at source (under Kiran) -->
+      <circle class="br-origin" cx="480" cy="0" r="3.5"/>
+      <!-- Terminus dots at each leaf — use each column accent via inline var -->
+      <circle class="br-terminus" cx="160" cy="90" r="2.5" fill="#4a6a90"/>
+      <circle class="br-terminus" cx="480" cy="90" r="2.5" fill="#6a4a90"/>
+      <circle class="br-terminus" cx="800" cy="90" r="2.5" fill="#7a5520"/>
+    </svg>
+  </div>
+
+  <!-- ═══ 3-COLUMN GRID: avatar → dial → phone ════════════ -->
+  <section class="cols" aria-label="Three family members receiving translated versions">
+
+    <!-- ─── MAI COLUMN · Grammar (blue) accent ─────────── -->
+    <div class="col col--mai">
+      <div class="member">
+        <span class="av av--mai" aria-hidden="true">M</span>
+        <div class="member__name"><strong>Mai</strong> &middot; partner &middot; 36</div>
+      </div>
+
+      <div class="dial-card" tabindex="0">
+        <div class="dial-card__label">Disclosure Dial &middot; Kiran &rarr; <strong>Mai</strong></div>
+
+        <div class="dial" style="--needle-deg: 90deg;" role="img" aria-label="Dial pointing to Full">
+          <svg viewBox="0 0 220 110" preserveAspectRatio="xMidYMid meet">
+            <!-- Arc track -->
+            <path d="M15,100 A95,95 0 0 1 205,100"
+                  fill="none" stroke="rgba(26,24,22,0.08)" stroke-width="10" stroke-linecap="round"/>
+            <!-- Active arc (full = all the way) -->
+            <path class="dial__arc-active"
+                  d="M15,100 A95,95 0 0 1 205,100"
+                  fill="none" stroke-width="10"
+                  stroke-linecap="round"
+                  pathLength="1"/>
+            <!-- Tick marks at the 4 stages -->
+            <g stroke="rgba(26,24,22,0.25)" stroke-width="1.2" stroke-linecap="round">
+              <line x1="15" y1="100" x2="25" y2="100"/>
+              <line x1="62.5" y1="17.7" x2="67.5" y2="26.4"/>
+              <line x1="157.5" y1="17.7" x2="152.5" y2="26.4"/>
+              <line x1="205" y1="100" x2="195" y2="100"/>
+            </g>
+            <!-- Needle rotates in via CSS --needle-deg custom property -->
+            <g class="dial__needle">
+              <line x1="110" y1="100" x2="110" y2="18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <circle cx="110" cy="100" r="6" fill="currentColor"/>
+              <circle cx="110" cy="100" r="2.5" fill="#fff"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="dial__stages">
+          <span>Block</span>
+          <span>Summary</span>
+          <span>Observ.</span>
+          <span class="active">Full</span>
+        </div>
+
+        <div class="dial-card__caption"><strong>Full</strong> — partner context.</div>
+      </div>
+
+      <div class="iphone15pro iphone15pro--md fam-phone" role="img" aria-label="Mai's iPhone showing Family Health notification">
+        <img class="iphone15pro__chrome"
+             src="../../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <div class="fscreen">
+            <div class="ios-statusbar" aria-hidden="true">
+              <span class="ios-statusbar__time">4:12</span>
+              <span class="ios-statusbar__right">
+                <svg width="14" height="8" viewBox="0 0 14 8" fill="none"><rect x="0" y="4" width="2.2" height="4" rx="0.5" fill="currentColor"/><rect x="3.2" y="2.8" width="2.2" height="5.2" rx="0.5" fill="currentColor"/><rect x="6.4" y="1.4" width="2.2" height="6.6" rx="0.5" fill="currentColor"/><rect x="9.6" y="0" width="2.2" height="8" rx="0.5" fill="currentColor"/></svg>
+                <svg width="22" height="9" viewBox="0 0 22 9" fill="none"><rect x="0.5" y="0.5" width="18" height="8" rx="2" stroke="currentColor" fill="none" opacity="0.5"/><rect x="2" y="2" width="12" height="5" rx="1" fill="currentColor"/><rect x="19" y="3" width="1.5" height="3" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+              </span>
+            </div>
+            <div class="fscreen__date">Monday, April 13</div>
+            <div class="fscreen__time">4:12</div>
+            <article class="notif" data-delay="0" aria-label="Family Health notification for Mai">
+              <span class="notif__pulse" aria-hidden="true"></span>
+              <header class="notif__head">
+                <span class="notif__icon notif__icon--amber" aria-hidden="true">+</span>
+                <span class="notif__appname">Family Health</span>
+                <span class="notif__now">now</span>
+              </header>
+              <h3 class="notif__title">Kiran&rsquo;s health update</h3>
+              <p class="notif__body">Liver markers slightly up. Plan: more workouts, &minus;3&nbsp;kg in 2 months, minimal alcohol weeknights. Follow-up May&nbsp;15.</p>
+              <div class="notif__chips">
+                <span class="chip chip--amber">Low sodium</span>
+                <span class="chip chip--amber">0 alcohol wkdays</span>
+                <span class="chip chip--amber">May 15 F/U</span>
+              </div>
+              <div class="notif__action">View meal plan &rarr;</div>
+            </article>
+          </div>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- ─── AOI COLUMN · Brain (purple) accent ─────────── -->
+    <div class="col col--aoi">
+      <div class="member">
+        <span class="av av--aoi" aria-hidden="true">A</span>
+        <div class="member__name"><strong>Aoi</strong> &middot; 15 &middot; they/them</div>
+      </div>
+
+      <div class="dial-card" tabindex="0">
+        <div class="dial-card__label">Disclosure Dial &middot; Kiran &rarr; <strong>Aoi</strong></div>
+
+        <div class="dial" style="--needle-deg: 30deg;" role="img" aria-label="Dial pointing to Observation">
+          <svg viewBox="0 0 220 110" preserveAspectRatio="xMidYMid meet">
+            <path d="M15,100 A95,95 0 0 1 205,100"
+                  fill="none" stroke="rgba(26,24,22,0.08)" stroke-width="10" stroke-linecap="round"/>
+            <!-- Active arc to 'Observation' (~2/3 of way) -->
+            <path class="dial__arc-active"
+                  d="M15,100 A95,95 0 0 1 157.5,17.7"
+                  fill="none" stroke-width="10"
+                  stroke-linecap="round"
+                  pathLength="1"/>
+            <g stroke="rgba(26,24,22,0.25)" stroke-width="1.2" stroke-linecap="round">
+              <line x1="15" y1="100" x2="25" y2="100"/>
+              <line x1="62.5" y1="17.7" x2="67.5" y2="26.4"/>
+              <line x1="157.5" y1="17.7" x2="152.5" y2="26.4"/>
+              <line x1="205" y1="100" x2="195" y2="100"/>
+            </g>
+            <g class="dial__needle">
+              <line x1="110" y1="100" x2="110" y2="18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <circle cx="110" cy="100" r="6" fill="currentColor"/>
+              <circle cx="110" cy="100" r="2.5" fill="#fff"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="dial__stages">
+          <span>Block</span>
+          <span>Summary</span>
+          <span class="active">Observ.</span>
+          <span>Full</span>
+        </div>
+
+        <div class="dial-card__caption"><strong>Observation</strong> — teen, no numbers.</div>
+      </div>
+
+      <div class="iphone15pro iphone15pro--md fam-phone" role="img" aria-label="Aoi's iPhone showing Family observation notification">
+        <img class="iphone15pro__chrome"
+             src="../../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <div class="fscreen">
+            <div class="ios-statusbar" aria-hidden="true">
+              <span class="ios-statusbar__time">4:12</span>
+              <span class="ios-statusbar__right">
+                <svg width="14" height="8" viewBox="0 0 14 8" fill="none"><rect x="0" y="4" width="2.2" height="4" rx="0.5" fill="currentColor"/><rect x="3.2" y="2.8" width="2.2" height="5.2" rx="0.5" fill="currentColor"/><rect x="6.4" y="1.4" width="2.2" height="6.6" rx="0.5" fill="currentColor"/><rect x="9.6" y="0" width="2.2" height="8" rx="0.5" fill="currentColor"/></svg>
+                <svg width="22" height="9" viewBox="0 0 22 9" fill="none"><rect x="0.5" y="0.5" width="18" height="8" rx="2" stroke="currentColor" fill="none" opacity="0.5"/><rect x="2" y="2" width="12" height="5" rx="1" fill="currentColor"/><rect x="19" y="3" width="1.5" height="3" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+              </span>
+            </div>
+            <div class="fscreen__date">Monday, April 13</div>
+            <div class="fscreen__time">4:12</div>
+            <article class="notif" data-delay="400" aria-label="Family notification for Aoi">
+              <span class="notif__pulse" aria-hidden="true"></span>
+              <header class="notif__head">
+                <span class="notif__icon notif__icon--purple" aria-hidden="true">&#10047;</span>
+                <span class="notif__appname">Family</span>
+                <span class="notif__now">now</span>
+              </header>
+              <h3 class="notif__title">About Dad</h3>
+              <p class="notif__body">Dad is being a bit more careful. He&rsquo;s picking tea over beer and added a morning run. No need to do anything &mdash; just noticing is nice.</p>
+              <div class="notif__emoji" aria-hidden="true">&#128522;&nbsp;&rarr;&nbsp;&#127861;&nbsp;&rarr;&nbsp;&#127939;</div>
+              <div class="notif__chips">
+                <span class="chip chip--purple">Teens stay teens</span>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- ─── LEO COLUMN · Intent (ochre) accent ─────────── -->
+    <div class="col col--leo">
+      <div class="member">
+        <span class="av av--leo" aria-hidden="true">L</span>
+        <div class="member__name"><strong>Leo</strong> &middot; 9</div>
+      </div>
+
+      <div class="dial-card" tabindex="0">
+        <div class="dial-card__label">Disclosure Dial &middot; Kiran &rarr; <strong>Leo</strong></div>
+
+        <div class="dial" style="--needle-deg: -30deg;" role="img" aria-label="Dial pointing to Summary">
+          <svg viewBox="0 0 220 110" preserveAspectRatio="xMidYMid meet">
+            <path d="M15,100 A95,95 0 0 1 205,100"
+                  fill="none" stroke="rgba(26,24,22,0.08)" stroke-width="10" stroke-linecap="round"/>
+            <!-- Active arc to 'Summary' (~1/3) -->
+            <path class="dial__arc-active"
+                  d="M15,100 A95,95 0 0 1 62.5,17.7"
+                  fill="none" stroke-width="10"
+                  stroke-linecap="round"
+                  pathLength="1"/>
+            <g stroke="rgba(26,24,22,0.25)" stroke-width="1.2" stroke-linecap="round">
+              <line x1="15" y1="100" x2="25" y2="100"/>
+              <line x1="62.5" y1="17.7" x2="67.5" y2="26.4"/>
+              <line x1="157.5" y1="17.7" x2="152.5" y2="26.4"/>
+              <line x1="205" y1="100" x2="195" y2="100"/>
+            </g>
+            <g class="dial__needle">
+              <line x1="110" y1="100" x2="110" y2="18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+              <circle cx="110" cy="100" r="6" fill="currentColor"/>
+              <circle cx="110" cy="100" r="2.5" fill="#fff"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="dial__stages">
+          <span>Block</span>
+          <span class="active">Summary</span>
+          <span>Observ.</span>
+          <span>Full</span>
+        </div>
+
+        <div class="dial-card__caption"><strong>Summary</strong> — kid, encouragement.</div>
+      </div>
+
+      <div class="iphone15pro iphone15pro--md fam-phone" role="img" aria-label="Leo's iPhone showing Home notification">
+        <img class="iphone15pro__chrome"
+             src="../../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <div class="fscreen">
+            <div class="ios-statusbar" aria-hidden="true">
+              <span class="ios-statusbar__time">4:12</span>
+              <span class="ios-statusbar__right">
+                <svg width="14" height="8" viewBox="0 0 14 8" fill="none"><rect x="0" y="4" width="2.2" height="4" rx="0.5" fill="currentColor"/><rect x="3.2" y="2.8" width="2.2" height="5.2" rx="0.5" fill="currentColor"/><rect x="6.4" y="1.4" width="2.2" height="6.6" rx="0.5" fill="currentColor"/><rect x="9.6" y="0" width="2.2" height="8" rx="0.5" fill="currentColor"/></svg>
+                <svg width="22" height="9" viewBox="0 0 22 9" fill="none"><rect x="0.5" y="0.5" width="18" height="8" rx="2" stroke="currentColor" fill="none" opacity="0.5"/><rect x="2" y="2" width="12" height="5" rx="1" fill="currentColor"/><rect x="19" y="3" width="1.5" height="3" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+              </span>
+            </div>
+            <div class="fscreen__date">Monday, April 13</div>
+            <div class="fscreen__time">4:12</div>
+            <article class="notif" data-delay="800" aria-label="Home notification for Leo">
+              <span class="notif__pulse" aria-hidden="true"></span>
+              <header class="notif__head">
+                <span class="notif__icon notif__icon--green" aria-hidden="true">&#8962;</span>
+                <span class="notif__appname">Home</span>
+                <span class="notif__now">now</span>
+              </header>
+              <h3 class="notif__title">Hey Leo!</h3>
+              <p class="notif__body">If you see Dad pick water or tea tonight instead of beer, give him a high-five! He&rsquo;s doing a 2-month health reset.</p>
+              <div class="notif__emoji" aria-hidden="true">&#128167;&nbsp;&rarr;&nbsp;&#127939;&nbsp;&rarr;&nbsp;&#129303;</div>
+              <div class="notif__chips">
+                <span class="chip chip--green">Tap to send Dad a sticker</span>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══ CLOSER LINE ═══════════════════════════════════════ -->
+  <p class="closer"><em>Thanks to the Disclosure Dial.</em></p>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── ?noframe=1 handler (keeps the body transparent) ──
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('noframe') === '1') {
+      document.body.classList.add('noframe');
+    }
+  } catch (e) { /* no-op */ }
+
+  var prefersReduced =
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var kiranBlock = document.querySelector('.kiran-block');
+  var branching  = document.querySelector('.branching');
+  var dials      = document.querySelectorAll('.dial');
+  var notifs     = document.querySelectorAll('.notif');
+  var closer     = document.querySelector('.closer');
+
+  // Choreography — each stage unlocks on a short delay so the flow reads as:
+  //   source lights up → signal flows → dials settle → notifs arrive → closing line.
+  // Delays tuned to feel deliberate (not snappy), but brief enough for scroll-readers.
+  var SEQ = {
+    source:  0,      // Kiran aura fades in
+    flow:    220,    // Branching dashes start flowing
+    dials:   520,    // Needles rotate into position, arcs draw in
+    notif0:  1280,   // Mai notif arrives
+    notif1:  1680,   // Aoi notif arrives
+    notif2:  2080,   // Leo notif arrives
+    closer:  2780    // "Thanks to the Disclosure Dial." line
+  };
+
+  function reveal(immediate) {
+    var t = function (key) { return immediate ? 0 : SEQ[key]; };
+
+    window.setTimeout(function () {
+      if (kiranBlock) kiranBlock.classList.add('is-lit');
+    }, t('source'));
+
+    window.setTimeout(function () {
+      if (branching) branching.classList.add('is-flowing');
+    }, t('flow'));
+
+    window.setTimeout(function () {
+      dials.forEach(function (d) { d.classList.add('is-in'); });
+    }, t('dials'));
+
+    var notifKeys = ['notif0', 'notif1', 'notif2'];
+    notifs.forEach(function (n, i) {
+      var key = notifKeys[i] || 'notif2';
+      window.setTimeout(function () { n.classList.add('is-in'); }, t(key));
+    });
+
+    window.setTimeout(function () {
+      if (closer) closer.classList.add('is-in');
+    }, t('closer'));
+  }
+
+  if (prefersReduced) {
+    reveal(true);
+    return;
+  }
+
+  // IntersectionObserver fires the reveal when layout enters view.
+  if ('IntersectionObserver' in window && kiranBlock) {
+    var seen = false;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && !seen) {
+          seen = true;
+          reveal(false);
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.12 });
+
+    io.observe(kiranBlock);
+  } else {
+    reveal(false);
+  }
+})();
+</script>
+
+</body>
+</html>

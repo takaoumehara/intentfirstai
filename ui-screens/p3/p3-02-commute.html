@@ -4,12 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>P3-02 Commute — Swipe Review on Train</title>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 <style>
 :root {
-  --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Easing — Emil Kowalski standard */
+  --ease-out-expo:    cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-out-quart:   cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-in-out-expo: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring-back: cubic-bezier(0.175, 0.885, 0.32, 1.05);
+
+  /* ── Warm neutral palette (single source of truth) ── */
+  --bg:           #f5f4f2;  /* page/phase background   */
+  --surface:      #ffffff;  /* card / sheet surface     */
+  --surface-2:    #f0efed;  /* secondary surface        */
+  --border:       rgba(0,0,0,0.07);
+  --border-soft:  rgba(0,0,0,0.05);
+
+  /* Typography */
+  --text:         #18181b;  /* near-black, not pure     */
+  --text-2:       #52525b;  /* secondary                */
+  --text-3:       #a1a1aa;  /* tertiary / muted         */
+
+  /* Single accent — restrained ink */
+  --accent:       #18181b;
+  --accent-fg:    #ffffff;
+
+  /* Action colours — ONE tone each, no fill backgrounds */
+  --keep-ink:     #15803d;  /* green — only for kept count */
+  --hold-ink:     #78716c;  /* warm gray — hold         */
+  --skip-ink:     #a1a1aa;  /* muted — skip             */
+
+  /* Overlay signals on drag */
+  --keep-overlay: rgba(21,128,61,0.10);
+  --skip-overlay: rgba(161,161,170,0.14);
+  --hold-overlay: rgba(120,113,108,0.10);
 }
 html { overflow: hidden; height: 100%; }
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,29 +49,63 @@ body {
   align-items: center;
   height: 100vh;
   overflow: hidden;
-  font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   user-select: none;
   -webkit-user-select: none;
 }
-/* embed mode: phone-frame becomes transparent, phone-screen fills viewport */
-body.embed-mode {
+/* embed / noframe mode: phone-frame becomes transparent, phone-screen fills viewport */
+body.embed-mode,
+body.noframe {
   align-items: flex-start;
+  justify-content: flex-start;
 }
-body.embed-mode .phone-frame {
+body.noframe { background: transparent !important; }
+body.embed-mode .phone-frame,
+body.noframe .phone-frame {
   background: transparent;
   box-shadow: none;
   border-radius: 0;
   padding: 0;
-  width: 390px;
-  height: 844px;
-  max-height: 844px;
+  transform: none;
+}
+body.noframe .phone-frame {
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
 }
 body.embed-mode .phone-frame::before,
-body.embed-mode .phone-frame::after { display: none; }
-body.embed-mode .phone-screen {
+body.embed-mode .phone-frame::after,
+body.noframe .phone-frame::before,
+body.noframe .phone-frame::after { display: none !important; }
+body.embed-mode .phone-screen,
+body.noframe .phone-screen {
   border-radius: 0;
-  background: #fff;
+  background: var(--bg);
+}
+/* compact mode: scale entire content to fit smaller iframe viewport */
+body.compact {
+  zoom: var(--compact-zoom, 0.8);
+  transform-origin: top left;
+}
+body.noframe .notch { display: none !important; }
+body.noframe .status-bar { display: none !important; }
+body.noframe .home-indicator { display: none !important; }
+body.noframe .scene-badge { display: none !important; }
+/* noframe: phase-container fills the entire screen, only Dynamic Island clearance at top */
+body.noframe .phase-container {
+  top: 0;
+  bottom: 0;
+  padding-top: 52px; /* Dynamic Island safe area */
+}
+/* noframe: allow card to grow taller since we have more vertical space */
+body.noframe .card-stack {
+  max-height: none;
+}
+/* noframe: reduce the undo pill spacing */
+body.noframe .swipe-top {
+  padding: 6px 16px 0;
+  gap: 4px;
 }
 
 /* ── Phone Frame (iPhone 15 Pro) ── */
@@ -111,13 +173,13 @@ body.embed-mode .phone-screen {
 /* ── Status Bar ── */
 .status-bar {
   height: 54px;
-  padding: 14px 28px 0;
+  padding: 12px 28px 0;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   font-size: 15px;
   font-weight: 600;
-  color: #202124;
+  color: #0a0a0a;
   position: relative;
   z-index: 50;
   background: #FFFFFF;
@@ -127,7 +189,6 @@ body.embed-mode .phone-screen {
   gap: 5px;
   align-items: center;
 }
-.status-bar-right .material-symbols-outlined { font-size: 17px; }
 
 /* ── Home Indicator ── */
 .home-indicator {
@@ -146,7 +207,7 @@ body.embed-mode .phone-screen {
 .home-indicator-bar {
   width: 134px;
   height: 5px;
-  background: #202124;
+  background: #0a0a0a;
   border-radius: 100px;
 }
 
@@ -160,32 +221,35 @@ body.embed-mode .phone-screen {
   overflow: hidden;
 }
 
+/* ── Icon helper ── */
+.icon-nav { font-size: 16px; color: currentColor; line-height: 1; display: inline-block; }
+
 /* ══════════════════════════════════
    PHASE 1: FULL BROWSE
    ══════════════════════════════════ */
 .phase-1 {
   position: absolute;
   inset: 0;
-  background: #F8F9FA;
+  background: var(--bg);
   overflow-y: auto;
-  transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1), transform 0.4s cubic-bezier(0.2, 0, 0, 1);
+  transition: opacity 300ms var(--ease-out-quart), transform 300ms var(--ease-out-quart);
 }
 .phase-1::-webkit-scrollbar { width: 0; }
 .phase-1.hidden {
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.97);
   pointer-events: none;
 }
 
 /* Header */
 .browse-header {
-  height: 56px;
+  height: 52px;
   padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #FFFFFF;
-  border-bottom: 1px solid #F1F3F4;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -195,28 +259,26 @@ body.embed-mode .phone-screen {
   align-items: center;
   gap: 8px;
 }
-.browse-header-left .material-symbols-outlined {
+.browse-header-left .icon-nav {
   font-size: 24px;
-  color: #5F6368;
+  color: #525252;
 }
 .gemini-badge {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  color: #1A73E8;
+  color: var(--text-2);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 .gemini-star {
-  background: linear-gradient(135deg, #4285F4, #9B72CB, #D96570);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
 }
 .browse-title {
   font-size: 13px;
-  color: #5F6368;
+  color: var(--text-3);
   margin-left: 4px;
 }
 
@@ -224,37 +286,33 @@ body.embed-mode .phone-screen {
 
 /* Summary Card */
 .summary-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 16px;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px 16px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border: 1px solid var(--border);
 }
 .summary-card p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #3C4043;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-2);
 }
 .summary-card p strong {
-  color: #202124;
+  color: var(--text);
 }
 .summary-highlight {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #E8F0FE;
-  color: #1A73E8;
-  font-weight: 500;
-  font-size: 13px;
-  padding: 2px 8px;
-  border-radius: 6px;
+  color: var(--text-3);
+  font-size: 12px;
   margin-top: 8px;
 }
 
 /* Filter Chips Row */
 .filter-chips {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
@@ -262,37 +320,39 @@ body.embed-mode .phone-screen {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 100px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  background: #E6F4EA;
-  color: #1E8E3E;
-  border: 1px solid #C8E6C9;
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
 }
 
 /* Category Tabs */
 .category-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid #E8EAED;
+  border-bottom: 1px solid var(--border);
   margin-bottom: 12px;
 }
 .category-tab {
   flex: 1;
   text-align: center;
   padding: 10px 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: #5F6368;
+  color: var(--text-3);
   border-bottom: 2px solid transparent;
   cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease;
 }
 .category-tab.active {
-  color: #1A73E8;
-  border-bottom-color: #1A73E8;
+  color: var(--text);
+  border-bottom-color: var(--text);
 }
 .category-tab .tab-count {
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   margin-left: 2px;
 }
@@ -308,25 +368,25 @@ body.embed-mode .phone-screen {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #FFFFFF;
-  border-radius: 14px;
+  background: var(--surface);
+  border-radius: 12px;
   padding: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid var(--border);
   cursor: pointer;
-  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+  transition: transform 150ms var(--ease-out-quart);
 }
 .product-card:active {
   transform: scale(0.98);
 }
 @media (hover: hover) and (pointer: fine) {
-  .product-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .product-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 }
 .product-card-img {
-  width: 72px;
-  height: 72px;
-  border-radius: 10px;
+  width: 68px;
+  height: 68px;
+  border-radius: 8px;
   overflow: hidden;
-  background: #F1F3F4;
+  background: var(--bg);
   flex-shrink: 0;
 }
 .product-card-img img {
@@ -340,16 +400,16 @@ body.embed-mode .phone-screen {
   min-width: 0;
 }
 .product-card-brand {
-  font-size: 11px;
-  font-weight: 500;
-  color: #9AA0A6;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
 }
 .product-card-name {
   font-size: 14px;
   font-weight: 600;
-  color: #202124;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -357,21 +417,18 @@ body.embed-mode .phone-screen {
 .product-card-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 2px;
 }
 .product-card-price {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: #202124;
+  color: var(--text);
 }
 .product-card-conf {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #1E8E3E;
-  background: #E6F4EA;
-  padding: 2px 6px;
-  border-radius: 4px;
+  color: var(--text-3);
 }
 .product-card-tags {
   display: flex;
@@ -381,9 +438,9 @@ body.embed-mode .phone-screen {
 }
 .product-card-tag {
   font-size: 10px;
-  color: #5F6368;
-  background: #F1F3F4;
-  padding: 2px 6px;
+  color: var(--text-3);
+  background: var(--surface-2);
+  padding: 2px 5px;
   border-radius: 4px;
 }
 
@@ -407,7 +464,7 @@ body.embed-mode .phone-screen {
 .card-action:active { transform: scale(0.95); }
 .card-action.ca-skip  { background: #FDE7E5; color: #D93025; }
 .card-action.ca-hold  { background: #FEF7E0; color: #E37400; }
-.card-action.ca-keep  { background: #E6F4EA; color: #1E8E3E; }
+.card-action.ca-keep  { background: #ecfdf5; color: #3a6a3a; }
 /* Status badge on card */
 .card-status-badge {
   display: none;
@@ -421,7 +478,7 @@ body.embed-mode .phone-screen {
   width: fit-content;
 }
 .card-status-badge.show { display: inline-flex; }
-.card-status-badge.kept  { background: #E6F4EA; color: #1E8E3E; }
+.card-status-badge.kept  { background: #ecfdf5; color: #3a6a3a; }
 .card-status-badge.held  { background: #FEF7E0; color: #E37400; }
 .card-status-badge.skipped { background: #FDE7E5; color: #D93025; }
 
@@ -439,22 +496,22 @@ body.embed-mode .phone-screen {
   font-weight: 500;
   font-family: inherit;
   color: #FFFFFF;
-  background: #1A73E8;
+  background: #0a0a0a;
   border: none;
   border-radius: 100px;
   cursor: pointer;
   transition: background 150ms ease-out, transform 100ms ease-out, box-shadow 150ms ease-out;
-  box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+  box-shadow: 0 2px 8px rgba(74,106,144,0.3);
 }
 .cta-btn:active {
   transform: scale(0.97);
 }
 @media (hover: hover) and (pointer: fine) {
-  .cta-btn:hover { background: #1765CC; box-shadow: 0 4px 16px rgba(26,115,232,0.4); }
+  .cta-btn:hover { background: #3a5a80; box-shadow: 0 4px 16px rgba(74,106,144,0.4); }
 }
 .cta-hint {
   font-size: 13px;
-  color: #9AA0A6;
+  color: #737373;
   margin-top: 10px;
   line-height: 1.4;
 }
@@ -465,12 +522,12 @@ body.embed-mode .phone-screen {
 .phase-2 {
   position: absolute;
   inset: 0;
-  background: #F8F9FA;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1);
+  transition: opacity 300ms var(--ease-out-quart);
 }
 .phase-2.active {
   opacity: 1;
@@ -484,68 +541,69 @@ body.embed-mode .phone-screen {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 16px 16px 8px;
+  gap: 6px;
+  padding: 10px 16px 2px;
+  background: var(--bg);
 }
 .progress-counter {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  color: #202124;
+  color: var(--text);
   letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
 }
 .progress-counter span {
-  color: #9AA0A6;
+  color: var(--text-3);
   font-weight: 400;
 }
+/* Badges row — plain text, no colored pills */
 .badges-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
 }
 .kept-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 100px;
-  background: #E6F4EA;
-  color: #1E8E3E;
-  font-size: 14px;
+  gap: 4px;
+  font-size: 13px;
   font-weight: 500;
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+  color: var(--keep-ink);
+  transition: transform 200ms var(--ease-out-quart);
+  font-variant-numeric: tabular-nums;
 }
-.kept-badge.bump {
-  transform: scale(1.08);
-}
+.kept-badge.bump { transform: scale(1.06); }
 .hold-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 100px;
-  background: #FEF7E0;
-  color: #E37400;
-  font-size: 14px;
+  gap: 4px;
+  font-size: 13px;
   font-weight: 500;
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+  color: var(--hold-ink);
+  transition: transform 200ms var(--ease-out-quart);
+  font-variant-numeric: tabular-nums;
 }
-.hold-badge.bump {
-  transform: scale(1.08);
-}
+.hold-badge.bump { transform: scale(1.06); }
 .progress-track {
-  width: 200px;
-  height: 4px;
-  background: #E8EAED;
+  width: 180px;
+  height: 3px;
+  background: rgba(0,0,0,0.08);
   border-radius: 2px;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 .progress-fill {
   height: 100%;
-  background: #1A73E8;
+  background: var(--text-2);
   border-radius: 2px;
-  transition: width 0.4s cubic-bezier(0.2, 0, 0, 1);
+  transition: width 400ms var(--ease-out-expo);
   width: 0%;
+}
+
+/* One-hand hint */
+.one-hand-hint {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 500; color: var(--text-3);
 }
 
 /* Card stack area */
@@ -562,48 +620,57 @@ body.embed-mode .phone-screen {
 
 .card-stack {
   position: relative;
-  width: 300px;
-  height: 420px;
+  width: 88%;
+  max-width: 300px;
+  /* Fill available height of .swipe-area minus some breathing room */
+  height: 100%;
+  max-height: 420px;
 }
 
 .swipe-card {
   position: absolute;
   top: 0;
   left: 0;
-  width: 300px;
-  height: 420px;
-  background: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.06);
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
   overflow: hidden;
   cursor: grab;
   touch-action: none;
   will-change: transform;
   transition: none;
+  display: flex;
+  flex-direction: column;
 }
 .swipe-card.behind {
-  transform: scale(0.95) translateY(12px);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  transform: translateY(6px);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
   pointer-events: none;
-  transition: transform 400ms var(--ease-out-expo), box-shadow 400ms var(--ease-out-expo);
+  /* no transition — next card simply appears at rest position, no scale jump */
 }
 .swipe-card.animating {
-  transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1), opacity 0.4s cubic-bezier(0.2, 0, 0, 1);
+  /* fly-off: fast initial burst, soft deceleration */
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
 }
 .swipe-card.springback {
-  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* natural spring-back with subtle overshoot */
+  transition: transform 500ms cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 .card-image {
   width: 100%;
-  height: 50%;
-  background: #F1F3F4;
+  flex: 1;
+  min-height: 120px;
+  background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
+  border-bottom: 1px solid var(--border-soft);
 }
 .card-image img {
   width: 100%;
@@ -613,88 +680,110 @@ body.embed-mode .phone-screen {
 }
 
 .card-body {
-  padding: 12px 18px;
+  padding: 14px 16px 14px;
   position: relative;
-  overflow: hidden;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 .card-product-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #202124;
-  margin-bottom: 3px;
-  padding-right: 52px;
+  color: var(--text);
+  margin-bottom: 4px;
+  padding-right: 50px;
+  line-height: 1.3;
 }
+/* Feature text — primary reading element after name */
 .card-feature {
-  font-size: 13px;
-  color: #5F6368;
-  margin-bottom: 10px;
-  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.55;
+  /* allow 2 lines — more informative than 1 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  margin-bottom: 8px;
 }
+/* Confidence row — minimal: just the number, no bar */
 .card-confidence {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 6px;
+  margin-bottom: 0;
 }
 .conf-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  color: var(--text-3);
   white-space: nowrap;
 }
-.conf-track {
-  flex: 1;
-  height: 6px;
-  background: #E8EAED;
-  border-radius: 3px;
-  overflow: hidden;
-}
-.conf-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s;
-}
+/* Confidence track hidden by default — use JS to show if desired */
+.conf-track { display: none; }
+.conf-fill  { display: none; }
 .card-price {
   position: absolute;
-  top: 12px;
-  right: 18px;
-  font-size: 16px;
+  top: 14px;
+  right: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #202124;
+  color: var(--text);
 }
+/* Shipping info — plain inline text, no colored chip */
+.card-chips {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+.card-chip {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.card-chip.stock { color: var(--keep-ink); }
+.card-chip.ship  { color: var(--text-3); }
 
-/* Drag overlays */
+/* Drag overlays — unified, subtle */
 .card-overlay {
   position: absolute;
   inset: 0;
-  border-radius: 20px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 2px;
+  text-transform: uppercase;
   opacity: 0;
   pointer-events: none;
   will-change: opacity;
-  transition: opacity 0.05s;
+  transition: opacity 40ms linear;
   z-index: 5;
 }
 .card-overlay-keep {
-  background: linear-gradient(90deg, transparent 30%, rgba(30,142,62,0.15));
-  color: #1E8E3E;
+  background: linear-gradient(90deg, transparent 20%, var(--keep-overlay) 80%);
+  color: var(--keep-ink);
+  justify-content: flex-end;
+  padding-right: 24px;
 }
 .card-overlay-skip {
-  background: linear-gradient(-90deg, transparent 30%, rgba(217,48,37,0.15));
-  color: #D93025;
+  background: linear-gradient(-90deg, transparent 20%, var(--skip-overlay) 80%);
+  color: var(--skip-ink);
+  justify-content: flex-start;
+  padding-left: 24px;
 }
 .card-overlay-hold {
-  background: linear-gradient(0deg, rgba(227,116,0,0.18) 0%, transparent 60%);
-  color: #E37400;
+  background: linear-gradient(180deg, transparent 40%, var(--hold-overlay) 100%);
+  color: var(--hold-ink);
+  align-items: flex-end;
+  padding-bottom: 20px;
 }
 
-/* ── Exit button (Phase 2 → Phase 1) ── */
+/* ── Exit button ── */
 .swipe-exit-btn {
   position: absolute;
   top: 12px;
@@ -704,65 +793,71 @@ body.embed-mode .phone-screen {
   gap: 4px;
   padding: 6px 12px 6px 8px;
   border-radius: 100px;
-  border: 1px solid #DADCE0;
-  background: #FFFFFF;
+  border: 1px solid var(--border);
+  background: var(--surface);
   font-size: 12px;
   font-weight: 500;
-  color: #5F6368;
+  color: var(--text-2);
   cursor: pointer;
   z-index: 20;
-  transition: background 0.15s;
+  transition: background 120ms ease;
 }
-.swipe-exit-btn:active { background: #F1F3F4; }
-.swipe-exit-btn .material-symbols-outlined { font-size: 16px; }
+.swipe-exit-btn:active { background: var(--surface-2); }
 
-/* Action buttons — wide pill style */
+/* ── Action zone — minimal text labels ── */
+/* Principle: gestures are primary, tapping is secondary.
+   Labels teach direction. No colored fills. Touch target = 44px min. */
 .swipe-actions {
+  flex: 0 0 auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 8px 16px 12px;
+  align-items: stretch;
+  justify-content: stretch;
+  background: var(--bg);
+  padding: 6px 12px 14px;
+  gap: 0;
+  z-index: 10;
 }
 .action-btn {
   flex: 1;
-  height: 52px;
-  border-radius: 100px;
+  min-height: 48px; /* 44px touch target minimum */
   border: none;
+  background: transparent;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 2px;
   cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
   font-family: inherit;
-  letter-spacing: 0.3px;
-  transition: transform 0.12s, opacity 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 120ms ease;
+  border-radius: 12px;
+}
+.action-btn:active { opacity: 0.5; }
+.action-btn .btn-arrow {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-3);
 }
 .action-btn .btn-label {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
 }
-.action-btn .btn-icon {
-  font-size: 17px;
-}
-.action-btn:active { transform: scale(0.96); opacity: 0.85; }
-.action-btn.skip {
-  background: #FDE7E5;
-  color: #D93025;
-  flex: 1.3;
-}
-.action-btn.hold {
-  background: #FEF7E0;
-  color: #E37400;
-  flex: 0.7;
-}
-.action-btn.keep {
-  background: #E6F4EA;
-  color: #1E8E3E;
-  flex: 1.3;
+/* Skip — muted, not important */
+.action-btn.skip .btn-arrow { color: var(--skip-ink); }
+.action-btn.skip .btn-label { color: var(--skip-ink); }
+/* Hold — warm gray, down direction */
+.action-btn.hold .btn-arrow { color: var(--hold-ink); font-size: 18px; }
+.action-btn.hold .btn-label { color: var(--hold-ink); }
+/* Keep — most prominent */
+.action-btn.keep .btn-arrow { color: var(--keep-ink); }
+.action-btn.keep .btn-label { color: var(--keep-ink); }
+
+/* Thin dividers between actions */
+.action-btn + .action-btn {
+  border-left: 1px solid var(--border);
 }
 
 /* ── Review Tab Pill ── */
@@ -775,7 +870,7 @@ body.embed-mode .phone-screen {
   border-radius: 100px;
   font-size: 12px;
   font-weight: 500;
-  color: #5F6368;
+  color: #525252;
   box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   cursor: pointer;
   z-index: 10;
@@ -796,7 +891,7 @@ body.embed-mode .phone-screen {
   border-radius: 100px;
   font-size: 14px;
   font-weight: 500;
-  color: #1A73E8;
+  color: #4a6a90;
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   cursor: pointer;
   z-index: 20;
@@ -854,7 +949,7 @@ body.embed-mode .phone-screen {
 .detail-handle {
   width: 32px;
   height: 4px;
-  background: #DADCE0;
+  background: rgba(10,10,10,0.12);
   border-radius: 2px;
   margin: 10px auto 0;
 }
@@ -866,13 +961,13 @@ body.embed-mode .phone-screen {
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: #F1F3F4;
+  background: #f4f4f5;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 18px;
-  color: #5F6368;
+  color: #525252;
   z-index: 2;
 }
 .detail-close:active { transform: scale(0.95); }
@@ -883,7 +978,7 @@ body.embed-mode .phone-screen {
 .detail-image {
   width: 100%;
   height: 200px;
-  background: #F1F3F4;
+  background: #f4f4f5;
   border-radius: 14px;
   overflow: hidden;
   display: flex;
@@ -900,13 +995,13 @@ body.embed-mode .phone-screen {
 .detail-name {
   font-size: 20px;
   font-weight: 700;
-  color: #202124;
+  color: #0a0a0a;
   margin-bottom: 4px;
 }
 .detail-price {
   font-size: 24px;
   font-weight: 700;
-  color: #202124;
+  color: #0a0a0a;
   margin-bottom: 14px;
 }
 .detail-confidence {
@@ -918,7 +1013,7 @@ body.embed-mode .phone-screen {
 .detail-conf-track {
   flex: 1;
   height: 8px;
-  background: #E8EAED;
+  background: rgba(10,10,10,0.12);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -935,7 +1030,7 @@ body.embed-mode .phone-screen {
 .detail-section-title {
   font-size: 13px;
   font-weight: 600;
-  color: #5F6368;
+  color: #525252;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -948,17 +1043,17 @@ body.embed-mode .phone-screen {
 }
 .detail-spec {
   font-size: 13px;
-  color: #3C4043;
+  color: #404040;
   line-height: 1.6;
 }
 .detail-spec strong {
-  color: #202124;
+  color: #0a0a0a;
 }
 .detail-review {
   font-size: 13px;
-  color: #3C4043;
+  color: #404040;
   line-height: 1.5;
-  background: #F8F9FA;
+  background: #fafafa;
   border-radius: 10px;
   padding: 10px 14px;
   margin-bottom: 14px;
@@ -978,12 +1073,12 @@ body.embed-mode .phone-screen {
   font-weight: 500;
 }
 .detail-chip.in-stock {
-  background: #E6F4EA;
-  color: #1E8E3E;
+  background: #ecfdf5;
+  color: #3a6a3a;
 }
 .detail-chip.shipping {
-  background: #E8F0FE;
-  color: #1A73E8;
+  background: #e8f0fe;
+  color: #4a6a90;
 }
 
 /* ══════════════════════════════════
@@ -1029,20 +1124,20 @@ body.embed-mode .phone-screen {
 .review-drawer-title {
   font-size: 18px;
   font-weight: 700;
-  color: #202124;
+  color: #0a0a0a;
 }
 .review-drawer-close {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: #F1F3F4;
+  background: #f4f4f5;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 18px;
-  color: #5F6368;
+  color: #525252;
 }
 .review-drawer-close:active { transform: scale(0.95); }
 
@@ -1050,7 +1145,7 @@ body.embed-mode .phone-screen {
   display: flex;
   padding: 12px 16px 0;
   gap: 0;
-  border-bottom: 1px solid #E8EAED;
+  border-bottom: 1px solid #f4f4f5;
   flex-shrink: 0;
 }
 .review-tab {
@@ -1059,14 +1154,14 @@ body.embed-mode .phone-screen {
   padding: 10px 0;
   font-size: 14px;
   font-weight: 500;
-  color: #5F6368;
+  color: #525252;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: color 0.2s, border-color 0.2s;
 }
 .review-tab.active {
-  color: #1A73E8;
-  border-bottom-color: #1A73E8;
+  color: #4a6a90;
+  border-bottom-color: #4a6a90;
 }
 .review-list {
   flex: 1;
@@ -1079,7 +1174,7 @@ body.embed-mode .phone-screen {
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #F1F3F4;
+  border-bottom: 1px solid #f4f4f5;
 }
 .review-item:last-child { border-bottom: none; }
 .review-item-thumb {
@@ -1087,7 +1182,7 @@ body.embed-mode .phone-screen {
   height: 48px;
   border-radius: 10px;
   overflow: hidden;
-  background: #F1F3F4;
+  background: #f4f4f5;
   flex-shrink: 0;
 }
 .review-item-thumb img {
@@ -1102,14 +1197,14 @@ body.embed-mode .phone-screen {
 .review-item-name {
   font-size: 14px;
   font-weight: 600;
-  color: #202124;
+  color: #0a0a0a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .review-item-conf {
   font-size: 12px;
-  color: #5F6368;
+  color: #525252;
 }
 .review-item-actions {
   display: flex;
@@ -1129,8 +1224,8 @@ body.embed-mode .phone-screen {
   transition: background 0.15s;
 }
 .review-action-btn:active { transform: scale(0.97); }
-.review-action-btn.recover { color: #1A73E8; }
-.review-action-btn.move-keep { color: #1E8E3E; }
+.review-action-btn.recover { color: #4a6a90; }
+.review-action-btn.move-keep { color: #3a6a3a; }
 .review-action-btn.delete-perm { color: #D93025; }
 
 .review-empty {
@@ -1139,7 +1234,7 @@ body.embed-mode .phone-screen {
   justify-content: center;
   height: 120px;
   font-size: 14px;
-  color: #9AA0A6;
+  color: #737373;
 }
 
 /* ══════════════════════════════════
@@ -1148,7 +1243,7 @@ body.embed-mode .phone-screen {
 .phase-3 {
   position: absolute;
   inset: 0;
-  background: #F8F9FA;
+  background: #fafafa;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1168,15 +1263,13 @@ body.embed-mode .phone-screen {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #E6F4EA;
+  background: #ecfdf5;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-.done-check .material-symbols-outlined {
   font-size: 42px;
-  color: #1E8E3E;
+  color: #3a6a3a;
 }
 @keyframes scaleIn {
   from { transform: scale(0.95); opacity: 0; }
@@ -1186,12 +1279,12 @@ body.embed-mode .phone-screen {
 .done-title {
   font-size: 26px;
   font-weight: 700;
-  color: #202124;
+  color: #0a0a0a;
   animation: fadeUp 0.5s 0.2s cubic-bezier(0.2, 0, 0, 1) both;
 }
 .done-subtitle {
   font-size: 15px;
-  color: #5F6368;
+  color: #525252;
   text-align: center;
   line-height: 1.5;
   animation: fadeUp 0.5s 0.3s cubic-bezier(0.2, 0, 0, 1) both;
@@ -1216,7 +1309,7 @@ body.embed-mode .phone-screen {
   border: 2px solid #FFFFFF;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   margin-left: -12px;
-  background: #F1F3F4;
+  background: #f4f4f5;
 }
 .done-fan-item:first-child { margin-left: 0; }
 .done-fan-item img {
@@ -1234,11 +1327,11 @@ body.embed-mode .phone-screen {
   font-weight: 500;
   font-family: inherit;
   color: #FFFFFF;
-  background: #1A73E8;
+  background: #0a0a0a;
   border: none;
   border-radius: 100px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+  box-shadow: 0 2px 8px rgba(74,106,144,0.3);
   animation: fadeUp 0.5s 0.5s cubic-bezier(0.2, 0, 0, 1) both;
   transition: background 0.15s;
 }
@@ -1246,7 +1339,7 @@ body.embed-mode .phone-screen {
 
 .done-link {
   font-size: 14px;
-  color: #1A73E8;
+  color: #4a6a90;
   text-decoration: none;
   cursor: pointer;
   animation: fadeUp 0.5s 0.6s cubic-bezier(0.2, 0, 0, 1) both;
@@ -1268,26 +1361,17 @@ body.embed-mode .phone-screen {
 
 @media (hover: hover) and (pointer: fine) {
   .cta-btn:hover {
-    background: #1557B0;
-    box-shadow: 0 4px 16px rgba(26,115,232,0.4);
+    background: #2a2a2e;
   }
-  .action-btn.skip:hover {
-    background: #FDE7E5;
-    box-shadow: 0 4px 12px rgba(217,48,37,0.2);
-  }
-  .action-btn.hold:hover {
-    background: #FEF7E0;
-    box-shadow: 0 4px 12px rgba(227,116,0,0.2);
-  }
-  .action-btn.keep:hover {
-    background: #E6F4EA;
-    box-shadow: 0 4px 12px rgba(30,142,62,0.2);
-  }
-  .review-tab-pill:hover { background: #F1F3F4; }
-  .review-action-btn.recover:hover { background: #E8F0FE; }
-  .review-action-btn.move-keep:hover { background: #E6F4EA; }
-  .review-action-btn.delete-perm:hover { background: #FDE7E5; }
-  .done-cta:hover { background: #1557B0; }
+  /* action-btn hover: slight background tint */
+  .action-btn.skip:hover  { background: rgba(161,161,170,0.08); }
+  .action-btn.hold:hover  { background: rgba(120,113,108,0.08); }
+  .action-btn.keep:hover  { background: rgba(21,128,61,0.07); }
+  .review-tab-pill:hover { background: var(--surface-2); }
+  .review-action-btn.recover:hover    { background: var(--surface-2); }
+  .review-action-btn.move-keep:hover  { background: var(--surface-2); }
+  .review-action-btn.delete-perm:hover { background: var(--surface-2); }
+  .done-cta:hover { background: #2a2a2e; }
   .done-link:hover { text-decoration: underline; }
 }
 
@@ -1297,6 +1381,31 @@ body.embed-mode .phone-screen {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* intro-grid-overlay removed — UI now starts directly from Phase 1 list view */
+
+/* ── Manual mode indicator ── */
+.manual-indicator {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #a1a1aa;
+  z-index: 20;
+}
+.manual-indicator.visible {
+  display: flex;
+}
+.manual-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a1a1aa;
 }
 
 /* ── Scene Badge ── */
@@ -1309,14 +1418,12 @@ body.embed-mode .phone-screen {
   font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
   text-transform: uppercase; z-index: 200; pointer-events: none;
 }
-.scene-badge--02 { background: #E6F4EA; color: #1E8E3E; border: 1px solid #B2DFDB; }
+.scene-badge--02 { background: #ecfdf5; color: #3a6a3a; border: 1px solid #B2DFDB; }
 
 /* ── One-hand hint ── */
 .one-hand-hint {
   display: flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 500; color: #9AA0A6;
-  padding: 2px 10px; border-radius: 9999px;
-  background: #F1F3F4;
+  font-size: 10px; font-weight: 500; color: var(--text-3);
 }
 </style>
 </head>
@@ -1329,42 +1436,59 @@ body.embed-mode .phone-screen {
     <div class="status-bar">
       <span>9:41</span>
       <div class="status-bar-right">
-        <span class="material-symbols-outlined">signal_cellular_alt</span>
-        <span class="material-symbols-outlined">wifi</span>
-        <span class="material-symbols-outlined">battery_full</span>
+        <svg width="15" height="12" viewBox="0 0 15 12" fill="#0a0a0a">
+          <rect x="0" y="8" width="2.5" height="4" rx="0.5"/>
+          <rect x="3.5" y="5.5" width="2.5" height="6.5" rx="0.5"/>
+          <rect x="7" y="3" width="2.5" height="9" rx="0.5"/>
+          <rect x="10.5" y="0.5" width="2.5" height="11.5" rx="0.5"/>
+        </svg>
+        <svg width="17" height="13" viewBox="0 0 24 18" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round">
+          <path d="M1.5 7C5.8 2.7 12 1 12 1S18.2 2.7 22.5 7"/>
+          <path d="M5 10.5C8 7.5 12 6.5 12 6.5S16 7.5 19 10.5"/>
+          <path d="M8.5 14C10 12.5 12 12 12 12S14 12.5 15.5 14"/>
+          <circle cx="12" cy="17" r="1.5" fill="#0a0a0a" stroke="none"/>
+        </svg>
+        <svg width="22" height="12" viewBox="0 0 28 14" fill="#0a0a0a">
+          <rect x="0.75" y="0.75" width="22.5" height="12.5" rx="2.25" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+          <rect x="23.5" y="3.5" width="3" height="7" rx="1.5"/>
+          <rect x="2.5" y="2.5" width="18" height="9" rx="1.5"/>
+        </svg>
       </div>
     </div>
 
     <div class="phase-container">
+
+      <!-- intro-grid-overlay removed — Phase 1 list view is the starting point -->
+
       <!-- ═══ PHASE 1: Full Browse ═══ -->
       <div class="phase-1" id="phase1">
         <div class="browse-header">
           <div class="browse-header-left">
-            <span class="material-symbols-outlined">arrow_back</span>
+            <span class="icon-nav">←</span>
             <div class="gemini-badge">
               <span class="gemini-star">&#10022;</span> Gemini
               <span class="browse-title">&middot; Marcus's Winter Shoes</span>
             </div>
           </div>
-          <span class="material-symbols-outlined" style="font-size:24px;color:#5F6368;">more_vert</span>
+          <span class="icon-nav" style="font-size:24px;color:#525252;">·</span>
         </div>
 
         <div class="browse-content">
           <div class="summary-card">
-            <div style="font-size:11px;font-weight:600;color:#1A73E8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">
-              <span class="material-symbols-outlined" style="font-size:14px">auto_awesome</span>
+            <div style="font-size:11px;font-weight:600;color:#4a6a90;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">
+              ✦
               AI narrowed 847 → 20 candidates
             </div>
             <p>Gemini filtered by waterproof, black, no fluffy lining, size US 3Y. <strong>20 candidates</strong> ready — swipe to narrow down to your shortlist.</p>
             <div class="summary-highlight">
-              <span class="material-symbols-outlined" style="font-size:16px;">swipe</span>
+              <span class="icon-nav">→</span>
               One hand · on the train · 3 min review
             </div>
           </div>
 
           <button class="cta-btn" id="startSwipeBtnTop" style="width:100%;margin-bottom:12px;" onclick="document.getElementById('startSwipeBtn').click()">
             Start Quick Review
-            <span class="material-symbols-outlined" style="font-size:20px;">swipe</span>
+            <span class="icon-nav">→</span>
           </button>
 
           <div class="filter-chips">
@@ -1388,7 +1512,7 @@ body.embed-mode .phone-screen {
           <div class="cta-section">
             <button class="cta-btn" id="startSwipeBtn">
               Start Quick Review
-              <span class="material-symbols-outlined" style="font-size:20px;">swipe</span>
+              <span class="icon-nav">→</span>
             </button>
             <div class="cta-hint">Swipe through 20 shoes on the train — keep, hold, or skip</div>
           </div>
@@ -1397,23 +1521,28 @@ body.embed-mode .phone-screen {
 
       <!-- ═══ PHASE 2: Swipe Mode ═══ -->
       <div class="phase-2" id="phase2">
+        <!-- Manual mode indicator -->
+        <div class="manual-indicator" id="manualIndicator">
+          <div class="manual-dot"></div>
+          Manual
+        </div>
         <!-- Exit → back to list, preserving state -->
         <button class="swipe-exit-btn" id="exitSwipeBtn">
-          <span class="material-symbols-outlined">list</span>
+          <span class="icon-nav">‹</span>
           List view
         </button>
 
         <div class="swipe-top">
           <div class="progress-counter">
-            <span id="currentIndex">1</span> <span style="color:#9AA0A6;font-weight:400;">of <span id="totalDisplay">20</span></span>
+            <span id="currentIndex">1</span> <span style="color:#737373;font-weight:400;">of <span id="totalDisplay">20</span></span>
           </div>
           <div class="badges-row">
             <div class="kept-badge" id="keptBadge">
-              <span class="material-symbols-outlined" style="font-size:18px;">favorite</span>
+              ♥
               Kept: <strong id="keptCount">0</strong>
             </div>
             <div class="hold-badge" id="holdBadge">
-              <span class="material-symbols-outlined" style="font-size:18px;">pause_circle</span>
+              ⏸
               On hold: <strong id="holdCount">0</strong>
             </div>
           </div>
@@ -1421,7 +1550,7 @@ body.embed-mode .phone-screen {
             <div class="progress-fill" id="progressFill"></div>
           </div>
           <div class="one-hand-hint">
-            <span class="material-symbols-outlined" style="font-size:14px">back_hand</span>
+            ✋
             One-handed mode · holding strap
           </div>
         </div>
@@ -1435,16 +1564,17 @@ body.embed-mode .phone-screen {
         </div>
 
         <div class="swipe-actions">
-          <button class="action-btn skip" id="btnSkip" aria-label="Skip">
-            <span class="btn-icon">&#8592;</span>
-            <span class="btn-label">SKIP</span>
+          <button class="action-btn skip" id="btnSkip" aria-label="Skip — swipe left">
+            <span class="btn-arrow">←</span>
+            <span class="btn-label">Skip</span>
           </button>
-          <button class="action-btn hold" id="btnHold" aria-label="Hold">
-            <span class="btn-label">HOLD</span>
+          <button class="action-btn hold" id="btnHold" aria-label="Hold — swipe down">
+            <span class="btn-arrow">↓</span>
+            <span class="btn-label">Hold</span>
           </button>
-          <button class="action-btn keep" id="btnKeep" aria-label="Keep">
-            <span class="btn-label">KEEP</span>
-            <span class="btn-icon">&#8594;</span>
+          <button class="action-btn keep" id="btnKeep" aria-label="Keep — swipe right">
+            <span class="btn-arrow">→</span>
+            <span class="btn-label">Keep</span>
           </button>
         </div>
 
@@ -1477,17 +1607,17 @@ body.embed-mode .phone-screen {
 
       <!-- ═══ PHASE 3: Done ═══ -->
       <div class="phase-3" id="phase3">
-        <div class="done-check">
-          <span class="material-symbols-outlined">check</span>
-        </div>
-        <div class="done-title">All done!</div>
+        <div class="done-check">✓</div>
+        <div class="done-title">Shortlist saved.</div>
         <div class="done-subtitle" id="doneSummary">Reviewing 20 candidates...</div>
         <div class="done-fan" id="doneFan"></div>
-        <button class="done-cta">
-          Review at home on TV
-          <span class="material-symbols-outlined" style="font-size:18px;">tv</span>
+        <!-- Context: on the train, one-handed. TV review happens later at home.
+             Two appropriate options: lock in the shortlist, or return to full browse. -->
+        <button class="done-cta" onclick="resetDemo()" aria-label="Keep shortlist and return to full browse">
+          Keep shortlist
+          <span class="icon-nav">✓</span>
         </button>
-        <a class="done-link" onclick="resetDemo()">Continue browsing</a>
+        <a class="done-link" onclick="resetDemo()">Back to full view</a>
       </div>
     </div>
 
@@ -1505,7 +1635,7 @@ const shoes = [
     brand: 'The North Face',
     feature: 'Waterproof · Flexible sole · PE-compatible · 312g',
     confidence: 94,
-    color: '#1E8E3E',
+    color: '#3a6a3a',
     price: '$69',
     img: '../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp',
     specs: { material: 'Ripstop + FUTURELIGHT membrane', weight: '312g', waterproof: 'Yes (FUTURELIGHT)', sole: 'Rubber lug' },
@@ -1519,7 +1649,7 @@ const shoes = [
     brand: 'Nike',
     feature: 'Full leather · Waterproof · Smooth lining · 380g',
     confidence: 91,
-    color: '#1E8E3E',
+    color: '#3a6a3a',
     price: '$120',
     img: '../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif',
     specs: { material: 'Full-grain leather', weight: '380g', waterproof: 'Yes', sole: 'Rubber lug' },
@@ -1533,7 +1663,7 @@ const shoes = [
     brand: 'On',
     feature: 'CloudTec sole · Waterproof · Breathable · 340g',
     confidence: 88,
-    color: '#1A73E8',
+    color: '#4a6a90',
     price: '$190',
     img: '../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif',
     specs: { material: 'Engineered mesh + waterproof shell', weight: '340g', waterproof: 'Yes', sole: 'Missiongrip rubber' },
@@ -1547,7 +1677,7 @@ const shoes = [
     brand: 'Puma',
     feature: 'Water-resistant · Cushioned · Athletic sole · 295g',
     confidence: 85,
-    color: '#1A73E8',
+    color: '#4a6a90',
     price: '$100',
     img: '../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png',
     specs: { material: 'Synthetic mesh + PU coating', weight: '295g', waterproof: 'Water-resistant', sole: 'RS cushion rubber' },
@@ -1561,7 +1691,7 @@ const shoes = [
     brand: 'Salomon',
     feature: 'Contagrip sole · Water-resistant · Lightweight · 290g',
     confidence: 82,
-    color: '#1A73E8',
+    color: '#4a6a90',
     price: '$75',
     img: '../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp',
     specs: { material: 'Synthetic mesh', weight: '290g', waterproof: 'Water-resistant', sole: 'Contagrip MA' },
@@ -1575,7 +1705,7 @@ const shoes = [
     brand: 'Adidas',
     feature: 'Climaproof · Leather upper · Sturdy · 350g',
     confidence: 80,
-    color: '#1A73E8',
+    color: '#4a6a90',
     price: '$85',
     img: '../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif',
     specs: { material: 'Leather + Climaproof', weight: '350g', waterproof: 'Yes (Climaproof)', sole: 'Traxion rubber' },
@@ -1674,7 +1804,7 @@ const shoes = [
     brand: 'Keen',
     feature: 'Waterproof · Lightweight · Sporty · 283g',
     confidence: 59,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$75',
     img: '../../projects/project-03/image-set03/product/NG-Salmon/PNG-2000px-max-72dpi.webp',
     specs: { material: 'Performance mesh + KEEN.DRY', weight: '283g', waterproof: 'Yes', sole: 'Non-marking rubber' },
@@ -1688,7 +1818,7 @@ const shoes = [
     brand: 'Merrell',
     feature: 'Waterproof · Durable · Flex · 330g',
     confidence: 57,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$65',
     img: '../../projects/project-03/image-set03/product/NG-Adidas/Terrex_Anylander_Leather_Mid_Climaproof_Hiking_Shoes_Black_KH8875_01_00_standard.avif',
     specs: { material: 'Synthetic + bellows tongue', weight: '330g', waterproof: 'Yes', sole: 'Merrell rubber' },
@@ -1702,7 +1832,7 @@ const shoes = [
     brand: 'FitFlop',
     feature: 'GORE-TEX · Knit · Urban · 305g',
     confidence: 54,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$170',
     img: '../../projects/project-03/image-set03/product/NG-Vans/Sk8Hi-GORETEX-Insulated-Shoe-VANS-HERO.avif',
     specs: { material: 'Knit + GORE-TEX', weight: '305g', waterproof: 'Yes (GTX)', sole: 'Dynamicush midsole' },
@@ -1716,7 +1846,7 @@ const shoes = [
     brand: 'Merrell',
     feature: 'Water-resistant · Trail · Breathable · 298g',
     confidence: 51,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$90',
     img: '../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp',
     specs: { material: 'Recycled mesh + TPU overlay', weight: '298g', waterproof: 'Water-resistant', sole: 'Vibram TC5+' },
@@ -1730,7 +1860,7 @@ const shoes = [
     brand: 'Keen',
     feature: 'Waterproof · Wide fit · Stable · 355g',
     confidence: 48,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$85',
     img: '../../projects/project-03/image-set03/product/Ecco/824314-51094-front_pair_eCom.avif',
     specs: { material: 'Leather + mesh + KEEN.DRY', weight: '355g', waterproof: 'Yes', sole: 'Non-marking rubber' },
@@ -1744,7 +1874,7 @@ const shoes = [
     brand: 'Columbia',
     feature: 'Waterproof · Omni-Heat · Warm · 395g',
     confidence: 45,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$70',
     img: '../../projects/project-03/image-set03/product/Nike/NIKE+SFB+6_+NSW+LEATHER.avif',
     specs: { material: 'Synthetic + Omni-Tech', weight: '395g', waterproof: 'Yes', sole: 'Omni-Grip rubber' },
@@ -1758,7 +1888,7 @@ const shoes = [
     brand: 'The North Face',
     feature: 'Water-resistant · ThermoBall · Lace · 370g',
     confidence: 42,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$95',
     img: '../../projects/project-03/image-set03/product/On/3944a9b878177e6590b74b7172c353449604e1a1.avif',
     specs: { material: 'Synthetic + ThermoBall insulation', weight: '370g', waterproof: 'Water-resistant', sole: 'TNF Winter Grip' },
@@ -1772,7 +1902,7 @@ const shoes = [
     brand: 'Timberland',
     feature: 'Waterproof · Zip · Leather · 410g',
     confidence: 40,
-    color: '#9AA0A6',
+    color: '#737373',
     price: '$90',
     img: '../../projects/project-03/image-set03/product/Puma/Screenshot 2026-03-27 at 22.16.34.png',
     specs: { material: 'Leather + ReBOTL fabric', weight: '410g', waterproof: 'Yes', sole: 'Rubber lug' },
@@ -1923,13 +2053,14 @@ function createCard(idx, isBehind) {
       <img src="${shoe.img}" alt="${shoe.name}" draggable="false">
     </div>
     <div class="card-body">
-      <div class="card-product-name" style="font-size:15px;">${shoe.brand} <span style="font-weight:400;color:#5F6368;">·</span> ${shoe.name}</div>
+      <div class="card-product-name">${shoe.brand} <span style="font-weight:400;opacity:0.4">·</span> ${shoe.name}</div>
       <div class="card-feature">${shoe.feature}</div>
       <div class="card-confidence">
-        <span class="conf-label" style="color:${shoe.color}">${shoe.confidence}%</span>
-        <div class="conf-track">
-          <div class="conf-fill" style="width:${shoe.confidence}%;background:${shoe.color}"></div>
-        </div>
+        <span class="conf-label">${shoe.confidence}%</span>
+      </div>
+      <div class="card-chips">
+        <span class="card-chip stock">✓ In stock</span>
+        <span class="card-chip ship">${shoe.shipping.replace('Arrives ', '')}</span>
       </div>
       <div class="card-price">${shoe.price}</div>
     </div>
@@ -1964,7 +2095,7 @@ function openDetail(shoeIdx) {
     <div class="detail-image">
       <img src="${shoe.img}" alt="${shoe.name}">
     </div>
-    <div style="font-size:13px;font-weight:500;color:#9AA0A6;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:2px;">${shoe.brand}</div>
+    <div style="font-size:13px;font-weight:500;color:#737373;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:2px;">${shoe.brand}</div>
     <div class="detail-name">${shoe.name}</div>
     <div class="detail-price">${shoe.price}</div>
     <div class="detail-confidence">
@@ -2208,7 +2339,7 @@ undoPill.addEventListener('click', () => {
 
 // ── Drag Logic ──
 function attachDrag(card) {
-  let startX = 0, startY = 0, dx = 0, dy = 0, isDragging = false, totalMovement = 0;
+  let startX = 0, startY = 0, dx = 0, dy = 0, isDragging = false, totalMovement = 0, rafId = null;
   const threshold = 100;
   const overlayKeep = card.querySelector('.card-overlay-keep');
   const overlaySkip = card.querySelector('.card-overlay-skip');
@@ -2235,42 +2366,48 @@ function attachDrag(card) {
     dy = pt.clientY - startY;
     totalMovement = Math.abs(dx) + Math.abs(dy);
 
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
+    // RAF-buffer: only write to DOM once per animation frame
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
 
-    // Determine dominant direction
-    if (absX >= absY) {
-      // Horizontal drag
-      const rotation = dx * 0.08;
-      const opacity = Math.min(absX / threshold, 1);
-      card.style.transform = `translateX(${dx}px) rotate(${rotation}deg)`;
-      overlayHold.style.opacity = 0;
-      if (dx > 0) {
-        overlayKeep.style.opacity = opacity;
+      // Determine dominant direction
+      if (absX >= absY) {
+        // Horizontal drag
+        const rotation = dx * 0.06; // slightly less rotation = feels lighter
+        const opacity = Math.min(absX / threshold, 1);
+        card.style.transform = `translateX(${dx}px) rotate(${rotation}deg)`;
+        overlayHold.style.opacity = 0;
+        if (dx > 0) {
+          overlayKeep.style.opacity = opacity;
+          overlaySkip.style.opacity = 0;
+        } else {
+          overlaySkip.style.opacity = opacity;
+          overlayKeep.style.opacity = 0;
+        }
+      } else if (dy > 0) {
+        // Downward drag = HOLD
+        const opacity = Math.min(dy / threshold, 1);
+        card.style.transform = `translateY(${dy}px)`;
+        overlayHold.style.opacity = opacity;
+        overlayKeep.style.opacity = 0;
         overlaySkip.style.opacity = 0;
       } else {
-        overlaySkip.style.opacity = opacity;
+        // Upward drag — resist with 0.2 factor
+        card.style.transform = `translateY(${dy * 0.2}px)`;
+        overlayHold.style.opacity = 0;
         overlayKeep.style.opacity = 0;
+        overlaySkip.style.opacity = 0;
       }
-    } else if (dy > 0) {
-      // Downward drag = HOLD
-      const opacity = Math.min(dy / threshold, 1);
-      card.style.transform = `translateY(${dy}px)`;
-      overlayHold.style.opacity = opacity;
-      overlayKeep.style.opacity = 0;
-      overlaySkip.style.opacity = 0;
-    } else {
-      // Upward drag — ignore / minimal
-      card.style.transform = `translateY(${dy * 0.3}px)`;
-      overlayHold.style.opacity = 0;
-      overlayKeep.style.opacity = 0;
-      overlaySkip.style.opacity = 0;
-    }
-  }
+    }); // end RAF
+  } // end onMove
 
   function onEnd() {
     if (!isDragging) return;
     isDragging = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     card.style.cursor = 'grab';
 
     // Tap detection: total movement < 10px = TAP
@@ -2403,7 +2540,7 @@ function showDone() {
   /* phone stays upright */
 
   setTimeout(() => {
-    document.getElementById('doneSummary').textContent = `${keptItems.length} saved \u00b7 ${holdItems.length} on hold \u00b7 ${skippedItems.length} removed from ${TOTAL} candidates`;
+    document.getElementById('doneSummary').textContent = `${keptItems.length} saved · ${holdItems.length} on hold · ${skippedItems.length} removed from ${TOTAL} candidates`;
 
     const fan = document.getElementById('doneFan');
     fan.innerHTML = '';
@@ -2416,6 +2553,23 @@ function showDone() {
 
     phase3.classList.add('active');
     spawnConfetti();
+
+    // ?loop=1 → auto-reset after 2.4s so the demo loops continuously in portfolio
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('loop') === '1') {
+      setTimeout(() => {
+        phase3.classList.remove('active');
+        currentIdx = 0;
+        keptItems = [];
+        holdItems = [];
+        skippedItems = [];
+        lastAction = null;
+        recoveredQueue = [];
+        updateUI();
+        phase2.classList.add('active');
+        buildCardStack();
+      }, 2400);
+    }
   }, 300);
 }
 
@@ -2461,6 +2615,23 @@ function resetDemo() {
   }
 })();
 
+// ── URL param: ?noframe=1 → canonical content-only mode (spec) ──
+if (new URLSearchParams(location.search).get('noframe') === '1') {
+  document.body.classList.add('noframe');
+}
+
+// ── URL param: ?compact=1 → zoom content to fit smaller iframe viewport ──
+// Used when embedding in p3-scroll.html where the device frame is 340px wide.
+// screen area ≈ 340 × 0.9126 = 310px; design width = 390px → scale ≈ 0.795
+(function() {
+  const p = new URLSearchParams(location.search);
+  if (p.get('compact') === '1') {
+    const zoom = parseFloat(p.get('zoom') || '0.795');
+    document.documentElement.style.setProperty('--compact-zoom', zoom);
+    document.body.classList.add('compact');
+  }
+})();
+
 // ── URL param: ?phase=3 → jump directly to Done screen ──
 (function() {
   const params = new URLSearchParams(window.location.search);
@@ -2481,6 +2652,98 @@ function resetDemo() {
     });
     phase3.classList.add('active');
   }
+})();
+
+// ══════════════════════════════════════════════════════
+// AUTO-CYCLE (intro grid overlay removed)
+// ══════════════════════════════════════════════════════
+(function() {
+  // introGridOverlay removed — auto-cycle starts directly from Phase 2
+  const manualIndicator = document.getElementById('manualIndicator');
+
+  // Auto-cycle sequence: action per card position (loops over 5)
+  const autoCycleSequence = ['skip', 'hold', 'skip', 'keep', 'skip'];
+  const AUTO_CARD_INTERVAL = 2200;   // ms per card in auto mode
+  const MANUAL_RESUME_DELAY = 4000;  // ms of inactivity before resuming auto
+
+  let autoTimer = null;
+  let resumeTimer = null;
+  let isManual = false;
+  let autoCyclePos = 0;   // which step in the sequence we're on
+  let introComplete = false;
+
+  function getTopCard() {
+    return document.querySelector('#cardStack .swipe-card:not(.behind)');
+  }
+
+  function triggerAutoCycle() {
+    if (isManual || !introComplete) return;
+    const action = autoCycleSequence[autoCyclePos % autoCycleSequence.length];
+    autoCyclePos++;
+    const top = getTopCard();
+    if (top && !detailOpen && !reviewDrawerOpen) {
+      flyOff(top, action);
+    }
+  }
+
+  function scheduleNextAuto() {
+    clearTimeout(autoTimer);
+    if (!isManual && introComplete) {
+      autoTimer = setTimeout(() => {
+        triggerAutoCycle();
+        scheduleNextAuto();
+      }, AUTO_CARD_INTERVAL);
+    }
+  }
+
+  function enterManualMode() {
+    if (!introComplete) return;
+    isManual = true;
+    manualIndicator.classList.add('visible');
+    clearTimeout(autoTimer);
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(resumeAutoMode, MANUAL_RESUME_DELAY);
+  }
+
+  function resumeAutoMode() {
+    isManual = false;
+    manualIndicator.classList.remove('visible');
+    scheduleNextAuto();
+  }
+
+  // Intercept manual button clicks to pause auto-cycle
+  ['btnSkip', 'btnHold', 'btnKeep'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        enterManualMode();
+      }, true); // capture phase so it fires before the existing handlers
+    }
+  });
+
+  // ── Step 1: Dismiss intro after 1.8s, then start swipe mode + auto-cycle ──
+  function startIntroSequence() {
+    // intro-grid-overlay removed; we now start directly from Phase 1 → Phase 2
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('phase')) return;
+
+    const loopMode = params.get('loop') === '1';
+    // In loop/embed mode: skip Phase 1 entirely, go straight to swipe
+    // In standalone mode: show Phase 1 briefly (500ms) so context is visible
+    const phase1Delay = loopMode ? 0 : 500;
+
+    setTimeout(() => {
+      phase1.classList.add('hidden');
+      setTimeout(() => {
+        phase2.classList.add('active');
+        buildCardStack();
+        introComplete = true;
+        setTimeout(scheduleNextAuto, loopMode ? 400 : 600);
+      }, 200);
+    }, phase1Delay);
+  }
+
+  startIntroSequence();
 })();
 </script>
 </body>

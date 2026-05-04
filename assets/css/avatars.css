@@ -1,0 +1,152 @@
+/* ═══════════════════════════════════════════════════════════
+   P1-v2 — Centralized Avatar System
+   Single source of truth for all family member avatars.
+   Update here to propagate across all UI screens.
+
+   USAGE:
+     <link rel="stylesheet" href="_avatars.css">
+     <span class="av av--md av--mai">M</span>
+
+   Structure:
+     .av            — base (circle, centered, flex)
+     .av--{size}    — sm / md / lg / xl
+     .av--{member}  — mai / kiran / aoi / leo / sota (P1)
+                    — takeshi / sarah / kai / mia     (P2)
+
+   To swap gradient initials for photos later:
+     just add `background-image: url(...)` to the member class;
+     the initial <span> text becomes the fallback (hide via CSS if needed).
+   ═══════════════════════════════════════════════════════════ */
+
+.av {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #ffffff;
+  font-family: 'Geist', 'Geist Sans', -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+  letter-spacing: 0;
+  background-color: #e5e5e5;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* If you wrap an <img> inside, it covers the gradient */
+.av > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── SIZES ── */
+.av--xs { width: 20px; height: 20px; font-size: 9px;  }
+.av--sm { width: 24px; height: 24px; font-size: 10px; }
+.av--md { width: 32px; height: 32px; font-size: 12px; }
+.av--lg { width: 40px; height: 40px; font-size: 14px; }
+.av--xl { width: 56px; height: 56px; font-size: 18px; }
+.av--2xl{ width: 72px; height: 72px; font-size: 22px; }
+
+/* ── FAMILY MEMBERS (source of truth) ──
+   Photo avatars generated Apr 22 2026 via kie.ai (nano-banana-2).
+   Fallback: color: transparent hides the initial letter when photo loads.
+   Source prompts: /_Gem_instruction_for_Image/avatars/*.json
+   ── */
+
+/* P1 — The Living Home family (Mai, Kiran, Aoi, Leo, Sota) */
+.av--mai   { background-image: url('../img/avatars/mai.png');   color: transparent; background-color: #d8cfc2; }
+.av--kiran { background-image: url('../img/avatars/kiran.png'); color: transparent; background-color: #b8c6d4; }
+.av--aoi   { background-image: url('../img/avatars/aoi.png');   color: transparent; background-color: #d9d4cc; }
+.av--leo   { background-image: url('../img/avatars/leo.png');   color: transparent; background-color: #d8d0c3; }
+.av--sota  { background-image: url('../img/avatars/sota.png');  color: transparent; background-color: #c9cec0; }
+
+/* P2 — The Family Trip family (Takeshi, Sarah, Kai, Mia) — no name collisions with P1 */
+.av--takeshi { background-image: url('../img/avatars/takeshi.png'); color: transparent; background-color: #c9c0b2; }
+.av--sarah   { background-image: url('../img/avatars/sarah.png');   color: transparent; background-color: #e0d4c4; }
+.av--kai     { background-image: url('../img/avatars/kai.png');     color: transparent; background-color: #c4cfd8; }
+.av--mia     { background-image: url('../img/avatars/mia.png');     color: transparent; background-color: #e2cfd4; }
+
+/* Optional: render the gradient initial instead of the photo
+   (useful inside dark surfaces or when a unified look is preferred).
+   Usage: <span class="av av--md av--mai av--initial">M</span> */
+/* P1 family initials */
+.av--initial.av--mai   { background-image: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #fff; }
+.av--initial.av--kiran { background-image: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: #fff; }
+.av--initial.av--aoi   { background-image: linear-gradient(135deg, #ec4899 0%, #a855f7 100%); color: #fff; }
+.av--initial.av--leo   { background-image: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; }
+.av--initial.av--sota  { background-image: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: #fff; }
+
+/* P2 family initials */
+.av--initial.av--takeshi { background-image: linear-gradient(135deg, #64748b 0%, #334155 100%); color: #fff; }
+.av--initial.av--sarah   { background-image: linear-gradient(135deg, #f472b6 0%, #db2777 100%); color: #fff; }
+.av--initial.av--kai     { background-image: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: #fff; }
+.av--initial.av--mia     { background-image: linear-gradient(135deg, #c084fc 0%, #9333ea 100%); color: #fff; }
+
+/* ── MODIFIERS ── */
+.av--ring { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 0 2px #ffffff, 0 0 0 3px rgba(0, 0, 0, 0.08); }
+.av--soft { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04); opacity: 0.9; }
+
+/* ── NAME + ROLE LABEL PATTERN ──
+   Use everywhere a family member name is shown, so the reader can
+   always place "Mai" as the mom, "Kiran" as the dad, etc., without
+   having to remember names.
+
+   USAGE:
+     <span class="av-name">
+       <span class="av-name__main">Mai</span>
+       <span class="av-name__role">mom · 36</span>
+     </span>
+   ─ */
+.av-name {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.1;
+}
+.av-name__main {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #1a1816);
+  letter-spacing: -0.1px;
+}
+.av-name__role {
+  font-family: var(--font-mono, 'Geist Mono', ui-monospace, monospace);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-3, #9a918a);
+  letter-spacing: 0.6px;
+  text-transform: lowercase;
+}
+
+/* Inline chip variant — avatar + name side by side */
+.av-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── MEMBER META (for code authors; reference values) ──
+   P1 — The Living Home:
+   Mai    — she/her   — 36 — Japanese (Okinawa)
+   Kiran  — he/him    — 38 — Norwegian × Indian
+   Aoi    — they/them — 15 — mixed heritage
+   Leo    — he/him    —  9 — mixed heritage
+   Sota   — he/him    —  6 — mixed heritage (相多)
+
+   P2 — The Family Trip (Nakamura-Andersens):
+   Takeshi — he/him   — 40 — Japanese (father, from Kyoto)
+   Sarah   — she/her  — 38 — American (mother, white)
+   Kai     — he/him   — 12 — mixed heritage (son)
+   Mia     — she/her  —  9 — mixed heritage (daughter)
+   ─────────────────────────────────────────────── */

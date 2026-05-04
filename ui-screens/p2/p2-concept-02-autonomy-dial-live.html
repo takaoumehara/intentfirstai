@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2 Concept 02 — Autonomy Dial live downgrade</title>
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/bts-frame.css">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: transparent;
+    min-height: 100vh;
+    padding: 24px;
+    color: #f1ecdf;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  .title {
+    font-size: clamp(26px, 2.6vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.6px;
+    color: #f1ecdf;
+    margin-bottom: 6px;
+  }
+  .lede {
+    font-size: 14px;
+    color: rgba(241,236,223,0.6);
+    font-weight: 400;
+    margin-bottom: 24px;
+    max-width: 720px;
+    line-height: 1.5;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 56px 1fr;
+    gap: 0;
+    align-items: stretch;
+    margin-bottom: 24px;
+  }
+
+  .state-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 22px 22px 24px;
+  }
+  .state-card.after {
+    background: rgba(194, 65, 12, 0.06);
+    border-color: rgba(194, 65, 12, 0.25);
+  }
+
+  .state-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: rgba(241,236,223,0.5);
+    margin-bottom: 4px;
+  }
+  .state-card.after .state-eyebrow { color: #f59e0b; }
+
+  .state-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #f1ecdf;
+    margin-bottom: 20px;
+  }
+
+  /* Dial visualization */
+  .dial {
+    position: relative;
+    padding: 14px 0 10px;
+  }
+  .dial-stops {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .stop {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(241,236,223,0.45);
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: all 300ms;
+    position: relative;
+  }
+  .stop .num {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(241,236,223,0.3);
+    margin-bottom: 3px;
+  }
+  .stop.active {
+    background: rgba(48, 201, 105, 0.15);
+    border-color: rgba(48, 201, 105, 0.4);
+    color: #30c969;
+  }
+  .stop.active .num { color: rgba(48,201,105,0.8); }
+
+  .state-card.after .stop.active {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+  }
+  .state-card.after .stop.active .num { color: rgba(245,158,11,0.8); }
+
+  .dial-track {
+    position: relative;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 0 12px;
+  }
+  .dial-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: #30c969;
+    border-radius: 2px;
+    transition: width 500ms cubic-bezier(0.16,1,0.3,1);
+  }
+  .state-card.after .dial-fill { background: #f59e0b; }
+  .dial-pointer {
+    position: absolute;
+    top: -6px;
+    width: 16px; height: 16px;
+    background: #30c969;
+    border: 3px solid #0d0c10;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    transition: left 500ms cubic-bezier(0.16,1,0.3,1);
+  }
+  .state-card.after .dial-pointer { background: #f59e0b; }
+
+  .status-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .status-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    color: rgba(241,236,223,0.7);
+    font-weight: 500;
+  }
+  .status-tag.on { background: rgba(48,201,105,0.14); color: #30c969; }
+  .status-tag.off { background: rgba(194,65,12,0.14); color: #f59e0b; }
+
+  .transition-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 0;
+  }
+  .trans-arrow {
+    font-size: 28px;
+    color: #f59e0b;
+    font-weight: 300;
+    line-height: 1;
+  }
+  .trans-trigger {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(241,236,223,0.55);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .rule-box {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+  }
+  .rule-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .rule-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: #f59e0b;
+    padding: 4px 10px;
+    background: rgba(245, 158, 11, 0.15);
+    border-radius: 4px;
+  }
+  .rule-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f1ecdf;
+  }
+  .rule-body {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(241,236,223,0.82);
+  }
+  .rule-body strong { color: #f59e0b; font-weight: 600; }
+  .rule-body ul {
+    list-style: none;
+    margin-top: 10px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .rule-body ul li {
+    background: rgba(0,0,0,0.25);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: rgba(241,236,223,0.8);
+    border-left: 2px solid #f59e0b;
+  }
+
+  .tokens-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .token {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .token-num {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(241,236,223,0.4);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .token-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1ecdf;
+    margin-bottom: 3px;
+  }
+  .token-val {
+    font-size: 11px;
+    color: #f59e0b;
+    font-family: var(--font-mono);
+    letter-spacing: 0.3px;
+  }
+
+  @media (max-width: 760px) {
+    .split { grid-template-columns: 1fr; }
+    .transition-bar { padding: 12px; flex-direction: row; }
+    .trans-trigger { writing-mode: horizontal-tb; transform: none; }
+    .rule-body ul { grid-template-columns: 1fr; }
+    .tokens-row { grid-template-columns: 1fr; }
+  }
+
+  body.noframe { background: transparent !important; padding: 16px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bts-frame bts-frame--dark" data-kind="backstage">
+    <div class="bts-frame__chip">BACKSTAGE · Autonomy Dial · live downgrade</div>
+    <div class="bts-frame__body">
+
+      <h1 class="title">The dial drops itself.</h1>
+      <p class="lede">When context shifts from leisure to medical, the system does not ask — it constrains itself. Human judgment is required again.</p>
+
+      <div class="split">
+        <!-- BEFORE -->
+        <div class="state-card">
+          <div class="state-eyebrow">06:30 AM · Before</div>
+          <div class="state-title">Vacation autopilot</div>
+
+          <div class="dial">
+            <div class="dial-stops">
+              <div class="stop"><span class="num">01</span>Suggest</div>
+              <div class="stop"><span class="num">02</span>Confirm</div>
+              <div class="stop active"><span class="num">03</span>Notify</div>
+              <div class="stop"><span class="num">04</span>Auto</div>
+            </div>
+            <div class="dial-track">
+              <div class="dial-fill" style="width: 75%;"></div>
+              <div class="dial-pointer" style="left: 75%;"></div>
+            </div>
+          </div>
+
+          <div class="status-row">
+            <span class="status-tag on">Auto-schedule: on</span>
+            <span class="status-tag on">Auto-book: on</span>
+            <span class="status-tag on">Auto-notify family: on</span>
+          </div>
+        </div>
+
+        <!-- arrow -->
+        <div class="transition-bar">
+          <div class="trans-arrow">→</div>
+          <div class="trans-trigger">Trigger · fever detected 06:47</div>
+        </div>
+
+        <!-- AFTER -->
+        <div class="state-card after">
+          <div class="state-eyebrow">06:47 AM · After</div>
+          <div class="state-title">Medical context · force-downgrade</div>
+
+          <div class="dial">
+            <div class="dial-stops">
+              <div class="stop"><span class="num">01</span>Suggest</div>
+              <div class="stop active"><span class="num">02</span>Confirm</div>
+              <div class="stop"><span class="num">03</span>Notify</div>
+              <div class="stop"><span class="num">04</span>Auto</div>
+            </div>
+            <div class="dial-track">
+              <div class="dial-fill" style="width: 42%;"></div>
+              <div class="dial-pointer" style="left: 42%;"></div>
+            </div>
+          </div>
+
+          <div class="status-row">
+            <span class="status-tag off">Auto-schedule: paused</span>
+            <span class="status-tag off">Auto-book: paused</span>
+            <span class="status-tag off">Auto-notify: held</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule-box">
+        <div class="rule-head">
+          <span class="rule-chip">Rule</span>
+          <span class="rule-title">Medical context → force-downgrade to Confirm</span>
+        </div>
+        <div class="rule-body">
+          The dial is <strong>not fully user-controlled</strong>. Service default, AI adjustment, and user change all push it. When medical signals arrive, the AI pulls its own autonomy down. Human judgment is required for:
+          <ul>
+            <li>Medication decisions</li>
+            <li>Doctor / clinic visit</li>
+            <li>Trip reshuffle or cancel</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tokens-row">
+        <div class="token">
+          <div class="token-num">Token ①</div>
+          <div class="token-name">Physical State</div>
+          <div class="token-val">fever · low · 37.8°C</div>
+        </div>
+        <div class="token">
+          <div class="token-num">Token ④</div>
+          <div class="token-name">Priority Weight</div>
+          <div class="token-val">critical · health &gt; plan</div>
+        </div>
+        <div class="token">
+          <div class="token-num">Token ⑥</div>
+          <div class="token-name">Feasibility</div>
+          <div class="token-val">limited · outdoor out</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3-06 · Distill — 20 candidates to 8</title>
+
+<!-- Canonical iPhone 15 Pro frame -->
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+
+<style>
+/* ============================================================
+   P3-06 — Distill 20 picks down to 8.
+   Light Geist surface; the SHOE is the dark element on a white
+   card. Three thumb-zone actions: Skip · Hold · Keep.
+   Two next-card peeks behind the active card create depth.
+   Copper (#a05c35) reserved for the Keep action only.
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+
+  --gray-50:  #fafafa;
+  --gray-75:  #f6f6f6;
+  --gray-100: #f5f5f5;
+  --gray-150: #ededed;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+  --gray-950: #0a0a0a;
+
+  --copper:      #a05c35;
+  --copper-soft: #f4ece6;
+  --copper-line: #e8d6c8;
+  --copper-deep: #7d4423;
+
+  --ok:        #2f6f3e;
+  --ok-soft:   #ebf3ec;
+  --warn:      #8a5a1a;
+  --warn-soft: #f7eedc;
+
+  --line:   rgba(10,10,10,0.08);
+  --line-2: rgba(10,10,10,0.14);
+  --text:   #171717;
+  --text-2: #525252;
+  --text-3: #737373;
+  --text-4: #a3a3a3;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: #f5f4f1;
+  font-family: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+  user-select: none; -webkit-user-select: none;
+}
+
+/* noframe mode */
+body.noframe { background: transparent !important; align-items: flex-start; justify-content: flex-start; }
+body.noframe .qa-shell { padding: 0; }
+body.noframe .iphone15pro { display: none; }
+body.noframe .noframe-host { display: flex; }
+
+.qa-shell { padding: 24px; display: flex; align-items: center; justify-content: center; }
+.iphone15pro { --iphone-w: 320px; filter: drop-shadow(0 24px 40px rgba(0,0,0,0.18)); }
+
+/* ── inner phone screen content ── */
+.phone-screen-content {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.noframe-host {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+}
+.noframe-host > .phone-screen-content { width: 100%; height: 100%; }
+
+/* ── status bar ── */
+.ph-status {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 14px 26px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+body.noframe .ph-status { padding-top: 56px; height: 56px; }
+.ph-status-icons { display: flex; gap: 4px; align-items: center; }
+
+/* ── header strip: progress + counts ── */
+.ph-head {
+  flex-shrink: 0;
+  padding: 8px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ph-head-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ph-head-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+.ph-head-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--text);
+  line-height: 1.2;
+}
+.ph-head-counts {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+.ph-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--gray-100);
+  color: var(--text-2);
+  font-weight: 500;
+}
+.ph-count .ph-count-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gray-400);
+}
+.ph-count.keep { background: var(--copper-soft); color: var(--copper); }
+.ph-count.keep .ph-count-dot { background: var(--copper); }
+.ph-count.hold { background: var(--warn-soft); color: var(--warn); }
+.ph-count.hold .ph-count-dot { background: var(--warn); }
+
+/* ── progress dots ── */
+.dots {
+  flex-shrink: 0;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  padding: 0 20px 12px;
+  flex-wrap: wrap;
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gray-200);
+  transition: transform 240ms var(--ease-out-quart),
+              background 240ms var(--ease-out-quart),
+              width 240ms var(--ease-out-quart);
+}
+.dot.keep { background: var(--copper); }
+.dot.hold { background: var(--warn); }
+.dot.skip { background: var(--gray-300); }
+.dot.current {
+  background: var(--gray-900);
+  width: 18px;
+  border-radius: 4px;
+}
+
+/* ── card stage ── */
+.card-stage {
+  flex: 1;
+  position: relative;
+  margin: 4px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 30px -14px rgba(10,10,10,0.18);
+  transition:
+    transform 380ms var(--ease-out-quart),
+    opacity 320ms var(--ease-out-quart),
+    box-shadow 320ms var(--ease-out-quart);
+  overflow: hidden;
+}
+
+/* peek stack — back-of-deck cards */
+.card.peek-1 {
+  transform: translateY(10px) scale(0.965);
+  opacity: 0.55;
+  box-shadow: 0 8px 18px -12px rgba(10,10,10,0.14);
+}
+.card.peek-2 {
+  transform: translateY(20px) scale(0.93);
+  opacity: 0.32;
+  box-shadow: 0 6px 14px -10px rgba(10,10,10,0.10);
+}
+
+/* swipe-out variants */
+.card.out-skip {
+  transform: translate(-130%, 8%) rotate(-12deg);
+  opacity: 0;
+}
+.card.out-hold {
+  transform: translateY(-118%) scale(0.94);
+  opacity: 0;
+}
+.card.out-keep {
+  transform: translate(130%, 8%) rotate(12deg);
+  opacity: 0;
+  box-shadow: 0 16px 40px -12px rgba(160,92,53,0.35);
+}
+
+/* ── card image ── shoe sits inside, big and centered ── */
+.card-img {
+  flex: 1;
+  min-height: 0;
+  border-radius: 12px;
+  background: var(--gray-50);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-img svg {
+  width: 76%;
+  height: auto;
+  max-height: 75%;
+  color: var(--gray-900);   /* the SHOE is the dark element */
+  filter: drop-shadow(0 6px 8px rgba(10,10,10,0.10));
+}
+
+/* match chip — top-right of image */
+.card-match {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--ok-soft);
+  color: var(--ok);
+  text-transform: uppercase;
+}
+.card-match.b { background: var(--gray-100); color: var(--text-2); }
+.card-match.a { background: var(--warn-soft); color: var(--warn); }
+
+/* card position — top-left, mono */
+.card-pos {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: #fff;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+
+/* card info row */
+.card-info {
+  flex-shrink: 0;
+  padding: 12px 2px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.card-brand {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.card-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--text);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.card-price {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  color: var(--text);
+}
+.card-ship {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--text-3);
+}
+
+/* ── action row ── thumb zone, three buttons ── */
+.actions {
+  flex-shrink: 0;
+  padding: 12px 16px 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.25fr;
+  gap: 8px;
+}
+.btn {
+  height: 50px;
+  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 160ms var(--ease-out-quart),
+    border-color 160ms var(--ease-out-quart),
+    transform 120ms var(--ease-out-quart),
+    box-shadow 160ms var(--ease-out-quart);
+}
+.btn:active { transform: translateY(1px) scale(0.985); }
+.btn .ic {
+  width: 14px; height: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.btn .ic svg { width: 100%; height: 100%; }
+
+.btn-skip { color: var(--text-2); }
+.btn-skip:hover  { background: var(--gray-50); }
+
+.btn-hold { color: var(--warn); border-color: rgba(138,90,26,0.28); background: #fff; }
+.btn-hold:hover { background: var(--warn-soft); }
+
+.btn-keep {
+  background: var(--copper);
+  border-color: var(--copper);
+  color: #fff;
+  box-shadow: 0 6px 16px -8px rgba(160,92,53,0.5);
+}
+.btn-keep:hover  { background: var(--copper-deep); border-color: var(--copper-deep); }
+
+/* ── footer hint + undo ── */
+.foot {
+  flex-shrink: 0;
+  padding: 0 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+.undo {
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: color 150ms var(--ease-out-quart), background 150ms var(--ease-out-quart);
+}
+.undo:hover:not(:disabled) { color: var(--text); background: var(--gray-100); }
+.undo:disabled { opacity: 0.35; cursor: default; }
+
+/* completion state */
+.done {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  gap: 8px;
+  box-shadow: 0 12px 30px -14px rgba(10,10,10,0.18);
+}
+.done-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--copper);
+  margin-bottom: 4px;
+}
+.done-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--text);
+}
+.done-sub {
+  font-size: 13px;
+  color: var(--text-2);
+  max-width: 220px;
+  line-height: 1.4;
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</head>
+<body>
+
+<!-- Standalone QA — canonical iPhone 15 Pro frame -->
+<div class="qa-shell">
+  <div class="iphone15pro iphone15pro--lg">
+    <img class="iphone15pro__chrome"
+         src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+         alt="" aria-hidden="true">
+    <div class="iphone15pro__screen" id="frameScreen"></div>
+    <div class="iphone15pro__island" aria-hidden="true"></div>
+  </div>
+</div>
+
+<!-- noframe-mode host -->
+<div class="noframe-host" id="noframeHost"></div>
+
+<!-- Shared shoe SVG silhouettes — black shoes on white cards -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Hiking mid (TNF / Salomon style) -->
+    <symbol id="shoe-hike-mid" viewBox="0 0 200 110">
+      <path fill="currentColor"
+        d="M14 78 C 14 70, 22 64, 32 64 L 70 64 L 78 44 C 81 36, 88 30, 96 30 L 110 30 C 118 30, 126 35, 130 42 L 140 60 L 168 64 C 182 66, 192 76, 192 88 L 192 92 C 192 98, 188 102, 180 102 L 24 102 C 18 102, 14 98, 14 92 Z"/>
+      <!-- ankle cuff -->
+      <path fill="currentColor" opacity="0.85"
+        d="M96 30 L 96 14 C 96 10, 100 6, 106 6 L 118 6 C 124 6, 128 10, 128 14 L 128 30 Z"/>
+      <!-- laces -->
+      <rect fill="#fff" opacity="0.9" x="100" y="36" width="22" height="2.4" rx="1"/>
+      <rect fill="#fff" opacity="0.9" x="98"  y="44" width="26" height="2.4" rx="1"/>
+      <rect fill="#fff" opacity="0.9" x="98"  y="52" width="28" height="2.4" rx="1"/>
+      <!-- sole detail -->
+      <rect fill="#fff" opacity="0.18" x="14" y="86" width="178" height="6" rx="3"/>
+    </symbol>
+
+    <!-- Lifestyle low (Adidas / Puma style) -->
+    <symbol id="shoe-low" viewBox="0 0 200 110">
+      <path fill="currentColor"
+        d="M10 86 C 10 78, 18 72, 28 72 L 58 70 L 80 50 C 86 42, 96 38, 108 38 L 138 40 C 158 42, 178 56, 188 76 L 192 88 C 194 96, 188 102, 180 102 L 22 102 C 14 102, 10 96, 10 90 Z"/>
+      <!-- side stripes -->
+      <path fill="#fff" opacity="0.7" d="M70 76 L 96 64 L 100 70 L 74 82 Z"/>
+      <path fill="#fff" opacity="0.55" d="M88 80 L 116 66 L 120 72 L 92 86 Z"/>
+      <!-- sole -->
+      <rect fill="#fff" opacity="0.18" x="10" y="92" width="184" height="6" rx="3"/>
+    </symbol>
+
+    <!-- Cloud-style runner (On / ASICS) -->
+    <symbol id="shoe-runner" viewBox="0 0 200 110">
+      <path fill="currentColor"
+        d="M12 84 C 12 76, 20 70, 30 70 L 62 64 C 70 62, 78 58, 84 52 L 100 38 C 108 30, 120 26, 132 28 L 150 30 C 170 32, 186 46, 190 66 L 192 86 C 194 96, 188 102, 180 102 L 22 102 C 14 102, 12 96, 12 90 Z"/>
+      <!-- mesh stripes -->
+      <path fill="#fff" opacity="0.5" d="M84 52 Q 92 60, 102 62 T 130 64" stroke-width="0"/>
+      <circle cx="92" cy="58" r="1.4" fill="#fff" opacity="0.5"/>
+      <circle cx="106" cy="60" r="1.4" fill="#fff" opacity="0.5"/>
+      <circle cx="120" cy="62" r="1.4" fill="#fff" opacity="0.5"/>
+      <!-- cloud sole -->
+      <g fill="#fff" opacity="0.22">
+        <ellipse cx="32" cy="98" rx="12" ry="4"/>
+        <ellipse cx="62" cy="98" rx="12" ry="4"/>
+        <ellipse cx="92" cy="98" rx="12" ry="4"/>
+        <ellipse cx="124" cy="98" rx="12" ry="4"/>
+        <ellipse cx="156" cy="98" rx="14" ry="4.5"/>
+      </g>
+    </symbol>
+
+    <!-- High-top (Vans / Converse) -->
+    <symbol id="shoe-hi" viewBox="0 0 200 110">
+      <path fill="currentColor"
+        d="M14 86 C 14 78, 22 72, 32 72 L 70 72 L 80 18 C 82 10, 88 6, 96 6 L 122 6 C 130 6, 134 12, 134 20 L 134 56 L 168 60 C 184 62, 194 74, 194 88 L 194 92 C 194 98, 188 102, 180 102 L 24 102 C 18 102, 14 98, 14 92 Z"/>
+      <!-- side circle logo -->
+      <circle cx="106" cy="40" r="9" fill="none" stroke="#fff" stroke-width="2" opacity="0.7"/>
+      <!-- toe cap -->
+      <rect fill="#fff" opacity="0.18" x="148" y="80" width="44" height="14" rx="6"/>
+      <!-- sole -->
+      <rect fill="#fff" opacity="0.22" x="14" y="92" width="180" height="6" rx="3"/>
+    </symbol>
+
+    <!-- Trail beast (Merrell / Northface) -->
+    <symbol id="shoe-trail" viewBox="0 0 200 110">
+      <path fill="currentColor"
+        d="M12 80 C 12 72, 20 66, 32 66 L 64 66 L 78 38 C 82 30, 90 26, 100 26 L 118 26 C 128 26, 134 32, 138 40 L 148 60 L 174 64 C 188 66, 196 78, 196 90 L 196 94 C 196 98, 192 102, 186 102 L 20 102 C 14 102, 12 98, 12 92 Z"/>
+      <!-- straps -->
+      <rect fill="#fff" opacity="0.6" x="92" y="40" width="38" height="3" rx="1.5"/>
+      <rect fill="#fff" opacity="0.6" x="94" y="50" width="34" height="3" rx="1.5"/>
+      <!-- aggressive lugs -->
+      <g fill="#fff" opacity="0.22">
+        <rect x="20" y="92" width="14" height="8" rx="1"/>
+        <rect x="40" y="92" width="14" height="8" rx="1"/>
+        <rect x="60" y="92" width="14" height="8" rx="1"/>
+        <rect x="80" y="92" width="14" height="8" rx="1"/>
+        <rect x="100" y="92" width="14" height="8" rx="1"/>
+        <rect x="120" y="92" width="14" height="8" rx="1"/>
+        <rect x="140" y="92" width="14" height="8" rx="1"/>
+        <rect x="160" y="92" width="14" height="8" rx="1"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- Single template -->
+<template id="screenTemplate">
+  <div class="phone-screen-content">
+
+    <div class="ph-status">
+      <span>9:41</span>
+      <div class="ph-status-icons">
+        <svg width="14" height="11" viewBox="0 0 15 12" fill="#171717">
+          <rect x="0" y="8" width="2.5" height="4" opacity="0.3" rx="0.5"/>
+          <rect x="3.5" y="5.5" width="2.5" height="6.5" opacity="0.55" rx="0.5"/>
+          <rect x="7" y="3" width="2.5" height="9" rx="0.5"/>
+          <rect x="10.5" y="0.5" width="2.5" height="11.5" rx="0.5"/>
+        </svg>
+        <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#171717" stroke-width="2.5" stroke-linecap="round">
+          <path d="M1.5 7C5.8 2.7 12 1 12 1S18.2 2.7 22.5 7"/>
+          <path d="M5 10.5C8 7.5 12 6.5 12 6.5S16 7.5 19 10.5"/>
+          <path d="M8.5 14C10 12.5 12 12 12 12S14 12.5 15.5 14"/>
+          <circle cx="12" cy="17" r="1.4" fill="#171717" stroke="none"/>
+        </svg>
+        <svg width="20" height="11" viewBox="0 0 28 14" fill="#171717">
+          <rect x="0.75" y="0.75" width="22.5" height="12.5" rx="2.25" fill="none" stroke="#171717" stroke-width="1.5"/>
+          <rect x="23.5" y="3.5" width="3" height="7" rx="1.5"/>
+          <rect x="2.5" y="2.5" width="18" height="9" rx="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="ph-head">
+      <div class="ph-head-left">
+        <div class="ph-head-eyebrow">Distill · <span id="progressNum">7 / 20</span></div>
+        <div class="ph-head-title">Marcus's winter shoes</div>
+      </div>
+      <div class="ph-head-counts">
+        <span class="ph-count keep"><span class="ph-count-dot"></span><span id="cKeep">0</span></span>
+        <span class="ph-count hold"><span class="ph-count-dot"></span><span id="cHold">0</span></span>
+        <span class="ph-count"><span class="ph-count-dot"></span><span id="cSkip">0</span></span>
+      </div>
+    </div>
+
+    <div class="dots" id="dots"></div>
+
+    <div class="card-stage" id="cardStage"></div>
+
+    <div class="actions">
+      <button class="btn btn-skip" data-action="skip">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+        Skip
+      </button>
+      <button class="btn btn-hold" data-action="hold">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="9" y1="6" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="18"/></svg></span>
+        Hold
+      </button>
+      <button class="btn btn-keep" data-action="keep">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+        Keep
+      </button>
+    </div>
+
+    <div class="foot">
+      <span>Skip removes · Hold parks · Keep adds to TV</span>
+      <button class="undo" id="undoBtn" disabled>Undo</button>
+    </div>
+  </div>
+</template>
+
+<script>
+const tpl = document.getElementById('screenTemplate').content.cloneNode(true);
+const isNoFrame = new URLSearchParams(location.search).get('noframe') === '1';
+if (isNoFrame) {
+  document.getElementById('noframeHost').appendChild(tpl);
+} else {
+  document.getElementById('frameScreen').appendChild(tpl);
+}
+
+/* ============================================================
+   Data — 20 candidates; the SHOE is the dark element on white.
+   Match band: g (94+) ok; b (80-93) neutral; a (<80) warn.
+   ============================================================ */
+const CANDIDATES = [
+  { brand:'The North Face', name:'Fastpack Hiker Mid WP', shoe:'shoe-hike-mid', match:94, band:'g', price:'$69',  ship:'Fri' },
+  { brand:'Salomon',        name:'XA Pro V8 Mid GTX',     shoe:'shoe-runner',   match:92, band:'g', price:'$75',  ship:'Sat' },
+  { brand:'On',             name:'Cloudrock Mid WP',      shoe:'shoe-runner',   match:88, band:'b', price:'$190', ship:'Fri' },
+  { brand:'Merrell',        name:'Moab 3 Waterproof',     shoe:'shoe-trail',    match:86, band:'b', price:'$110', ship:'Mon' },
+  { brand:'Nike',           name:'SFB 6" NSW Leather',    shoe:'shoe-hi',       match:91, band:'g', price:'$120', ship:'Fri' },
+  { brand:'Adidas',         name:'Terrex Anylander Mid',  shoe:'shoe-low',      match:80, band:'b', price:'$85',  ship:'Sat' },
+  { brand:'Puma',           name:'RS-X Mid Black Ice',    shoe:'shoe-low',      match:85, band:'b', price:'$100', ship:'Fri' },
+  { brand:'Vans',           name:'Sk8-Hi GORE-TEX',       shoe:'shoe-hi',       match:79, band:'a', price:'$140', ship:'Sat' },
+  { brand:'Ecco',           name:'Mid Boot GORE-TEX',     shoe:'shoe-hike-mid', match:71, band:'a', price:'$125', ship:'Mon' },
+  { brand:'ASICS',          name:'Gel-Venture 9 GS',      shoe:'shoe-runner',   match:84, band:'b', price:'$70',  ship:'Fri' },
+  { brand:'Hoka',           name:'Speedgoat 5 Mid GTX',   shoe:'shoe-trail',    match:83, band:'b', price:'$185', ship:'Sat' },
+  { brand:'Keen',           name:'Targhee Sport Mid',     shoe:'shoe-hike-mid', match:81, band:'b', price:'$95',  ship:'Mon' },
+  { brand:'New Balance',    name:'Fresh Foam Hierro v8',  shoe:'shoe-runner',   match:78, band:'a', price:'$135', ship:'Fri' },
+  { brand:'Reebok',         name:'Classic Trail Mid',     shoe:'shoe-low',      match:74, band:'a', price:'$80',  ship:'Mon' },
+  { brand:'Converse',       name:'Chuck All-Terrain Hi',  shoe:'shoe-hi',       match:69, band:'a', price:'$95',  ship:'Sat' },
+  { brand:'Timberland',     name:'Splitrock Hiker',       shoe:'shoe-trail',    match:73, band:'a', price:'$130', ship:'Mon' },
+  { brand:'Columbia',       name:'Newton Ridge Plus',     shoe:'shoe-hike-mid', match:82, band:'b', price:'$90',  ship:'Sat' },
+  { brand:'Saucony',        name:'Peregrine 14 Mid',      shoe:'shoe-trail',    match:77, band:'a', price:'$120', ship:'Fri' },
+  { brand:'Brooks',         name:'Cascadia 17 Mid GTX',   shoe:'shoe-runner',   match:75, band:'a', price:'$170', ship:'Sat' },
+  { brand:'Under Armour',   name:'Charged Bandit Trail',  shoe:'shoe-low',      match:72, band:'a', price:'$100', ship:'Mon' },
+];
+
+const TOTAL = CANDIDATES.length;
+
+/* Pre-seeded reviewing state — user is at index 6, has already
+   acted on 6 cards (4 keep / 1 hold / 1 skip), making the demo
+   feel mid-flow rather than empty on first frame. */
+const state = {
+  index: 6,
+  results: ['keep','keep','skip','keep','hold','keep'],
+  history: []
+};
+
+const dotsEl = document.getElementById('dots');
+const stage  = document.getElementById('cardStage');
+const undoBtn = document.getElementById('undoBtn');
+const progressNum = document.getElementById('progressNum');
+const cKeep = document.getElementById('cKeep');
+const cHold = document.getElementById('cHold');
+const cSkip = document.getElementById('cSkip');
+
+function renderDots() {
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('span');
+    d.className = 'dot';
+    if (i === state.index) d.classList.add('current');
+    else if (state.results[i] === 'keep') d.classList.add('keep');
+    else if (state.results[i] === 'hold') d.classList.add('hold');
+    else if (state.results[i] === 'skip') d.classList.add('skip');
+    dotsEl.appendChild(d);
+  }
+}
+
+function renderCounts() {
+  let k=0,h=0,s=0;
+  for (let i = 0; i < state.index; i++) {
+    if (state.results[i] === 'keep') k++;
+    else if (state.results[i] === 'hold') h++;
+    else if (state.results[i] === 'skip') s++;
+  }
+  cKeep.textContent = k;
+  cHold.textContent = h;
+  cSkip.textContent = s;
+  progressNum.textContent = `${Math.min(state.index + 1, TOTAL)} / ${TOTAL}`;
+}
+
+function cardMarkup(p, klass = '') {
+  return `
+    <div class="card ${klass}">
+      <div class="card-img">
+        <span class="card-pos">${p.posText}</span>
+        <span class="card-match ${p.band}">${p.match}% match</span>
+        <svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet">
+          <use href="#${p.shoe}"></use>
+        </svg>
+      </div>
+      <div class="card-info">
+        <div class="card-brand">${p.brand}</div>
+        <div class="card-name">${p.name}</div>
+        <div class="card-meta">
+          <span class="card-price">${p.price}</span>
+          <span class="card-ship">→ ${p.ship}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderStage() {
+  if (state.index >= TOTAL) {
+    stage.innerHTML = `
+      <div class="done">
+        <div class="done-eyebrow">Shortlist ready</div>
+        <div class="done-title">8 keepers</div>
+        <div class="done-sub">Cast to the living-room TV after dinner. Family decides together.</div>
+      </div>`;
+    return;
+  }
+
+  const items = [];
+  // peek-2 (back)
+  if (state.index + 2 < TOTAL) {
+    const p = { ...CANDIDATES[state.index + 2], posText: `${state.index + 3} / ${TOTAL}` };
+    items.push(cardMarkup(p, 'peek-2'));
+  }
+  // peek-1 (middle)
+  if (state.index + 1 < TOTAL) {
+    const p = { ...CANDIDATES[state.index + 1], posText: `${state.index + 2} / ${TOTAL}` };
+    items.push(cardMarkup(p, 'peek-1'));
+  }
+  // active (front)
+  const p = { ...CANDIDATES[state.index], posText: `${state.index + 1} / ${TOTAL}` };
+  items.push(cardMarkup(p, 'active'));
+
+  stage.innerHTML = items.join('');
+}
+
+function act(action) {
+  if (state.index >= TOTAL) return;
+  const active = stage.querySelector('.card.active');
+  if (!active) return;
+  state.history.push({ index: state.index, prev: state.results[state.index] });
+  state.results[state.index] = action;
+  active.classList.remove('active');
+  active.classList.add('out-' + action);
+
+  // While active flies out, peek-1 promotes to active visually.
+  const peek1 = stage.querySelector('.card.peek-1');
+  if (peek1) {
+    peek1.style.transition = 'transform 320ms var(--ease-out-quart), opacity 320ms var(--ease-out-quart)';
+    peek1.style.transform = 'translateY(0) scale(1)';
+    peek1.style.opacity = '1';
+  }
+  const peek2 = stage.querySelector('.card.peek-2');
+  if (peek2) {
+    peek2.style.transition = 'transform 320ms var(--ease-out-quart), opacity 320ms var(--ease-out-quart)';
+    peek2.style.transform = 'translateY(10px) scale(0.965)';
+    peek2.style.opacity = '0.55';
+  }
+
+  setTimeout(() => {
+    state.index += 1;
+    renderDots();
+    renderCounts();
+    renderStage();
+    undoBtn.disabled = state.history.length === 0;
+  }, 360);
+}
+
+function undo() {
+  const last = state.history.pop();
+  if (!last) return;
+  state.index = last.index;
+  state.results = state.results.slice(0, state.index);
+  renderDots();
+  renderCounts();
+  renderStage();
+  undoBtn.disabled = state.history.length === 0;
+}
+
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('click', () => act(btn.dataset.action));
+});
+undoBtn.addEventListener('click', undo);
+
+renderDots();
+renderCounts();
+renderStage();
+</script>
+</body>
+</html>

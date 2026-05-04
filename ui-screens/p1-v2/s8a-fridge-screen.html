@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S8a — Family Hub Screen · Bento Planning</title>
+
+<!-- Design tokens (colors, fonts) -->
+<link rel="stylesheet" href="_tokens.css">
+
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     S8a — Samsung Family Hub touchscreen content ONLY.
+     This file is the iframe target inside .samfh__screen.
+     Aspect 9:16 matches the Family Hub display (591 × 1051 SVG).
+
+     Viewed standalone:       soft kitchen backdrop for QA.
+     Viewed via ?noframe=1:   transparent; content fills viewport.
+     ═══════════════════════════════════════════════════════════ */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: var(--font-sans, "Satoshi", system-ui, sans-serif);
+  }
+
+  /* Standalone QA — subtle kitchen backdrop */
+  body {
+    background: radial-gradient(ellipse at 50% 35%, #f2efe9 0%, #e4e0d8 60%, #d6d1c8 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+
+  /* Noframe mode: transparent, screen fills the parent .samfh__screen */
+  body.noframe {
+    background: transparent !important;
+    padding: 0;
+    align-items: stretch; justify-content: stretch;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Screen container — 9:16 portrait, flexes to parent
+     ───────────────────────────────────────────────────────── */
+  .fh {
+    position: relative;
+    width: 100%; height: 100%;
+    max-width: calc(100vh * 9 / 16);
+    aspect-ratio: 9 / 16;
+    background: #ffffff;
+    color: #111;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  body.noframe .fh { max-width: none; aspect-ratio: auto; }
+
+  /* Status bar — compact, top of screen */
+  .fh__status {
+    flex-shrink: 0;
+    height: 24px;
+    padding: 6px 12px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3px;
+  }
+  .fh__status span:first-child { font-weight: 600; }
+  .fh__status-right { display: flex; gap: 8px; }
+  .fh__icon { width: 11px; height: 11px; stroke: currentColor; stroke-width: 1.5; fill: none; }
+
+  /* Body — pad + vertical stack */
+  .fh__body {
+    flex: 1;
+    padding: 18px 16px 10px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  .fh__eyebrow {
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 8.5px; font-weight: 700; letter-spacing: 1.2px;
+    color: #52525b; text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px;
+  }
+  .fh__eyebrow::before {
+    content: ''; width: 5px; height: 5px; border-radius: 50%;
+    background: #2ab85a;
+  }
+
+  .fh__hello {
+    font-size: 17px; font-weight: 600; letter-spacing: -0.5px;
+    margin-bottom: 2px; color: #0a0a0a;
+  }
+  .fh__subhello {
+    font-size: 10px; color: #525252;
+    margin-bottom: 12px; line-height: 1.5;
+  }
+  .fh__subhello strong { color: #0a0a0a; font-weight: 600; }
+
+  .fh__cards {
+    display: flex; flex-direction: column; gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Bento cards — 3 options, animated in sequentially
+     ───────────────────────────────────────────────────────── */
+  .bento {
+    display: flex; gap: 9px;
+    padding: 7px;
+    border: 1px solid rgba(10,10,10,0.08);
+    border-radius: 7px;
+    background: #fff;
+    opacity: 0; transform: translateY(10px) scale(0.99);
+    will-change: transform, opacity;
+  }
+  .bento.is-in {
+    animation: bento-in 520ms cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+  .bento--rec {
+    border-color: rgba(194,65,12,0.35);
+    box-shadow: 0 0 0 2px rgba(194,65,12,0.08);
+  }
+  @keyframes bento-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.99); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  }
+
+  .bento__img {
+    flex: 0 0 52px;
+    width: 52px; height: 52px;
+    border-radius: 5px;
+    background: #f4f4f5;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .bento__img::after {
+    content: attr(data-letter);
+    position: absolute;
+    top: 3px; left: 4px;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 8px; font-weight: 700;
+    color: #fff;
+    background: rgba(0,0,0,0.48);
+    padding: 1px 4px;
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+  }
+
+  .bento__body {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .bento__pill {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 7.5px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #c2410c;
+    background: rgba(194,65,12,0.10);
+    padding: 2px 5px;
+    border-radius: 3px;
+    width: fit-content;
+    margin-bottom: 2px;
+  }
+  .bento__pill svg { width: 7px; height: 7px; fill: currentColor; }
+  .bento__name { font-size: 11px; font-weight: 600; color: #0a0a0a; letter-spacing: -0.1px; }
+  .bento__jp { font-size: 9px; color: #525252; font-weight: 500; }
+  .bento__meta {
+    display: flex; gap: 8px; align-items: center;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 8px; color: #737373;
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+  }
+  .bento__meta-item { display: inline-flex; align-items: center; gap: 3px; }
+  .bento__meta-item svg { width: 8px; height: 8px; stroke: currentColor; stroke-width: 2; fill: none; }
+  .bento__check { display: inline-flex; align-items: center; gap: 2px; font-size: 8.5px; color: #17803d; }
+  .bento__check svg { width: 9px; height: 9px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+
+  /* ─────────────────────────────────────────────────────────
+     Voice prompt — bottom of screen
+     ───────────────────────────────────────────────────────── */
+  .voice {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid rgba(10,10,10,0.06);
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+  }
+  .voice__bars {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 14px;
+  }
+  .voice__bars i {
+    display: block; width: 2.5px;
+    background: #1a1816;
+    border-radius: 2px;
+    animation: voice-bob 1.1s ease-in-out infinite;
+  }
+  .voice__bars i:nth-child(1) { height: 30%;  animation-delay: 0s;    }
+  .voice__bars i:nth-child(2) { height: 60%;  animation-delay: 0.12s; }
+  .voice__bars i:nth-child(3) { height: 100%; animation-delay: 0.24s; }
+  .voice__bars i:nth-child(4) { height: 70%;  animation-delay: 0.36s; }
+  .voice__bars i:nth-child(5) { height: 40%;  animation-delay: 0.48s; }
+  @keyframes voice-bob { 0%,100% { transform: scaleY(0.6); } 50% { transform: scaleY(1); } }
+  .voice__text { font-size: 10px; color: #525252; line-height: 1.4; }
+  .voice__text em { color: #0a0a0a; font-style: normal; font-weight: 500; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bento { opacity: 1; transform: none; animation: none; }
+    .voice__bars i { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="fh">
+  <div class="fh__status">
+    <span>7:02</span>
+    <div class="fh__status-right">
+      <svg class="fh__icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+      <svg class="fh__icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+    </div>
+  </div>
+
+  <div class="fh__body">
+    <div class="fh__eyebrow">HOME AGENT · LUNCH PLANNING</div>
+    <h1 class="fh__hello">Good morning, Mai.</h1>
+    <p class="fh__subhello">3 bento ideas for <strong>Leo</strong> &amp; <strong>Sota</strong> · school day</p>
+
+    <div class="fh__cards">
+      <article class="bento" data-bento="1">
+        <div class="bento__img" data-letter="A" style="background-image: url('https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?w=220&amp;q=80');"></div>
+        <div class="bento__body">
+          <div class="bento__name">Classic onigiri bento</div>
+          <div class="bento__jp">Rice balls · tamagoyaki · edamame</div>
+          <div class="bento__meta">
+            <span class="bento__meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>18 min</span>
+            <span class="bento__check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Leo · Sota</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="bento bento--rec" data-bento="2">
+        <div class="bento__img" data-letter="B" style="background-image: url('https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=220&amp;q=80');"></div>
+        <div class="bento__body">
+          <div class="bento__pill"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>Recommended</div>
+          <div class="bento__name">Salmon &amp; broccoli plate</div>
+          <div class="bento__jp">Brown rice · grilled salmon · broccoli</div>
+          <div class="bento__meta">
+            <span class="bento__meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>22 min</span>
+            <span class="bento__check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Sota loves salmon</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="bento" data-bento="3">
+        <div class="bento__img" data-letter="C" style="background-image: url('https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=220&amp;q=80');"></div>
+        <div class="bento__body">
+          <div class="bento__name">Turkey &amp; avocado sandwich</div>
+          <div class="bento__jp">Sandwich · cut fruit · edamame</div>
+          <div class="bento__meta">
+            <span class="bento__meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>10 min</span>
+            <span class="bento__meta-item"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>quickest</span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="voice">
+      <div class="voice__bars"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="voice__text">Say <em>"middle one"</em> or tap to choose</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ?noframe=1 → content-only mode (embedded via iframe)
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+
+  // Bento cycle animation — plays on its own schedule inside the iframe.
+  (function() {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cards = document.querySelectorAll('.bento');
+    if (prefersReduced) { cards.forEach(c => c.classList.add('is-in')); return; }
+
+    function restart() {
+      cards.forEach((card, i) => {
+        card.classList.remove('is-in');
+        void card.offsetWidth;  // force reflow
+        card.style.animationDelay = (i * 100) + 'ms';
+        card.classList.add('is-in');
+      });
+    }
+    restart();
+    setInterval(restart, 8000);
+  })();
+</script>
+
+</body>
+</html>

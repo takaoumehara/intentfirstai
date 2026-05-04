@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarPlay UI Composite</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 
+         * 確実に2800x1400 (2:1) の比率を保ち、画面外にはみ出さないコンテナ。
+         * ウィンドウの幅・高さのどちらが狭くても、確実にスクロールバーなしで画面内に収まります。
+         */
+        .composite-wrapper {
+            position: relative;
+            aspect-ratio: 2800 / 1400;
+            width: 100%;
+            /* 幅が100vwを超えることはなく、かつ高さが100vhを超えないようにする計算 (100vh * 2 = 200vh) */
+            max-width: min(100vw, 200vh);
+        }
+
+        .dashboard-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            /* コンテナ自体が2:1で固定されているため、画像の端が切れる(Crop)ことは絶対に発生しません */
+            object-fit: cover;
+            display: block;
+        }
+
+        .carplay-ui {
+            position: absolute;
+            /* オリジナル画像 (2800x1400) 内でのUIの正確なパーセンテージ座標 */
+            left: calc((514 / 2800) * 100%);
+            top: calc((274 / 1400) * 100%);
+            width: calc((1774 / 2800) * 100%);
+            height: calc((700 / 1400) * 100%);
+            border: 0;
+            display: block;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="composite-wrapper">
+        <!-- 背景となるダッシュボード画像 -->
+        <img src="../../assets/img/thumbs/P1-car-dashboard-v3.png" 
+             srcset="../../assets/img/thumbs/P1-car-dashboard-v3-sm.png 800w, ../../assets/img/thumbs/P1-car-dashboard-v3.png 1600w"
+             sizes="100vw"
+             alt="Car dashboard" 
+             class="dashboard-bg">
+        
+        <!-- その上に重なるアニメーションUI -->
+        <iframe id="inner-ui-frame" 
+                class="carplay-ui" 
+                src="animations/anim-care-collapse.html" 
+                allow="fullscreen" 
+                scrolling="no"></iframe>
+  <!-- Minimal, Intelligent Controller -->
+  <div id="care-controls" class="care-controls" data-state="playing" role="toolbar" aria-label="Care animation controls">
+    <div class="care-info">
+      <div class="care-info__count">Scene <span id="care-scene-num">1</span> of 6</div>
+      <div class="care-info__title" id="care-scene-name">Normal drive</div>
+    </div>
+    
+    <div class="care-actions">
+      <button type="button" id="care-btn-prev" class="care-icon-btn fadeable" aria-label="Previous scene" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+      </button>
+      
+      <button type="button" id="care-btn-playpause" class="care-icon-btn primary" aria-label="Pause">
+        <svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        <svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      </button>
+      
+      <button type="button" id="care-btn-next" class="care-icon-btn fadeable" aria-label="Next scene">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+      </button>
+
+      <div class="care-divider"></div>
+
+      <button type="button" id="care-btn-restart" class="care-icon-btn" aria-label="Restart">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+      </button>
+    </div>
+  </div>
+</div> <!-- End composite-wrapper -->
+
+<script>
+    // 親ページ (p1-scroll.html) から送られてくるシーン切り替えを内部に受け流す
+    window.__carScene = function(sceneIndex) {
+        const innerFrame = document.getElementById('inner-ui-frame');
+        if (innerFrame && innerFrame.contentWindow && typeof innerFrame.contentWindow.__carScene === 'function') {
+            innerFrame.contentWindow.__carScene(sceneIndex);
+        }
+    };
+</script>
+
+<style>
+  /* ── Design-Engineered Controller ── */
+  :root {
+    --gray-50: #fafafa;
+    --gray-200: #e4e4e7;
+    --gray-300: #d4d4d8;
+    --gray-500: #71717a;
+    --gray-700: #3f3f46;
+    --gray-900: #18181b;
+    --gray-950: #09090b;
+    --font-sans: "Geist", system-ui, -apple-system, sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, monospace;
+  }
+
+  .care-controls {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    
+    /* Fixed box dimensions - NEVER changes size */
+    width: 360px;
+    height: 64px;
+    
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 32px;
+    box-shadow: 
+      0 12px 32px rgba(0, 0, 0, 0.12),
+      0 2px 6px rgba(0, 0, 0, 0.06),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px 0 24px;
+    box-sizing: border-box;
+  }
+
+  /* Typography / Info Area */
+  .care-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    overflow: hidden;
+  }
+  .care-info__count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    line-height: 1;
+  }
+  .care-info__count span {
+    font-weight: 600;
+    color: var(--gray-700);
+  }
+  .care-info__title {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-950);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+
+  /* Actions */
+  .care-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .care-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--gray-300);
+    margin: 0 2px;
+  }
+
+  .care-icon-btn {
+    width: 44px; /* Touch-first 44px hit area */
+    height: 44px;
+    border-radius: 22px;
+    border: none;
+    background: transparent;
+    color: var(--gray-700);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    will-change: transform;
+    transition: background-color 150ms ease,
+                color 150ms ease,
+                transform 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 200ms ease;
+  }
+  .care-icon-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--gray-950);
+  }
+  .care-icon-btn:active {
+    transform: scale(0.92); /* Satisfying spring-like press */
+  }
+  .care-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--gray-950);
+  }
+  .care-icon-btn:disabled {
+    opacity: 0.3 !important;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+
+  /* Primary Play/Pause Button */
+  .care-icon-btn.primary {
+    background: var(--gray-950);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  .care-icon-btn.primary:hover {
+    background: black;
+    transform: scale(1.04);
+  }
+  .care-icon-btn.primary:active {
+    transform: scale(0.96);
+  }
+
+  /* Play/Pause Icon Swapping */
+  .icon-play, .icon-pause { display: none; }
+  .care-controls[data-state="playing"] .icon-pause { display: block; }
+  .care-controls[data-state="paused"] .icon-play { display: block; }
+
+  /* Intelligent Fade: Hide Prev/Next when playing */
+  .care-icon-btn.fadeable {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .care-controls[data-state="playing"] .care-icon-btn.fadeable {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.85); /* Fades and slightly shrinks away */
+  }
+
+  /* Shaking animation for disabled boundaries */
+  @keyframes btnShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+  .is-shaking { animation: btnShake 200ms ease-in-out; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .care-icon-btn { transition: none; }
+    .care-icon-btn:hover, .care-icon-btn:active { transform: none; }
+    .is-shaking { animation: none; }
+    .care-controls[data-state="playing"] .care-icon-btn.fadeable { transform: none; }
+  }
+</style>
+
+<script>
+  (function(){
+    var frame = document.getElementById('inner-ui-frame');
+    if (!frame) return;
+    
+    var controls   = document.getElementById('care-controls');
+    var numEl      = document.getElementById('care-scene-num');
+    var nameEl     = document.getElementById('care-scene-name');
+    
+    var btnPrev    = document.getElementById('care-btn-prev');
+    var btnNext    = document.getElementById('care-btn-next');
+    var btnPlay    = document.getElementById('care-btn-playpause');
+    var btnRestart = document.getElementById('care-btn-restart');
+
+    var TOTAL_SCENES = 6;
+    var currentState = null;
+
+    function call(method) {
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({ action: method }, '*');
+      }
+    }
+
+    function applyState(st) {
+      if (!st) return;
+      currentState = st;
+      
+      // Update typography
+      if (numEl) numEl.textContent = (st.index + 1);
+      if (nameEl) nameEl.textContent = st.name;
+      
+      // Update intelligent state (playing vs paused)
+      if (controls) {
+        // Assume playing if autoOn AND not strictly paused
+        var isPlaying = st.autoOn && !st.paused;
+        controls.setAttribute('data-state', isPlaying ? 'playing' : 'paused');
+        btnPlay.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+      }
+
+      // Disable/Enable Prev/Next buttons
+      if (btnPrev) btnPrev.disabled = (st.index === 0);
+      if (btnNext) btnNext.disabled = (st.index === TOTAL_SCENES - 1);
+    }
+
+    function shakeNode(node) {
+      if (!node || node.disabled) return;
+      node.classList.remove('is-shaking');
+      void node.offsetWidth;
+      node.classList.add('is-shaking');
+      setTimeout(function(){ node.classList.remove('is-shaking'); }, 200);
+    }
+
+    // Listen for state from iframe
+    window.addEventListener('message', function(ev) {
+      var d = ev && ev.data;
+      if (d && d.type === 'carScene:state') applyState(d.state);
+    });
+
+    // Request initial state
+    frame.addEventListener('load', function() {
+      // In case postMessage isn't ready immediately, we can wait a bit
+      setTimeout(function(){ call('getState'); }, 100);
+    });
+
+    // Button Events
+    if (btnPrev) {
+      btnPrev.addEventListener('click', function() { call('prev'); });
+    }
+    if (btnNext) {
+      btnNext.addEventListener('click', function() { call('next'); });
+    }
+    if (btnPlay) {
+      btnPlay.addEventListener('click', function() {
+        // If it's playing, we want to pause. If paused, we want to toggle auto to true or unpause.
+        // The iframe '__carScene' exposes 'pause' and 'toggleAuto'. 
+        // If it's paused, toggleAuto() resumes it. If playing, pause() stops it.
+        var isPlaying = controls.getAttribute('data-state') === 'playing';
+        if (isPlaying) {
+          call('pause');
+        } else {
+          call('toggleAuto');
+        }
+      });
+    }
+    if (btnRestart) {
+      btnRestart.addEventListener('click', function() { 
+        // Spin the restart icon
+        var svg = btnRestart.querySelector('svg');
+        if (svg) {
+          svg.style.transition = 'transform 300ms ease';
+          svg.style.transform = 'rotate(-180deg)';
+          setTimeout(() => { svg.style.transition = 'none'; svg.style.transform = 'rotate(0)'; }, 300);
+        }
+        call('restart'); 
+      });
+    }
+  })();
+</script>
+
+
+
+</body>
+</html>

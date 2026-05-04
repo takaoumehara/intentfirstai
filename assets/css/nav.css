@@ -9,6 +9,34 @@
    Requires: tokens.css loaded first.
    ============================================================= */
 
+@import url('./site-nav.css');
+
+:root {
+  --e-bg: var(--bg, #ffffff);
+  --e-bg-2: var(--bg-2, #fafafa);
+  --e-bg-card: var(--bg-2, #f4f4f5);
+  --e-ink: var(--text, #0a0a0a);
+  --e-ink-2: var(--text-2, #525252);
+  --e-ink-3: var(--text-3, #a1a1aa);
+  --e-line: var(--border-hover, #d4d4d8);
+  --e-line-2: var(--border, #e4e4e7);
+  --e-green: var(--color-accent, #30c969);
+  --e-green-2: rgba(48, 201, 105, 0.15);
+}
+
+[data-theme="dark"] {
+  --e-bg: var(--bg, #0a0a0a);
+  --e-bg-2: var(--bg-2, #111111);
+  --e-bg-card: var(--bg-2, #1a1a1a);
+  --e-ink: var(--text, #ededed);
+  --e-ink-2: var(--text-2, #a1a1aa);
+  --e-ink-3: var(--text-3, #52525b);
+  --e-line: var(--border-hover, #3f3f46);
+  --e-line-2: var(--border, #27272a);
+  --e-green: var(--color-accent, #30c969);
+  --e-green-2: rgba(48, 201, 105, 0.12);
+}
+
 /* ─── NAV BAR ─── */
 .nav {
   position: fixed;
@@ -20,7 +48,14 @@
   justify-content: center;
   transition: background 0.5s var(--ease),
               border-color 0.5s var(--ease),
-              box-shadow 0.5s var(--ease);
+              box-shadow 0.5s var(--ease),
+              transform 0.32s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+
+/* Auto-hide state (project scroll pages, scrolling down) */
+.nav.nav--hidden {
+  transform: translateY(-100%);
 }
 
 /* Default state: light solid background */
@@ -519,6 +554,28 @@
   border-bottom-width: 2px;
 }
 
+/* Child link nested under a parent (e.g. Specs under Rule Engine) */
+.nav-subnav a.nav-subnav-child {
+  font-size: 0.92em;
+  opacity: 0.7;
+}
+.nav-subnav a.nav-subnav-child:hover,
+.nav-subnav a.nav-subnav-child.nav-subnav-active { opacity: 1; }
+
+.nav-dropdown-menu a.nav-dropdown-child {
+  padding-left: 28px;
+  font-size: 0.92em;
+  opacity: 0.78;
+}
+.nav-dropdown-menu a.nav-dropdown-child:hover,
+.nav-dropdown-menu a.nav-dropdown-child.nav-active { opacity: 1; }
+
+.nav-mobile-overlay a.mobile-sub-link--child {
+  padding-left: 32px;
+  font-size: 0.92em;
+  opacity: 0.78;
+}
+
 /* Body with subnav: no extra push needed — CG pages use full-height heroes */
 
 /* ─── RESPONSIVE ─── */
@@ -571,5 +628,44 @@
 
   .hamburger-btn {
     display: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MULTI-PAGE VIEW TRANSITIONS — Context Grammar subnav
+   When the user clicks a subnav link, the OLD page slides out and
+   the NEW page slides in, in the same direction as the indicator
+   animates (left or right). Direction is set on <html> via JS
+   before navigation; sessionStorage carries it across the boundary.
+   Browsers without @view-transition support fall back to normal nav.
+   ═══════════════════════════════════════════════════════════════ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  animation-fill-mode: both;
+}
+
+/* Forward — going to a page on the right of current in subnav */
+html.cgnav-forward::view-transition-old(root)  { animation-name: cg-slide-out-left;  }
+html.cgnav-forward::view-transition-new(root)  { animation-name: cg-slide-in-right;  }
+
+/* Backward — going to a page on the left of current in subnav */
+html.cgnav-backward::view-transition-old(root) { animation-name: cg-slide-out-right; }
+html.cgnav-backward::view-transition-new(root) { animation-name: cg-slide-in-left;   }
+
+@keyframes cg-slide-out-left  { to   { transform: translateX(-10%); opacity: 0; } }
+@keyframes cg-slide-in-right  { from { transform: translateX(10%);  opacity: 0; } }
+@keyframes cg-slide-out-right { to   { transform: translateX(10%);  opacity: 0; } }
+@keyframes cg-slide-in-left   { from { transform: translateX(-10%); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms;
   }
 }

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Brain · Extraction | P4</title>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+  }
+  body.noframe { background: transparent !important; }
+  body.noframe .app { background: transparent; }
+
+  /* ── App shell ── */
+  .app {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 40px 1fr 32px;
+    background: var(--bg);
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .brand-icon {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: var(--chip-purple-text, #7c5cbf);
+    color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .brand-name {
+    font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+    letter-spacing: -0.2px; color: var(--text);
+  }
+  .brand-sep {
+    color: var(--text-3); font-size: 12px; margin: 0 2px;
+  }
+  .brand-mode {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    color: var(--chip-purple-text, #7c5cbf);
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .topbar-mid {
+    margin-left: auto; margin-right: auto;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    color: var(--text-3); letter-spacing: 0.3px;
+  }
+  .topbar-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .project-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 3px 10px;
+    font-family: var(--font-sans); font-size: 11px; font-weight: 500;
+    color: var(--text-2);
+  }
+  .project-pill-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--chip-blue-text, #3e6ee4);
+  }
+  .avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #c8844a; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ── Main two-column ── */
+  .main {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    overflow: hidden;
+  }
+
+  /* ── LEFT: Project Brief ── */
+  .left-panel {
+    border-right: 1px solid var(--border);
+    padding: 16px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+    overflow: hidden;
+    background: var(--bg-2, #f8f7f5);
+  }
+  .panel-label {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+    letter-spacing: 0.9px; text-transform: uppercase; color: var(--text-3);
+  }
+  .brief-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .brief-card-header {
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .brief-card-icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--chip-blue-bg, #e8efff);
+    color: var(--chip-blue-text, #3e6ee4);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .brief-card-title {
+    font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+    color: var(--text); letter-spacing: -0.2px; line-height: 1.3;
+  }
+  .brief-card-sub {
+    font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
+    margin-top: 1px; letter-spacing: 0.2px;
+  }
+  .brief-divider {
+    height: 1px; background: var(--border); margin: 0 -14px;
+  }
+  .brief-field {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .brief-field-label {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+    letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-3);
+  }
+  .brief-field-value {
+    font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+    color: var(--text); line-height: 1.4;
+  }
+  .brief-field-value--highlight {
+    color: var(--chip-blue-text, #3e6ee4); font-weight: 600;
+  }
+  .brief-questions {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .brief-q {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-family: var(--font-sans); font-size: 11px; color: var(--text-2);
+    line-height: 1.4;
+  }
+  .brief-q-num {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+    color: var(--chip-blue-text, #3e6ee4);
+    background: var(--chip-blue-bg, #e8efff);
+    border-radius: 3px; padding: 1px 4px;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* Extract arrow */
+  .extract-arrow {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 4px 0;
+  }
+  .extract-arrow-line {
+    flex: 1; height: 1px; background: var(--border);
+    border-style: dashed; border-width: 0 0 1px 0;
+    border-color: var(--border);
+  }
+  .extract-arrow-text {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+    color: var(--chip-purple-text, #7c5cbf);
+    letter-spacing: 0.5px; text-transform: uppercase;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .extract-arrow-icon {
+    font-size: 14px; color: var(--chip-purple-text, #7c5cbf);
+  }
+
+  /* Layer scan indicator */
+  .layer-scan {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .layer-scan-row {
+    display: flex; align-items: center; gap: 7px;
+  }
+  .layer-chip {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    border-radius: 3px; padding: 2px 6px; white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .layer-chip--identity {
+    background: var(--chip-amber-bg, #fff3e0);
+    color: var(--chip-amber-text, #c47b16);
+  }
+  .layer-chip--learning {
+    background: var(--chip-blue-bg, #e8efff);
+    color: var(--chip-blue-text, #3e6ee4);
+  }
+  .layer-chip--now {
+    background: var(--chip-red-bg, #ffeee9);
+    color: var(--chip-red-text, #d43f2c);
+  }
+  .layer-scan-bar {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: var(--border); overflow: hidden;
+  }
+  .layer-scan-fill {
+    height: 100%; border-radius: 2px;
+    animation: scan-fill 1.2s ease-out forwards;
+  }
+  .layer-scan-fill--identity { background: var(--chip-amber-text, #c47b16); width: 45%; }
+  .layer-scan-fill--learning { background: var(--chip-blue-text, #3e6ee4); width: 92%; }
+  .layer-scan-fill--now { background: var(--chip-red-text, #d43f2c); width: 78%; }
+  .layer-scan-count {
+    font-family: var(--font-mono); font-size: 9px; color: var(--text-3);
+    flex-shrink: 0;
+  }
+  @keyframes scan-fill { from { width: 0; } }
+
+  /* ── RIGHT: Fragments panel ── */
+  .right-panel {
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 10px;
+    overflow: hidden;
+  }
+  .right-panel-header {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .right-panel-title {
+    font-family: var(--font-sans); font-size: 12px; font-weight: 600;
+    color: var(--text); letter-spacing: -0.1px;
+  }
+  .fragment-count-badge {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+    background: var(--chip-purple-bg, #f0ebff);
+    color: var(--chip-purple-text, #7c5cbf);
+    border-radius: 4px; padding: 2px 7px; letter-spacing: 0.3px;
+  }
+  .staged-badge {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+    color: var(--color-success, #22c55e);
+    background: var(--chip-green-bg, #e6faf0);
+    border-radius: 4px; padding: 2px 8px; letter-spacing: 0.3px;
+  }
+  .staged-badge-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--color-success, #22c55e);
+  }
+
+  /* Fragment cards */
+  .fragments {
+    display: flex; flex-direction: column; gap: 8px;
+    flex: 1; overflow: hidden;
+  }
+  .frag {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 1fr 140px;
+    grid-template-rows: auto auto;
+    gap: 8px 12px;
+  }
+  .frag-main { display: flex; flex-direction: column; gap: 5px; }
+  .frag-top { display: flex; align-items: center; gap: 7px; }
+  .frag-title {
+    font-family: var(--font-sans); font-size: 12.5px; font-weight: 600;
+    color: var(--text); letter-spacing: -0.15px;
+  }
+  .frag-meta {
+    font-family: var(--font-mono); font-size: 9.5px; color: var(--text-3);
+    letter-spacing: 0.2px;
+  }
+
+  /* Relevance bar */
+  .frag-rel {
+    display: flex; align-items: center; gap: 7px;
+  }
+  .frag-rel-label {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+    letter-spacing: 0.5px; color: var(--text-3); text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .frag-rel-track {
+    flex: 1; height: 5px; border-radius: 3px;
+    background: var(--border); overflow: hidden;
+  }
+  .frag-rel-fill {
+    height: 100%; border-radius: 3px;
+  }
+  .frag-rel-fill--high { background: var(--color-success, #22c55e); }
+  .frag-rel-fill--med  { background: var(--chip-blue-text, #3e6ee4); }
+  .frag-rel-fill--live { background: var(--chip-red-text, #d43f2c); }
+  .frag-rel-pct {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .frag-rel-pct--high { color: var(--color-success, #22c55e); }
+  .frag-rel-pct--med  { color: var(--chip-blue-text, #3e6ee4); }
+  .frag-rel-pct--live { color: var(--chip-red-text, #d43f2c); }
+
+  /* Stage status */
+  .frag-status {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 6px;
+    border-top: 1px solid var(--border); padding-top: 7px;
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+    color: var(--color-success, #22c55e); letter-spacing: 0.3px;
+  }
+  .frag-status-check {
+    width: 14px; height: 14px; border-radius: 3px;
+    background: var(--chip-green-bg, #e6faf0);
+    color: var(--color-success, #22c55e);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 9px;
+  }
+  .frag-status-dest {
+    margin-left: auto;
+    font-family: var(--font-mono); font-size: 9px;
+    color: var(--text-3); font-weight: 500;
+  }
+
+  /* ── Data visualizations ── */
+  .frag-viz { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+
+  /* Segmentation bars */
+  .seg-bars { display: flex; flex-direction: column; gap: 3px; }
+  .seg-row { display: flex; align-items: center; gap: 5px; }
+  .seg-label { font-family: var(--font-mono); font-size: 8.5px; color: var(--text-3); width: 54px; flex-shrink: 0; }
+  .seg-track { flex: 1; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+  .seg-fill { height: 100%; border-radius: 3px; }
+  .seg-fill--a { background: var(--chip-blue-text, #3e6ee4); }
+  .seg-fill--b { background: #22c55e; }
+  .seg-fill--c { background: #c47b16; }
+  .seg-fill--d { background: var(--chip-purple-text, #7c5cbf); }
+  .seg-pct { font-family: var(--font-mono); font-size: 8.5px; font-weight: 600; color: var(--text-2); width: 24px; text-align: right; flex-shrink: 0; }
+
+  /* Quote excerpt */
+  .quote-block {
+    background: var(--bg-2, #f8f7f5);
+    border-left: 2px solid var(--chip-blue-text, #3e6ee4);
+    border-radius: 0 5px 5px 0;
+    padding: 6px 8px;
+  }
+  .quote-text {
+    font-family: var(--font-sans); font-size: 10px;
+    color: var(--text-2); line-height: 1.45;
+    font-style: italic;
+  }
+  .quote-mark {
+    font-size: 12px; line-height: 1; color: var(--chip-blue-text, #3e6ee4);
+    font-style: normal; margin-right: 2px;
+  }
+  .quote-attribution {
+    font-family: var(--font-mono); font-size: 8.5px; color: var(--text-3);
+    margin-top: 4px; letter-spacing: 0.2px;
+  }
+  .quote-highlight {
+    background: #fffbde; border-radius: 2px; padding: 0 1px;
+    color: var(--text); font-style: normal; font-weight: 600;
+  }
+
+  /* NPS widget */
+  .nps-widget {
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .nps-score-row {
+    display: flex; align-items: flex-end; gap: 6px;
+  }
+  .nps-number {
+    font-family: var(--font-mono); font-size: 26px; font-weight: 700;
+    line-height: 1; color: var(--chip-red-text, #d43f2c);
+  }
+  .nps-arrow {
+    font-size: 16px; color: var(--chip-red-text, #d43f2c);
+    margin-bottom: 2px;
+  }
+  .nps-delta {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    color: var(--chip-red-text, #d43f2c);
+    margin-bottom: 3px;
+  }
+  .nps-label {
+    font-family: var(--font-mono); font-size: 8.5px; color: var(--text-3);
+    letter-spacing: 0.3px;
+  }
+  /* Mini NPS trend sparkline */
+  .nps-sparkline {
+    display: flex; align-items: flex-end; gap: 3px; height: 22px;
+  }
+  .nps-bar {
+    flex: 1; border-radius: 2px 2px 0 0;
+  }
+  .nps-bar--prev { background: var(--chip-blue-text, #3e6ee4); opacity: 0.35; }
+  .nps-bar--now  { background: var(--chip-red-text, #d43f2c); }
+  .nps-bar--live { background: var(--chip-red-text, #d43f2c); opacity: 0.7; }
+  .nps-sparkline-label {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 7.5px; color: var(--text-3);
+  }
+  .live-pulse {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--font-mono); font-size: 8.5px; font-weight: 600;
+    color: var(--chip-red-text, #d43f2c); letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--chip-red-text, #d43f2c);
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.75); }
+  }
+
+  /* ── Footer summary bar ── */
+  .footer {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-2, #f8f7f5);
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--text-3); letter-spacing: 0.2px;
+  }
+  .footer-stat {
+    display: flex; align-items: center; gap: 5px;
+  }
+  .footer-stat-num {
+    font-weight: 700; color: var(--text-2);
+  }
+  .footer-sep {
+    color: var(--border); font-size: 14px;
+  }
+  .footer-target {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+    color: var(--chip-purple-text, #7c5cbf);
+  }
+  .footer-target-icon {
+    width: 18px; height: 18px; border-radius: 4px;
+    background: var(--chip-purple-bg, #f0ebff);
+    color: var(--chip-purple-text, #7c5cbf);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+</style>
+<script>
+  if (window.location.search.includes('noframe=1')) {
+    document.documentElement.classList.add('noframe');
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('noframe'));
+  }
+</script>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Top bar ── -->
+  <header class="topbar">
+    <span class="brand-icon">R</span>
+    <span class="brand-name">Research Brain</span>
+    <span class="brand-sep">·</span>
+    <span class="brand-mode">Extraction</span>
+
+    <div class="topbar-mid">Scanning 3 layers for Q3 Abandon Fix</div>
+
+    <div class="topbar-right">
+      <div class="project-pill">
+        <span class="project-pill-dot"></span>
+        Q3 Abandon Fix
+      </div>
+      <span class="avatar">P</span>
+    </div>
+  </header>
+
+  <!-- ── Main ── -->
+  <div class="main">
+
+    <!-- LEFT: Project Brief -->
+    <div class="left-panel">
+      <div class="panel-label">Project Brief · submitted by Priya</div>
+
+      <div class="brief-card">
+        <div class="brief-card-header">
+          <span class="brief-card-icon">📋</span>
+          <div>
+            <div class="brief-card-title">Q3 Abandon Fix</div>
+            <div class="brief-card-sub">Submitted 09:14 · Priya S. · Design Lead</div>
+          </div>
+        </div>
+
+        <div class="brief-divider"></div>
+
+        <div class="brief-field">
+          <div class="brief-field-label">Target Segment</div>
+          <div class="brief-field-value brief-field-value--highlight">Millennials, 28–38, mobile checkout</div>
+        </div>
+
+        <div class="brief-field">
+          <div class="brief-field-label">Problem Statement</div>
+          <div class="brief-field-value">Cart abandonment rate among millennial users has risen 12 pts in 6 weeks. Checkout funnel exits spike at payment step.</div>
+        </div>
+
+        <div class="brief-divider"></div>
+
+        <div class="brief-field">
+          <div class="brief-field-label">Open Questions</div>
+          <div class="brief-questions">
+            <div class="brief-q">
+              <span class="brief-q-num">Q1</span>
+              What do we already know about this segment's trust triggers?
+            </div>
+            <div class="brief-q">
+              <span class="brief-q-num">Q2</span>
+              Are there past checkout studies we can reuse?
+            </div>
+            <div class="brief-q">
+              <span class="brief-q-num">Q3</span>
+              Is the NPS drop correlated or causal?
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extraction arrow + layer scan -->
+      <div class="extract-arrow">
+        <div class="extract-arrow-line"></div>
+        <div class="extract-arrow-text">
+          <span class="extract-arrow-icon">↓</span>
+          Reading layers
+        </div>
+        <div class="extract-arrow-line"></div>
+      </div>
+
+      <div class="panel-label">Layers scanned</div>
+      <div class="layer-scan">
+        <div class="layer-scan-row">
+          <span class="layer-chip layer-chip--identity">Identity</span>
+          <div class="layer-scan-bar">
+            <div class="layer-scan-fill layer-scan-fill--identity"></div>
+          </div>
+          <span class="layer-scan-count">2 matches</span>
+        </div>
+        <div class="layer-scan-row">
+          <span class="layer-chip layer-chip--learning">Learning</span>
+          <div class="layer-scan-bar">
+            <div class="layer-scan-fill layer-scan-fill--learning"></div>
+          </div>
+          <span class="layer-scan-count">18 matches</span>
+        </div>
+        <div class="layer-scan-row">
+          <span class="layer-chip layer-chip--now">Now</span>
+          <div class="layer-scan-bar">
+            <div class="layer-scan-fill layer-scan-fill--now"></div>
+          </div>
+          <span class="layer-scan-count">7 live signals</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Extracted Fragments -->
+    <div class="right-panel">
+      <div class="right-panel-header">
+        <span class="right-panel-title">Extracted Fragments</span>
+        <span class="fragment-count-badge">3 fragments</span>
+        <span class="staged-badge">
+          <span class="staged-badge-dot"></span>
+          All staged
+        </span>
+      </div>
+
+      <div class="fragments">
+
+        <!-- Fragment 1: Segmentation Study -->
+        <div class="frag">
+          <div class="frag-main">
+            <div class="frag-top">
+              <span class="layer-chip layer-chip--learning">Learning Layer</span>
+            </div>
+            <div class="frag-title">2024 Millennial Segmentation Study</div>
+            <div class="frag-meta">4 segments · n=1,240 · Jun 2024 · Consumer Research</div>
+            <div class="frag-rel">
+              <span class="frag-rel-label">Match</span>
+              <div class="frag-rel-track">
+                <div class="frag-rel-fill frag-rel-fill--high" style="width:94%"></div>
+              </div>
+              <span class="frag-rel-pct frag-rel-pct--high">94%</span>
+            </div>
+          </div>
+
+          <!-- Segmentation bars viz -->
+          <div class="frag-viz">
+            <div class="seg-bars">
+              <div class="seg-row">
+                <span class="seg-label">Deal-seekers</span>
+                <div class="seg-track"><div class="seg-fill seg-fill--a" style="width:38%"></div></div>
+                <span class="seg-pct">38%</span>
+              </div>
+              <div class="seg-row">
+                <span class="seg-label">Trust-first</span>
+                <div class="seg-track"><div class="seg-fill seg-fill--b" style="width:28%"></div></div>
+                <span class="seg-pct">28%</span>
+              </div>
+              <div class="seg-row">
+                <span class="seg-label">Speed buyers</span>
+                <div class="seg-track"><div class="seg-fill seg-fill--c" style="width:22%"></div></div>
+                <span class="seg-pct">22%</span>
+              </div>
+              <div class="seg-row">
+                <span class="seg-label">Reluctant</span>
+                <div class="seg-track"><div class="seg-fill seg-fill--d" style="width:12%"></div></div>
+                <span class="seg-pct">12%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="frag-status">
+            <span class="frag-status-check">✓</span>
+            Staged to Project Brain
+            <span class="frag-status-dest">→ Q3 Abandon Fix · Learning Layer</span>
+          </div>
+        </div>
+
+        <!-- Fragment 2: Interview behaviors -->
+        <div class="frag">
+          <div class="frag-main">
+            <div class="frag-top">
+              <span class="layer-chip layer-chip--learning">Learning Layer</span>
+            </div>
+            <div class="frag-title">2025 Interview: Checkout Abandonment</div>
+            <div class="frag-meta">22 sessions · Mar 2025 · Qualitative · UX Research</div>
+            <div class="frag-rel">
+              <span class="frag-rel-label">Match</span>
+              <div class="frag-rel-track">
+                <div class="frag-rel-fill frag-rel-fill--med" style="width:88%"></div>
+              </div>
+              <span class="frag-rel-pct frag-rel-pct--med">88%</span>
+            </div>
+          </div>
+
+          <!-- Quote excerpt viz -->
+          <div class="frag-viz" style="justify-content:flex-start;padding-top:2px;">
+            <div class="quote-block">
+              <div class="quote-text">
+                <span class="quote-mark">"</span>I was going to buy it but then it asked for my card <span class="quote-highlight">again</span> — felt sketchy."
+              </div>
+              <div class="quote-attribution">P12 · F · 31 · Urban · repeat visitor</div>
+            </div>
+          </div>
+
+          <div class="frag-status">
+            <span class="frag-status-check">✓</span>
+            Staged to Project Brain
+            <span class="frag-status-dest">→ Q3 Abandon Fix · Learning Layer</span>
+          </div>
+        </div>
+
+        <!-- Fragment 3: NPS drop live -->
+        <div class="frag">
+          <div class="frag-main">
+            <div class="frag-top">
+              <span class="layer-chip layer-chip--now">Now Layer</span>
+              <span class="live-pulse"><span class="live-dot"></span>Live</span>
+            </div>
+            <div class="frag-title">NPS Drop · Millennials · This Week</div>
+            <div class="frag-meta">Streaming from Analytics · updated 09:02 today</div>
+            <div class="frag-rel">
+              <span class="frag-rel-label">Signal</span>
+              <div class="frag-rel-track">
+                <div class="frag-rel-fill frag-rel-fill--live" style="width:100%"></div>
+              </div>
+              <span class="frag-rel-pct frag-rel-pct--live">Live</span>
+            </div>
+          </div>
+
+          <!-- NPS widget viz -->
+          <div class="frag-viz">
+            <div class="nps-widget">
+              <div class="nps-score-row">
+                <span class="nps-number">62</span>
+                <span class="nps-arrow">↓</span>
+                <span class="nps-delta">−9</span>
+              </div>
+              <div class="nps-label">NPS · Millennial segment</div>
+              <div class="nps-sparkline">
+                <!-- 6 weeks of bars, heights represent NPS ~71,70,68,67,64,62 -->
+                <div class="nps-bar nps-bar--prev" style="height:100%"></div>
+                <div class="nps-bar nps-bar--prev" style="height:95%"></div>
+                <div class="nps-bar nps-bar--prev" style="height:86%"></div>
+                <div class="nps-bar nps-bar--prev" style="height:80%"></div>
+                <div class="nps-bar nps-bar--live" style="height:72%"></div>
+                <div class="nps-bar nps-bar--now" style="height:64%"></div>
+              </div>
+              <div class="nps-sparkline-label">
+                <span>6w ago</span><span>71</span><span>→</span><span>62 now</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="frag-status">
+            <span class="frag-status-check">✓</span>
+            Staged to Project Brain
+            <span class="frag-status-dest">→ Q3 Abandon Fix · Now Layer</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Footer summary bar ── -->
+  <footer class="footer">
+    <div class="footer-stat">
+      <span class="footer-stat-num">3</span> fragments extracted
+    </div>
+    <span class="footer-sep">·</span>
+    <div class="footer-stat">
+      <span class="footer-stat-num">2</span> Learning Layer &nbsp;<span class="footer-stat-num">1</span> Now Layer
+    </div>
+    <span class="footer-sep">·</span>
+    <div class="footer-stat">
+      All staged
+    </div>
+    <div class="footer-target">
+      <span class="footer-target-icon">P</span>
+      → Project Brain "Q3 Abandon Fix"
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

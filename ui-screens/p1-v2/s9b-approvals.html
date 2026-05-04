@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>s9b — Approvals on Mai's iPhone (Lock Screen)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Project tokens + avatars -->
+<link rel="stylesheet" href="_tokens.css">
+<link rel="stylesheet" href="_avatars.css">
+
+<style>
+  /* ─────────────────────────────────────────────────────────
+     Page scaffold — the outer portfolio page owns the iPhone
+     frame now. This file renders the screen CONTENT only.
+
+     Viewed alone (no query): a soft warm backdrop lets the
+     light lock-screen be QA'd on its own.
+     Viewed embedded via ?noframe=1 (from p1-scroll.html):
+     transparent background so the canonical .iphone15pro
+     frame's white screen shows underneath.
+     ───────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: var(--font-sans);
+    background: transparent;
+  }
+
+  /* Standalone QA: a subtle studio backdrop so the light screen
+     is visible against something. Suppressed in noframe mode. */
+  body {
+    background: #eef1f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Noframe (embedded) — strip any backdrop, fill viewport */
+  body.noframe {
+    background: transparent !important;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  body.noframe .lock {
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Lock screen — LIGHT morning palette, matching s8b-notification.
+     Soft SF fog wallpaper (pinks / lilacs / cool grey) so the
+     screen feels like a real Monday morning lock screen, not
+     a dark notification center.
+     ───────────────────────────────────────────────────────── */
+  .lock {
+    position: relative;
+    width: 320px;
+    height: 657px;   /* 320 × (730/356) ≈ 657, matches --lg frame */
+    color: #1a1a1a;
+    background:
+      radial-gradient(ellipse 90% 55% at 20% 10%, rgba(255, 214, 196, 0.55) 0%, rgba(255, 214, 196, 0) 55%),
+      radial-gradient(ellipse 85% 60% at 85% 25%, rgba(224, 213, 234, 0.6) 0%, rgba(224, 213, 234, 0) 55%),
+      radial-gradient(ellipse 120% 70% at 50% 100%, rgba(160, 175, 195, 0.55) 0%, rgba(160, 175, 195, 0) 60%),
+      linear-gradient(180deg, #d8dee6 0%, #c9d0da 45%, #b7bfcb 100%);
+    overflow: hidden;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* In noframe mode the lock fills the parent .iphone15pro__screen */
+  body.noframe .lock { width: 100%; height: 100%; }
+
+  /* Faint warm glow behind the time — softened for light palette */
+  .lock::before {
+    content: "";
+    position: absolute;
+    top: 4%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    aspect-ratio: 1 / 1;
+    background: radial-gradient(closest-side, rgba(194, 65, 12, 0.08), transparent 70%);
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Status bar (faux) — positioned BELOW the Dynamic Island.
+     Same vertical rhythm as before; dark text now that the
+     wallpaper is light.
+     ───────────────────────────────────────────────────────── */
+  .statusbar {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 18px;
+    height: 18px;
+    margin-top: 11%;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.2px;
+    color: #1a1a1a;
+    opacity: 0.92;
+  }
+  .statusbar__time { font-variant-numeric: tabular-nums; }
+  .statusbar__right { display: flex; align-items: center; gap: 5px; }
+  .sb-icon { display: inline-block; width: 15px; height: 11px; opacity: 0.95; }
+
+  /* ─────────────────────────────────────────────────────────
+     Hero — compact date + time on light wallpaper.
+     ───────────────────────────────────────────────────────── */
+  .hero {
+    flex-shrink: 0;
+    text-align: center;
+    margin-top: 10px;
+    padding: 0 16px;
+    animation: fadeIn 0.3s ease-out both;
+  }
+  .hero__date {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.2px;
+    color: #1a1a1a;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+  .hero__time {
+    font-family: var(--font-sans);
+    font-size: 34px;
+    font-weight: var(--fw-medium);
+    line-height: 1;
+    letter-spacing: -0.8px;
+    color: #1a1a1a;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Section header above the draft stack
+     ───────────────────────────────────────────────────────── */
+  .stack-header {
+    flex-shrink: 0;
+    margin: 14px 12px 8px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4a4540;
+    opacity: 0.8;
+    animation: fadeIn 0.4s ease-out 0.08s both;
+  }
+  .stack-header__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    opacity: 0.95;
+    box-shadow: 0 0 0 3px var(--amber-bg);
+    flex-shrink: 0;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Notification stack — 2 draft cards
+     Light lock-screen style: white translucent card over the
+     morning wallpaper. Amber accent = "waiting for you".
+     ───────────────────────────────────────────────────────── */
+  .stack {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 0 10px;
+    min-height: 0;
+  }
+
+  .card {
+    position: relative;
+    border-radius: 14px;
+    padding: 10px 11px 9px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.06);
+    color: #1a1a1a;
+    overflow: hidden;
+  }
+
+  /* Amber "waiting for you" accent — subtle left edge */
+  .card--pending::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 0;
+    width: 2px;
+    border-radius: 0 2px 2px 0;
+    background: linear-gradient(180deg, var(--amber) 0%, transparent 100%);
+    opacity: 0.85;
+  }
+
+  .card--1 { animation: cardIn 0.45s cubic-bezier(0.22, 0.8, 0.36, 1) 0.15s both; }
+  .card--2 { animation: cardIn 0.45s cubic-bezier(0.22, 0.8, 0.36, 1) 0.25s both; }
+
+  .card__head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 4px;
+  }
+  .card__icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+  }
+  .card__icon--messages { background: var(--green); }
+  .card__icon--health   { background: var(--red); }
+
+  .card__meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: var(--fw-medium);
+    color: #4a4540;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card__meta strong { color: #1a1a1a; font-weight: var(--fw-semibold); }
+  .card__meta .sep   { opacity: 0.45; }
+
+  .card__pill {
+    align-self: center;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+    color: var(--amber);
+    background: var(--amber-bg);
+    border: 1px solid rgba(194, 65, 12, 0.35);
+    white-space: nowrap;
+  }
+
+  .card__title {
+    font-size: var(--fs-md);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.1px;
+    line-height: 1.25;
+    color: #1a1a1a;
+    margin: 1px 0 3px;
+  }
+  .card__body {
+    font-size: 12.5px;
+    font-weight: var(--fw-regular);
+    line-height: 1.35;
+    color: #3a3632;
+    opacity: 0.9;
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Action row — 44pt visual tap target achieved via the
+     button's 32px height + 6px gap pad zone (full row ≈ 44). */
+  .card__actions { display: flex; gap: 6px; margin-top: 2px; }
+  .btn {
+    flex: 1 1 0;
+    min-height: 32px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.1px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.6);
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: transform 120ms ease, background 180ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn--primary {
+    background: #1a1a1a;
+    color: #fff;
+    border-color: transparent;
+  }
+  .btn--primary:active { background: #2a2a2a; }
+  .btn--ghost:hover    { background: rgba(255, 255, 255, 0.85); }
+
+  /* ─────────────────────────────────────────────────────────
+     Footer caption + home indicator
+     ───────────────────────────────────────────────────────── */
+  .footer {
+    flex-shrink: 0;
+    padding: 10px 0 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: fadeIn 0.5s ease-out 0.45s both;
+  }
+  .footer__caption {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #4a4540;
+  }
+  .footer__caption em {
+    font-style: normal;
+    color: var(--amber);
+    font-weight: var(--fw-semibold);
+    opacity: 0.95;
+  }
+  .home-indicator {
+    width: 100px;
+    height: 4px;
+    border-radius: 4px;
+    background: #1a1a1a;
+    opacity: 0.55;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     Animations
+     ───────────────────────────────────────────────────────── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cardIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.985);
+      filter: blur(2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero, .stack-header, .card--1, .card--2, .footer {
+      animation: none !important;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     Screen content only. The outer page (p1-scroll.html) owns
+     the canonical .iphone15pro frame (SVG chrome + Dynamic
+     Island). This file fills the .iphone15pro__screen area.
+     ═══════════════════════════════════════════════════════════ -->
+<div class="lock" role="img"
+     aria-label="Mai's iPhone lock screen at 08:05 on Monday, with two drafts awaiting her approval">
+
+  <!-- Status bar (faux), placed below the Dynamic Island area -->
+  <div class="statusbar" aria-hidden="true">
+    <span class="statusbar__time">08:05</span>
+    <span class="statusbar__right">
+      <!-- signal / wifi / battery — minimal SVG set -->
+      <svg class="sb-icon" viewBox="0 0 17 11" fill="currentColor" aria-hidden="true">
+        <rect x="0"  y="7" width="3" height="4"  rx="0.6"/>
+        <rect x="4"  y="5" width="3" height="6"  rx="0.6"/>
+        <rect x="8"  y="3" width="3" height="8"  rx="0.6"/>
+        <rect x="12" y="1" width="3" height="10" rx="0.6"/>
+      </svg>
+      <svg class="sb-icon" viewBox="0 0 15 11" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+        <path d="M1 4.2 A10 10 0 0 1 14 4.2"/>
+        <path d="M3 6.4 A7 7 0 0 1 12 6.4"/>
+        <path d="M5 8.6 A4 4 0 0 1 10 8.6"/>
+        <circle cx="7.5" cy="10" r="0.8" fill="currentColor" stroke="none"/>
+      </svg>
+      <svg class="sb-icon" viewBox="0 0 25 11" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="22" height="10" rx="2.5"/>
+        <rect x="23"  y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor"/>
+        <!-- 87% fill ≈ 15.6 of 18 interior width -->
+        <rect x="2"   y="2"   width="15.6" height="7" rx="1.4" fill="currentColor"/>
+      </svg>
+    </span>
+  </div>
+
+  <!-- Hero: compact date + time -->
+  <div class="hero">
+    <div class="hero__date">Mon · April 23</div>
+    <div class="hero__time">08:05</div>
+  </div>
+
+  <!-- Section header: 2 drafts awaiting Mai's tap -->
+  <div class="stack-header" aria-hidden="true">
+    <span class="stack-header__dot"></span>
+    <span>Cascade · 2 drafts need your tap</span>
+  </div>
+
+  <!-- Draft card stack -->
+  <div class="stack" role="list" aria-label="Draft messages awaiting approval">
+
+    <!-- Card 1: Kiran (partner) iMessage draft -->
+    <article class="card card--pending card--1" role="listitem"
+             aria-label="Draft to Kiran, partner, ready to send in one tap">
+      <div class="card__head">
+        <div class="card__icon card__icon--messages" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true">
+            <path d="M3 3h10a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H7l-3 2.5V12H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+          </svg>
+        </div>
+        <div class="card__meta">
+          <strong>iMessage</strong>
+          <span class="sep">·</span>
+          <span>Kiran · partner</span>
+        </div>
+        <span class="card__pill" aria-hidden="true">Awaiting</span>
+      </div>
+      <h3 class="card__title">Draft ready — 1 tap to send</h3>
+      <p class="card__body">
+        Going to Aoi's school now. Can you pick up Leo at 4 and meet me there?
+      </p>
+      <div class="card__actions">
+        <button class="btn btn--primary" type="button" aria-label="Send message to Kiran">Send</button>
+        <button class="btn btn--ghost"   type="button" aria-label="Edit message to Kiran">Edit</button>
+      </div>
+    </article>
+
+    <!-- Card 2: Dr. Patel (Kaiser) clinician note — higher stakes -->
+    <article class="card card--pending card--2" role="listitem"
+             aria-label="Clinician note to Dr. Patel at Kaiser, awaiting your approval before send">
+      <div class="card__head">
+        <div class="card__icon card__icon--health" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true">
+            <path d="M8 14s-5.5-3.4-5.5-7.3A3.2 3.2 0 0 1 8 4.2a3.2 3.2 0 0 1 5.5 2.5C13.5 10.6 8 14 8 14z"/>
+          </svg>
+        </div>
+        <div class="card__meta">
+          <strong>Kaiser</strong>
+          <span class="sep">·</span>
+          <span>Dr. Patel · pulmonologist</span>
+        </div>
+        <span class="card__pill" aria-hidden="true">Approve</span>
+      </div>
+      <h3 class="card__title">Clinician note — approve before send</h3>
+      <p class="card__body">
+        Aoi used rescue inhaler at 08:01, stable, picking up now. Flagging for Friday.
+      </p>
+      <div class="card__actions">
+        <button class="btn btn--primary" type="button" aria-label="Send clinician note to Dr. Patel">Send</button>
+        <button class="btn btn--ghost"   type="button" aria-label="Edit clinician note">Edit</button>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- Footer: Autonomy Dial caption + home indicator -->
+  <div class="footer">
+    <div class="footer__caption">
+      Autonomy Dial · Messaging = <em>Confirm</em>
+    </div>
+    <div class="home-indicator" aria-hidden="true"></div>
+  </div>
+
+</div>
+
+<script>
+  // ─────────────────────────────────────────────────────────
+  // noframe mode: when embedded via iframe with ?noframe=1,
+  // the outer page's .iphone15pro already provides the frame.
+  // We strip any standalone backdrop so only the screen shows.
+  // ─────────────────────────────────────────────────────────
+  (function () {
+    var params = new URLSearchParams(location.search);
+    if (params.get('noframe') === '1') {
+      document.body.classList.add('noframe');
+    }
+  })();
+
+  // ─────────────────────────────────────────────────────────
+  // Touch-feel: buttons are visual-only in the mockup.
+  // Prevent default so the demo doesn't try to submit or nav.
+  // Active-state scale(0.98) is handled purely in CSS.
+  // ─────────────────────────────────────────────────────────
+  document.querySelectorAll('.btn').forEach(function (el) {
+    el.addEventListener('click', function (e) { e.preventDefault(); });
+  });
+</script>
+
+</body>
+</html>

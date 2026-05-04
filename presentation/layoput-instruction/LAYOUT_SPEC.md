@@ -175,7 +175,7 @@ Illustrator原稿から抽出したグリッド・タイポグラフィ・マー
 │      │  │                 │      │   (placeholder) │ │     │
 │      │  │ Body text...    │      │   border-radius │ │     │
 │      │  │ 「今夜何食べる? │      │   16px          │ │     │
-│      │  │ 」——毎晩...     │      │   object-fit:   │ │     │
+│      │  │ 」—毎晩...     │      │   object-fit:   │ │     │
 │      │  │                 │      │   cover         │ │     │
 │      │  │                 │      │   height: 100%  │ │     │
 │      │  │                 │      │                 │ │     │

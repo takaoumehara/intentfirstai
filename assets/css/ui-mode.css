@@ -1,0 +1,229 @@
+/* ═══════════════════════════════════════════════════════════
+   UI Mode Toggle — Universal Pause / Explore Control
+   ═══════════════════════════════════════════════════════════
+   Lets any animated UI screen expose a subtle play/pause toggle.
+   Default mode is auto (plays on viewport enter). User can pause
+   and interact. URL param ?mode=static|explore overrides.
+
+   USAGE:
+     <link rel="stylesheet" href="[path]/assets/css/ui-mode.css">
+     <script src="[path]/assets/js/ui-mode.js" defer></script>
+
+     <!-- Toggle is injected automatically. -->
+     <!-- Content authors hook animations to body[data-ui-mode="auto|paused|static|explore"]. -->
+
+   CSS CONTRACT:
+     body[data-ui-mode="auto"]     → animations run
+     body[data-ui-mode="paused"]   → animations pause (user paused)
+     body[data-ui-mode="static"]   → animations disabled (reduced-motion or ?mode=static)
+     body[data-ui-mode="explore"]  → animations off until user clicks a .ui-trigger
+
+   Animations should use `animation-play-state: paused/running` based on mode,
+   or guard with `body[data-ui-mode="auto"]` selectors.
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --ui-mode-bg: rgba(255, 255, 255, 0.85);
+  --ui-mode-fg: rgba(10, 10, 10, 0.78);
+  --ui-mode-border: rgba(10, 10, 10, 0.1);
+  --ui-mode-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark-screen variant (invoked by body.ui-mode-dark) */
+body.ui-mode-dark {
+  --ui-mode-bg: rgba(30, 30, 30, 0.85);
+  --ui-mode-fg: rgba(237, 237, 237, 0.82);
+  --ui-mode-border: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Container (fixed top-right) ── */
+.ui-mode {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  gap: 6px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  opacity: 0.45;
+  transition: opacity 200ms cubic-bezier(0.165, 0.84, 0.44, 1);
+  pointer-events: auto;
+}
+.ui-mode:hover,
+.ui-mode:focus-within,
+.ui-mode--visible {
+  opacity: 1;
+}
+.ui-mode[hidden] { display: none; }
+
+/* Static mode — hide toggle entirely (nothing to control) */
+body[data-ui-mode="static"] .ui-mode {
+  display: none;
+}
+
+/* ── Buttons ── */
+.ui-mode__btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--ui-mode-border);
+  background: var(--ui-mode-bg);
+  color: var(--ui-mode-fg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 999px;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--ui-mode-shadow);
+  transition:
+    transform 160ms cubic-bezier(0.165, 0.84, 0.44, 1),
+    background 160ms,
+    color 160ms;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  user-select: none;
+}
+.ui-mode__btn:hover {
+  transform: scale(1.06);
+}
+.ui-mode__btn:active {
+  transform: scale(0.94);
+}
+.ui-mode__btn:focus-visible {
+  outline: 2px solid var(--ui-mode-fg);
+  outline-offset: 2px;
+}
+
+.ui-mode__btn--wide {
+  width: auto;
+  padding: 0 12px;
+  gap: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-mode__btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* When paused, toggle shows play icon; pressed state of toggle has subtle emphasis */
+body[data-ui-mode="paused"] .ui-mode__btn--toggle,
+body[data-ui-mode="explore"] .ui-mode__btn--toggle {
+  background: var(--ui-mode-fg);
+  color: var(--ui-mode-bg);
+  border-color: transparent;
+}
+
+/* Visual icons swap via CSS */
+.ui-mode__btn--toggle .ui-mode__icon-play,
+.ui-mode__btn--toggle .ui-mode__icon-pause { display: none; }
+
+body[data-ui-mode="auto"] .ui-mode__btn--toggle .ui-mode__icon-pause { display: block; }
+body[data-ui-mode="paused"] .ui-mode__btn--toggle .ui-mode__icon-play { display: block; }
+body[data-ui-mode="explore"] .ui-mode__btn--toggle .ui-mode__icon-play { display: block; }
+
+/* Label text next to button (optional) */
+.ui-mode__label {
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ui-mode-fg);
+  padding: 6px 10px;
+  border: 1px solid var(--ui-mode-border);
+  background: var(--ui-mode-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 999px;
+  box-shadow: var(--ui-mode-shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ui-mode__label-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+body[data-ui-mode="auto"] .ui-mode__label-dot { animation: ui-mode-breathe 1.8s ease-in-out infinite; }
+body[data-ui-mode="paused"] .ui-mode__label-dot { background: currentColor; opacity: 0.5; animation: none; }
+body[data-ui-mode="explore"] .ui-mode__label-dot { background: #3b82f6; animation: none; }
+
+@keyframes ui-mode-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(0.7); opacity: 0.55; }
+}
+
+body[data-ui-mode="auto"] .ui-mode__label::after    { content: 'Live'; }
+body[data-ui-mode="paused"] .ui-mode__label::after  { content: 'Paused'; }
+body[data-ui-mode="explore"] .ui-mode__label::after { content: 'Click any'; }
+
+/* ── Global animation suppression for static / paused ── */
+body[data-ui-mode="static"] *,
+body[data-ui-mode="static"] *::before,
+body[data-ui-mode="static"] *::after {
+  animation-play-state: paused !important;
+}
+
+body[data-ui-mode="paused"] [data-ui-animated]:not(.ui-force-run),
+body[data-ui-mode="paused"] [data-ui-animated]:not(.ui-force-run)::before,
+body[data-ui-mode="paused"] [data-ui-animated]:not(.ui-force-run)::after {
+  animation-play-state: paused !important;
+}
+
+body[data-ui-mode="explore"] [data-ui-animated]:not(.ui-force-run),
+body[data-ui-mode="explore"] [data-ui-animated]:not(.ui-force-run)::before,
+body[data-ui-mode="explore"] [data-ui-animated]:not(.ui-force-run)::after {
+  animation-play-state: paused !important;
+}
+
+/* ── Trigger affordance in explore mode ── */
+.ui-trigger {
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.ui-trigger:hover { transform: scale(1.02); }
+.ui-trigger:active { transform: scale(0.98); }
+
+body[data-ui-mode="explore"] .ui-trigger {
+  outline: 1px dashed rgba(59, 130, 246, 0.4);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+body[data-ui-mode="explore"] .ui-trigger:hover {
+  outline-style: solid;
+  outline-color: rgba(59, 130, 246, 0.7);
+}
+
+/* ── Respect prefers-reduced-motion (force static appearance) ── */
+@media (prefers-reduced-motion: reduce) {
+  .ui-mode { transition: none; }
+  .ui-mode__btn { transition: none; }
+  .ui-mode__label-dot { animation: none !important; }
+}
+
+/* ── Noframe mode — still show toggle, but smaller ── */
+body.noframe .ui-mode {
+  top: 8px;
+  right: 8px;
+  transform: scale(0.85);
+  transform-origin: top right;
+}

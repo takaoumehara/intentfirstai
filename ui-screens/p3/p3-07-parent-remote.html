@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3-07 · Naomi's phone — purchase console while TV casts</title>
+
+<!-- Canonical iPhone 15 Pro frame (used for standalone QA via .iphone15pro inside the file) -->
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+
+<style>
+/* ============================================================
+   P3-07 — Naomi's purchase console (standalone view)
+   Mirror of p3-03 phone half. Same 3-zone layout:
+   1) cast strip (Casting to TV)
+   2) persona chip (Marcus + bag)
+   3) selection card (focused product)
+   4) intent line (price + Buy)
+   ============================================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4; --gray-400: #a3a3a3; --gray-500: #737373;
+  --gray-600: #525252; --gray-700: #404040; --gray-800: #262626;
+  --gray-900: #171717;
+  --copper:      #a05c35;
+  --copper-soft: #f4ece6;
+  --copper-line: #e8d6c8;
+  --copper-deep: #7d4423;
+  --ok:        #2f6f3e; --ok-soft:   #ebf3ec;
+  --warn:      #8a5a1a; --warn-soft: #f7eedc;
+  --line:   rgba(10,10,10,0.08);
+  --line-2: rgba(10,10,10,0.14);
+  --text:   #171717;
+  --text-2: #525252;
+  --text-3: #737373;
+  --text-4: #a3a3a3;
+}
+
+body {
+  margin: 0;
+  background: #f5f4f1;
+  font-family: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* noframe mode: strip the standalone QA chrome and let content fill viewport */
+body.noframe { background: transparent !important; align-items: flex-start; justify-content: flex-start; }
+body.noframe .qa-shell { padding: 0; }
+body.noframe .iphone15pro { display: none; }
+body.noframe .noframe-host { display: flex; }
+
+.qa-shell { padding: 24px; display: flex; align-items: center; justify-content: center; }
+
+/* When standalone, we use the canonical iPhone 15 Pro frame for QA (per device standard) */
+.iphone15pro { --iphone-w: 320px; filter: drop-shadow(0 24px 40px rgba(0,0,0,0.18)); }
+
+/* The phone screen content. In standalone, sits inside .iphone15pro__screen.
+   In noframe mode, the same markup fills the viewport via .noframe-host. */
+.phone-screen-content {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.noframe-host {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+}
+.noframe-host > .phone-screen-content { width: 100%; height: 100%; }
+
+/* Status bar */
+.ph-status {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 14px 26px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+body.noframe .ph-status { padding-top: 56px; height: 56px; }
+.ph-status-icons { display: flex; gap: 4px; align-items: center; }
+
+/* Cast strip */
+.ph-cast-strip {
+  flex-shrink: 0;
+  margin: 6px 14px 0;
+  padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--gray-50);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.ph-cast-icon {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--gray-900); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ph-cast-icon svg { width: 13px; height: 13px; }
+.ph-cast-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.ph-cast-line1 {
+  font-size: 11px; font-weight: 600; letter-spacing: -0.1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ph-cast-line2 {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; color: var(--text-3); letter-spacing: 0.4px; text-transform: uppercase;
+}
+
+/* Console (always visible in this standalone) */
+.ph-console {
+  flex: 1;
+  min-height: 0;
+  display: flex; flex-direction: column;
+  padding: 14px 14px 24px;
+  gap: 12px;
+}
+
+/* Persona chip */
+.ph-persona {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--copper-soft);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.ph-persona-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d8c2a8, #b58963);
+  color: #fff;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ph-persona-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.ph-persona-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; font-weight: 500; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--copper);
+}
+.ph-persona-name {
+  font-size: 13px; font-weight: 600; letter-spacing: -0.2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ph-cart-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 9px;
+  background: #fff;
+  border: 1px solid var(--copper-line);
+  border-radius: 9999px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.4px;
+  color: var(--copper); flex-shrink: 0;
+}
+.ph-cart-icon { width: 12px; height: 12px; }
+.ph-cart-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px;
+  padding: 0 4px; border-radius: 9999px;
+  background: var(--copper); color: #fff;
+  font-size: 9px; font-weight: 600;
+}
+
+/* Selection card */
+.ph-selection {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden; position: relative;
+}
+.ph-sel-img {
+  flex: 1; min-height: 0;
+  background: var(--gray-50);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.ph-sel-img img {
+  width: 100%; height: 100%; object-fit: contain; padding: 14px;
+}
+.ph-sel-pos {
+  position: absolute; top: 10px; left: 12px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; font-weight: 500; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--text-3);
+  background: #fff; padding: 3px 7px; border-radius: 4px;
+  border: 1px solid var(--line);
+}
+.ph-sel-info {
+  flex-shrink: 0;
+  padding: 12px 14px 10px;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.ph-sel-brand {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px; font-weight: 500; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-3);
+}
+.ph-sel-name {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.2px; line-height: 1.25;
+}
+.ph-sel-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.ph-sel-match {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.4px;
+  padding: 3px 7px; border-radius: 4px;
+  background: var(--ok-soft); color: var(--ok);
+}
+.ph-sel-ship {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px; color: var(--text-3); letter-spacing: 0.4px;
+}
+
+/* Intent */
+.ph-intent { flex-shrink: 0; display: flex; align-items: stretch; gap: 8px; }
+.ph-price-block {
+  flex: 0 0 auto; min-width: 96px;
+  padding: 10px 14px;
+  background: var(--copper-soft);
+  border-radius: 12px;
+  display: flex; flex-direction: column; justify-content: center; gap: 1px;
+}
+.ph-price-eyebrow {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; font-weight: 500; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--copper);
+}
+.ph-price-value {
+  font-size: 22px; font-weight: 600; letter-spacing: -0.6px; line-height: 1; margin-top: 2px;
+}
+.ph-price-private {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; font-weight: 500; letter-spacing: 0.4px;
+  text-transform: uppercase; color: var(--text-4);
+  margin-top: 4px;
+  display: flex; align-items: center; gap: 3px;
+}
+.ph-actions { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.btn-bag {
+  flex: 0 0 22px; height: 22px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 9px; font-weight: 500; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--text-2);
+  cursor: pointer;
+  transition: background 150ms var(--ease), border-color 150ms var(--ease);
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.btn-bag:hover { background: var(--gray-50); border-color: var(--line-2); }
+.btn-bag.added { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.btn-buy {
+  flex: 1;
+  border: none;
+  border-radius: 12px;
+  background: var(--copper);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px; font-weight: 600; letter-spacing: -0.1px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 6px 16px -6px rgba(160,92,53,0.45);
+  transition: background 180ms var(--ease), transform 120ms var(--ease);
+}
+.btn-buy:hover  { background: var(--copper-deep); }
+.btn-buy:active { transform: scale(0.985); }
+.btn-buy.success { background: var(--ok); box-shadow: 0 6px 16px -6px rgba(47,111,62,0.45); }
+</style>
+
+<script>
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+</head>
+<body>
+
+<!-- Standalone QA — canonical iPhone 15 Pro frame -->
+<div class="qa-shell">
+  <div class="iphone15pro iphone15pro--lg">
+    <img class="iphone15pro__chrome"
+         src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+         alt="" aria-hidden="true">
+    <div class="iphone15pro__screen" id="frameScreen">
+      <!-- content placeholder — populated below -->
+    </div>
+    <div class="iphone15pro__island" aria-hidden="true"></div>
+  </div>
+</div>
+
+<!-- noframe-mode host — content fills viewport when ?noframe=1 -->
+<div class="noframe-host" id="noframeHost"></div>
+
+<!-- Single template that gets mounted in either the iPhone screen OR the noframe host -->
+<template id="screenTemplate">
+  <div class="phone-screen-content">
+
+    <div class="ph-status">
+      <span>6:44</span>
+      <div class="ph-status-icons">
+        <svg width="14" height="11" viewBox="0 0 15 12" fill="#171717">
+          <rect x="0" y="8" width="2.5" height="4" opacity="0.3" rx="0.5"/>
+          <rect x="3.5" y="5.5" width="2.5" height="6.5" opacity="0.55" rx="0.5"/>
+          <rect x="7" y="3" width="2.5" height="9" rx="0.5"/>
+          <rect x="10.5" y="0.5" width="2.5" height="11.5" rx="0.5"/>
+        </svg>
+        <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#171717" stroke-width="2.5" stroke-linecap="round">
+          <path d="M1.5 7C5.8 2.7 12 1 12 1S18.2 2.7 22.5 7"/>
+          <path d="M5 10.5C8 7.5 12 6.5 12 6.5S16 7.5 19 10.5"/>
+          <path d="M8.5 14C10 12.5 12 12 12 12S14 12.5 15.5 14"/>
+          <circle cx="12" cy="17" r="1.4" fill="#171717" stroke="none"/>
+        </svg>
+        <svg width="20" height="11" viewBox="0 0 28 14" fill="#171717">
+          <rect x="0.75" y="0.75" width="22.5" height="12.5" rx="2.25" fill="none" stroke="#171717" stroke-width="1.5"/>
+          <rect x="23.5" y="3.5" width="3" height="7" rx="1.5"/>
+          <rect x="2.5" y="2.5" width="18" height="9" rx="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="ph-cast-strip">
+      <div class="ph-cast-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>
+          <path d="M2 12a9 9 0 0 1 9 9"/>
+          <path d="M2 16a5 5 0 0 1 5 5"/>
+          <line x1="2" y1="20" x2="2.01" y2="20"/>
+        </svg>
+      </div>
+      <div class="ph-cast-text">
+        <span class="ph-cast-line1">Casting to Living Room TV</span>
+        <span class="ph-cast-line2">Family decides · price stays here</span>
+      </div>
+    </div>
+
+    <div class="ph-console">
+
+      <div class="ph-persona">
+        <div class="ph-persona-avatar">M</div>
+        <div class="ph-persona-text">
+          <span class="ph-persona-eyebrow">Shopping for</span>
+          <span class="ph-persona-name">Marcus · Size 3Y</span>
+        </div>
+        <div class="ph-cart-badge">
+          <svg class="ph-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+            <path d="M3 6h18"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span>Bag</span>
+          <span class="ph-cart-count" id="phCartCount">0</span>
+        </div>
+      </div>
+
+      <div class="ph-selection">
+        <div class="ph-sel-img">
+          <div class="ph-sel-pos">1 / 8</div>
+          <img src="../../projects/project-03/image-set03/product/FinalChoice-TNF-Fastpack Hiker Mid/Screenshot 2026-03-27 at 22.39.22.webp"
+               alt="The North Face Fastpack Hiker Mid Waterproof">
+        </div>
+        <div class="ph-sel-info">
+          <div class="ph-sel-brand">The North Face</div>
+          <div class="ph-sel-name">Fastpack Hiker Mid WP</div>
+          <div class="ph-sel-row">
+            <span class="ph-sel-match">94% match</span>
+            <span class="ph-sel-ship">→ Friday</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ph-intent">
+        <div class="ph-price-block">
+          <span class="ph-price-eyebrow">Your price</span>
+          <span class="ph-price-value">£69</span>
+          <span class="ph-price-private">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <rect width="18" height="11" x="3" y="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Hidden on TV
+          </span>
+        </div>
+        <div class="ph-actions">
+          <button class="btn-bag" id="btnBag">+ Bag</button>
+          <button class="btn-buy" id="btnBuy">Buy now</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</template>
+
+<script>
+/* Mount the same template into either the framed slot (standalone) or the noframe host. */
+const tpl = document.getElementById('screenTemplate').content.cloneNode(true);
+const isNoFrame = new URLSearchParams(location.search).get('noframe') === '1';
+if (isNoFrame) {
+  document.getElementById('noframeHost').appendChild(tpl);
+} else {
+  document.getElementById('frameScreen').appendChild(tpl);
+}
+
+/* Buttons */
+const btnBag = document.getElementById('btnBag');
+const btnBuy = document.getElementById('btnBuy');
+const cartCountEl = document.getElementById('phCartCount');
+let cart = 0;
+btnBag.addEventListener('click', () => {
+  cart += 1;
+  cartCountEl.textContent = String(cart);
+  btnBag.textContent = '✓ Added';
+  btnBag.classList.add('added');
+  setTimeout(() => { btnBag.textContent = '+ Bag'; btnBag.classList.remove('added'); }, 1100);
+});
+btnBuy.addEventListener('click', () => {
+  btnBuy.textContent = 'Placing order…';
+  btnBuy.style.opacity = '.85';
+  btnBuy.disabled = true;
+  setTimeout(() => {
+    btnBuy.textContent = '✓ Ordered';
+    btnBuy.classList.add('success');
+    btnBuy.style.opacity = '';
+  }, 900);
+});
+</script>
+</body>
+</html>

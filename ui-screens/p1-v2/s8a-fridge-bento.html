@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S8a — Family Hub Fridge · Bento Planning</title>
+
+<!-- Design tokens (Satoshi, Geist Mono, colors) -->
+<link rel="stylesheet" href="_tokens.css">
+
+<style>
+  /* ============================================================
+     S8a — Samsung Family Hub fridge with bento-planning touchscreen
+     Full side-by-side fridge drawn in CSS, screen inset on upper-
+     right door. Fridge body is brushed steel; touchscreen carries
+     the actual Home Agent UI (3 bento cards).
+     ============================================================ */
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    min-height: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans, "Satoshi", system-ui, sans-serif);
+    color: var(--text, #1a1816);
+    /* Subtle kitchen-grey backdrop when shown standalone */
+    background:
+      radial-gradient(ellipse at 50% 35%, #f2efe9 0%, #e4e0d8 60%, #d6d1c8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    min-height: 100vh;
+  }
+
+  /* Noframe mode: host page embeds this; drop the backdrop */
+  body.noframe {
+    background: transparent;
+    padding: 24px;
+  }
+
+  /* ------------------------------------------------------------
+     FRIDGE — outer shell
+     ------------------------------------------------------------ */
+  .fridge {
+    position: relative;
+    width: min(860px, 100%);
+    aspect-ratio: 4 / 5;     /* tall, proper fridge proportions */
+    max-height: calc(100vh - 80px);
+    border-radius: 18px;
+    padding: 22px 22px 28px;
+    background:
+      linear-gradient(180deg, #eef0f3 0%, #d9dde2 55%, #c4c8cf 100%);
+    /* Brushed-steel micro-texture */
+    background-image:
+      repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.06) 0px,
+        rgba(255,255,255,0.06) 1px,
+        transparent 1px,
+        transparent 3px
+      ),
+      linear-gradient(180deg, #eef0f3 0%, #d9dde2 55%, #c4c8cf 100%);
+    box-shadow:
+      /* Floor shadow */
+      0 40px 60px -20px rgba(0,0,0,0.35),
+      0 18px 30px -12px rgba(0,0,0,0.22),
+      /* Edge highlight */
+      inset 0 1px 0 rgba(255,255,255,0.7),
+      inset 0 -2px 0 rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Samsung wordmark band across the top cap */
+  .fridge__brand {
+    height: 28px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(20,20,25,0.32);
+    text-transform: uppercase;
+    font-family: var(--font-sans, "Satoshi", sans-serif);
+  }
+
+  /* ------------------------------------------------------------
+     DOOR ASSEMBLY — freezer (left) + fridge (right)
+     ------------------------------------------------------------ */
+  .doors {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 40% 60%;   /* freezer narrower, fridge wider */
+    gap: 6px;                          /* seam between doors */
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.2);       /* the seam colour */
+    min-height: 0;
+  }
+
+  .door {
+    position: relative;
+    background:
+      linear-gradient(180deg, #e2e5ea 0%, #cfd3d9 60%, #b9bec5 100%);
+    background-image:
+      /* Vertical brushed steel on doors */
+      repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.05) 0px,
+        rgba(255,255,255,0.05) 1px,
+        transparent 1px,
+        transparent 2px
+      ),
+      linear-gradient(180deg, #e2e5ea 0%, #cfd3d9 60%, #b9bec5 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.7),
+      inset -1px 0 0 rgba(0,0,0,0.06),
+      inset 1px 0 0 rgba(0,0,0,0.06);
+    border-radius: 6px;
+    padding: 26px 22px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Thin vertical handle strip (outer edge of each door) */
+  .door__handle {
+    position: absolute;
+    top: 10%;
+    bottom: 10%;
+    width: 8px;
+    border-radius: 4px;
+    background:
+      linear-gradient(90deg, rgba(0,0,0,0.22), rgba(255,255,255,0.4) 40%, rgba(0,0,0,0.18));
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.5);
+  }
+  .door--freezer .door__handle { right: 14px; }
+  .door--fridge  .door__handle { left: 14px; }
+
+  /* Water & ice dispenser nook — bottom-left of the freezer door */
+  .dispenser {
+    margin-top: auto;
+    width: 82%;
+    height: 120px;
+    align-self: center;
+    border-radius: 10px;
+    background:
+      radial-gradient(ellipse at 50% 30%, #2a2d33 0%, #1a1c21 55%, #0f1115 100%);
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.8),
+      inset 0 -1px 0 rgba(255,255,255,0.05),
+      0 1px 0 rgba(255,255,255,0.35);
+    position: relative;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .dispenser__screen {
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #9ed0a8;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .dispenser__buttons {
+    display: flex;
+    gap: 8px;
+  }
+  .dispenser__btn {
+    flex: 1;
+    height: 18px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #3a3e46, #24272d);
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 1px 0 rgba(0,0,0,0.4);
+  }
+
+  /* ------------------------------------------------------------
+     TOUCHSCREEN — inset into upper-right of the fridge door
+     Bezelled dark frame → bright UI content inside
+     ------------------------------------------------------------ */
+  .screen-bezel {
+    width: 100%;
+    max-width: 380px;
+    aspect-ratio: 380 / 520;
+    margin-left: auto;      /* push toward door edge */
+    margin-right: 6px;
+    padding: 10px;
+    border-radius: 14px;
+    background:
+      linear-gradient(180deg, #1a1c20 0%, #0d0e11 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 0 0 1px rgba(0,0,0,0.5),
+      0 2px 6px rgba(0,0,0,0.3),
+      0 8px 16px -6px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen {
+    flex: 1;
+    border-radius: 6px;
+    background: #faf8f4;
+    color: #1a1816;
+    padding: 16px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+    position: relative;
+    /* Subtle glow to suggest an active display */
+    box-shadow:
+      inset 0 0 0 1px rgba(0,0,0,0.04),
+      0 0 18px rgba(120, 160, 200, 0.06);
+  }
+
+  /* Status bar — time, weather, device label */
+  .status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(26,24,22,0.55);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding-bottom: 6px;
+  }
+  .status__left, .status__right { display: flex; gap: 6px; }
+
+  /* Header block */
+  .eyebrow {
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #8a6ab0;  /* Brain semantic colour */
+    font-weight: 600;
+  }
+  .greet {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: #1a1816;
+  }
+  .subtitle {
+    font-size: 11px;
+    line-height: 1.45;
+    color: rgba(26,24,22,0.65);
+  }
+
+  /* ------------------------------------------------------------
+     BENTO CARDS
+     ------------------------------------------------------------ */
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    align-items: center;
+  }
+  .card--rec {
+    background: linear-gradient(180deg, #ffffff 0%, #f6f1e6 100%);
+    border-color: rgba(160, 112, 64, 0.35);   /* Intent accent */
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.04),
+      0 0 0 1px rgba(160, 112, 64, 0.12);
+  }
+
+  .card__img {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #e4e0d8;
+    display: block;
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .card__title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a1816;
+    letter-spacing: -0.005em;
+    line-height: 1.2;
+  }
+  .card__desc {
+    font-size: 10px;
+    line-height: 1.35;
+    color: rgba(26,24,22,0.65);
+  }
+  .card__meta {
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 8.5px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: rgba(26,24,22,0.5);
+    margin-top: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .card__meta .sep { opacity: 0.4; }
+
+  .card__badge {
+    position: absolute;
+    top: -6px;
+    right: 10px;
+    font-family: var(--font-mono, "Geist Mono", monospace);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: #fff;
+    background: #a07040;
+    padding: 3px 7px;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+
+  /* Voice hint at the bottom of the screen */
+  .voice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(104, 137, 180, 0.08);  /* Grammar semantic */
+    border: 1px solid rgba(104, 137, 180, 0.2);
+    font-size: 10px;
+    color: #3f5a7f;
+  }
+  .voice__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #6889b4;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(104, 137, 180, 0.2);
+  }
+
+  /* ------------------------------------------------------------
+     RESPONSIVE — keep screen content legible on narrow frames
+     ------------------------------------------------------------ */
+  @media (max-width: 640px) {
+    body { padding: 16px 10px; }
+    .fridge { padding: 14px 14px 18px; border-radius: 14px; }
+    .door { padding: 16px 12px; }
+    .screen-bezel { padding: 8px; }
+    .screen { padding: 12px; gap: 8px; }
+    .greet { font-size: 15px; }
+    .card__img { width: 48px; height: 48px; }
+    .card { grid-template-columns: 48px 1fr; }
+    .dispenser { height: 90px; }
+  }
+
+  @media (max-width: 460px) {
+    /* On very narrow frames, collapse freezer door to a thinner strip
+       so the touchscreen side stays readable. */
+    .doors { grid-template-columns: 30% 70%; }
+    .door--freezer { padding: 12px 8px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============================================================
+       The fridge. Two doors, screen inset on upper-right door.
+       ============================================================ -->
+  <div class="fridge" role="img" aria-label="Samsung Family Hub refrigerator displaying bento lunch suggestions on the right door's touchscreen.">
+
+    <!-- Samsung wordmark on the top cap -->
+    <div class="fridge__brand">SAMSUNG</div>
+
+    <div class="doors">
+
+      <!-- Left door — freezer -->
+      <div class="door door--freezer">
+        <span class="door__handle" aria-hidden="true"></span>
+
+        <!-- Water / ice dispenser at the bottom of the freezer door -->
+        <div class="dispenser" aria-hidden="true">
+          <div class="dispenser__screen">Water · 55°F · Filter OK</div>
+          <div class="dispenser__buttons">
+            <div class="dispenser__btn">Cube</div>
+            <div class="dispenser__btn">Crushed</div>
+            <div class="dispenser__btn">Water</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right door — fridge side, with the Family Hub touchscreen -->
+      <div class="door door--fridge">
+        <span class="door__handle" aria-hidden="true"></span>
+
+        <!-- Touchscreen inset -->
+        <div class="screen-bezel">
+          <div class="screen">
+
+            <!-- Status bar -->
+            <div class="status" aria-hidden="true">
+              <div class="status__left">
+                <span>7:02</span>
+                <span>·</span>
+                <span>Mon</span>
+                <span>·</span>
+                <span>58°F Foggy</span>
+              </div>
+              <div class="status__right">
+                <span>Family Hub</span>
+              </div>
+            </div>
+
+            <!-- Header -->
+            <div>
+              <div class="eyebrow">Home Agent · Lunch Planning</div>
+              <div class="greet" style="margin-top:4px;">Good morning, Mai.</div>
+              <div class="subtitle" style="margin-top:4px;">
+                3 bento ideas for Leo &amp; Sota — school day, after soccer.
+              </div>
+            </div>
+
+            <!-- Bento cards -->
+            <div class="cards">
+
+              <!-- Card 1 — Classic onigiri -->
+              <div class="card">
+                <img class="card__img"
+                     src="https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?w=220&amp;q=80"
+                     alt="Onigiri rice balls in a bento box">
+                <div class="card__body">
+                  <div class="card__title">Classic onigiri</div>
+                  <div class="card__desc">Rice balls, tamagoyaki, edamame.</div>
+                  <div class="card__meta">
+                    <span>18 min</span>
+                    <span class="sep">·</span>
+                    <span>Leo ✓</span>
+                    <span class="sep">·</span>
+                    <span>Sota ✓</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2 — Salmon & broccoli (recommended) -->
+              <div class="card card--rec">
+                <span class="card__badge">Recommended</span>
+                <img class="card__img"
+                     src="https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=220&amp;q=80"
+                     alt="Grilled salmon with broccoli and brown rice">
+                <div class="card__body">
+                  <div class="card__title">Salmon &amp; broccoli</div>
+                  <div class="card__desc">Brown rice, grilled salmon, broccoli.</div>
+                  <div class="card__meta">
+                    <span>22 min</span>
+                    <span class="sep">·</span>
+                    <span>Sota loves salmon</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 3 — Turkey & avocado sandwich -->
+              <div class="card">
+                <img class="card__img"
+                     src="https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=220&amp;q=80"
+                     alt="Turkey and avocado sandwich with fruit">
+                <div class="card__body">
+                  <div class="card__title">Turkey &amp; avocado sandwich</div>
+                  <div class="card__desc">Sandwich, fruit, edamame.</div>
+                  <div class="card__meta">
+                    <span>10 min</span>
+                    <span class="sep">·</span>
+                    <span>Quickest</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Voice hint -->
+            <div class="voice">
+              <span class="voice__dot" aria-hidden="true"></span>
+              <span>Say &ldquo;middle one&rdquo; or tap to choose.</span>
+            </div>
+
+          </div>
+        </div>
+        <!-- /screen-bezel -->
+
+      </div>
+      <!-- /door--fridge -->
+
+    </div>
+    <!-- /doors -->
+  </div>
+  <!-- /fridge -->
+
+<script>
+  // Noframe handler — strip backdrop when embedded via ?noframe=1
+  if (new URLSearchParams(location.search).get('noframe') === '1') {
+    document.body.classList.add('noframe');
+  }
+</script>
+
+</body>
+</html>
