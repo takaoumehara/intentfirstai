@@ -623,6 +623,84 @@
   .hero-title { letter-spacing: -1.5px; }
 }
 
+/* ═══ PATTERN FILTER BAR ═══ */
+.catalog-filter {
+  padding-bottom: clamp(20px, 2vw, 28px);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: clamp(28px, 3vw, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.filter-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.filter-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-top: 6px;
+  flex-shrink: 0;
+  width: 72px;
+}
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.filter-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  white-space: nowrap;
+}
+.filter-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+.filter-btn.active {
+  background: var(--color-grammar);
+  border-color: var(--color-grammar);
+  color: #fff;
+}
+.filter-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+.filter-count span { color: var(--color-grammar); font-weight: 600; }
+
+/* ═══ PATTERN TOKEN CHIPS ═══ */
+.pattern-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.pattern-token {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: rgba(104,137,180,0.12);
+  color: var(--color-grammar);
+  white-space: nowrap;
+}
+
 </style>
 </head>
 
@@ -1264,6 +1342,116 @@ document.addEventListener('DOMContentLoaded', function() {
     link.title = 'Open simulator with token state primed for ' + patternId;
     nameEl.parentNode.appendChild(link);
   });
+
+  // ═══ PATTERN CATALOG FILTER ═══
+  var PATTERN_META = {
+    'D1':{ category:'D', tokens:['Autonomy Dial','Priority Weight'] },
+    'D2':{ category:'D', tokens:['Brain'] },
+    'D3':{ category:'D', tokens:['Cognitive Load','Priority Weight','Feasibility'] },
+    'D4':{ category:'D', tokens:['Autonomy Dial','Disclosure Dial','Brain'] },
+    'D5':{ category:'D', tokens:['Brain','Physical State'] },
+    'D6':{ category:'D', tokens:['Feasibility','Priority Weight'] },
+    'E1':{ category:'E', tokens:['Social Exposure'] },
+    'E2':{ category:'E', tokens:['Priority Weight'] },
+    'E3':{ category:'E', tokens:['Feasibility'] },
+    'E4':{ category:'E', tokens:[] },
+    'E5':{ category:'E', tokens:['Autonomy Dial','Brain'] },
+    'A1':{ category:'A', tokens:['Form Factor'] },
+    'A2':{ category:'A', tokens:['Cognitive Load'] },
+    'A3':{ category:'A', tokens:['Social Exposure','Disclosure Dial'] },
+    'A4':{ category:'A', tokens:['Disclosure Dial','Social Exposure'] },
+    'A5':{ category:'A', tokens:['Brain'] },
+    'A6':{ category:'A', tokens:['Brain'] },
+    'A7':{ category:'A', tokens:['Feasibility'] },
+    'A8':{ category:'A', tokens:['Brain'] },
+    'X1':{ category:'X', tokens:['Priority Weight'] },
+    'X2':{ category:'X', tokens:['Autonomy Dial'] },
+    'X3':{ category:'X', tokens:['Autonomy Dial','Disclosure Dial'] },
+    'X4':{ category:'X', tokens:[] }
+  };
+  var CG_TOKEN_NAMES = ['Physical State','Cognitive Load','Social Exposure','Priority Weight','Form Factor','Feasibility','Autonomy Dial','Disclosure Dial','Brain'];
+  var cgActiveCat = 'all';
+  var cgActiveTokens = [];
+
+  // Tag rows + inject token chips (before "Try it" so order is: name, essence, chips, example, try-it)
+  document.querySelectorAll('.pattern-row').forEach(function(row) {
+    var idEl = row.querySelector('.pattern-id');
+    if (!idEl) return;
+    var meta = PATTERN_META[idEl.textContent.trim()];
+    if (!meta) return;
+    row._cgMeta = meta;
+    if (meta.tokens.length > 0) {
+      var chips = document.createElement('div');
+      chips.className = 'pattern-tokens';
+      meta.tokens.forEach(function(t) {
+        var c = document.createElement('span');
+        c.className = 'pattern-token';
+        c.textContent = t;
+        chips.appendChild(c);
+      });
+      var essence = row.querySelector('.pattern-essence');
+      if (essence) essence.after(chips);
+    }
+  });
+
+  // Build + inject filter bar before the first catalog-group
+  var catalogSec = document.querySelector('.catalog-sec');
+  if (catalogSec) {
+    var secInner = catalogSec.querySelector('.sec-inner--wide') || catalogSec.querySelector('.sec-inner');
+    if (secInner) {
+      var fb = document.createElement('div');
+      fb.className = 'catalog-filter';
+      var catLabels = ['D · Delegation','E · Escalation','A · Adaptation','X · Enterprise'];
+      var catCodes  = ['D','E','A','X'];
+      fb.innerHTML =
+        '<div class="filter-row"><span class="filter-label">Category</span><div class="filter-buttons">' +
+        '<button class="filter-btn active" data-cgcat="all">All 23</button>' +
+        catLabels.map(function(l,i){ return '<button class="filter-btn" data-cgcat="'+catCodes[i]+'">'+l+'</button>'; }).join('') +
+        '</div></div>' +
+        '<div class="filter-row"><span class="filter-label">Token</span><div class="filter-buttons">' +
+        CG_TOKEN_NAMES.map(function(t){ return '<button class="filter-btn" data-cgtoken="'+t+'">'+t+'</button>'; }).join('') +
+        '</div></div>' +
+        '<p class="filter-count">Showing <span id="cg-count">23</span> of 23 patterns</p>';
+      var firstGroup = secInner.querySelector('.catalog-group');
+      secInner.insertBefore(fb, firstGroup || secInner.firstChild);
+
+      function cgFilter() {
+        var n = 0;
+        document.querySelectorAll('.catalog-group').forEach(function(grp) {
+          var gn = 0;
+          grp.querySelectorAll('.pattern-row').forEach(function(row) {
+            var m = row._cgMeta;
+            var ok = !m ||
+              (cgActiveCat==='all' || m.category===cgActiveCat) &&
+              (cgActiveTokens.length===0 || cgActiveTokens.some(function(t){ return m.tokens.indexOf(t)!==-1; }));
+            row.style.display = ok ? '' : 'none';
+            if (ok) { n++; gn++; }
+          });
+          grp.style.display = gn ? '' : 'none';
+        });
+        var el = document.getElementById('cg-count');
+        if (el) el.textContent = n;
+      }
+
+      fb.querySelectorAll('[data-cgcat]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          fb.querySelectorAll('[data-cgcat]').forEach(function(b){ b.classList.remove('active'); });
+          this.classList.add('active');
+          cgActiveCat = this.getAttribute('data-cgcat');
+          cgFilter();
+        });
+      });
+      fb.querySelectorAll('[data-cgtoken]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var t = this.getAttribute('data-cgtoken');
+          var i = cgActiveTokens.indexOf(t);
+          if (i===-1){ cgActiveTokens.push(t); this.classList.add('active'); }
+          else{ cgActiveTokens.splice(i,1); this.classList.remove('active'); }
+          cgFilter();
+        });
+      });
+    }
+  }
 });
 </script>
 

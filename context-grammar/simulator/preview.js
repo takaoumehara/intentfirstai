@@ -271,31 +271,44 @@
     `;
   }
 
-  /* ─── Render legend chips ─── */
-  function renderLegend(legendEl, cfg, state) {
+  /* ─── Render legend — only state-defining captions, no duplication of rails ─── */
+  function renderLegend(legendEl, cfg) {
     const formNames = {
       phone_handheld: 'Phone',
-      phone_folded: 'Foldable folded',
-      phone_unfolded: 'Foldable unfolded',
+      phone_folded: 'Foldable · folded',
+      phone_unfolded: 'Foldable · unfolded',
       tablet: 'Tablet',
       tv_display: 'TV',
-      fridge_display: 'Fridge',
-      car_display: 'Car',
+      fridge_display: 'Smart fridge',
+      car_display: 'Car dashboard',
       watch: 'Watch',
       desktop_monitor: 'Desktop',
     };
-    const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-    const chips = [];
-    chips.push(formNames[cfg.form] || cfg.form);
-    if (!cfg.showEmptyState) chips.push(`${cfg.cardCount} card${cfg.cardCount === 1 ? '' : 's'}`);
-    chips.push(`Density: ${cfg.density}`);
-    if (cfg.redact !== 'none') chips.push(`Filter: ${cfg.redact === 'full' ? 'all hidden' : 'prices blurred'}`);
-    chips.push(`Autonomy: ${titleCase(cfg.autonomy)}`);
-    chips.push(`Disclosure: ${titleCase(cfg.disclosure)}`);
-    if (cfg.driving) chips.push('Driving override');
-    if (cfg.priority === 'critical' && !cfg.showEmptyState) chips.push('URGENT priority');
+    const formLabel = formNames[cfg.form] || cfg.form;
 
-    legendEl.innerHTML = chips.map(c => `<span class="legend-chip">${c}</span>`).join('');
+    // One short sentence describing the active visual state — no token duplication.
+    let summary = '';
+    if (cfg.showEmptyState) {
+      summary = 'AI absent — set Disclosure above None.';
+    } else if (cfg.driving) {
+      summary = 'Voice mode forced. Touch suppressed.';
+    } else if (cfg.priority === 'critical') {
+      summary = `Critical priority surfaces over ${cfg.cardCount} ambient card${cfg.cardCount === 1 ? '' : 's'}.`;
+    } else if (cfg.redact === 'full') {
+      summary = `${cfg.cardCount} cards · personal info hidden for the room.`;
+    } else if (cfg.redact === 'prices') {
+      summary = `${cfg.cardCount} cards · prices hidden from kids.`;
+    } else if (cfg.cardCount === 1) {
+      summary = 'Single recommendation. Cognitive overload protected.';
+    } else {
+      summary = `${cfg.cardCount} cards · ${cfg.density} density.`;
+    }
+
+    legendEl.innerHTML = `
+      <span class="legend-form">${formLabel}</span>
+      <span class="legend-sep" aria-hidden="true">·</span>
+      <span class="legend-state">${summary}</span>
+    `;
   }
 
   /* ─── Public render entry ─── */

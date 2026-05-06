@@ -561,12 +561,19 @@ const DEFAULT_STATE = {
    ============================================================ */
 
 const state = { ...DEFAULT_STATE };
-let mode = 'today'; // 'today' or 'future'
 
 function realityStars(level) {
   const filled = '★'.repeat(level);
   const empty = '☆'.repeat(5 - level);
   return filled + empty;
+}
+
+/* Generic single-shot CSS animation trigger via class toggle + reflow. */
+function pulseClass(el, cls) {
+  if (!el) return;
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
 }
 
 /* Convert enum id to human label using TOKENS catalog. */
@@ -600,8 +607,11 @@ function renderTokenInputs() {
       <span class="token-row__num" aria-hidden="true">${String(token.number).padStart(2, '0')}</span>
       <div class="token-row__main">
         <div class="token-row__label-line">
-          <span class="token-row__name">${token.name}<span class="token-row__name-ja">${token.name_ja}</span></span>
-          <span class="token-row__reality" title="Reality level: ${token.reality_level}/5 — ${token.today_method}">${realityStars(token.reality_level)}</span>
+          <span class="token-row__name">${token.name}<span class="token-row__name-ja" aria-hidden="true">${token.name_ja}</span></span>
+          <span class="token-row__reality" title="${token.today_method}">
+            <span aria-hidden="true">${realityStars(token.reality_level)}</span>
+            <span class="visually-hidden">Reality level ${token.reality_level} of 5 — ${token.today_method}</span>
+          </span>
         </div>
         <select class="token-row__select" data-token="${id}" title="${sourceLabel}: ${mockSignal}" aria-label="${token.name}">
           ${token.values.map(v => `<option value="${v.id}" ${v.id === state[id] ? 'selected' : ''}>${v.label}</option>`).join('')}
@@ -626,21 +636,13 @@ function renderTokenInputs() {
 
 /* Quick visual: brief device flash on scenario/preset change. */
 function flashDevice() {
-  const device = document.querySelector('#preview-stage .device');
-  if (!device) return;
-  device.classList.remove('is-flashing');
-  void device.offsetWidth;
-  device.classList.add('is-flashing');
+  pulseClass(document.querySelector('#preview-stage .device'), 'is-flashing');
 }
 
 /* Pulse the validity card when autonomy/disclosure (the load-bearing axes) change. */
 function pulseValidityIfRelevant(changedTokenId) {
   if (changedTokenId !== 'autonomy_dial' && changedTokenId !== 'disclosure_dial') return;
-  const card = document.getElementById('output-autonomy');
-  if (!card) return;
-  card.classList.remove('is-flashing');
-  void card.offsetWidth;
-  card.classList.add('is-flashing');
+  pulseClass(document.getElementById('output-autonomy'), 'is-flashing');
 }
 
 /* ─── Validity headline (traffic-light + 1-sentence verdict) ─── */
@@ -696,7 +698,7 @@ function renderPatterns(result) {
   countEl.textContent = `${result.triggered.length} of 23`;
 
   if (result.triggered.length === 0) {
-    patternsEl.innerHTML = '<p class="output-empty">Nothing fires for this combination.</p>';
+    patternsEl.innerHTML = '<p class="output-empty">No patterns apply to this state.</p>';
     return;
   }
 
@@ -754,7 +756,7 @@ function renderOverrides(result) {
 
   overridesEl.innerHTML = result.overrides.map(o => `
     <div class="override-item override-item--${o.severity}">
-      <span class="override-severity">${o.severity === 'hard' ? 'HARD RULE' : 'LOGICAL'}</span>
+      <span class="override-severity">${o.severity === 'hard' ? 'Safety' : 'Logic'}</span>
       <p class="override-name">${o.name}</p>
       <p class="override-effect">${o.effect}</p>
     </div>
@@ -843,14 +845,12 @@ function render(changedTokenId) {
   pulseValidityIfRelevant(changedTokenId);
 }
 
-/* ─── Scenarios popover open/close ─── */
+/* ─── Scenarios popover open/close (non-modal — peer to the page) ─── */
 function openScenarios() {
   const pop = document.getElementById('scenarios-popover');
-  const back = document.getElementById('scenarios-backdrop');
   const btn = document.getElementById('scenarios-toggle');
-  if (!pop || !back || !btn) return;
+  if (!pop || !btn) return;
   pop.hidden = false;
-  back.hidden = false;
   btn.setAttribute('aria-expanded', 'true');
   // Move focus to first scenario card for keyboard users
   const firstBtn = pop.querySelector('.preset-btn');
@@ -858,12 +858,13 @@ function openScenarios() {
 }
 function closeScenarios() {
   const pop = document.getElementById('scenarios-popover');
-  const back = document.getElementById('scenarios-backdrop');
   const btn = document.getElementById('scenarios-toggle');
-  if (!pop || !back || !btn) return;
+  if (!pop || !btn) return;
+  const wasOpen = !pop.hidden;
   pop.hidden = true;
-  back.hidden = true;
   btn.setAttribute('aria-expanded', 'false');
+  // Restore focus to the toggle if popover was open and focus is currently within it
+  if (wasOpen && pop.contains(document.activeElement)) btn.focus();
 }
 
 /* ─── Per-pattern demo states ─── */
@@ -898,8 +899,53 @@ const PATTERN_DEMO_STATES = {
   X4: { priority_weight: 'high', disclosure_dial: 'full', form_factor: 'desktop_monitor' },
 };
 
+/* Encode current token state as a base64 URL fragment.
+   Uses short keys (single char) + value index for compactness. */
+const STATE_KEY_MAP = {
+  physical_state: 'p', cognitive_load: 'c', social_exposure: 's', priority_weight: 'w',
+  form_factor: 'f', feasibility: 'b', autonomy_dial: 'a', disclosure_dial: 'd',
+};
+const STATE_KEY_INV = Object.fromEntries(Object.entries(STATE_KEY_MAP).map(([k, v]) => [v, k]));
+
+function encodeState(s) {
+  const compact = {};
+  Object.entries(STATE_KEY_MAP).forEach(([full, short]) => {
+    const val = s[full];
+    const idx = TOKENS[full].values.findIndex(v => v.id === val);
+    compact[short] = idx >= 0 ? idx : 0;
+  });
+  return btoa(JSON.stringify(compact)).replace(/=+$/, '');
+}
+
+function decodeState(encoded) {
+  try {
+    const padded = encoded + '='.repeat((4 - encoded.length % 4) % 4);
+    const compact = JSON.parse(atob(padded));
+    const result = {};
+    Object.entries(STATE_KEY_INV).forEach(([short, full]) => {
+      const idx = compact[short];
+      if (typeof idx === 'number' && TOKENS[full].values[idx]) {
+        result[full] = TOKENS[full].values[idx].id;
+      }
+    });
+    return result;
+  } catch (e) {
+    return null;
+  }
+}
+
 function applyUrlParams() {
   const params = new URLSearchParams(window.location.search);
+
+  // Arbitrary state via base64 (?state=...) — highest priority for shared links
+  const stateParam = params.get('state');
+  if (stateParam) {
+    const decoded = decodeState(stateParam);
+    if (decoded) {
+      Object.assign(state, decoded);
+      return { source: 'state', label: 'shared state' };
+    }
+  }
 
   const presetId = params.get('preset');
   if (presetId) {
@@ -917,6 +963,56 @@ function applyUrlParams() {
   return null;
 }
 
+/* Build a shareable URL for the current state. */
+function buildShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = '?state=' + encodeState(state);
+  url.hash = '';
+  return url.toString();
+}
+
+/* Toast — small confirmation message, auto-dismiss. */
+let toastTimer = null;
+function showToast(text, ms = 2200) {
+  const el = document.getElementById('copy-toast');
+  if (!el) return;
+  el.textContent = text;
+  el.hidden = false;
+  el.classList.add('is-visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.classList.remove('is-visible');
+    setTimeout(() => { el.hidden = true; }, 250);
+  }, ms);
+}
+
+/* Copy state — emits both JSON and a shareable URL to the clipboard. */
+async function copyStateToClipboard() {
+  const result = evaluateContextGrammar(state);
+  const triggered = result.triggered.map(p => `${p.id} ${p.name}`);
+  const payload = {
+    state,
+    derived: {
+      triggeredPatterns: triggered,
+      validity: result.autonomyValid ? 'valid' : 'invalid',
+      autonomyCeiling: result.autonomyCeiling,
+      designRules: result.designRules,
+      overrides: result.overrides.map(o => ({ severity: o.severity, name: o.name })),
+      substitution: result.substitution ? result.substitution.mode : null,
+    },
+    shareUrl: buildShareUrl(),
+  };
+  const text = JSON.stringify(payload, null, 2);
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Copied JSON + shareable URL to clipboard');
+  } catch (e) {
+    // Fallback: select-and-prompt-copy
+    showToast('Clipboard blocked — paste from console', 3000);
+    console.info('[Context Grammar Simulator] Current state:\n' + text);
+  }
+}
+
 function showFocusBanner(focus) {
   if (!focus) return;
   const banner = document.getElementById('focus-banner');
@@ -925,6 +1021,8 @@ function showFocusBanner(focus) {
     banner.innerHTML = `<span class="focus-eyebrow">Focused on</span> <strong>${focus.label}</strong> — token state set to make this pattern fire prominently. <a href="?" class="focus-clear">Clear focus</a>`;
   } else if (focus.source === 'preset') {
     banner.innerHTML = `<span class="focus-eyebrow">Loaded preset</span> <strong>${focus.label}</strong>. <a href="?" class="focus-clear">Reset</a>`;
+  } else if (focus.source === 'state') {
+    banner.innerHTML = `<span class="focus-eyebrow">Loaded shared state</span> from URL. <a href="?" class="focus-clear">Reset</a>`;
   }
   banner.hidden = false;
 }
@@ -946,7 +1044,11 @@ function init() {
     if (banner) banner.hidden = true;
   });
 
-  // Mode toggle (Today / Near-future)
+  // Copy state — clipboard
+  const copyBtn = document.getElementById('copy-state-btn');
+  if (copyBtn) copyBtn.addEventListener('click', copyStateToClipboard);
+
+  // Mode toggle (Today / Near-future) — purely CSS-driven via body[data-mode]
   document.querySelectorAll('.mode-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.mode-toggle-btn').forEach(b => {
@@ -955,8 +1057,7 @@ function init() {
       });
       btn.classList.add('is-active');
       btn.setAttribute('aria-pressed', 'true');
-      mode = btn.dataset.mode;
-      document.body.dataset.mode = mode;
+      document.body.dataset.mode = btn.dataset.mode;
     });
   });
 
@@ -971,13 +1072,18 @@ function init() {
   }
   const closeBtn = document.getElementById('scenarios-close');
   if (closeBtn) closeBtn.addEventListener('click', closeScenarios);
-  const backdrop = document.getElementById('scenarios-backdrop');
-  if (backdrop) backdrop.addEventListener('click', closeScenarios);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const pop = document.getElementById('scenarios-popover');
       if (pop && !pop.hidden) closeScenarios();
     }
+  });
+  // Click outside the popover closes it (non-modal behaviour)
+  document.addEventListener('click', (e) => {
+    const pop = document.getElementById('scenarios-popover');
+    const btn = document.getElementById('scenarios-toggle');
+    if (!pop || pop.hidden) return;
+    if (!pop.contains(e.target) && !btn.contains(e.target)) closeScenarios();
   });
 
   // If a focus banner was shown (URL preset or pattern), open scenarios for context — not auto.

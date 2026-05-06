@@ -14,19 +14,22 @@
   justify-content: center;
   min-height: clamp(420px, 55vh, 580px);
   padding: clamp(20px, 3vw, 40px);
-  background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg-3) 100%);
+  background: var(--bg-2);
+  /* Subtle radial spotlight under the device — gives the frame somewhere to sit. */
+  background-image: radial-gradient(ellipse 70% 55% at 50% 60%, var(--bg) 0%, var(--bg-2) 70%);
   border: 1px solid var(--border);
   overflow: hidden;
 }
 
-/* Device flash on scenario / preset / reset change. */
+/* Device flash on scenario / preset / reset change.
+   Duration tuned to finish *just after* the form-factor morph (preview transition: 0.32s). */
 @keyframes device-flash {
-  0%   { box-shadow: 0 22px 56px -16px rgba(0,0,0,0.45), 0 0 0 0 rgba(104, 137, 180, 0.55); }
-  40%  { box-shadow: 0 22px 56px -16px rgba(0,0,0,0.45), 0 0 0 14px rgba(104, 137, 180, 0); }
+  0%   { box-shadow: 0 22px 56px -16px rgba(0,0,0,0.45), 0 0 0 0 rgba(104, 137, 180, 0.5); }
+  60%  { box-shadow: 0 22px 56px -16px rgba(0,0,0,0.45), 0 0 0 10px rgba(104, 137, 180, 0); }
   100% { box-shadow: 0 22px 56px -16px rgba(0,0,0,0.45), 0 0 0 0 rgba(104, 137, 180, 0); }
 }
 .device.is-flashing {
-  animation: device-flash 0.6s var(--ease-out-soft) 1;
+  animation: device-flash 0.45s var(--ease-out-soft) 1;
 }
 @media (prefers-reduced-motion: reduce) {
   .device.is-flashing { animation: none; }
@@ -56,7 +59,10 @@
     width 0.32s var(--ease-out-soft),
     aspect-ratio 0.32s var(--ease-out-soft),
     border-radius 0.32s var(--ease-out-soft);
-  box-shadow: 0 22px 56px -16px rgba(0, 0, 0, 0.45);
+  /* Two-layer shadow: tight contact shadow + soft floating shadow */
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 24px 48px -20px rgba(0, 0, 0, 0.22);
 }
 
 .device-bezel {
@@ -88,15 +94,16 @@
 }
 .device[data-form="phone_handheld"] .device-screen { border-radius: 24px; }
 .device[data-form="phone_handheld"] .device-notch {
+  /* Dynamic Island — proper floating pill INSIDE the screen, not stuck to bezel */
   display: block;
   position: absolute;
-  top: 0;
+  top: 22px;
   left: 50%;
   transform: translateX(-50%);
   width: 80px;
-  height: 18px;
+  height: 22px;
   background: #0a0a0a;
-  border-radius: 0 0 14px 14px;
+  border-radius: 12px;
   z-index: 5;
 }
 
@@ -131,16 +138,27 @@
   padding: 8px;
 }
 .device[data-form="tv_display"] .device-screen { border-radius: 2px; }
+/* TV stand: thin neck + flat base (no trapezoid clip-path) */
+.device[data-form="tv_display"]::before {
+  content: '';
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 16px;
+  background: #1a1a1a;
+}
 .device[data-form="tv_display"]::after {
   content: '';
   position: absolute;
-  bottom: -22px;
+  bottom: -20px;
   left: 50%;
   transform: translateX(-50%);
-  width: 80px;
-  height: 22px;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
-  clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+  width: 90px;
+  height: 4px;
+  background: #1a1a1a;
+  border-radius: 2px;
 }
 
 .device[data-form="fridge_display"] {
@@ -210,16 +228,27 @@
   padding: 10px;
 }
 .device[data-form="desktop_monitor"] .device-screen { border-radius: 2px; }
+/* Desktop stand: thin neck + flat base */
+.device[data-form="desktop_monitor"]::before {
+  content: '';
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 22px;
+  background: #1a1a1a;
+}
 .device[data-form="desktop_monitor"]::after {
   content: '';
   position: absolute;
-  bottom: -28px;
+  bottom: -26px;
   left: 50%;
   transform: translateX(-50%);
-  width: 120px;
-  height: 28px;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
-  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+  width: 130px;
+  height: 4px;
+  background: #1a1a1a;
+  border-radius: 2px;
 }
 
 /* Mobile shrink */
@@ -501,23 +530,31 @@
   margin: 0;
 }
 
-/* ─── Legend chips below preview ─── */
+/* ─── Legend caption below preview — single descriptive line, not a chip strip ─── */
 .preview-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  padding: clamp(20px, 2.5vw, 32px) 0 0;
+  padding: clamp(16px, 2vw, 24px) 0 0;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
 }
-.legend-chip {
+.legend-form {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.6px;
-  padding: 5px 10px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text-2);
-  white-space: nowrap;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.legend-sep { color: var(--text-3); margin: 0 2px; }
+.legend-state {
+  color: var(--text);
+  font-weight: 500;
 }
 
 /* Reduced motion */
