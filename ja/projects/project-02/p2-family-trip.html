@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 02 · Family Trip — 旅につれていく「使い捨ての脳」</title>
+<meta name="description" content="5人、5つのニーズ、ひとつの旅。Disposable Brain が Home Brain から引き継ぎ、雨と発熱に適応し、学びを持ち帰る。">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+
+<!-- Preload hero for instant paint -->
+<link rel="preload" as="image" href="../../assets/img/thumbs/P2-hero-sarah-hiking-boots-1600w.webp" fetchpriority="high">
+
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/avatars.css">
+<link rel="stylesheet" href="../../assets/css/toc-rail.css">
+<link rel="stylesheet" href="../../assets/css/bts-frame.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-tablet.css">
+<link rel="stylesheet" href="../../assets/css/device-frames.css">
+
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     Project 02 · Family Trip — Scroll narrative
+     Modeled on p1-scroll.html (gold standard).
+     ═══════════════════════════════════════════════════════════ */
+
+  :root {
+    --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+    --ease-out-expo:  cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+
+    --ch-accent: #2ab85a;
+    --ch-warm:   #c2410c;
+    --ch-trip:   #6b8e4e;  /* trip accent — mossy green */
+    --ch-home:   #8a6ab0;  /* brain purple */
+    --ch-l1: #6a4a90;
+    --ch-l2: #4a6a90;
+    --ch-l3: #3a6a3a;
+    --phone-island: #0a0a0a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(10,10,10,0.10); }
+
+  .progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 50; pointer-events: none; }
+  .progress__fill { height: 100%; width: 0; background: var(--text); transition: width 120ms linear; }
+
+  /* ═══ AX Pattern link-chip ═══ */
+  .ax-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2, #555);
+    text-decoration: none;
+    padding: 3px 8px;
+    border: 1px solid rgba(10,10,10,0.12);
+    border-radius: 999px;
+    background: rgba(10,10,10,0.02);
+    transition: color .18s ease, border-color .18s ease, background .18s ease;
+    white-space: nowrap;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .ax-chip:hover{
+    color: var(--text, #111);
+    border-color: rgba(10,10,10,0.28);
+    background: rgba(10,10,10,0.05);
+  }
+  .ax-chip__id{
+    color: var(--color-brain, #8a6ab0);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .ax-chip__arrow{
+    opacity: 0.6;
+    font-size: 10px;
+  }
+
+  /* ═══ Section wrapper ═══ */
+  .section {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 38% 62%;
+    align-items: center;
+    gap: 64px;
+    padding: 80px 88px 80px 96px;
+    position: relative;
+  }
+  .section--hero   { grid-template-columns: 1fr; padding: 0; min-height: 100vh; }
+  .section--close  { grid-template-columns: 1fr 1fr; align-items: stretch; padding: 80px 88px; min-height: 90vh; gap: 48px; }
+
+  .section__text { max-width: 440px; align-self: center; }
+  .section__visual { display: flex; align-items: center; justify-content: center; position: relative; }
+
+  /* Typography */
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text-3); margin-bottom: 18px; display: inline-flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ''; width: 20px; height: 1px; background: currentColor; }
+
+  .title { font-family: var(--font-sans); font-weight: 500; font-size: clamp(28px, 3.6vw, 48px); line-height: 1.1; letter-spacing: -1.5px; color: var(--text); text-wrap: balance; margin-bottom: 20px; }
+  .lede { font-size: clamp(15px, 1.05vw, 17px); line-height: 1.75; color: var(--text-2); max-width: 38ch; font-weight: 400; }
+  .lede + .lede { margin-top: 14px; }
+  .lede strong { color: var(--text); font-weight: 600; }
+
+  /* ═══ HERO ═══ */
+  .hero-photo { position: relative; width: 100%; height: 100vh; overflow: hidden; background: #111; }
+  .hero-photo__img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center 40%;
+    opacity: 0; transform: scale(1.04);
+    transition: opacity 1400ms var(--ease-out-quart), transform 2400ms var(--ease-out-quart);
+  }
+  .hero-photo__img.loaded { opacity: 1; transform: scale(1); }
+  .hero-photo::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0) 55%);
+    z-index: 2; pointer-events: none;
+  }
+  .hero-photo::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 30%);
+    z-index: 2; pointer-events: none;
+  }
+  .hero-overlay { position: absolute; bottom: 0; left: 0; z-index: 5; padding: 10vh 8vw; max-width: 900px; color: #fff; }
+  .hero-overlay .eyebrow { color: rgba(255,255,255,0.72); margin-bottom: 28px; }
+  .hero-overlay .eyebrow::before { background: rgba(255,255,255,0.6); }
+  .hero-overlay .title {
+    color: #fff; font-size: clamp(40px, 5.6vw, 82px);
+    letter-spacing: -2.5px; line-height: 1.04; margin-bottom: 28px;
+    text-shadow: 0 2px 30px rgba(0,0,0,0.25);
+  }
+  .hero-overlay .lede {
+    color: rgba(255,255,255,0.82);
+    font-size: clamp(16px, 1.25vw, 19px); max-width: 52ch;
+    text-shadow: 0 1px 14px rgba(0,0,0,0.2);
+  }
+  .hero-timestamp {
+    position: absolute; top: 7vh; left: 8vw; z-index: 5;
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .hero-timestamp__dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,0.3);
+    animation: time-pulse 2.4s var(--ease-in-out-quart) infinite;
+  }
+  @keyframes time-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(74,222,128,0.3); }
+    50%      { box-shadow: 0 0 0 7px rgba(74,222,128,0.02); }
+  }
+
+  /* ═══ Enter animations ═══ */
+  [data-enter] {
+    opacity: 0; transform: translateY(14px);
+    transition: opacity 520ms var(--ease-out-quart), transform 520ms var(--ease-out-quart);
+    will-change: transform, opacity;
+  }
+  [data-enter].visible { opacity: 1; transform: translateY(0); }
+  [data-enter].d1 { transition-delay: 60ms; }
+  [data-enter].d2 { transition-delay: 140ms; }
+  [data-enter].d3 { transition-delay: 240ms; }
+  [data-enter].d4 { transition-delay: 360ms; }
+
+  /* ═══ Family intro grid ═══ */
+  .family-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .family-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 28px 20px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+    gap: 14px;
+  }
+  .family-avatar {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--gray-100);
+    box-shadow: inset 0 0 0 1px rgba(10,10,10,0.06);
+  }
+  .family-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .family-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .family-role {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-top: -8px;
+  }
+  .family-hook {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+
+  /* ═══ Walls list ═══ */
+  .walls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; max-width: 900px; margin: 0 auto; }
+  .wall {
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+  }
+  .wall__num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--ch-warm);
+    margin-bottom: 6px;
+  }
+  .wall__what { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; letter-spacing: -0.2px; }
+  .wall__why { font-size: 12px; color: var(--text-3); line-height: 1.55; }
+
+  /* ═══ Thesis — Home → Trip Brain diagram ═══ */
+  .brains-diagram {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: stretch;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .brain-box {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 22px;
+    background: var(--bg);
+    position: relative;
+  }
+  .brain-box--home { border-color: rgba(138,106,176,0.35); }
+  .brain-box--trip { border-color: rgba(107,142,78,0.35); border-style: dashed; }
+  .brain-box__head {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+  .brain-box--home .brain-box__head { color: var(--ch-home); }
+  .brain-box--trip .brain-box__head { color: var(--ch-trip); }
+  .brain-box__name { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; margin-bottom: 8px; }
+  .brain-box__sub { font-size: 12px; color: var(--text-3); font-style: italic; margin-bottom: 14px; }
+  .brain-box__layers { display: flex; flex-direction: column; gap: 8px; }
+  .brain-box__layer {
+    font-size: 13px; color: var(--text-2);
+    padding: 8px 10px;
+    background: var(--gray-50, rgba(0,0,0,0.02));
+    border-radius: 6px;
+  }
+  .brain-box__layer strong { color: var(--text); font-weight: 600; }
+  .brain-arrow {
+    align-self: center;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+    padding: 0 4px;
+  }
+  .brain-arrow__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .brain-arrow__line {
+    width: 60px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-3);
+    font-size: 20px;
+  }
+
+  /* ═══ Chapter divider (canonical) ═══ */
+  .section--divider {
+    min-height: 55vh; padding: 0; position: relative;
+    grid-template-columns: 1fr; place-items: center;
+    color: #fff; overflow: hidden;
+  }
+  .divider-photo {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .divider-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      rgba(0,0,0,0.20) 0%,
+      rgba(0,0,0,0.55) 60%,
+      rgba(0,0,0,0.75) 100%);
+  }
+  .divider-content {
+    position: relative; z-index: 2;
+    text-align: center; max-width: 1100px; padding: 0 8vw;
+  }
+  .divider-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px; letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 28px;
+  }
+  .divider-title {
+    font-family: var(--font-sans); font-weight: 500;
+    font-size: clamp(32px, 4.5vw, 56px);
+    line-height: 1.15; letter-spacing: -1.2px;
+    text-wrap: balance;
+  }
+  .divider-sub {
+    margin-top: 16px;
+    font-size: clamp(15px, 1.2vw, 18px);
+    color: rgba(255,255,255,0.80);
+    max-width: 640px; margin-inline: auto;
+  }
+
+  /* ═══ Dark section (for fever Ch 05 intro) ═══ */
+  .section--dark {
+    background: #08070b;
+    color: #ededed;
+  }
+  .section--dark .title { color: #f0ece4; }
+  .section--dark .lede { color: rgba(240,236,228,0.72); }
+  .section--dark .eyebrow { color: rgba(240,236,228,0.55); }
+  .section--dark .eyebrow::before { background: rgba(240,236,228,0.55); }
+  #fever .eyebrow__ch-mono { color: #c4a8e0; background: rgba(196, 168, 224, 0.14); }
+  #fever .eyebrow__ch-sep { color: rgba(240, 236, 228, 0.45); }
+
+  /* ═══ Wishlist mini-card ═══ */
+  .wish-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .wish-tag {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.4px;
+    padding: 4px 9px;
+    border-radius: 4px;
+    background: var(--gray-100);
+    color: var(--text-2);
+  }
+  .wish-tag--fav { background: rgba(194, 65, 12, 0.10); color: var(--ch-warm); }
+
+  /* ═══ Close ═══ */
+  .close-text { display: flex; flex-direction: column; justify-content: center; padding-right: 24px; }
+  .close-title { font-size: clamp(32px, 4vw, 52px); font-weight: 500; letter-spacing: -1.8px; text-wrap: balance; max-width: 22ch; margin-bottom: 24px; line-height: 1.12; }
+  .close-lede { font-size: clamp(15px, 1.05vw, 17px); color: var(--text-2); line-height: 1.75; max-width: 44ch; margin-bottom: 36px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--text-2); background: var(--gray-100);
+    border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 100px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 480ms var(--ease-out-quart), transform 480ms var(--ease-out-quart);
+  }
+  .chip.visible { opacity: 1; transform: translateY(0); }
+  .chip.c1 { transition-delay: 80ms; }
+  .chip.c2 { transition-delay: 180ms; }
+  .chip.c3 { transition-delay: 280ms; }
+  .chip.c4 { transition-delay: 380ms; }
+
+  .close-photo {
+    border-radius: 14px; overflow: hidden;
+    aspect-ratio: 4 / 5; max-height: 70vh;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 20px 48px rgba(0,0,0,0.10);
+    align-self: center; width: 100%;
+  }
+  .close-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+  .close-photo__cap {
+    position: absolute; bottom: 16px; left: 16px;
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(8px);
+    padding: 6px 10px; border-radius: 100px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+
+  /* End-of-chapter project nav */
+  .project-nav {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center; gap: 24px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .project-nav__back {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-3); text-decoration: none;
+    padding: 10px 14px; border: 1px solid var(--border);
+    border-radius: 100px;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    white-space: nowrap;
+  }
+  .project-nav__back:hover { color: var(--text); border-color: var(--border-hover); background: var(--bg-2); }
+  .project-nav__next {
+    justify-self: end; text-align: right;
+    text-decoration: none;
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 14px 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+  }
+  .project-nav__next:hover {
+    border-color: var(--text); background: var(--bg-2);
+    transform: translateX(4px);
+  }
+  .project-nav__next-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-3); }
+  .project-nav__next-title { font-family: var(--font-sans); font-size: clamp(16px, 1.4vw, 20px); font-weight: 500; letter-spacing: -0.3px; color: var(--text); }
+
+  /* ═══ Responsive ═══ */
+  @media (max-width: 960px) {
+    .section { grid-template-columns: 1fr; gap: 48px; padding: 60px 32px; }
+    .section__text { max-width: none; }
+    .section--close { grid-template-columns: 1fr; }
+    .close-text { padding-right: 0; }
+    .close-photo { max-height: 50vh; }
+    .hero-overlay { padding: 8vh 6vw; }
+    .family-grid { grid-template-columns: repeat(2, 1fr); }
+    .walls { grid-template-columns: 1fr; }
+    .brains-diagram { grid-template-columns: 1fr; }
+    .brain-arrow { transform: rotate(90deg); padding: 8px 0; }
+  }
+  @media (max-width: 560px) {
+    .family-grid { grid-template-columns: 1fr; }
+    .project-nav { grid-template-columns: 1fr; gap: 14px; }
+    .project-nav__next { justify-self: stretch; text-align: left; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    [data-enter] { opacity: 1; transform: none; }
+    .chip { opacity: 1; transform: none; }
+    .hero-photo__img { opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body data-dark-nav>
+
+<div class="progress" aria-hidden="true"><div class="progress__fill" id="progress-fill"></div></div>
+
+<script>
+  /* TOC labels MUST equal the page section titles (see CLAUDE.md contract).
+     Numbers Ch X · NN are shown both here and in the page's eyebrow chip. */
+  window.TOC_RAIL = {
+    panelTitle: 'Project 02 · Family Trip',
+    chapters: [
+      { num: '01', title: '摩擦', sections: [
+        { id: 'intro',    num: '01', label: '真夜中の5つのタブ' },
+        { id: 'family',   num: '02', label: '中村=アンダーセン家' },
+        { id: 'walls',    num: '03', label: '旅を阻む7つの壁' },
+        { id: 'thesis',   num: '04', label: 'Home Brain → Disposable Brain' }
+      ]},
+      { num: '02', title: '計画', sections: [
+        { id: 'directions', num: '01', label: '4つの方向' },
+        { id: 'kai-wishes', num: '02', label: 'Kaiのウィッシュリスト' },
+        { id: 'mia-wishes', num: '03', label: 'Miaのウィッシュリスト' },
+        { id: 'tv-two-plans', num: '04', label: '家族会議・2つの案' },
+        { id: 'countdown',  num: '05', label: 'テレビのカウントダウン' },
+        { id: 'disclosure', num: '06', label: '出発前の Disclosure Dial' }
+      ]},
+      { num: '03', title: '発見', sections: [
+        { id: 'bamboo',     num: '01', label: '嵐山・竹細工ワークショップ' },
+        { id: 'token-match', num: '02', label: 'マッチングの舞台裏' },
+        { id: 'archive',    num: '03', label: '夜のアーカイブ・3つの相手' },
+        { id: 'grandparents-jp', num: '04', label: '京都の祖父母・フル共有' },
+        { id: 'grandparents-us', num: '05', label: 'シアトルの祖父母・厳選5枚' }
+      ]},
+      { num: '04', title: '雨と修復', sections: [
+        { id: 'rain-trigger', num: '01', label: '天気が反転する' },
+        { id: 'ranking',      num: '02', label: '代替案のランキング' },
+        { id: 'combo',        num: '03', label: '3つの組み合わせ案' },
+        { id: 'fairness',     num: '04', label: 'Care Architecture・2+2' },
+        { id: 'tv-final',     num: '05', label: 'テレビ・最終プラン' },
+        { id: 'car',          num: '06', label: 'CarPlay で嵐山へ' }
+      ]},
+      { num: '05', title: '危機と帰還', sections: [
+        { id: 'fever',        num: '01', label: 'Kaiの発熱・Autonomy を下げる', dark: true },
+        { id: 'disclosure-sculpt', num: '02', label: '同じ事実、3つの声' },
+        { id: 'autonomy-phases', num: '03', label: '旅の間の Autonomy' },
+        { id: 'memory',       num: '04', label: '記憶が戻る・Home Brain 更新' },
+        { id: 'next-trip',    num: '05', label: '次の旅・先回りされている' },
+        { id: 'close',        num: '06', label: '朝の食卓・UI は消えている' }
+      ]}
+    ]
+  };
+</script>
+<script src="../../assets/js/toc-rail.js" defer></script>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 01 · THE FRICTION
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── S1 · Hero ───── -->
+<section class="section section--hero" id="intro">
+  <div class="hero-photo">
+    <img class="hero-photo__img" id="hero-img"
+         src="../../assets/img/thumbs/P2-hero-sarah-hiking-boots-1600w.webp"
+         alt="真夜中のソファーで、スマホを手に京都旅行用の黒い防水ハイキングブーツを探す Sarah。"
+         fetchpriority="high">
+    <div class="hero-timestamp">
+      <span class="hero-timestamp__dot"></span>
+      <span>2 WEEKS BEFORE · 23:41 PST</span>
+    </div>
+    <div class="hero-overlay">
+      <div class="eyebrow" data-enter>Project 02 / Family Trip · 旅につれていく Disposable Brain</div>
+      <h1 class="title" data-enter class="d1">
+        5人、5つのニーズ。<br>
+        適応するひとつの旅。
+      </h1>
+      <p class="lede" data-enter class="d2">
+        京都への3週間の旅行。旅のために生まれ、家族と一緒に学び、学んだことを持ち帰り—そして消えていく <strong>Disposable Brain</strong>。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S2 · Meet the family ───── -->
+<section class="section" id="family" style="grid-template-columns:1fr;gap:48px;padding-top:100px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">旅する人たち</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      中村=アンダーセン家。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:640px;margin:0 auto;text-align:center;">
+      両親2人、子ども2人、2つの言語。住まいはベイエリア。Takeshi の両親は京都に、Sarah の両親はシアトルにいる。この旅は、祖父母4人を含めた6人、そして旅する4人—全員のためにうまく機能しないといけない。
+    </p>
+  </div>
+
+  <div class="family-grid" data-enter class="d2">
+    <div class="family-card">
+      <div class="family-avatar"><img src="../../assets/img/avatars/takeshi.jpg" alt="Takeshi portrait"></div>
+      <div class="family-name">Takeshi</div>
+      <div class="family-role">父 · 40歳 · 日本出身</div>
+      <p class="family-hook">京都で育った。子どもたちに自分のルーツの半分を知ってほしい。</p>
+    </div>
+    <div class="family-card">
+      <div class="family-avatar"><img src="../../assets/img/avatars/sarah.jpg" alt="Sarah portrait"></div>
+      <div class="family-name">Sarah</div>
+      <div class="family-role">母 · 38歳 · アメリカ出身</div>
+      <p class="family-hook">マーケティング責任者。予算を管理し、瞬間をカメラに収める。</p>
+    </div>
+    <div class="family-card">
+      <div class="family-avatar"><img src="../../assets/img/avatars/kai.jpg" alt="Kai portrait"></div>
+      <div class="family-name">Kai</div>
+      <div class="family-role">息子 · 12歳 · ミックス</div>
+      <p class="family-hook">忍者、ラーメン、そして歴史的な武器ならなんでも好き。</p>
+    </div>
+    <div class="family-card">
+      <div class="family-avatar"><img src="../../assets/img/avatars/mia.jpg" alt="Mia portrait"></div>
+      <div class="family-name">Mia</div>
+      <div class="family-role">娘 · 9歳 · ミックス</div>
+      <p class="family-hook">ものづくりが好き。陶芸、竹、和紙—手で形にできるものならなんでも。</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S3 · Seven walls ───── -->
+<section class="section" id="walls" style="grid-template-columns:1fr;gap:48px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">2026年・Sarah が実際にやっていること</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      家族旅行は毎回、同じ7つの壁にぶつかる。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:640px;margin:0 auto;text-align:center;">
+      ブラウザのタブが5つ。グループチャットが3つ。Takeshi が始めて Sarah が引き継いだスプレッドシート。どれもお互いを知らない。子どもたちが乳製品アレルギーであること、Takeshi の父が20分以上歩けないこと—どれも覚えていない。
+    </p>
+  </div>
+
+  <div class="walls" data-enter class="d2">
+    <div class="wall">
+      <div class="wall__num">Wall 01</div>
+      <div class="wall__what">どのツールもゼロから始まる。</div>
+      <div class="wall__why">Google Flights は家族を知らない。Booking.com も知らない。検索のたびに、4人分の年齢・名前・好みを入れ直す。</div>
+    </div>
+    <div class="wall">
+      <div class="wall__num">Wall 02</div>
+      <div class="wall__what">5人、ひとつの計画。</div>
+      <div class="wall__why">Kai は忍者がいい。Mia はものを作りたい。Sarah には静かな1時間が必要。Takeshi の両親は山はもう無理。これらをまとめられるツールはない。</div>
+    </div>
+    <div class="wall">
+      <div class="wall__num">Wall 03</div>
+      <div class="wall__what">子どもにも大人と同じ画面が出る。</div>
+      <div class="wall__why">あるいは締め出される。「9歳向けの旅程ビュー」などはなく、値段・所要時間・地図が並んだ大人向け画面しかない。</div>
+    </div>
+    <div class="wall">
+      <div class="wall__num">Wall 04</div>
+      <div class="wall__what">雨で計画が崩れる。</div>
+      <div class="wall__why">2日間の土砂降り。子どもがテレビを見ている間に、Sarah はホテルのフロントで組み直す。既に予約したものを組み替えてくれるツールはない。</div>
+    </div>
+    <div class="wall">
+      <div class="wall__num">Wall 05</div>
+      <div class="wall__what">祖父母にも同じ47枚が届く。</div>
+      <div class="wall__why">京都とシアトル、両方の祖父母へ。言葉も関係も違うのに、同じ大量送信。Sarah は文面を6回書き直してもしっくりこない。</div>
+    </div>
+    <div class="wall">
+      <div class="wall__num">Wall 06</div>
+      <div class="wall__what">夜11時、Kai が発熱する。</div>
+      <div class="wall__why">Sarah は症状を日本語に訳しながらマップアプリを操作し、Takeshi は実家に電話する。ツールは「クライシスモード」に切り替わってくれない。</div>
+    </div>
+    <div class="wall">
+      <div class="wall__num">Wall 07</div>
+      <div class="wall__what">旅が終わると、何も残らない。</div>
+      <div class="wall__why">3週間分の好み、ペース、制約—すべてが誰も開かないスプレッドシートに沈む。次の旅も、またゼロから始まる。</div>
+    </div>
+    <div class="wall">
+      <div class="wall__num">ひとつの命題</div>
+      <div class="wall__what">旅にも、それ専用の脳が必要だ。</div>
+      <div class="wall__why">旅のために生まれ、<strong>Home Brain</strong> から引き継ぎ、道中で学び、学んだことを返してから—消える。それが <strong>Disposable Brain</strong> だ。</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S4 · Thesis: Home Brain → Disposable Brain ───── -->
+<section class="section" id="thesis" style="grid-template-columns:1fr;gap:48px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">設定</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      旅のために生まれ、<br>学んだことを返す脳。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:680px;margin:0 auto;text-align:center;">
+      Project 01 で登場した <strong>Home Brain</strong> は恒久的なもの—家族のアイデンティティ、積み重ねた学習、今の状態を保持している。Takeshi が京都行きを予約した瞬間、その子プロセスが立ち上がる—<strong>Disposable Brain</strong> だ。関係のある部分を引き継ぎ、旅の間に学び、帰りの飛行機の中で学んだ内容を Home Brain に畳み込んでから、消える。
+    </p>
+  </div>
+
+  <div class="brains-diagram" data-enter class="d3">
+    <!-- HOME BRAIN -->
+    <div class="brain-box brain-box--home">
+      <div class="brain-box__head">恒久的</div>
+      <div class="brain-box__name">Home Brain</div>
+      <div class="brain-box__sub">家に住み続ける・何年もの学習</div>
+      <div class="brain-box__layers">
+        <div class="brain-box__layer"><strong>Identity Layer</strong> — 名前、アレルギー、言語、代名詞。</div>
+        <div class="brain-box__layer"><strong>Learning Layer</strong> — Kai は15時に集中が切れる。Mia は手を動かしたい。父は20分までしか歩けない。</div>
+        <div class="brain-box__layer"><strong>Now Layer</strong> — 8 Context Tokens、秒単位で更新。</div>
+      </div>
+    </div>
+
+    <div class="brain-arrow">
+      <span class="brain-arrow__label">inherit</span>
+      <span class="brain-arrow__line">→</span>
+      <span class="brain-arrow__label" style="margin-top:6px;">return</span>
+      <span class="brain-arrow__line">←</span>
+    </div>
+
+    <!-- TRIP BRAIN -->
+    <div class="brain-box brain-box--trip">
+      <div class="brain-box__head">3週間だけ</div>
+      <div class="brain-box__name">Disposable Brain</div>
+      <div class="brain-box__sub">京都のために生まれ・帰りの機内で死ぬ</div>
+      <div class="brain-box__layers">
+        <div class="brain-box__layer"><strong>Inherited Layer</strong> — 京都で意味を持つ、Home Brain の切り出し部分。</div>
+        <div class="brain-box__layer"><strong>Trip Learning Layer</strong> — 現地で家族が発見すること:Kai はラーメン、Mia はもっと工芸を。</div>
+        <div class="brain-box__layer"><strong>Today Layer</strong> — 天気、予約、ペース、残予算。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     DIVIDER · Chapter 02 — Planning
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section section--divider" id="div-ch02">
+  <img class="divider-photo" src="../../assets/img/thumbs/P2-DIV-CH02-planning-table-1600w.webp" alt="">
+  <div class="divider-overlay"></div>
+  <div class="divider-content">
+    <div class="divider-eyebrow">Chapter 02 · 計画</div>
+    <h2 class="divider-title">旅が、現実になっていく。</h2>
+    <p class="divider-sub">Sarah がノートPCを開く。Takeshi が椅子を引き寄せる。子どもたちがソファ越しにのぞき込む。</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 02 · PLANNING
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── Directions (4 plan directions) ───── -->
+<section class="section" id="directions">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Intent Fidelity Check<a class="ax-chip" href="../../context-grammar/ax-patterns/" title="AX パターンライブラリを見る"><span class="ax-chip__id">23 AX</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      ひとつの計画ではなく、<br>4つの方向。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      Takeshi が言う—「京都、3週間、4人、$6,000」。Disposable Brain が起動し—旅程を1つ提示するのではなく、<strong>4つの方向</strong>を出す。それぞれが同じ意図の違う読み方だ。
+    </p>
+    <p class="lede" data-enter class="d3">
+      <strong>バランス型</strong> · <strong>子ども中心アドベンチャー</strong> · <strong>文化+祖父母</strong> · <strong>ハイブリッド</strong>。Brain はまず、家族がどの「京都」を意味しているのかを確かめてから、そこにコミットしていく。
+    </p>
+    <p class="lede" data-enter class="d4">
+      Takeshi（父・40歳）と Sarah（母・38歳）はハイブリッドをベースに選ぶ。ワンタップ。手作業での継ぎ合わせはない。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-10-plan-directions.html?noframe=1"
+                loading="lazy"
+                title="Four plan directions · Takeshi's iPhone"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Kai's wishlist ───── -->
+<section class="section" id="kai-wishes">
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-11-kai-wishlist.html?noframe=1"
+                loading="lazy"
+                title="Kai's wishlist · photo-card picker"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Social-Aware Filtering<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A3"><span class="ax-chip__id">AX · A3</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      Kai（息子・12歳）に値段は見えない。<br>いいとこだけが見える。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      Kai がスマホを開くと、写真のデッキが並ぶ—忍者、刀鍛冶、ラーメン、アニメの博物館。値段も、所要時間も、雨の注意もない。「やりたい」か「たぶん」だけ。
+    </p>
+    <p class="lede" data-enter class="d3">
+      <strong>Social-Aware Filtering</strong> は、親が引き受けるべきコンテキストを剥がす—予算、実現可能性、祖父母まわりの段取り。Brain は家族ひとりひとりに、その人が決めるべき部分だけを見せる。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── Mia's wishlist ───── -->
+<section class="section" id="mia-wishes">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Social-Aware Filtering</div>
+    <h2 class="title" data-enter class="d1">
+      Mia（娘・9歳）には、別のデッキが出る。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      Home Brain は、Mia が「ものを作る子」だともう知っている。学校での陶芸、週末の折り紙、去年の夏の竹細工キット。彼女のデッキは工芸から始まる—陶芸、着物染め、食品サンプル作り、竹細工。
+    </p>
+    <p class="lede" data-enter class="d3">
+      これは一般的な「子ども向けアクティビティ」ではない。この特定の9歳児が3年間示してきた好みから、<strong>Learning Layer</strong> をもとに組まれたものだ。
+    </p>
+    <p class="lede" data-enter class="d4">
+      Kai との重なりがひとつ自動的に浮かび上がる—<strong>刀鍛冶</strong>。どちらの親が気づくより先に、Brain が「共通項」として印をつけている。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-09b-mia-wishlist.html?noframe=1"
+                loading="lazy"
+                title="Mia's wishlist · crafts-forward deck"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Two plans on the TV (family night) ───── -->
+<section class="section" id="tv-two-plans" style="grid-template-columns:1fr;gap:40px;padding-top:100px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;white-space:nowrap;">AX Pattern · Delegation Ladder<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A5"><span class="ax-chip__id">AX · A5</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      テレビには2つの案。<br>家族みんなで選ぶ。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:640px;margin:0 auto;text-align:center;">
+      木曜の夜。Brain が最有力の2案を、写真中心のカードとしてリビングのテレビに放る。値段も細かい注意書きもない—どちらも家族の予算と祖父母まわりの制約は満たしている。あとは、それぞれの旅の手触りだけ。
+    </p>
+    <p class="lede" data-enter class="d3" style="max-width:640px;margin:0 auto;text-align:center;">
+      選ぶのは人間だ。<strong>Delegation Ladder</strong> はこう言っている—選択肢は AI が組むが、決めるのは親。「自動予約」はこの画面には出てこない。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="device-embed device-embed--tv">
+      <iframe src="../../ui-screens/p2/p2-09c-tv-2plans.html?noframe=1"
+              loading="lazy"
+              title="Living-room TV · two candidate plans"></iframe>
+    </div>
+    <p class="ui-caption" style="max-width:820px;margin:16px auto 0;text-align:center;">
+      <span class="ui-caption__kind">User UI · TV</span>
+      <strong>家族の夜</strong> — テレビには写真中心の2つの案。子どもがどちらに身を乗り出すかを見て、親が選ぶ。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── Countdown TV ───── -->
+<section class="section" id="countdown" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;white-space:nowrap;">AX Pattern · Disclosure Cascade<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A4"><span class="ax-chip__id">AX · A4</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      子どもはカウントダウンを見る。<br>親は予算を見る。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:660px;margin:0 auto;text-align:center;">
+      同じ旅、同じデータ—3つの面。親のスマホには費用の内訳と祖父母の移動手配。テレビには、子ども向けの写真中心カウントダウン:3日目に忍者、4日目に刀、8日目には祖父母と温泉。
+    </p>
+    <p class="lede" data-enter class="d3" style="max-width:660px;margin:0 auto;text-align:center;">
+      理由は <strong>Disclosure Cascade</strong>。「出発まで12日」というひとつの事実を、受け手に合わせて3つの声に彫り分けている。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="device-embed device-embed--tv">
+      <iframe src="../../ui-screens/p2/p2-12-tv-countdown.html?noframe=1"
+              loading="lazy"
+              title="TV countdown · kids view"></iframe>
+    </div>
+    <p class="ui-caption" style="max-width:820px;margin:16px auto 0;text-align:center;">
+      <span class="ui-caption__kind">User UI · TV</span>
+      <strong>カウントダウン</strong> — 子ども向けビュー。冒険が写真のひと並びで流れる。値段も移動時間もない。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── Disclosure Dial before the trip ───── -->
+<section class="section" id="disclosure" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;white-space:nowrap;">AX Pattern · Per-Person Disclosure<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A3"><span class="ax-chip__id">AX · A3</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      出発前に、Sarah が<br>一人につきひとつ、ダイヤルを決める。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:640px;margin:0 auto;text-align:center;">
+      <strong>Disclosure Dial</strong> は、受け手—Kai、Mia、両方の祖父母—それぞれに「何を見せていいか」を決める。Sarah は出発前に一人ずつ一度だけ設定する。あとの3週間、旅はその設定を守って動く。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1100px;margin:0 auto;">
+    <div class="bts-frame" data-kind="concept">
+      <div class="bts-frame__chip">CONCEPT · Per-Person Disclosure</div>
+      <div class="bts-frame__note">一つの家族、6つの開示プロファイル—一度設定すれば3週間そのまま。</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">Kai（12歳）</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">冒険だけ</div>
+            <div style="font-size:12px;color:var(--text-3);line-height:1.5;">値段なし。移動時間なし。警告は安全に関わるものだけ。</div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">Mia（9歳）</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">冒険だけ</div>
+            <div style="font-size:12px;color:var(--text-3);line-height:1.5;">Kai と同じ。加えて、工芸ものを優先的に出す。</div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">京都の祖父母</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">家族フル共有</div>
+            <div style="font-size:12px;color:var(--text-3);line-height:1.5;">日本語で毎日の写真。Kai と Mia は本名で。管理者は Takeshi の母。</div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">シアトルの祖父母</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">週1・厳選</div>
+            <div style="font-size:12px;color:var(--text-3);line-height:1.5;">英語でベスト5枚/週。位置情報ピンなし。Sarah が毎回確認してから送る。</div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">Takeshi（父）</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">すべて</div>
+            <div style="font-size:12px;color:var(--text-3);line-height:1.5;">Brain がやっていることを全部見える。Sarah との共同管理者。</div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;">Sarah（母）</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">すべて · 管理者</div>
+            <div style="font-size:12px;color:var(--text-3);line-height:1.5;">他の全員のダイヤルを設定する。予算と写真の選定は既定で彼女が担当。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="ui-caption" style="max-width:760px;margin:16px auto 0;text-align:center;">
+      <span class="ui-caption__kind">Concept · 開示プロファイル</span>
+      受け手は6人、ダイヤル設定も6つ。Brain はこれから3週間、黙ってそれを守る。
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     DIVIDER · Chapter 03 — Discovery
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section section--divider" id="div-ch03">
+  <img class="divider-photo" src="../../assets/img/thumbs/P2-DIV-CH03-arashiyama-discovery-1600w.webp" alt="">
+  <div class="divider-overlay"></div>
+  <div class="divider-content">
+    <div class="divider-eyebrow">Chapter 03 · 発見</div>
+    <h2 class="divider-title">計画になかったもの。</h2>
+    <p class="divider-sub">Mia が竹の看板を見つける。午後のすべてが、そこから変わる。</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 03 · DISCOVERY
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── Bamboo workshop discovery ───── -->
+<section class="section" id="bamboo">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Proactive Nudge<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A2"><span class="ax-chip__id">AX · A2</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      2日目・嵐山。<br>Mia が先に見つけた竹細工ワークショップ。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      川から戻る道で、Mia（娘・9歳）が手書きの看板を見つける—<em style="font-style:normal;">竹細工・お立ち寄り OK。</em> 聞く前に、Takeshi のスマホが鳴る—90分、ひとり¥2,500、14:30の枠が空いている、次に予約している錦市場（17:00）にもまだ間に合う。
+    </p>
+    <p class="lede" data-enter class="d3">
+      Brain は予約しない。それとなく差し出す—<strong>実現可能 · 予算内 · ペース通り</strong>。家族は40秒で決める。Kai は午後を竹の刀で締めくくり、Mia は小さな花瓶を手にする。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-16-bamboo-discovery.html?noframe=1"
+                loading="lazy"
+                title="Bamboo workshop nudge · Takeshi's iPhone"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── How the match was made (Backstage) ───── -->
+<section class="section" id="token-match" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;background:#08070b;color:#ededed;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;color:rgba(240,236,228,0.55);">Backstage · マッチングの舞台裏</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;color:#f0ece4;">
+      6つのトークン × ひとつの Brain。<br>所要40秒。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:680px;margin:0 auto;text-align:center;color:rgba(240,236,228,0.72);">
+      このナッジは、家族には見えない交差点の出力だ。Mia の <strong>Learning Layer</strong>(工芸好き)。Physical State(14:00のエネルギー)。Feasibility(90分で収まる)。Priority Weight(次の予約に間に合う)。Social Exposure(観光客向けの英語表示)。Cognitive Load(親の負荷は今は低い)。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="bts-frame bts-frame--dark bts-frame--floating" data-kind="backstage">
+      <div class="bts-frame__chip">BACKSTAGE · Token 交差</div>
+      <div class="bts-frame__note">6つのゲージ、ひとつの判断。家族はこのビューを開かない。</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div style="width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#14131a;border:1px solid rgba(240,236,228,0.08);">
+          <iframe src="../../ui-screens/p2/p2-concept-01-token-intersection.html?noframe=1"
+                  loading="lazy"
+                  title="Backstage · Six-token intersection behind the bamboo nudge"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+        <p class="ui-caption" style="margin-top:18px;">
+          <span class="ui-caption__kind">Backstage view</span>
+          ゲージはそれぞれ8 Context Tokens のひとつ。嵐山の14:00に6つが揃った。それで十分だった。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Night archive · three audiences ───── -->
+<section class="section" id="archive">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Graduated Archive<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A8"><span class="ax-chip__id">AX · A8</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      その夜、アーカイブはひとつ。<br>相手は3組。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      21:30、旅館にて。Disposable Brain がその日の写真アーカイブを3通りに下書きする。親向けには、ペースのメモと明日の段取り。京都の祖父母向けは日本語で、全写真つき。シアトルの祖父母向けにはベスト5枚が選ばれ、Sarah が「承認」をタップするのを待っている。
+    </p>
+    <p class="lede" data-enter class="d3">
+      <strong>Graduated Archive</strong> — 同じ一日、3つの声、ひとつの家族。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-07-souvenir.html?noframe=1"
+                loading="lazy"
+                title="Night archive · three audience versions"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Kyoto grandparents · full share ───── -->
+<section class="section" id="grandparents-jp">
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-16b-grandparents-jp.html?noframe=1"
+                loading="lazy"
+                title="Kyoto grandparents view — LINE, full daily share"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Per-Person Disclosure</div>
+    <h2 class="title" data-enter class="d1">
+      京都の祖父母は、全部を見る。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      Takeshi の両親はダイヤルを「フル共有」に設定している—全部の写真が見たい、食事の話も聞きたい。現地時間22:00に LINE に届く。日本語で、孫の名前は祖父母が呼んでいるとおりに(愛、海)。
+    </p>
+    <p class="lede" data-enter class="d3">
+      セレクションもゲートもなし。Brain は、1日目に家族が設定した開示プロファイルをそのまま信じる。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── US grandparents · curated five ───── -->
+<section class="section" id="grandparents-us">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Per-Person Disclosure</div>
+    <h2 class="title" data-enter class="d1">
+      シアトルの祖父母は5枚だけ。<br>Sarah が1枚ずつ承認する。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      Sarah の両親は日本語を話さず、量が多いと疲れてしまう。彼らのダイヤルは「週1・厳選5枚・位置情報ピンなし」。毎週日曜、Brain から事前セレクションの5枚が届く。Sarah は2枚差し替え、承認し、送る。
+    </p>
+    <p class="lede" data-enter class="d3">
+      同じ旅、同じ日、まったく違う「封筒」。それが <strong>per-person</strong> の本当の意味だ。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-16c-grandparents-us.html?noframe=1"
+                loading="lazy"
+                title="Seattle grandparents view — curated weekly digest"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     DIVIDER · Chapter 04 — Rain & Repair
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section section--divider" id="div-ch04">
+  <img class="divider-photo" src="../../assets/img/thumbs/P2-DIV-CH04-rain-window-1600w.webp" alt="">
+  <div class="divider-overlay"></div>
+  <div class="divider-content">
+    <div class="divider-eyebrow">Chapter 04 · 雨</div>
+    <h2 class="divider-title">予報が変わる。計画が応える。</h2>
+    <p class="divider-sub">アウトドアの日の6時間前、雨が旅程を描き直す。</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 04 · RAIN & REPAIR
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── Weather flips ───── -->
+<section class="section" id="rain-trigger">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Silent Resolution<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A6"><span class="ax-chip__id">AX · A6</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      3日目・07:00。<br>家族はまだ眠っている。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      06:42、天気 API が反転する。3日目と4日目が「曇りのち晴れ」から「2日続きの大雨」に。07:00 には、Disposable Brain はもう屋外予約をスキャン済みだ—伏見稲荷(キャンセル)、着物散歩(5日目に延期)、竹林(2日目に済ませたので廃棄)。
+    </p>
+    <p class="lede" data-enter class="d3">
+      屋内の予約がひとつ生き残る—忍者ワークショップ。07:30 に Sarah が目を覚ますと、通知は1件—<em style="font-style:normal;">「4日目まで雨。代替案を用意済み」</em>。まだ何もキャンセルしていない。Brain は修復を準備しただけで、判断は親に渡っている。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-13-rain-alternatives.html?noframe=1"
+                loading="lazy"
+                title="Rain alternatives · indoor activity browser"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── How alternatives ranked (Backstage) ───── -->
+<section class="section" id="ranking" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;background:#08070b;color:#ededed;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;color:rgba(240,236,228,0.55);">Backstage · 代替案のランキング</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;color:#f0ece4;">
+      候補は7つ。<br>残ったのは5つ。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:680px;margin:0 auto;text-align:center;color:rgba(240,236,228,0.72);">
+      Brain は各候補を4つの軸で重み付けする—屋内の確実さ、既存の忍者予約との相性、Kai と Mia のウィッシュリストとの重なり、祖父母の2日間訪問のペース。映画村は一部屋外—却下。水族館は割高で京都らしさが弱い—却下。三十三間堂、マンガミュージアム、市場、京都電鉄、食品サンプル作りが生き残る。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="bts-frame bts-frame--dark bts-frame--floating" data-kind="backstage">
+      <div class="bts-frame__chip">BACKSTAGE · 代替案ランキング</div>
+      <div class="bts-frame__note">7つの選択肢、4つの軸、ひとつのショートリスト。</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div style="width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#14131a;border:1px solid rgba(240,236,228,0.08);">
+          <iframe src="../../ui-screens/p2/p2-concept-04-rain-ranking.html?noframe=1"
+                  loading="lazy"
+                  title="Backstage · Alternative ranking matrix"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+        <p class="ui-caption" style="margin-top:18px;">
+          <span class="ui-caption__kind">Backstage view</span>
+          家族はこのマトリクスを開かない。生き残った5つを、写真カードとして見るだけだ。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Combo plans ───── -->
+<section class="section" id="combo">
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-14-rain-combo-plans.html?noframe=1"
+                loading="lazy"
+                title="Rain combo plans — three candidate two-day itineraries"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Live Recomposition<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A7"><span class="ax-chip__id">AX · A7</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      3つの組み合わせ。<br>同じ5つの部品から。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      Takeshi のスマホには、生き残った5つを2日間に配置し直す3通りが並ぶ。<strong>ゆったり</strong>—1日2スポット。<strong>詰め込み</strong>—1日5スポット、忍者の予約を10:30にずらす必要あり。<strong>マンガは後回し</strong>—1枚を次の雨の日のために温存。
+    </p>
+    <p class="lede" data-enter class="d3">
+      同じ部品、3通りの組み立て方。<strong>Live Recomposition</strong> は、Brain が組み立てを「提案する」段階で、決めはしない。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── Fairness (Care Architecture) ───── -->
+<section class="section" id="fairness" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;white-space:nowrap;">AX Pattern · Care Architecture<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A9"><span class="ax-chip__id">AX · A9</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      Kai が2つ選べたなら、<br>Mia にも2つ。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:680px;margin:0 auto;text-align:center;">
+      子どもたちが交渉する。Kai はマンガミュージアム<em style="font-style:normal;">と</em>忍者ワークショップの両方がいい。Sarah はそっとスマホに言う—<em style="font-style:normal;">「Kai が2つなら、Mia も2つ。」</em> Brain が返すのは、食品サンプル作り(Mia のウィッシュリスト既収載)とその近くのタイル絵付けスタジオ—同じペース、同じ予算帯。
+    </p>
+    <p class="lede" data-enter class="d3" style="max-width:680px;margin:0 auto;text-align:center;">
+      <strong>Care Architecture</strong> は、明示された公平さだ。Brain がルールを発明するのではなく、Sarah がルールを口にし、Brain がそれを二人の子どもに対して守り抜く。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:900px;margin:0 auto;">
+    <div class="bts-frame" data-kind="concept">
+      <div class="bts-frame__chip">CONCEPT · 2 + 2 の公平さ</div>
+      <div class="bts-frame__note">Sarah が制約を置く。Brain が3日目と4日目をまたいでそれを保つ。</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div style="border:1px solid var(--border);border-radius:10px;padding:18px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:8px;">Kai — 2つ選ぶ</div>
+            <div style="font-size:14px;color:var(--text-2);line-height:1.7;">・忍者ワークショップ(3日目 · 10:30)<br>・マンガミュージアム(3日目 · 14:00)</div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:10px;padding:18px;">
+            <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-3);text-transform:uppercase;margin-bottom:8px;">Mia — 2つ選ぶ</div>
+            <div style="font-size:14px;color:var(--text-2);line-height:1.7;">・食品サンプル作り(4日目 · 10:00)<br>・タイル絵付けスタジオ(4日目 · 12:00)</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:12px 14px;background:var(--gray-50, rgba(0,0,0,0.02));border-radius:8px;font-size:13px;color:var(--text-2);line-height:1.6;">
+          <strong>2日間を通じて共有:</strong> 三十三間堂、錦市場、京都電鉄。着物散歩と伏見稲荷は5日目へ移動(予報:晴れ)。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── TV · the final plan ───── -->
+<section class="section" id="tv-final" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;white-space:nowrap;">AX Pattern · Delegation Ladder</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      ホテルのテレビに、<br>修復された計画。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:660px;margin:0 auto;text-align:center;">
+      子どもたちは写真中心のシーケンスを見る—3日目マンガ、4日目食品サンプル、電車、タイル工房、夜の市場ディナー。着物と伏見の鳥居は5日目に約束済み。値段も段取りもない。ただ、雨の2日間のかたちが、小さく具体的になっている。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="device-embed device-embed--tv">
+      <iframe src="../../ui-screens/p2/p2-15-rain-tv-final.html?noframe=1"
+              loading="lazy"
+              title="Hotel TV · final repaired plan"></iframe>
+    </div>
+    <p class="ui-caption" style="max-width:820px;margin:16px auto 0;text-align:center;">
+      <span class="ui-caption__kind">User UI · TV</span>
+      修復後の2日間プラン、子ども目線で。2+2 は小さなアイコンの列として見えたままになっている。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── CarPlay to Arashiyama ───── -->
+<section class="section" id="car">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Cross-Surface Handoff<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A10"><span class="ax-chip__id">AX · A10</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      車に乗ると、<br>Brain もついてくる。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      5日目、09:04。晴れ。着物散歩は決行。Takeshi がレンタカーのエンジンをかけると、CarPlay が引き継ぐ—レンタル着物店までのルートは、今日合流する Takeshi の父(徒歩20分が限界)に合わせたサイズ感で、正午の伏見稲荷に向けて10:50のピックアップリマインダー付き。
+    </p>
+    <p class="lede" data-enter class="d3">
+      スマホは眠る。計画はダッシュボードが抱える。<strong>Cross-Surface Handoff</strong> とは、ひとつの Brain が、手元にある面を通じて話すことだ。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-17-car-navigation.html?noframe=1"
+                loading="lazy"
+                title="CarPlay · Kyoto drive to Arashiyama"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     DIVIDER · Chapter 05 — Crisis & Return
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section section--divider" id="div-ch05">
+  <img class="divider-photo" src="../../assets/img/thumbs/P2-DIV-CH05-care-moment-1600w.webp" alt="">
+  <div class="divider-overlay"></div>
+  <div class="divider-content">
+    <div class="divider-eyebrow">Chapter 05 · 危機と帰還</div>
+    <h2 class="divider-title">いちばん大事な瞬間に。</h2>
+    <p class="divider-sub">Kai が発熱する。Autonomy が一段下がる。ケアが前に出る。</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 05 · CRISIS & RETURN
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── Fever · Autonomy downgrade (dark) ───── -->
+<section class="section section--dark" id="fever">
+  <div class="section__text">
+    <div class="eyebrow" data-enter style="white-space:nowrap;">AX Pattern · Limitation Disclosure<a class="ax-chip" href="../../context-grammar/ax-patterns/#pattern-A11"><span class="ax-chip__id">AX · A11</span><span class="ax-chip__arrow">↗</span></a></div>
+    <h2 class="title" data-enter class="d1">
+      8日目、23:14。<br>Kai の熱が39.2℃まで上がる。
+    </h2>
+    <p class="lede" data-enter class="d2">
+      Sarah(母・38歳)は半分眠りかけている。Kai(息子・12歳)は熱で目を覚ます。Brain はこの1週間、ずっと「Auto」で動いてきた—予約、メニュー翻訳、写真アーカイブ。Sarah はひとつの動作で、Autonomy Dial を <strong>Confirm</strong> まで落とす。
+    </p>
+    <p class="lede" data-enter class="d3">
+      Brain は別の声で応える。<em style="font-style:normal;">英語対応の夜間クリニック、1.4km、03:00まで営業中—マップを開く?</em> · <em style="font-style:normal;">受付用の症状リスト(翻訳済み)—見せる?</em> · <em style="font-style:normal;">京都の祖父母は15分の距離—電話する?</em>
+    </p>
+    <p class="lede" data-enter class="d4" style="padding:14px 18px;border-left:3px solid #c4a8e0;background:rgba(196,168,224,0.06);margin-top:8px;border-radius:0 6px 6px 0;color:rgba(240,236,228,0.85);">
+      すべてのステップが、Sarah のタップのために浮上する。黙ってなにも送られない。<strong>Limitation Disclosure</strong>—クライシスでは、Brain が「自分はもう決めていない」と宣言する。
+    </p>
+  </div>
+  <div class="section__visual" data-enter class="d2">
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome"
+           src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+           alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe src="../../ui-screens/p2/p2-05-health.html?noframe=1"
+                loading="lazy"
+                title="Health crisis · Sarah's iPhone at 23:14"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Disclosure sculpt — same fact, three voices (Concept) ───── -->
+<section class="section" id="disclosure-sculpt" style="grid-template-columns:1fr;gap:40px;padding-top:100px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Concept · 開示を彫り分ける</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      同じ事実、3つの声。<br>設計された違いだ。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:680px;margin:0 auto;text-align:center;">
+      「Kai が熱を出した」は、3通りに出ていく。京都の Takeshi の母には、落ち着いた日本語の音声メッセージ—<em style="font-style:normal;">孫が熱を出している。近くの病院へ向かう。</em> シアトルの Sarah の両親には朝まで何も届かない—今夜できることはないし、眠れなくなるだけだから。隣の部屋で眠っている Mia(9歳)には、何も届かない。
+    </p>
+    <p class="lede" data-enter class="d3" style="max-width:680px;margin:0 auto;text-align:center;">
+      1日目に設定された <strong>Disclosure Dial</strong> が、23:14に新しい判断を一切要らなくしている。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1100px;margin:0 auto;">
+    <div class="bts-frame" data-kind="concept">
+      <div class="bts-frame__chip">CONCEPT · 3つの声</div>
+      <div class="bts-frame__note">23:14のひとつの事実。3つの封筒が自動的に守られる。</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div style="width:100%;aspect-ratio:16/10;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--border);">
+          <iframe src="../../ui-screens/p2/p2-concept-03-disclosure-sculpt.html?noframe=1"
+                  loading="lazy"
+                  title="Concept · Same fact, three voices"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+      </div>
+    </div>
+    <p class="ui-caption" style="max-width:760px;margin:16px auto 0;text-align:center;">
+      <span class="ui-caption__kind">Concept · 開示を彫り分ける</span>
+      Brain は「誰に伝えるか」を決めていない。1日目のダイヤルを読んでいるだけだ。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── Autonomy across the trip (Concept, backstage view) ───── -->
+<section class="section" id="autonomy-phases" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;background:#08070b;color:#ededed;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;color:rgba(240,236,228,0.55);">Backstage · 3週間の Autonomy</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;color:#f0ece4;">
+      Autonomy Dial は6回動いた。<br>家族はほとんど気づいていない。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:700px;margin:0 auto;text-align:center;color:rgba(240,236,228,0.72);">
+      計画期:<strong>Suggest</strong>(すべての選択肢がテーブルの上)。出発前週:<strong>Confirm</strong>(Brain が下書き、Sarah がタップ)。旅の中盤の既定:<strong>Auto</strong>(レストラン再予約、写真アーカイブ)。雨の修復:<strong>Confirm</strong>(旅程は親が決める)。発熱の夜:<strong>Notify + Confirm</strong>(すべてのステップが見える)。帰りの機内:<strong>Suggest</strong> に戻る。
+    </p>
+    <p class="lede" data-enter class="d3" style="max-width:700px;margin:0 auto;text-align:center;color:rgba(240,236,228,0.58);">
+      あらゆる移動を駆動したのは3つの力—<em style="font-style:normal;">サービスの既定値 × Brain の調整 × Sarah の能動的な選択。</em> Autonomy は決してユーザー単独のコントロールではなく、Brain は変化のたびに現在のレベルを見えるようにする。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="bts-frame bts-frame--dark bts-frame--floating" data-kind="backstage">
+      <div class="bts-frame__chip">BACKSTAGE · Autonomy タイムライン</div>
+      <div class="bts-frame__note">21日間で6回の段階移行。家族が明示的に見たのはそのうち2回。</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div style="width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#14131a;border:1px solid rgba(240,236,228,0.08);">
+          <iframe src="../../ui-screens/p2/p2-concept-02-autonomy-dial-live.html?noframe=1"
+                  loading="lazy"
+                  title="Backstage · Autonomy Dial timeline across the trip"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+        <p class="ui-caption" style="margin-top:18px;">
+          <span class="ui-caption__kind">Backstage view</span>
+          Autonomy は設定ではなく、動詞だ。Brain が動かし続け、重要なときは動きを宣言していた。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Memory returns (Backstage) ───── -->
+<section class="section" id="memory" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Backstage · 記憶の吸収</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      帰りの機内で、<br>Disposable Brain は畳み込まれる。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:680px;margin:0 auto;text-align:center;">
+      巡航高度で、Disposable Brain は最後の仕事に取りかかる。この家族について学んだことをデルタ(差分)にまとめ、<strong>Home Brain</strong> に追記する。そして、自分を削除する。
+    </p>
+    <p class="lede" data-enter class="d3" style="max-width:680px;margin:0 auto;text-align:center;">
+      残るのはこんなことだ—Kai はとんこつラーメンが好き。Mia は30分ではなく90分の工芸ブロックがいい。Takeshi の父の実際の徒歩限界は20分ではなく18分。Sarah は9階以上の部屋を好む。家族の音量は旅の7日目以降、急に落ちる。家族は知識が6つ分、賢くなった—次の旅のツールは、そこから始まることになる。
+    </p>
+  </div>
+
+  <div data-enter class="d3" style="width:100%;max-width:1100px;margin:0 auto;">
+    <div class="bts-frame" data-kind="backstage">
+      <div class="bts-frame__chip">BACKSTAGE · メモリデルタ</div>
+      <div class="bts-frame__note">6つの学び、パッケージされ、追記される。</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div style="width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--border);">
+          <iframe src="../../ui-screens/p2/p2-concept-05-memory-absorption.html?noframe=1"
+                  loading="lazy"
+                  title="Backstage · Memory absorption deltas into Home Brain"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── Next trip · pre-loaded (Concept) ───── -->
+<section class="section" id="next-trip" style="grid-template-columns:1fr;gap:32px;padding-top:80px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Concept · 次の旅</div>
+    <h2 class="title" data-enter class="d1" style="text-align:center;">
+      18か月後、次の Brain は<br>最初から賢くなっている。
+    </h2>
+    <p class="lede" data-enter class="d2" style="max-width:680px;margin:0 auto;text-align:center;">
+      Takeshi が入力する—「東京、10日、4人、早春」。新しい Disposable Brain が起動する。その Inherited Layer はもう知っている—Kai はとんこつ、Mia は長めの手仕事セッション、父は18分、7日目以降はペースが落ちる。最初の画面に3つの方向が並び、そのどれもが京都の Brain が学んだことを尊重している。
+    </p>
+    <p class="lede" data-enter class="d3" style="max-width:680px;margin:0 auto;text-align:center;">
+      「Disposable」は、忘れっぽいという意味ではない。<em style="font-style:normal;">スコープがある</em>という意味だ。旅は終わる。学びは終わらない。
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══ CLOSE ═══ -->
+<section class="section section--close" id="close">
+  <div class="close-text">
+    <div class="eyebrow" data-enter>Project 02 おわり</div>
+    <h2 class="close-title" data-enter class="d1">
+      UI は消えた。<br>旅は消えていない。
+    </h2>
+    <p class="close-lede" data-enter class="d2">
+      ベイエリアの火曜日。Sarah がコーヒーをいれる。京都ダッシュボードはもうない—アーカイブされ、通知はしまわれ、ホーム画面のタイルは夜のうちに Brain がそっと外していた。写真は家族アルバムに。ペースの学びは Home Brain に。次の旅は、ちゃんと知っている。
+    </p>
+    <div class="chips" id="chips" data-enter class="d3">
+      <span class="chip c1">Disposable Brain</span>
+      <span class="chip c2">Autonomy Dial · 6フェーズ</span>
+      <span class="chip c3">Disclosure Dial · 6プロファイル</span>
+      <span class="chip c4">23 AX Patterns</span>
+    </div>
+    <nav class="project-nav" data-enter class="d4" aria-label="プロジェクトナビゲーション">
+      <a class="project-nav__back" href="../../applied/index.html">← すべてのプロジェクト</a>
+      <a class="project-nav__next" href="../project-03/p3-fluid-handoff-v4.html">
+        <span class="project-nav__next-label">続きへ · Project 03</span>
+        <span class="project-nav__next-title">Fluid Handoff →</span>
+      </a>
+    </nav>
+  </div>
+  <div class="close-photo" data-enter class="d3">
+    <img src="../../projects/project-02/presentation-images/post-trip-morning.webp"
+         alt="旅の翌朝、家族のキッチン—コーヒー、閉じられた京都ノート、差し込む光。"
+         loading="lazy">
+    <div class="close-photo__cap">
+      <span>旅の翌朝</span>
+    </div>
+  </div>
+</section>
+
+
+<script>
+  (function () {
+    'use strict';
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Hero image fade-in
+    const heroImg = document.getElementById('hero-img');
+    if (heroImg) {
+      if (heroImg.complete) {
+        heroImg.classList.add('loaded');
+      } else {
+        heroImg.addEventListener('load', () => heroImg.classList.add('loaded'), { once: true });
+      }
+    }
+
+    // Enter animations
+    const enterTargets = document.querySelectorAll('[data-enter]');
+    if (prefersReduced) {
+      enterTargets.forEach(el => el.classList.add('visible'));
+    } else {
+      const enterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            enterObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.18, rootMargin: '0px 0px -10% 0px' });
+      enterTargets.forEach(el => enterObserver.observe(el));
+    }
+
+    // Close chips stagger
+    const chips = document.querySelectorAll('.chip');
+    if (!prefersReduced) {
+      const chipsWrap = document.getElementById('chips');
+      const chipObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            chips.forEach(c => c.classList.add('visible'));
+            chipObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      if (chipsWrap) chipObserver.observe(chipsWrap);
+    } else {
+      chips.forEach(c => c.classList.add('visible'));
+    }
+
+    // Progress bar
+    const progressFill = document.getElementById('progress-fill');
+    function updateProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      if (progressFill) progressFill.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    // Keyboard nav (section-to-section)
+    const sections = document.querySelectorAll('.section');
+    const sectionIds = Array.from(sections).map(s => s.id).filter(Boolean);
+    function currentSectionIdx() {
+      const midline = window.scrollY + window.innerHeight / 2;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i]);
+        if (el && el.offsetTop <= midline) return i;
+      }
+      return 0;
+    }
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        const next = Math.min(sectionIds.length - 1, currentSectionIdx() + 1);
+        document.getElementById(sectionIds[next]).scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        const prev = Math.max(0, currentSectionIdx() - 1);
+        document.getElementById(sectionIds[prev]).scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        document.getElementById('intro').scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        document.getElementById('close').scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  })();
+</script>
+
+<!-- ── Global site nav (auto-hide on scroll, no lang switcher) ── -->
+<script src="../../assets/js/nav.js"></script>
+<script>
+  initNav({
+    basePath: '../../',
+    activePage: 'projects',
+    lang: 'ja',
+    showLang: false,
+    autoHide: true
+  });
+</script>
+
+</body>
+</html>

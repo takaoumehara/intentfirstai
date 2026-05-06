@@ -1,0 +1,8 @@
+# IP-10 · Chapter 06 Hero — Close · Evening South London
+
+**用途:** Chapter 06「Close」の章頭ヒーロー画像（全幅 21:9 シネマティック）  
+**テーマ:** 「Quiet choices. Compound.」— 静かな南ロンドンの夕暮れ。AI の仕事はすべて終わり、家族は気づかぬままに。
+
+## プロンプト（Kuukikan 爽やか スタイル）
+
+A quiet South London residential street at dusk — Victorian terrace houses stretching gently down a Clapham side road, photographed from a low angle looking along the pavement. The hour is just after golden hour: the sky has softened to a muted apricot and pale lavender, not dramatic, just quietly spent. Warm window glow from two or three houses — amber rectangles of light suggesting life continuing inside, unhurried. A few fallen leaves rest on the damp pavement, lit from a distant streetlamp just beginning to turn on. One front door, slightly open, catches the last warmth of the day on its white painted surface. No figures visible — only the evidence of a family returned: a pair of small muddy shoes just inside an open gate, a child's bicycle leaned against a garden wall. The tones are natural and gently faded, film-like — muted terracotta bricks, soft cream render, the pale lavender sky holding its last light. Shadows are long and transparent, not heavy — the street feels still, not abandoned. Where the streetlamp light catches moisture on the brick wall, a barely noticeable prismatic refraction — a hidden accent of pink and blue, easily missed. Pronounced film grain throughout, warm and textural. Old-lens bokeh softens the far end of the street into gentle out-of-focus warmth. Generous negative space in the sky — airy, breathing. The mood is "a day that finished well without announcing itself" — 何も言わずに終わった、良い一日. Serene, compound, quietly complete. 21:9 aspect ratio, 4K resolution, cinematic.

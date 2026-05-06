@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rule Engine — Tokens IN, ui.command OUT | Context Grammar</title>
+<meta name="description" content="8つの Context Token と Brain の記憶が、どのように ui.command に変換されるか。決定論的な翻訳レイヤー — Brain の状態と surface のレンダリングをつなぐ橋。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../../assets/css/components.css">
+<link rel="stylesheet" href="../../../assets/css/context-grammar.css">
+<link rel="stylesheet" href="../../../assets/css/nav.css">
+<link rel="stylesheet" href="../../../assets/css/green-animation.css">
+<link rel="stylesheet" href="../../../assets/css/cg-restaurant-aside.css">
+<style>
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ── HERO ── */
+.hero-label {
+  font-family: var(--font-sans);
+  font-size: clamp(17px, 1.6vw, 24px);
+  font-weight: 400;
+  letter-spacing: -0.2px;
+  color: rgba(240, 236, 228, 0.62);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+
+body[data-dark-nav].nav-has-subnav .hero.hero--split {
+  padding-top: 96px;
+  padding-bottom: 24px;
+  min-height: 100vh;
+}
+.hero--split {
+  flex-direction: row !important;
+  align-items: center !important;
+  text-align: left !important;
+  gap: clamp(32px, 5vw, 80px);
+  padding-left: clamp(24px, 5vw, 80px);
+  padding-right: clamp(24px, 5vw, 80px);
+}
+.hero--split .hero-title,
+.hero--split .hero-label,
+.hero--split .hero-sub { margin-left: 0; margin-right: 0; }
+.hero-split-text { flex: 0 0 auto; max-width: 440px; }
+.hero-formula-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px 18px;
+  background: rgba(240,236,228,0.05);
+  border: 1px solid rgba(240,236,228,0.12);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(240,236,228,0.55);
+  opacity: 0;
+  animation: fadeUp 0.8s 0.7s forwards;
+}
+.hero-formula-pill .f-token  { color: var(--color-grammar); }
+.hero-formula-pill .f-engine { color: var(--color-intent); }
+.hero-formula-pill .f-emit   { color: var(--color-brain); }
+.hero-formula-pill .f-arrow  { color: rgba(240,236,228,0.25); }
+.hero-illu {
+  flex: 1 1 auto;
+  max-width: 620px;
+  height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.8s forwards;
+}
+.hero-illu img {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 120px);
+  object-fit: contain;
+  object-position: center;
+  transform: scale(1.4);
+  display: block;
+}
+@media (max-width: 768px) {
+  body[data-dark-nav].nav-has-subnav .hero.hero--split { padding-top: 116px; min-height: 100vh; }
+  .hero--split { flex-direction: column !important; text-align: center !important; justify-content: center; }
+  .hero-illu { width: 90%; max-width: 380px; height: auto; }
+  .hero-illu img { height: auto; max-height: 60vh; transform: scale(1.2); }
+}
+
+/* ── SECTION SHELLS ── */
+.sec {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+}
+.sec-inner {
+  max-width: var(--read-w-card);
+  margin: 0 auto;
+}
+.sec-alt  { background: var(--bg-2); }
+.sec-dark {
+  background: #08070b;
+  color: #f0ece4;
+}
+
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 0.9vw, 13px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.sec-title {
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 42px);
+  line-height: 1.2;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+}
+.sec-desc {
+  font-size: clamp(16px, 1.15vw, 19px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.9;
+  max-width: 680px;
+  margin-bottom: 40px;
+}
+
+/* ── PIPELINE ── */
+.pipeline {
+  display: flex;
+  align-items: center;
+  margin: clamp(28px, 3.5vw, 48px) 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.pipeline-step {
+  flex: 1;
+  padding: clamp(16px, 2vw, 24px) clamp(12px, 1.5vw, 20px);
+  text-align: center;
+  position: relative;
+}
+.pipeline-step + .pipeline-step { border-left: 1px solid var(--border); }
+.pipeline-step--active { background: rgba(106, 74, 144, 0.06); }
+.pipeline-step-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.pipeline-step-name {
+  font-weight: 500;
+  font-size: clamp(13px, 1vw, 15px);
+  letter-spacing: -0.2px;
+  color: var(--text);
+}
+.pipeline-step--active .pipeline-step-label { color: var(--color-brain); }
+.pipeline-step--active .pipeline-step-name  { color: var(--color-brain); }
+@media (max-width: 640px) {
+  .pipeline { flex-direction: column; }
+  .pipeline-step + .pipeline-step { border-left: none; border-top: 1px solid var(--border); }
+}
+
+/* ── IO CARDS ── */
+.io-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 16px;
+  align-items: stretch;
+  margin: 32px 0;
+}
+@media (max-width: 820px) {
+  .io-grid { grid-template-columns: 1fr; }
+  .io-divider { display: none; }
+}
+.io-card {
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  background: var(--bg);
+}
+.io-card--in     { border-top: 3px solid var(--color-grammar); }
+.io-card--engine { border-top: 3px solid var(--color-intent);  }
+.io-card--out    { border-top: 3px solid var(--color-brain);   }
+.io-divider {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.io-icon { font-size: 32px; margin-bottom: 12px; line-height: 1; }
+.io-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.io-card--in     .io-tag { color: var(--color-grammar); }
+.io-card--engine .io-tag { color: var(--color-intent); }
+.io-card--out    .io-tag { color: var(--color-brain); }
+.io-name {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 21px);
+  letter-spacing: -0.4px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.io-role {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  margin-bottom: 14px;
+  line-height: 1.75;
+}
+.io-list { list-style: none; padding: 0; }
+.io-list li {
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13.5px;
+  font-family: var(--font-mono);
+  color: var(--text);
+  display: flex;
+  gap: 8px;
+}
+.io-list li::before { content: "→"; color: var(--text-3); flex-shrink: 0; }
+
+/* ── MULTI-BRAIN NOTE ── */
+.multi-brain {
+  background: rgba(106,74,144,0.05);
+  border: 1px solid rgba(106,74,144,0.20);
+  padding: 24px 28px;
+  margin: 28px 0;
+}
+.multi-brain__head {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-brain);
+  margin-bottom: 10px;
+}
+.multi-brain p {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.85;
+}
+.multi-brain p + p { margin-top: 10px; }
+.multi-brain ul { list-style: none; padding: 0; margin-top: 10px; }
+.multi-brain ul li {
+  padding: 5px 0 5px 18px;
+  font-size: 14px;
+  position: relative;
+  color: var(--text-2);
+}
+.multi-brain ul li::before { content: "▸"; position: absolute; left: 0; color: var(--color-brain); }
+
+/* ── ANATOMY 3-STEP ── */
+.anatomy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0;
+}
+@media (max-width: 700px) { .anatomy-grid { grid-template-columns: 1fr; } }
+.anatomy-card {
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  background: var(--bg);
+}
+.anatomy-card--read   { border-top: 3px solid var(--color-grammar); }
+.anatomy-card--match  { border-top: 3px solid var(--color-intent); }
+.anatomy-card--emit   { border-top: 3px solid var(--color-brain); }
+.anatomy-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.anatomy-card--read  .anatomy-num { color: var(--color-grammar); }
+.anatomy-card--match .anatomy-num { color: var(--color-intent); }
+.anatomy-card--emit  .anatomy-num { color: var(--color-brain); }
+.anatomy-name {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 21px);
+  letter-spacing: -0.4px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.anatomy-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.8;
+}
+
+/* ── WALKTHROUGH STEPS ── */
+.scenario-intro {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+}
+.scenario-intro__quote {
+  font-size: clamp(17px, 1.3vw, 21px);
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.scenario-intro__source {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.step-card {
+  border: 1px solid var(--border);
+  padding: 28px 28px 28px 36px;
+  margin-bottom: 14px;
+  position: relative;
+  background: var(--bg);
+}
+.step-card::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 4px;
+}
+.step-card--token::before  { background: var(--color-grammar); }
+.step-card--engine::before { background: var(--color-intent); }
+.step-card--emit::before   { background: var(--color-brain); }
+.step-card--result::before { background: var(--color-success); }
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  flex-shrink: 0;
+}
+.step-card--token  .step-num { background: var(--color-grammar); }
+.step-card--engine .step-num { background: var(--color-intent); }
+.step-card--emit   .step-num { background: var(--color-brain); }
+.step-card--result .step-num { background: var(--color-success); }
+
+.step-title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 18px);
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.step-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-left: auto;
+}
+.step-card--token  .step-chip { color: var(--color-grammar); background: rgba(74,106,144,0.08); }
+.step-card--engine .step-chip { color: var(--color-intent);  background: rgba(122,85,32,0.08); }
+.step-card--emit   .step-chip { color: var(--color-brain);   background: rgba(106,74,144,0.08); }
+.step-card--result .step-chip { color: var(--color-success); background: rgba(58,106,58,0.08); }
+
+.step-body {
+  font-size: clamp(15px, 1.05vw, 17px);
+  color: var(--text-2);
+  line-height: 1.85;
+}
+
+.token-state {
+  background: rgba(74,106,144,0.05);
+  border: 1px solid rgba(74,106,144,0.15);
+  padding: 18px 22px;
+  margin-top: 16px;
+}
+.token-state__head {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-grammar);
+  margin-bottom: 10px;
+}
+.token-state ul { list-style: none; padding: 0; }
+.token-state li {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 14px;
+  border-top: 1px solid rgba(74,106,144,0.12);
+}
+.token-state li:first-child { border-top: none; padding-top: 0; }
+.token-state li strong {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: var(--color-grammar);
+}
+.token-state li span { color: var(--text-2); }
+
+.rules-fire {
+  background: rgba(122,85,32,0.05);
+  border: 1px solid rgba(122,85,32,0.15);
+  padding: 18px 22px;
+  margin-top: 16px;
+}
+.rules-fire__head {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+  margin-bottom: 10px;
+}
+.rules-fire ul { list-style: none; padding: 0; }
+.rules-fire li {
+  padding: 9px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  border-top: 1px solid rgba(122,85,32,0.12);
+  line-height: 1.65;
+}
+.rules-fire li:first-child { border-top: none; padding-top: 0; }
+.rule-when  { color: var(--color-grammar); font-weight: 500; }
+.rule-arrow { color: var(--color-intent);  padding: 0 6px; }
+.rule-then  { color: var(--color-brain);   font-weight: 500; }
+
+.emit-block {
+  background: rgba(106,74,144,0.05);
+  border: 1px solid rgba(106,74,144,0.15);
+  padding: 18px 22px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.75;
+  white-space: pre;
+  overflow-x: auto;
+}
+.emit-block__head {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-brain);
+  margin-bottom: 10px;
+  white-space: normal;
+}
+.verdict {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(58,106,58,0.06);
+  border-left: 3px solid var(--color-success);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-success);
+  font-weight: 500;
+}
+
+/* ── SURFACES 3-UP ── */
+.surfaces {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 24px 0 8px;
+}
+@media (max-width: 720px) { .surfaces { grid-template-columns: 1fr; } }
+.surface {
+  border: 1px solid var(--border);
+  padding: 22px 20px;
+  background: var(--bg);
+}
+.surface__icon { font-size: 28px; margin-bottom: 10px; line-height: 1; }
+.surface__name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.surface__render {
+  font-size: clamp(14px, 1vw, 16px);
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.surface__why {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+/* ── CALLOUT ── */
+.callout {
+  border-left: 3px solid var(--border);
+  padding: 14px 20px;
+  margin: 24px 0;
+  color: var(--text-2);
+  font-size: clamp(15px, 1.05vw, 17px);
+  line-height: 1.85;
+  background: var(--bg-2);
+}
+.callout strong { color: var(--text); font-weight: 600; }
+.callout code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: rgba(74,106,144,0.08);
+  color: var(--color-grammar);
+  padding: 2px 6px;
+}
+
+/* ── YAML / TECH ── */
+.tech-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+@media (max-width: 760px) { .tech-grid { grid-template-columns: 1fr; } }
+.tech-card {
+  border: 1px solid var(--border);
+  padding: 24px 26px;
+  background: var(--bg);
+}
+.tech-card__head {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+  margin-bottom: 10px;
+}
+.tech-card__title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 17px);
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.tech-card__body {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.75;
+}
+.tech-card__body code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: rgba(74,106,144,0.08);
+  color: var(--color-grammar);
+  padding: 2px 6px;
+}
+
+.yaml-block {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.75;
+  white-space: pre;
+  overflow-x: auto;
+}
+.yaml-block__head {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-intent);
+  margin-bottom: 10px;
+  white-space: normal;
+}
+
+/* ── CONFLICT TABLE ── */
+.conflict-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: clamp(13px, 1vw, 15px);
+}
+.conflict-table th,
+.conflict-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.conflict-table th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--bg-2);
+}
+.conflict-table td { color: var(--text-2); }
+.conflict-table td code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: rgba(74,106,144,0.08);
+  color: var(--color-grammar);
+  padding: 2px 6px;
+}
+
+/* ── BRIDGE ── */
+.bridge {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 32px;
+  margin: 32px 0;
+}
+.bridge__title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+}
+.bridge__svg-wrap { width: 100%; overflow-x: auto; }
+.bridge-svg text { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+.bridge-svg .pill { fill: var(--bg); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.bridge-svg .pill--token   { stroke: var(--color-grammar); fill: rgba(74,106,144,0.08); }
+.bridge-svg .pill--engine  { stroke: var(--color-intent);  fill: rgba(122,85,32,0.08); }
+.bridge-svg .pill--emit    { stroke: var(--color-brain);   fill: rgba(106,74,144,0.08); }
+.bridge-svg .pill--surface { stroke: var(--border); fill: var(--bg); }
+.bridge-svg .pill-label--token  { fill: var(--color-grammar); }
+.bridge-svg .pill-label--engine { fill: var(--color-intent); }
+.bridge-svg .pill-label--emit   { fill: var(--color-brain); }
+.bridge-svg .pill-label--surface{ fill: var(--text-2); }
+.bridge-svg .arrow      { stroke: var(--text-3); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
+.bridge-svg .arrow-label{ font-size: 9.5px; font-weight: 500; fill: var(--text-3); }
+
+/* ── AX PATTERN GRID ── */
+.ax-count-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+@media (max-width: 640px) { .ax-count-grid { grid-template-columns: 1fr 1fr; } }
+.ax-count-card {
+  border: 1px solid var(--border);
+  padding: 20px 16px;
+  text-align: center;
+  background: var(--bg);
+}
+.ax-count-card__cat {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.ax-count-card--D .ax-count-card__cat { color: var(--color-grammar); }
+.ax-count-card--E .ax-count-card__cat { color: var(--color-intent); }
+.ax-count-card--A .ax-count-card__cat { color: var(--color-brain); }
+.ax-count-card--X .ax-count-card__cat { color: var(--color-success); }
+.ax-count-card__num {
+  font-size: clamp(26px, 2.8vw, 34px);
+  font-weight: 500;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.ax-count-card__name {
+  font-size: clamp(13px, 0.9vw, 14px);
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+.ax-compose {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 28px;
+  margin-top: 28px;
+}
+.ax-compose__head {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+.ax-compose__title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 18px);
+  margin-bottom: 14px;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  line-height: 1.5;
+}
+.ax-compose__desc {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.85;
+  margin-top: 12px;
+}
+.ax-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.ax-pill {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+.ax-pill--D { background: rgba(74,106,144,0.10);  color: var(--color-grammar); }
+.ax-pill--E { background: rgba(122,85,32,0.10);   color: var(--color-intent); }
+.ax-pill--A { background: rgba(106,74,144,0.10);  color: var(--color-brain); }
+.ax-pill--X { background: rgba(58,106,58,0.10);   color: var(--color-success); }
+
+/* ── Q&A ── */
+.qa-card {
+  border: 1px solid var(--border);
+  padding: 24px 28px;
+  margin-bottom: 12px;
+  background: var(--bg);
+}
+.qa-q {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text);
+  margin-bottom: 12px;
+  letter-spacing: -0.2px;
+}
+.qa-a {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.85;
+}
+.qa-a strong { color: var(--text); font-weight: 600; }
+.qa-a code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: rgba(74,106,144,0.08);
+  color: var(--color-grammar);
+  padding: 2px 6px;
+}
+
+/* ── CTA BRANCH ── */
+.cta-branch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 720px;
+  margin: 40px auto 0;
+}
+@media (max-width: 640px) { .cta-branch-grid { grid-template-columns: 1fr; } }
+.cta-branch {
+  display: block;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 28px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.cta-branch:hover { transform: translateY(-2px); }
+.cta-branch--primary   { border-left: 3px solid var(--color-brain); }
+.cta-branch--secondary { border-left: 3px solid var(--color-success); }
+.cta-branch-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.cta-branch-title {
+  font-size: clamp(19px, 1.5vw, 22px);
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.cta-branch-desc {
+  font-size: clamp(13px, 1vw, 15px);
+  color: var(--text-2);
+}
+
+</style>
+</head>
+
+<body data-dark-nav class="nav-has-subnav">
+
+<!-- nav.js injects navigation here -->
+
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<div class="hero hero--split">
+  <div class="hero-split-text">
+    <p class="hero-label">Context Grammar — Floor 4</p>
+    <h1 class="hero-title">Rule Engine</h1>
+    <p class="hero-sub">Token が入る。ui.command が出る。Brain の状態と surface のレンダリングをつなぐ、決定論的な翻訳レイヤー。</p>
+    <div class="hero-formula-pill">
+      <span class="f-token">Tokens IN</span>
+      <span class="f-arrow">→</span>
+      <span class="f-engine">Rule Engine</span>
+      <span class="f-arrow">→</span>
+      <span class="f-emit">ui.command OUT</span>
+    </div>
+  </div>
+  <div class="hero-illu">
+    <div data-ga-slot="cg-rule-engine" data-orientation="horizontal" aria-label="Rule Engine — Tokens IN から ui.command OUT へ"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     WHERE IT SITS
+═══════════════════════════════════════ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-brain);">スタック内の位置</p>
+    <h2 class="sec-title reveal">8 Token 入力。命令 1 つ出力。</h2>
+    <p class="sec-desc reveal d1">Rule Engine は語彙と振る舞いをつなぐ橋。8 Context Token と Brain の記憶を受け取り、if/then ロジックを走らせ、すべてのインタラクションに対して 1 つの ui.command を emit する。</p>
+
+    <div class="pipeline reveal d2">
+      <div class="pipeline-step">
+        <div class="pipeline-step-label">Floor 1</div>
+        <div class="pipeline-step-name">Intent</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-step-label">Floor 2</div>
+        <div class="pipeline-step-name">8 Tokens</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-step-label">Floor 3</div>
+        <div class="pipeline-step-name">Context Brain</div>
+      </div>
+      <div class="pipeline-step pipeline-step--active">
+        <div class="pipeline-step-label">Floor 4 — ここ</div>
+        <div class="pipeline-step-name">Rule Engine</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-step-label">Floor 5</div>
+        <div class="pipeline-step-name">AX Patterns</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     A · RESTAURANT INTRO ASIDE
+═══════════════════════════════════════ -->
+<section class="sec sec-alt">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-intent);">1 分でわかる</p>
+    <h2 class="sec-title reveal">家庭版「注文票システム」</h2>
+    <p class="sec-desc reveal d1">仕組みに入る前に、全体を一発で掴めるたとえ話をひとつ。</p>
+
+    <aside class="cg-restaurant-aside reveal d2">
+      <div class="cg-restaurant-aside__icon" aria-hidden="true">
+        <img src="../../../assets/img/cg-icons/restaurant.svg" alt="">
+      </div>
+      <div class="cg-restaurant-aside__content">
+        <p class="cg-restaurant-aside__label">レストランに例えると</p>
+        <div class="cg-restaurant-aside__body">
+          <p>ホール係がオーダーをとると、「テーブル4番、ピーナッツアレルギー、お子様連れ、急ぎ」というメモができます。そのメモをそのまま厨房に投げ込むのではなく、<strong>注文票システム</strong>が「ソース抜き・量 70%・優先提供」という厨房用の指示書に変換します。</p>
+          <p>シェフはその指示書（チケット）を読む。和食ステーションはそれを煮物に、洋食ステーションはチキンに、キッズメニューはうどんに仕上げます。チケットは 1 枚、出し方は surface 次第。</p>
+          <p>Rule Engine がその注文票システム。Token がホール係のメモ。ui.command がチケット。冷蔵庫・スマホ・車が各ステーション。</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     B · TOKENS IN → ui.command OUT
+═══════════════════════════════════════ -->
+<div class="part-banner" style="background:var(--color-brain);">
+  <div class="part-banner-inner">
+    <div class="part-banner-tag" style="color:rgba(255,255,255,0.6);">入口と出口</div>
+    <div class="part-banner-title" style="color:#fff;">Tokens IN → ui.command OUT</div>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-brain);">根幹の翻訳</p>
+    <h2 class="sec-title reveal">Rule Engine は「コンパイラ」</h2>
+    <p class="sec-desc reveal d1">Brain の記憶と Token の状態は、そのままでは UI に届きません。「眠い」「電車の中」「片手しか使えない」という事実があっても、画面の何をどう描くかは決まっていない。その事実を<strong>「画面への命令」</strong>に翻訳するのが Rule Engine です。</p>
+
+    <div class="io-grid reveal d2">
+      <div class="io-card io-card--in">
+        <div class="io-icon">📥</div>
+        <div class="io-tag">Tokens IN</div>
+        <div class="io-name">今の状態</div>
+        <p class="io-role">8 Context Tokens の現在値。Brain から読んだ事実 — アレルギー、予算、予定 — も含む。</p>
+        <ul class="io-list">
+          <li>Cognitive Load = high</li>
+          <li>Form Factor = phone</li>
+          <li>Social Exposure = public</li>
+          <li>Autonomy Dial = Confirm</li>
+        </ul>
+      </div>
+
+      <div class="io-divider">→</div>
+
+      <div class="io-card io-card--engine">
+        <div class="io-icon">⚙️</div>
+        <div class="io-tag">Rule Engine</div>
+        <div class="io-name">翻訳機</div>
+        <p class="io-role">条件にマッチするルールを発火する。同じ入力なら<strong>必ず同じ出力</strong>。気分で変わらない。</p>
+        <ul class="io-list">
+          <li>if Cognitive Load = high → density: minimal</li>
+          <li>if Form Factor = phone → layout: vertical</li>
+          <li>if Social Exposure = public → hide: prices</li>
+          <li>23 AX Patterns を組み合わせる</li>
+        </ul>
+      </div>
+
+      <div class="io-divider">→</div>
+
+      <div class="io-card io-card--out">
+        <div class="io-icon">📤</div>
+        <div class="io-tag">ui.command OUT</div>
+        <div class="io-name">画面への命令</div>
+        <p class="io-role">どの surface でも読める抽象的な「描き方の指示書」。デバイスの種類は関係ない。</p>
+        <ul class="io-list">
+          <li>density: minimal</li>
+          <li>items: 1</li>
+          <li>tone: gentle</li>
+          <li>hide: [price, calorie]</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout reveal d3">
+      <strong>決定論的（deterministic）とは:</strong> Rule Engine は同じ Token の組み合わせを入れたら、いつ・誰が・どのデバイスから呼んでも、<strong>必ず同じ命令</strong>が出る。<strong>同じ条件なら毎回同じ答えを返す。気分で変わらない。</strong>家族全員の信頼の土台はこの予測可能性にある。
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     C · INTERNAL ANATOMY
+═══════════════════════════════════════ -->
+<section class="sec sec-alt">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-intent);">内部構造</p>
+    <h2 class="sec-title reveal">読む → 当てる → 出す</h2>
+    <p class="sec-desc reveal d1">Rule Engine の中では何が起きているのか。3 つの工程に分けると、迷子になりません。</p>
+
+    <div class="anatomy-grid reveal d2">
+      <div class="anatomy-card anatomy-card--read">
+        <div class="anatomy-num">① 読む</div>
+        <div class="anatomy-name">Token を集める</div>
+        <p class="anatomy-desc">8 つの Token の今の値を集計する。さらに Brain から関連する事実 — アレルギー、今月の予算、Brand 制約、Research の最新シグナル — を取ってくる。家庭なら 1 個の Brain、企業なら最大 5 種類。</p>
+      </div>
+      <div class="anatomy-card anatomy-card--match">
+        <div class="anatomy-num">② 当てる</div>
+        <div class="anatomy-name">ルールを発火する</div>
+        <p class="anatomy-desc">if/then の条件式を全件チェックして、マッチするものをすべて発火させる。複数ヒットしたら<strong>優先順位</strong>で重ね合わせる。矛盾が生じたら Priority Weight Token が裁定する。</p>
+      </div>
+      <div class="anatomy-card anatomy-card--emit">
+        <div class="anatomy-num">③ 出す</div>
+        <div class="anatomy-name">命令にまとめる</div>
+        <p class="anatomy-desc">発火した結果を 1 個の<strong>ui.command</strong>（命令オブジェクト）にまとめて emit する。この時点でデバイスはまだ関係ない — それは surface 側の仕事。</p>
+      </div>
+    </div>
+
+    <div class="callout reveal d3">
+      <strong>ポイント:</strong> Rule Engine はデバイスを知らない。「冷蔵庫だから大きく」「iPhone だから縦レイアウト」と判断するのは Token（Form Factor）が持つ事実。Engine は <code>if Form Factor = phone → layout: vertical</code> というルールを発火するだけ。
+    </div>
+    <div class="callout reveal d3">
+      <strong>Brain の出所も知らない:</strong> 「Org Brain から来た事実」「Brand Brain から来た事実」を区別しない。Brain 側がそれぞれの責任で Token を構成し、Engine はその<strong>合成結果</strong>を読むだけ。だから 1 個の Engine が家庭にも企業にも使える。
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     D · YAMASHIRO 7:02 AM WALKTHROUGH
+═══════════════════════════════════════ -->
+<div class="part-banner" style="background:var(--color-grammar);">
+  <div class="part-banner-inner">
+    <div class="part-banner-tag" style="color:rgba(255,255,255,0.6);">実例</div>
+    <div class="part-banner-title" style="color:#fff;">山城家の朝 7:02 AM — 同じ命令、3 つの surface</div>
+  </div>
+</div>
+
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-grammar);">ライブウォークスルー</p>
+    <h2 class="sec-title reveal">朝の一場面が ui.command になるまで</h2>
+    <p class="sec-desc reveal d1">Mai がキッチンで子どもたちと格闘中、冷蔵庫の前に立つ。Rule Engine の中で何が起きるか、ステップを追います。</p>
+
+    <div class="scenario-intro reveal d1">
+      <p class="scenario-intro__quote">「あー、Sota の弁当の中身どうしよう…時間ないんだけど」</p>
+      <p class="scenario-intro__source">— Mai（38歳・二児の母）· 火曜 7:02 AM, キッチン</p>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step-card step-card--token reveal d2">
+      <div class="step-head">
+        <span class="step-num">1</span>
+        <span class="step-title">7:02 AM の Token 状態</span>
+        <span class="step-chip">Tokens IN</span>
+      </div>
+      <div class="step-body">
+        Mai が冷蔵庫の前に立った瞬間、システムが収集した <strong>8 Context Tokens の現在値</strong>。
+        <div class="token-state">
+          <div class="token-state__head">8 Context Tokens · 7:02 AM</div>
+          <ul>
+            <li><strong>① Physical State</strong>   <span>立っている・キッチン・両手は弁当箱で塞がっている</span></li>
+            <li><strong>② Cognitive Load</strong>   <span>HIGH — 朝・カレンダー過密・直近 5 分で 3 件のタスク切替</span></li>
+            <li><strong>③ Social Exposure</strong>  <span>family（家族だけ・公開度 low）</span></li>
+            <li><strong>④ Priority Weight</strong>  <span>「弁当を時間内に作る」が最優先</span></li>
+            <li><strong>⑤ Form Factor</strong>      <span>fridge（Samsung Family Hub の前）</span></li>
+            <li><strong>⑥ Feasibility</strong>      <span>残り 13 分で家を出る・調理時間 8 分以内</span></li>
+            <li><strong>⑦ Autonomy Dial</strong>    <span>Suggest（提案だけ・決めるのは Mai）</span></li>
+            <li><strong>⑧ Disclosure Dial</strong>  <span>家族の食事履歴・冷蔵庫在庫 → AI に開示済み</span></li>
+          </ul>
+        </div>
+        <div style="margin-top:14px;font-size:15px;color:var(--text-2);">
+          Brain からも読まれる: <em style="color:var(--text-3);font-family:var(--font-mono);font-size:13px;">Sota はピーナッツアレルギー · 昨日も鮭弁 · 冷蔵庫に卵 6 個・ブロッコリー・ハム残あり</em>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-card step-card--engine reveal d2">
+      <div class="step-head">
+        <span class="step-num">2</span>
+        <span class="step-title">Rule Engine がルールを発火する</span>
+        <span class="step-chip">Engine</span>
+      </div>
+      <div class="step-body">
+        Rule Engine は <strong>23 の AX Pattern</strong> に対応するルールセットから、今の Token 状態にマッチするものをすべて選び出す。
+        <div class="rules-fire">
+          <div class="rules-fire__head">発火したルール（抜粋）</div>
+          <ul>
+            <li><span class="rule-when">if Cognitive Load = high</span><span class="rule-arrow">→</span><span class="rule-then">density: minimal, items: 1</span></li>
+            <li><span class="rule-when">if Feasibility &lt; 10min</span><span class="rule-arrow">→</span><span class="rule-then">filter: only ready-fast recipes</span></li>
+            <li><span class="rule-when">if Brain.allergy(Sota) = peanut</span><span class="rule-arrow">→</span><span class="rule-then">exclude: peanut, sesame-cross</span></li>
+            <li><span class="rule-when">if Brain.history.yesterday = salmon</span><span class="rule-arrow">→</span><span class="rule-then">deprioritize: salmon</span></li>
+            <li><span class="rule-when">if Autonomy Dial = Suggest</span><span class="rule-arrow">→</span><span class="rule-then">action: propose only, no auto-cook</span></li>
+            <li><span class="rule-when">if Physical State = hands-busy</span><span class="rule-arrow">→</span><span class="rule-then">input: voice-first, tap fallback</span></li>
+          </ul>
+        </div>
+        <div class="verdict">→ 6 ルール発火 · 1 つの命令に合成して emit へ</div>
+
+        <aside class="cg-restaurant-aside cg-restaurant-aside--inline" style="margin-top:20px;">
+          <div class="cg-restaurant-aside__icon" aria-hidden="true">
+            <img src="../../../assets/img/cg-icons/restaurant.svg" alt="">
+          </div>
+          <div class="cg-restaurant-aside__content">
+            <p class="cg-restaurant-aside__label">レストランに例えると</p>
+            <div class="cg-restaurant-aside__body">
+              <p>ホール係のメモ（ピーナッツアレルギー・お子様・急ぎ）が揃った。注文票システムがルールを照合し、「ソース抜き・量 70%・優先提供」と書いたチケットを切る。シェフは生のメモを聞かず、標準化されたチケットだけを受け取る。</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-card step-card--emit reveal d2">
+      <div class="step-head">
+        <span class="step-num">3</span>
+        <span class="step-title">ui.command を emit する</span>
+        <span class="step-chip">Emit</span>
+      </div>
+      <div class="step-body">
+        発火したルールが合成され、<strong>1 個の抽象的な命令オブジェクト</strong>が吐き出される。この時点では「冷蔵庫の何 px に何を描くか」はまだ決まっていない。
+        <div class="emit-block">
+<div class="emit-block__head">ui.command · emit</div>intent:        suggest_lunchbox
+density:       minimal
+items:         1
+tone:          gentle
+input:         voice-first
+candidates:    [egg-ham-broccoli, omelet-rice]
+exclude:       [peanut, sesame-cross, salmon]
+time-budget:   8min
+decision-by:   user (Suggest mode)</div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-card step-card--result reveal d2">
+      <div class="step-head">
+        <span class="step-num">4</span>
+        <span class="step-title">3 つの surface が同じ命令を別々にレンダリングする</span>
+        <span class="step-chip">Render</span>
+      </div>
+      <div class="step-body">
+        ここがポイント。<strong>同じ ui.command</strong> を、それぞれの surface が<strong>自分の文法</strong>で描く。Rule Engine は何も書き換えていない。
+        <div class="surfaces">
+          <div class="surface">
+            <div class="surface__icon">🧊</div>
+            <div class="surface__name">Samsung Family Hub</div>
+            <div class="surface__render">「卵ハム弁当はどう？8 分で作れます」<br><span style="color:var(--text-3);font-size:13px;">大きな写真 1 枚 + 音声『はい』ボタン</span></div>
+            <div class="surface__why">density:minimal · items:1 を、大画面では「写真 + ひと言」で表現。両手塞がっているから音声受け。</div>
+          </div>
+          <div class="surface">
+            <div class="surface__icon">📱</div>
+            <div class="surface__name">Mai の iPhone</div>
+            <div class="surface__render">通知バナー：「🥚 卵ハム弁当 · 8min」<br><span style="color:var(--text-3);font-size:13px;">タップで詳細・スワイプで却下</span></div>
+            <div class="surface__why">同じ items:1 を、小画面では 1 行通知に圧縮。tone:gentle だから赤バッジは出さない。</div>
+          </div>
+          <div class="surface">
+            <div class="surface__icon">🚗</div>
+            <div class="surface__name">CarPlay（あとで）</div>
+            <div class="surface__render">音声のみ：「今朝の弁当、卵ハムで作ったよ」<br><span style="color:var(--text-3);font-size:13px;">運転中はサマリーのみ・操作 UI なし</span></div>
+            <div class="surface__why">同じ candidates を、CarPlay では事後報告に変換。Form Factor=car ではタップ入力自体が成立しない。</div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:20px;">
+          <strong>3 つとも、Rule Engine の出力は 1 個。</strong> 違いは<strong>レンダリング層（surface 側）</strong>が吸収している。Brain は「冷蔵庫用」「iPhone 用」を分けて持たなくていい。<strong>Brain は 1 つ、surface は無限。</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step-card step-card--token reveal d2">
+      <div class="step-head">
+        <span class="step-num">5</span>
+        <span class="step-title">7:35 AM — Token が変わると emit も変わる</span>
+        <span class="step-chip">Token update</span>
+      </div>
+      <div class="step-body">
+        30 分後、Mai は車に乗っている。Token がこう変わる。
+        <div class="token-state">
+          <ul>
+            <li><strong>① Physical State</strong>  <span>運転中・両手はハンドル</span></li>
+            <li><strong>② Cognitive Load</strong>  <span>MEDIUM · 運転中・新規タスクは禁止</span></li>
+            <li><strong>⑤ Form Factor</strong>     <span>car / CarPlay</span></li>
+            <li><strong>⑥ Feasibility</strong>     <span>会議まで 25 分</span></li>
+          </ul>
+        </div>
+        <div style="margin-top:14px;font-size:15px;color:var(--text-2);">
+          Rule Engine は<strong>同じルールセット</strong>を、新しい Token 値で再発火する。
+        </div>
+        <div class="emit-block" style="margin-top:14px;">
+<div class="emit-block__head">ui.command · 7:35 AM</div>intent:        report_lunchbox_done
+density:       audio-only
+items:         1-line summary
+input:         disabled (driving)
+tone:          neutral</div>
+        <div class="verdict">→ 同じ Rule Engine · 違う Token · 違う UI 命令</div>
+      </div>
+    </div>
+
+    <div class="callout reveal d3">
+      <strong>気づきポイント:</strong> Rule Engine は<strong>1 行も書き換えていない</strong>。Token の値が変わっただけで、出力が変わる。「決定論的 = 同じ入力なら同じ出力」と「文脈に応じて変わる UI」が両立できる仕組み。気分で動くのは Token の値（Cognitive Load や Physical State）であって、Rule Engine そのものは静かに同じ仕事を続ける。
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     E · MULTI-BRAIN NOTE
+═══════════════════════════════════════ -->
+<section class="sec sec-alt">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-brain);">スケール</p>
+    <h2 class="sec-title reveal">同じ Engine — P1 の 1 Brain でも P4 の 5 Brain でも</h2>
+    <p class="sec-desc reveal d1">Rule Engine はスケールを選ばない。家庭の Brain 1 個でも企業の 5 Brain スタックでも、Engine には合成済みの Token セットが 1 つ届くだけ。</p>
+
+    <div class="multi-brain reveal d2">
+      <div class="multi-brain__head">⌬ Multi-Brain との関係</div>
+      <p>
+        Rule Engine が読み取るのは <strong>Token の現在値</strong>。ただしその Token の中身は、1 つの Brain だけから来るわけではありません。P1 の Context Brain（家庭用 1 個）でも、P4 の Enterprise Context Brain（5 種類の Brain が並列）でも、Engine から見れば<strong>「合成された Token 状態が 1 セット入ってくる」</strong>だけです。
+      </p>
+      <ul>
+        <li><strong>Org Brain</strong> — 全社の永続的な土台（組織図・ポリシー・用語集）</li>
+        <li><strong>Brand Brain × N</strong> — 判断 DNA（B2C / B2B など並列）</li>
+        <li><strong>Research Brain</strong> — ユーザー理解 + 売上 / サポート / CRM 流入</li>
+        <li><strong>Project Master Brain</strong> — 戦略を考える脳（プロジェクト群を統括）</li>
+        <li><strong>Project Brain × N</strong> — 時限付き・各プロジェクトの実行</li>
+      </ul>
+      <p>
+        これらの Brain が Identity Layer / Learning Layer / Now Layer から事実を持ち寄り、Token Bus で合成する。Rule Engine は Brain の数を意識せず、毎回同じ翻訳を行う。<strong>同じ Rule Engine、違う Brain 構成 — 出力は Token 次第</strong>。これが家庭にも企業にも同じ Engine が使える理由です。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     F · TECHNICAL DEPTH
+═══════════════════════════════════════ -->
+<section class="sec sec-dark">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-grammar);">技術詳細</p>
+    <h2 class="sec-title reveal" style="color:#f0ece4;">ルール構文 · スキーマ · 衝突解決</h2>
+    <p class="sec-desc reveal d1" style="color:rgba(240,236,228,0.6);">Rule Engine は理論じゃない。<strong style="color:#f0ece4;">3 つの YAML ファイル</strong>と <strong style="color:#f0ece4;">33 の Behavior Rules</strong> で、実際に書ける。</p>
+
+    <div class="tech-grid reveal d2">
+      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
+        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">context.yml</div>
+        <div class="tech-card__title" style="color:#f0ece4;">Token と Brain のスキーマ</div>
+        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);">8 Context Tokens の型・取りうる値・既定値を宣言する。Brain 参照（<code style="background:rgba(255,255,255,0.06);color:#7a9bc4;">brain.allergy</code>、<code style="background:rgba(255,255,255,0.06);color:#7a9bc4;">brain.history.yesterday</code> 等）の型もここで定義。</div>
+      </div>
+      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
+        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">rules.yml</div>
+        <div class="tech-card__title" style="color:#f0ece4;">33 Behavior Rules の if/then 定義</div>
+        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);">条件式 → 出力フィールドのマッピング。各ルールに <strong style="color:#f0ece4;">priority（優先度）</strong>と <strong style="color:#f0ece4;">tags</strong>（どの AX Pattern に属するか）を持たせる。</div>
+      </div>
+      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
+        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">patterns.yml</div>
+        <div class="tech-card__title" style="color:#f0ece4;">23 AX Patterns の合成レシピ</div>
+        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);">Delegation / Escalation / Adaptation / Enterprise の 4 カテゴリ。どのルール群を束ねたら「Pattern 発火」と呼ぶか、その単位を定義。</div>
+      </div>
+      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
+        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">ui.command schema</div>
+        <div class="tech-card__title" style="color:#f0ece4;">出力構造体の語彙</div>
+        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);"><code style="background:rgba(255,255,255,0.06);color:#7a9bc4;">intent / density / items / tone / candidates / exclude / input / time-budget / decision-by</code> — surface 側が読む共通辞書。実装は JSON でも protobuf でも構わない。</div>
+      </div>
+    </div>
+
+    <div class="yaml-block reveal d3" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);color:#f0ece4;">
+<div class="yaml-block__head" style="color:rgba(240,236,228,0.45);">rules.yml — 抜粋</div>- id: cog_load_minimal
+  when: { cognitive_load: high }
+  then:
+    density: minimal
+    items: 1
+  priority: 80
+  tags: [A2-cognitive-scaling]
+
+- id: hands_busy_voice
+  when: { physical_state: hands_busy }
+  then:
+    input: voice-first
+    fallback: tap
+  priority: 70
+  tags: [A4-input-mode-switch]
+
+- id: dyn_friction_high_value
+  when:
+    autonomy: Auto
+    price: { gt: 15000 }
+  then:
+    require_confirm: true
+    reason: "high-value purchase"
+  priority: 100
+  tags: [D6-dynamic-friction]
+
+- id: disclosure_guard
+  when:
+    disclosure: hidden
+    autonomy: { gt: Confirm }
+  then:
+    constraint_violation: true
+    reset_to: Confirm
+  priority: 999
+  tags: [E5-trust-breach-recovery]</div>
+
+    <h3 class="reveal d3" style="font-size:clamp(19px,1.7vw,24px);font-weight:500;margin:40px 0 12px;letter-spacing:-0.5px;color:#f0ece4;">衝突解決 — ルールが矛盾したらどうする？</h3>
+    <p class="reveal d3" style="font-size:clamp(15px,1.05vw,17px);color:rgba(240,236,228,0.55);margin-bottom:12px;max-width:640px;">複数ルールが同時に発火するのは普通のこと。互いに矛盾しなければ全部適用、矛盾したら 3 段階で裁定する。</p>
+
+    <div class="reveal d3" style="overflow-x:auto;">
+      <table class="conflict-table" style="background:transparent;">
+        <thead>
+          <tr>
+            <th style="color:rgba(240,236,228,0.35);">段階</th>
+            <th style="color:rgba(240,236,228,0.35);">裁定者</th>
+            <th style="color:rgba(240,236,228,0.35);">判断基準</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#f0ece4;">1</td>
+            <td style="color:#f0ece4;">Priority Weight Token</td>
+            <td style="color:rgba(240,236,228,0.55);">「弁当が最優先」のようなユーザー宣言の今の重み。最初に当てる。</td>
+          </tr>
+          <tr>
+            <td style="color:#f0ece4;">2</td>
+            <td style="color:#f0ece4;">Rule の <code>priority</code> 値</td>
+            <td style="color:rgba(240,236,228,0.55);">静的に設定された数値（0–999）。Disclosure Guard など信頼系は 999。</td>
+          </tr>
+          <tr>
+            <td style="color:#f0ece4;">3</td>
+            <td style="color:#f0ece4;">Brain の Learning Layer</td>
+            <td style="color:rgba(240,236,228,0.55);">過去のユーザー判断パターン — 同じ衝突で何度どっちを選んできたか。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout reveal d4" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.12);color:rgba(240,236,228,0.7);">
+      <strong style="color:#f0ece4;">重要な不変条件:</strong> <code>Disclosure = hidden</code> かつ <code>Autonomy &gt; Confirm</code> は<strong style="color:#f0ece4;">論理的に成立しない</strong>。「知らせない × 任せる」は不可能なので、Engine は<strong style="color:#f0ece4;">必ず Autonomy を Confirm に戻す</strong>。これは priority 999 の Trust Breach Recovery ルールで強制される。
+    </div>
+
+    <div class="callout reveal d4" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.12);color:rgba(240,236,228,0.7);">
+      <strong style="color:#f0ece4;">決定論的だから testable:</strong> Rule Engine は同じ Token 状態 → 同じ ui.command を返す。だから<strong style="color:#f0ece4;">単体テストが書ける</strong>。<code>given: { cognitive_load: high, form_factor: phone } → expect: { density: minimal, layout: vertical }</code>。LLM では絶対にできない検証が、Rule Engine では当たり前にできる。
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     G · AX PATTERN LIBRARY RELATIONSHIP
+═══════════════════════════════════════ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-grammar);">部品と組み立て</p>
+    <h2 class="sec-title reveal">AX Pattern Library との関係 — 23 の型紙を Engine が組む</h2>
+    <p class="sec-desc reveal d1">AX Pattern は<strong>UI の小さな型紙</strong>。Rule Engine は、Token の状態に応じて<strong>どの型紙を選ぶか・どう組み合わせるか</strong>を決める。Pattern が単語、Rule Engine が文法 — だから "Context <strong>Grammar</strong>" と呼ぶ。</p>
+
+    <div class="ax-count-grid reveal d2">
+      <div class="ax-count-card ax-count-card--D">
+        <div class="ax-count-card__cat">Delegation</div>
+        <div class="ax-count-card__num">D1–D6</div>
+        <div class="ax-count-card__name">AI が引き受ける<br>（6 パターン）</div>
+      </div>
+      <div class="ax-count-card ax-count-card--E">
+        <div class="ax-count-card__cat">Escalation</div>
+        <div class="ax-count-card__num">E1–E5</div>
+        <div class="ax-count-card__name">人に確認をとる<br>（5 パターン）</div>
+      </div>
+      <div class="ax-count-card ax-count-card--A">
+        <div class="ax-count-card__cat">Adaptation</div>
+        <div class="ax-count-card__num">A1–A8</div>
+        <div class="ax-count-card__name">見せ方を変える<br>（8 パターン）</div>
+      </div>
+      <div class="ax-count-card ax-count-card--X">
+        <div class="ax-count-card__cat">Enterprise</div>
+        <div class="ax-count-card__num">X1–X4</div>
+        <div class="ax-count-card__name">組織内ふるまい<br>（4 パターン）</div>
+      </div>
+    </div>
+
+    <p class="reveal d3" style="margin-top:24px;font-size:clamp(15px,1.05vw,17px);color:var(--text-2);max-width:680px;">
+      合計 <strong style="color:var(--text);">23 パターン</strong>。Rule Engine は直接呼び出すのではなく、Token の状態を見てマッチするルールを発火し、結果として<strong style="color:var(--text);">複数のパターンが合成された 1 個の ui.command</strong> を出す。
+    </p>
+
+    <div class="ax-compose reveal d3">
+      <div class="ax-compose__head">合成例 · "Silent Resolution"</div>
+      <div class="ax-compose__title">山城家の朝、Mai が冷蔵庫前で何も言わなくても提案が出る瞬間 — これは単一パターンではなく、4 つのパターンの合成。</div>
+      <div class="ax-pills">
+        <span class="ax-pill ax-pill--D">D4 · Omakase Mode</span>
+        <span class="ax-pill ax-pill--D">D6 · Dynamic Friction</span>
+        <span class="ax-pill ax-pill--E">E5 · Trust Breach Recovery</span>
+        <span class="ax-pill ax-pill--A">A2 · Cognitive Scaling</span>
+      </div>
+      <p class="ax-compose__desc">
+        <strong>D4</strong> が「お任せモード」の骨格を提供し、<strong>D6</strong> が「重要度に応じて確認を入れる」摩擦を加え、<strong>E5</strong> が「Disclosure と Autonomy が矛盾していないか」を監視し、<strong>A2</strong> が「Cognitive Load=high なので最小密度に圧縮する」役を果たす。Rule Engine はこの 4 つを 1 個の ui.command に畳み込んで emit する。
+      </p>
+    </div>
+
+    <div class="callout reveal d4">
+      <strong>整理すると:</strong> AX Pattern Library = 部品カタログ、Rule Engine = 組み立て工場、ui.command = 完成した 1 個の指示書。新しいパターンを Library に足すと、Rule Engine はそのタグを持つルールが発火条件を満たしたときに<strong>自動で組み込む</strong>。Engine 自体に手を入れる必要はない。
+    </div>
+
+    <p class="reveal d4" style="margin-top:28px;">
+      <a href="../../ax-patterns/index.html" style="color:var(--color-grammar);font-size:clamp(14px,1vw,16px);font-weight:500;">23 AX Patterns をすべて見る →</a>
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     H · BRIDGE DIAGRAM
+═══════════════════════════════════════ -->
+<section class="sec sec-alt">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-brain);">アーキテクチャ</p>
+    <h2 class="sec-title reveal">なぜ Rule Engine が Brain と UI の「橋」なのか</h2>
+    <p class="sec-desc reveal d1">Brain は記憶、UI は画面。Rule Engine がいなければ、両側が直接つながって、デバイスが変わるたびに Brain を書き直す地獄になります。</p>
+
+    <div class="bridge reveal d2">
+      <div class="bridge__title">Brain ↔ Rule Engine ↔ UI Surfaces</div>
+      <div class="bridge__svg-wrap">
+        <svg class="bridge-svg" viewBox="0 0 760 300" width="100%">
+          <text x="100" y="20" class="arrow-label" text-anchor="middle">STATE (記憶 + 今)</text>
+          <rect class="pill pill--token" x="20" y="38" width="160" height="34" rx="17"/>
+          <text x="100" y="60" text-anchor="middle" class="pill-label--token">8 Context Tokens</text>
+          <rect class="pill pill--token" x="20" y="83" width="160" height="34" rx="17"/>
+          <text x="100" y="105" text-anchor="middle" class="pill-label--token">Brain (記憶)</text>
+
+          <text x="380" y="20" class="arrow-label" text-anchor="middle">RULE ENGINE (翻訳機)</text>
+          <rect class="pill pill--engine" x="290" y="55" width="180" height="50" rx="25"/>
+          <text x="380" y="76" text-anchor="middle" class="pill-label--engine" style="font-size:12px;">Rule Engine</text>
+          <text x="380" y="92" text-anchor="middle" class="pill-label--engine" style="font-size:11px;">23 AX Patterns</text>
+
+          <rect class="pill pill--emit" x="310" y="142" width="140" height="34" rx="17"/>
+          <text x="380" y="164" text-anchor="middle" class="pill-label--emit">ui.command</text>
+
+          <path class="arrow" d="M 180 55 Q 235 58 290 75"/>
+          <path class="arrow" d="M 180 100 Q 235 98 290 90"/>
+          <text x="237" y="74" class="arrow-label" text-anchor="middle">read</text>
+
+          <path class="arrow" d="M 380 105 L 380 142"/>
+          <text x="395" y="127" class="arrow-label" text-anchor="start">emit</text>
+
+          <text x="640" y="20" class="arrow-label" text-anchor="middle">SURFACES (描き手)</text>
+          <rect class="pill pill--surface" x="540" y="38" width="200" height="34" rx="17"/>
+          <text x="640" y="60" text-anchor="middle" class="pill-label--surface">Fridge / Family Hub</text>
+          <rect class="pill pill--surface" x="540" y="83" width="200" height="34" rx="17"/>
+          <text x="640" y="105" text-anchor="middle" class="pill-label--surface">iPhone / Watch</text>
+          <rect class="pill pill--surface" x="540" y="128" width="200" height="34" rx="17"/>
+          <text x="640" y="150" text-anchor="middle" class="pill-label--surface">CarPlay / TV</text>
+          <rect class="pill pill--surface" x="540" y="173" width="200" height="34" rx="17"/>
+          <text x="640" y="195" text-anchor="middle" class="pill-label--surface">Voice (Bixby)</text>
+
+          <path class="arrow" d="M 450 157 Q 495 100 540 55"/>
+          <path class="arrow" d="M 450 162 Q 495 125 540 100"/>
+          <path class="arrow" d="M 450 164 L 540 145"/>
+          <path class="arrow" d="M 450 168 Q 495 180 540 190"/>
+          <text x="495" y="218" class="arrow-label" text-anchor="middle">render (surface 側で)</text>
+
+          <path class="arrow" d="M 640 210 Q 640 275 100 270 L 100 125" stroke-dasharray="4 4"/>
+          <text x="380" y="285" class="arrow-label" text-anchor="middle">user feedback · Brain に書き戻す</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="callout reveal d3">
+      <strong>Rule Engine がない世界を想像してみる:</strong> Brain が直接 UI に「冷蔵庫の右上に卵の写真を 240 px で出して」と指示するなら、Samsung が新型冷蔵庫を出すたびに Brain を書き換えないといけない。Apple が画面サイズを変えるたびに作り直し。Rule Engine が間に立つと、Brain は「弁当を提案したい」と抽象的に言うだけで済む。<strong>Brain がデバイスを越えて portable になるのは、Rule Engine という翻訳層があるから。</strong>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     I · よくある質問
+═══════════════════════════════════════ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color:var(--color-brain);">よくある質問</p>
+    <h2 class="sec-title reveal">疑問をまとめて解消する</h2>
+
+    <div class="qa-card reveal d1">
+      <div class="qa-q">Q1. Rule Engine は AI（LLM）なの？</div>
+      <div class="qa-a"><strong>違います。</strong> Rule Engine は<strong>決定論的なルールの束</strong>。同じ入力 → 同じ出力。LLM は同じ入力でも毎回違う言葉を出す（生成的）。Context Grammar では、<strong>判断の骨格は Rule Engine、自然言語の表面は LLM</strong> と役割を分けている。「卵ハム弁当を提案する」という骨はルール、「あ、時間ないね。卵ハムどう？」という言葉遣いは LLM が当てる。</div>
+    </div>
+
+    <div class="qa-card reveal d1">
+      <div class="qa-q">Q2. 同じ Token なら毎回同じ UI が出るの？飽きない？</div>
+      <div class="qa-a"><strong>命令は一致します。でも Token は毎瞬変わる。</strong> Cognitive Load は時刻と直近 5 分のタスク数で揺れる。Form Factor はスマホを手に取った瞬間に変わる。だから実際の UI は飽きない。飽きるとしたら、それは<strong>Token を十分に読めていないサイン</strong>。「目の前に立っている人が違う」「時間帯が違う」という事実が Token に反映されていれば、UI は自然に変わる。</div>
+    </div>
+
+    <div class="qa-card reveal d1">
+      <div class="qa-q">Q3. ルールが複数ヒットしたらどうする？</div>
+      <div class="qa-a"><strong>矛盾しなければ全部適用する。</strong> 「Cognitive Load=high → density:minimal」と「Social Exposure=public → hide:price」が同時に発火したら、両方適用（矛盾しないから）。矛盾した場合は <strong>Priority Weight Token</strong> が裁定する。「弁当が最優先」と Mai が言っているなら、見た目より速さを優先するルールが勝つ。詳細は Section F の衝突解決テーブル参照。</div>
+    </div>
+
+    <div class="qa-card reveal d1">
+      <div class="qa-q">Q4. ui.command って具体的に何？JSON？</div>
+      <div class="qa-a"><strong>抽象的な構造体。</strong> 実装は JSON でも protobuf でも何でもいい。大事なのは <code>intent / density / tone / candidates / constraints</code> のような<strong>共通語彙</strong>を持つこと。この語彙さえ surface 側が読めれば、新しいデバイス（壁面ディスプレイ、AR グラス…）が出ても、Brain と Rule Engine をいじらずに対応できる。</div>
+    </div>
+
+    <div class="qa-card reveal d1">
+      <div class="qa-q">Q5. Rule Engine と AX Pattern Library はどう違う？</div>
+      <div class="qa-a"><strong>AX Pattern = 部品、Rule Engine = 組み立て工場。</strong> AX Pattern Library には 23 個の型紙が並ぶ（D1–D6 Delegation / E1–E5 Escalation / A1–A8 Adaptation / X1–X4 Enterprise）。Rule Engine は Token の状態に応じて<strong>どの型紙を選ぶか・どう組み合わせるか</strong>を決める。Pattern が単語、Rule Engine が文法、出てくる ui.command が文 — そう覚えると関係が綺麗に整理できる。</div>
+    </div>
+
+    <div class="qa-card reveal d1">
+      <div class="qa-q">Q6. P1 の Context Brain と P4 の 5 Brain で Rule Engine は変わる？</div>
+      <div class="qa-a"><strong>変わりません。</strong> Engine は Token の合成結果しか見ない。P1 では家庭用 Context Brain が 1 個で全 Token を構成する。P4 では Org / Brand × N / Research / Project Master / Project の 5 系統が並列で事実を持ち寄り、Token Bus で合成される。Engine の側からは「8 Token の現在値が来ている」だけで、上流が 1 個だろうと 5 個だろうと同じルールが回る。Engine を再利用できるのはこのためです。</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     CTA
+═══════════════════════════════════════ -->
+<section class="cta">
+  <h2 class="cta-title reveal">ロジックレイヤーが見えた。</h2>
+  <p class="cta-sub reveal d1">ルールは、その背後にある記憶と同じだけ良いもの — そして仕様書があってはじめて固まる。次のフロアへ。</p>
+  <div class="cta-branch-grid reveal d2">
+    <a href="../../brain/index.html" class="cta-branch cta-branch--primary">
+      <div class="cta-branch-label">NEXT</div>
+      <div class="cta-branch-title">Brain →</div>
+      <div class="cta-branch-desc">AI がどう記憶するか</div>
+    </a>
+    <a href="../../specs/index.html" class="cta-branch cta-branch--secondary">
+      <div class="cta-branch-label">DEEP DIVE</div>
+      <div class="cta-branch-title">Specs →</div>
+      <div class="cta-branch-desc">33 Behavior Rules</div>
+    </a>
+  </div>
+</section>
+
+
+<!-- ═══ FOOTER ═══ -->
+<div class="chapter-nav" data-current="ruleengine" data-base="../../"></div>
+<script src="../../../assets/js/chapter-nav.js"></script>
+
+<footer class="footer">
+  <p><a href="../index.html">&larr; Context Grammar に戻る</a></p>
+  <p style="margin-top:8px;">intentfirst.ai · Takao Umehara · 2026</p>
+</footer>
+
+
+<script>
+(function () {
+  var els = document.querySelectorAll('.reveal');
+  if (!els.length) return;
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  els.forEach(function (el) { observer.observe(el); });
+})();
+</script>
+<script src="../../../assets/js/nav.js"></script>
+<script>initNav({ basePath: '../../../', activePage: 'ruleengine', lang: 'ja', showLang: false });</script>
+<script src="../../../assets/js/ga-slots.js"></script>
+<script src="../../../assets/js/green-animation.js" defer></script>
+</body>
+</html>

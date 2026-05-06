@@ -42,15 +42,16 @@ function initSiteNavCompat(opts) {
   var homeHref = prefix('index.html');
   var logoBase = rootPrefix ? rootPrefix + '/' : '';
   var active = opts.activePage || '';
-  var cgKeys = ['intent', 'tokens', 'brain', 'ruleengine', 'specs', 'axpatterns', 'trust'];
+  var cgKeys = ['context-grammar', 'intent', 'tokens', 'brain', 'ruleengine', 'specs', 'axpatterns', 'trust'];
 
   var items = [
     {
       num: '01',
       label: 'Context Grammar',
-      href: 'index.html#context-grammar',
+      href: 'context-grammar/index.html',
       keys: cgKeys,
       children: [
+        { label: 'Overview', href: 'context-grammar/index.html', key: 'context-grammar' },
         { label: 'Intent', href: 'context-grammar/intent/index.html', key: 'intent' },
         { label: 'Tokens', href: 'context-grammar/tokens/index.html', key: 'tokens' },
         { label: 'Brain', href: 'context-grammar/brain/index.html', key: 'brain' },
@@ -228,6 +229,7 @@ function initSiteNavCompat(opts) {
     sectionNav.setAttribute('aria-label', 'Context Grammar sections');
     sectionNav.innerHTML = ''
       + '<div class="cg-section-nav-indicator"></div>'
+      + '<a href="' + prefix('context-grammar/index.html') + '"' + (active === 'context-grammar' ? ' aria-current="page"' : '') + '>Overview</a>'
       + '<a href="' + prefix('context-grammar/intent/index.html') + '"' + (active === 'intent' ? ' aria-current="page"' : '') + '>Intent</a>'
       + '<a href="' + prefix('context-grammar/tokens/index.html') + '"' + (active === 'tokens' ? ' aria-current="page"' : '') + '>Tokens</a>'
       + '<a href="' + prefix('context-grammar/brain/index.html') + '"' + (active === 'brain' ? ' aria-current="page"' : '') + '>Brain</a>'
@@ -506,6 +508,7 @@ function initNav(opts) {
   // Page paths (relative to basePath)
   var pages = {
     home: bp + 'index.html',
+    overview: bp + 'context-grammar/index.html',
     intent: bp + 'context-grammar/intent/index.html',
     tokens: bp + 'context-grammar/tokens/index.html',
     brain: bp + 'context-grammar/brain/index.html',
@@ -520,7 +523,7 @@ function initNav(opts) {
   };
 
   // CG sub-pages for dropdown trigger active state + subnav
-  var cgPages = ['intent', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns'];
+  var cgPages = ['context-grammar', 'intent', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns'];
   var isCGActive = cgPages.indexOf(active) !== -1;
 
   // ── Helper: active class ──
@@ -557,6 +560,7 @@ function initNav(opts) {
     + '          Context Grammar'
     + '        </a>'
     + '        <div class="nav-dropdown-menu" id="nav-dropdown-menu" role="menu">'
+    + '          <a href="' + pages.overview + '" role="menuitem" class="' + ac('context-grammar') + '">Overview</a>'
     + '          <a href="' + pages.intent + '" role="menuitem" class="' + ac('intent') + '">Intent</a>'
     + '          <a href="' + pages.tokens + '" role="menuitem" class="' + ac('tokens') + '">Tokens</a>'
     + '          <a href="' + pages.brain + '" role="menuitem" class="' + ac('brain') + '">Brain</a>'
@@ -583,6 +587,7 @@ function initNav(opts) {
       + '  <div class="nav-subnav-inner">'
       + '    <span class="nav-subnav-prefix">Context Grammar</span>'
       + '    <span class="nav-subnav-sep"></span>'
+      + '    <a href="' + pages.overview + '"' + (active === 'context-grammar' ? ' class="nav-subnav-active"' : '') + '>Overview</a>'
       + '    <a href="' + pages.intent + '"' + (active === 'intent' ? ' class="nav-subnav-active"' : '') + '>Intent</a>'
       + '    <a href="' + pages.tokens + '"' + (active === 'tokens' ? ' class="nav-subnav-active"' : '') + '>Tokens</a>'
       + '    <a href="' + pages.brain + '"' + (active === 'brain' ? ' class="nav-subnav-active"' : '') + '>Brain</a>'
@@ -599,6 +604,7 @@ function initNav(opts) {
     + '<nav class="nav-mobile-overlay" id="nav-mobile-overlay" aria-label="Mobile navigation" aria-hidden="true">'
     + '  <a href="' + pages.home + '" class="' + ac('home') + '">Home</a>'
     + '  <div class="mobile-section-label">Context Grammar</div>'
+    + '  <a href="' + pages.overview + '" class="mobile-sub-link' + ac('context-grammar') + '">Overview</a>'
     + '  <a href="' + pages.intent + '" class="mobile-sub-link' + ac('intent') + '">Intent</a>'
     + '  <a href="' + pages.tokens + '" class="mobile-sub-link' + ac('tokens') + '">Tokens</a>'
     + '  <a href="' + pages.brain + '" class="mobile-sub-link' + ac('brain') + '">Brain</a>'

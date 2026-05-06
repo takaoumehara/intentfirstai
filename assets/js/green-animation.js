@@ -72,7 +72,7 @@
       <line class="ga-s-main" x1="500" y1="200" x2="530" y2="200"/>
       <line class="ga-s-green ga-dial-needle ga-dial-disclosure" x1="515" y1="200" x2="515" y2="188" stroke-width="2"/>
       <circle class="ga-f-accent" cx="515" cy="200" r="2"/>
-      <text class="ga-lbl-mono" x="515" y="232" text-anchor="middle" style="font-size: 8px">Disclosure</text>
+      <text class="ga-lbl-mono" x="515" y="244" text-anchor="middle" style="font-size: 8px">Disclosure</text>
     </g>
     ` : `
     <line class="ga-s-main ga-tk ga-tk-7" x1="485" y1="165" x2="485" y2="235"/>

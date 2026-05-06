@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intentfirst.ai/spec/context-grammar.schema.json",
+  "title": "Context Grammar — Token State Schema",
+  "description": "JSON Schema for a complete Context Grammar token state. Source of truth for the rule engine input.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": [
+    "physical_state",
+    "cognitive_load",
+    "social_exposure",
+    "priority_weight",
+    "form_factor",
+    "feasibility",
+    "autonomy_dial",
+    "disclosure_dial"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "physical_state": {
+      "title": "Physical State",
+      "description": "User's current bodily state — posture, mobility, hand availability.",
+      "type": "string",
+      "enum": [
+        "stationary_both_hands",
+        "stationary_one_hand",
+        "walking",
+        "transit_passive",
+        "driving",
+        "exercising",
+        "lying_down"
+      ],
+      "x-reality-level": 4,
+      "x-detectable-today": true
+    },
+    "cognitive_load": {
+      "title": "Cognitive Load",
+      "description": "Estimated mental bandwidth. Never directly measured — inferred from behavioral signals.",
+      "type": "string",
+      "enum": ["low", "moderate", "high", "overloaded"],
+      "x-reality-level": 2,
+      "x-detectable-today": false
+    },
+    "social_exposure": {
+      "title": "Social Exposure",
+      "description": "Who can currently see or hear the device output.",
+      "type": "string",
+      "enum": [
+        "private",
+        "trusted_partner",
+        "family_with_children",
+        "social_acquaintances",
+        "public"
+      ],
+      "x-reality-level": 4,
+      "x-detectable-today": true
+    },
+    "priority_weight": {
+      "title": "Priority Weight",
+      "description": "Resolves collisions when multiple demands compete. Two layers: token urgency + Brain tradeoff patterns.",
+      "type": "string",
+      "enum": ["critical", "high", "standard", "low"],
+      "x-reality-level": 3,
+      "x-detectable-today": true
+    },
+    "form_factor": {
+      "title": "Form Factor",
+      "description": "Available display surface and input modality.",
+      "type": "string",
+      "enum": [
+        "phone_handheld",
+        "phone_folded",
+        "phone_unfolded",
+        "tablet",
+        "tv_display",
+        "fridge_display",
+        "car_display",
+        "watch",
+        "desktop_monitor"
+      ],
+      "x-reality-level": 4,
+      "x-detectable-today": true
+    },
+    "feasibility": {
+      "title": "Feasibility",
+      "description": "Reality filter — what is actually possible right now (inventory, budget, time, weather).",
+      "type": "string",
+      "enum": ["fully_feasible", "partially_feasible", "infeasible"],
+      "x-reality-level": 3,
+      "x-detectable-today": true
+    },
+    "autonomy_dial": {
+      "title": "Autonomy Dial",
+      "description": "How much autonomous authority the AI has. Per-domain, per-person, temporally-evolving.",
+      "type": "string",
+      "enum": ["suggest", "confirm", "notify", "auto"],
+      "x-reality-level": 3,
+      "x-detectable-today": true,
+      "x-three-forces": ["service_default", "ai_adjustment", "user_active_change"]
+    },
+    "disclosure_dial": {
+      "title": "Disclosure Dial",
+      "description": "How much personal data the AI can access. Prerequisite for Autonomy.",
+      "type": "string",
+      "enum": ["none", "minimal", "moderate", "full"],
+      "x-reality-level": 2,
+      "x-detectable-today": false,
+      "x-prerequisite-for": "autonomy_dial"
+    }
+  },
+  "x-cross-token-rules": [
+    {
+      "name": "Driving safety override",
+      "if": { "properties": { "physical_state": { "const": "driving" } } },
+      "then": "ui_density capped to low; voice-only; no manual interaction"
+    },
+    {
+      "name": "Disclosure-Autonomy logical gate",
+      "rule": "autonomy_dial level MUST NOT exceed disclosure_dial ceiling",
+      "ceilings": {
+        "none": null,
+        "minimal": "suggest",
+        "moderate": "notify",
+        "full": "auto"
+      }
+    },
+    {
+      "name": "Cognitive overload protection",
+      "if": { "properties": { "cognitive_load": { "const": "overloaded" } } },
+      "then": "max_choices: 1; defer non-critical; suppress standard/low priority"
+    },
+    {
+      "name": "Public privacy cascade",
+      "if": { "properties": { "social_exposure": { "const": "public" } } },
+      "then": "treat disclosure as minimal regardless of setting"
+    }
+  ],
+  "examples": [
+    {
+      "physical_state": "stationary_both_hands",
+      "cognitive_load": "moderate",
+      "social_exposure": "private",
+      "priority_weight": "standard",
+      "form_factor": "phone_handheld",
+      "feasibility": "fully_feasible",
+      "autonomy_dial": "confirm",
+      "disclosure_dial": "moderate"
+    },
+    {
+      "physical_state": "driving",
+      "cognitive_load": "high",
+      "social_exposure": "private",
+      "priority_weight": "high",
+      "form_factor": "car_display",
+      "feasibility": "fully_feasible",
+      "autonomy_dial": "notify",
+      "disclosure_dial": "moderate"
+    }
+  ]
+}

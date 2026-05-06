@@ -1,0 +1,3348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 05 v2 · クロスサーフェス文法 — 1つのBrain。5つのサーフェス。それぞれが語る固有の言語。</title>
+<meta name="description" content="Samsung Galaxyは2026年にすべてのデータを同期済み。クロスサーフェス文法 — 3つのToken、15のルール — どのデバイスに何をどんな形で届けるかを決める。v2ケーススタディ。">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../../assets/css/nav.css">
+<link rel="stylesheet" href="../../../assets/css/avatars.css">
+<link rel="stylesheet" href="../../../assets/css/toc-rail.css">
+<link rel="stylesheet" href="../../../assets/css/bts-frame.css">
+<link rel="stylesheet" href="../../../assets/css/device-frame-iphone.css">
+<link rel="stylesheet" href="../../../assets/css/device-frame-galaxy.css">
+
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     Project 05 · クロスサーフェス文法 — Scroll narrative
+     One Brain, five surfaces, one grammar.
+     ═══════════════════════════════════════════════════════════ */
+
+  :root {
+    --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+    --ease-out-expo:  cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+
+    /* Three Token accents used across the narrative */
+    --tok-cog:   #b45309;   /* Cognitive Load — warm ochre */
+    --tok-soc:   #7a4a9a;   /* Social Exposure — muted purple */
+    --tok-form:  #2e7d5e;   /* Form Factor — control green */
+
+    --surface-watch:  #1f6e5a;
+    --surface-ear:    #6b4a8a;
+    --surface-phone:  #3a5a8a;
+    --surface-tv:     #7a4a4a;
+    --surface-kd:     #7a5a3a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(46,125,94,0.16); }
+
+  /* Polish: typography pass */
+  h1, h2, h3, .title, .divider-title, .close-title, .quote-line, .shift-divider__head { text-wrap: balance; }
+  p, .lede, .divider-sub, .close-lede, .ui-caption { text-wrap: pretty; }
+  .hero-timestamp,
+  .preview-before__status, .preview-before__time, .preview-before__time-small,
+  .earbuds-mock__meta, .day-timeline__scale, .day-timeline__head,
+  .mismatch-device__label, .surface-card__name, .paradigm-side__label { font-variant-numeric: tabular-nums; }
+
+  /* Polish: focus ring discipline */
+  :focus { outline: none; }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--tok-form);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* Polish: iOS Safari 100dvh fallback */
+  @supports (height: 100dvh) {
+    .section--hero, .hero-photo { height: 100dvh; min-height: 100dvh; }
+  }
+
+  /* Polish: subtle scrollbar */
+  @media (min-width: 768px) {
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); background-clip: padding-box; border: 3px solid transparent; }
+  }
+
+  /* Polish: chip / link micro-interaction */
+  .chip { transition: opacity 480ms var(--ease-out-quart), transform 480ms var(--ease-out-quart), background-color 150ms ease, color 150ms ease, border-color 150ms ease; }
+  .chip:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .lang-toggle a { transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease; }
+  .lang-toggle a:hover { color: rgba(255,255,255,0.95); }
+
+  /* ═══ Fixed UI (progress, corner label, lang toggle) ═══ */
+  .progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 50; pointer-events: none; }
+  .progress__fill { height: 100%; width: 0; background: var(--text); transition: width 120ms linear; }
+
+  .chpt-corner { position: fixed; top: 24px; left: 32px; z-index: 40; font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; pointer-events: none; mix-blend-mode: difference; color: rgba(255,255,255,0.8); }
+  .chpt-corner strong { color: #fff; font-weight: 600; margin-right: 10px; }
+
+  .lang-toggle { position: fixed; top: 24px; right: 32px; z-index: 41; font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; display: flex; gap: 6px; }
+  .lang-toggle a { padding: 4px 8px; border-radius: 4px; transition: background 160ms ease, color 160ms ease; color: rgba(255,255,255,0.6); mix-blend-mode: difference; }
+  .lang-toggle a[aria-current="true"] { background: #fff; color: #0a0a0a; font-weight: 600; mix-blend-mode: normal; }
+
+  /* ═══ Section wrapper ═══ */
+  .section {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 38% 62%;
+    align-items: center;
+    gap: 64px;
+    padding: 80px 88px 80px 96px;
+    position: relative;
+  }
+  .section--hero   { grid-template-columns: 1fr; padding: 0; min-height: 100vh; }
+  .section--quote  { grid-template-columns: 1fr; place-items: center; text-align: center; padding: 80px 8vw; min-height: 70vh; }
+  .section--close  { grid-template-columns: 1fr 1fr; align-items: stretch; padding: 80px 88px; min-height: 90vh; gap: 48px; }
+
+  .section__text { max-width: 440px; align-self: center; }
+  .section__visual { display: flex; align-items: center; justify-content: center; position: relative; }
+
+  /* Typography */
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text-3); margin-bottom: 18px; display: inline-flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ''; width: 20px; height: 1px; background: currentColor; }
+
+  .title { font-family: var(--font-sans); font-weight: 500; font-size: clamp(28px, 3.6vw, 48px); line-height: 1.1; letter-spacing: -1.5px; color: var(--text); text-wrap: balance; margin-bottom: 20px; }
+  .lede { font-size: clamp(15px, 1.05vw, 17px); line-height: 1.75; color: var(--text-2); max-width: 40ch; font-weight: 400; }
+  .lede + .lede { margin-top: 14px; }
+  .lede strong { color: var(--text); font-weight: 600; }
+
+  /* ═══ Enter animations ═══ */
+  [data-enter] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 520ms var(--ease-out-quart), transform 520ms var(--ease-out-quart);
+    will-change: transform, opacity;
+  }
+  [data-enter].visible { opacity: 1; transform: translateY(0); }
+  [data-enter].d1 { transition-delay: 60ms; }
+  [data-enter].d2 { transition-delay: 140ms; }
+  [data-enter].d3 { transition-delay: 240ms; }
+  [data-enter].d4 { transition-delay: 360ms; }
+
+  /* ═══ Hero orbit — slow rotation of surface icons around Brain ═══ */
+  @keyframes hero-orbit {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes hero-orbit-counter {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+  }
+  /* Rotate only the decorative dashed inner ring — surfaces stay upright */
+  .hero-constellation__ring::before { animation: hero-orbit 72s linear infinite; transform-origin: center; }
+  /* Subtle breathing drift on surface chips */
+  .hero-surface { animation: hero-drift 8s ease-in-out infinite; }
+  .hero-surface--ear   { animation-delay: 0.6s; }
+  .hero-surface--phone { animation-delay: 1.2s; }
+  .hero-surface--tv    { animation-delay: 1.8s; }
+  .hero-surface--kd    { animation-delay: 2.4s; }
+  @keyframes hero-drift {
+    0%, 100% { opacity: 0.75; }
+    50%      { opacity: 1; }
+  }
+  /* Keep translation offsets intact by wrapping rotation only — easier: use separate transform via will-change */
+  .hero-constellation__core { animation: pulse-faint 6s ease-in-out infinite; will-change: transform, opacity; }
+
+  /* Hero text stagger on initial load (independent of IO) */
+  .hero-overlay .eyebrow,
+  .hero-overlay .title,
+  .hero-overlay .lede { opacity: 0; transform: translateY(12px); animation: hero-rise 700ms var(--ease-out-quart) forwards; }
+  .hero-overlay .eyebrow { animation-delay: 200ms; }
+  .hero-overlay .title   { animation-delay: 380ms; }
+  .hero-overlay .lede    { animation-delay: 560ms; }
+  @keyframes hero-rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Tag Heuer leak — red pulse on the leaked product text */
+  .preview-before__msg strong.leak-pulse {
+    animation: leak-flash 1200ms var(--ease-out-quart) 400ms both;
+  }
+  @keyframes leak-flash {
+    0%   { background: rgba(194,58,58,0.22); box-shadow: 0 0 0 0 rgba(194,58,58,0); }
+    25%  { background: rgba(194,58,58,0.55); box-shadow: 0 0 14px 2px rgba(194,58,58,0.5); }
+    100% { background: rgba(194,58,58,0.22); box-shadow: 0 0 0 0 rgba(194,58,58,0); }
+  }
+  .preview-before__seen {
+    opacity: 0;
+    transition: opacity 520ms var(--ease-out-quart) 1500ms;
+  }
+  .preview-before.revealed .preview-before__seen { opacity: 1; }
+
+  /* App-grid chaos: each icon reveals with messy stagger */
+  .paradigm-side--old .app-grid__icon {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+    transition: opacity 280ms var(--ease-out-quart), transform 280ms var(--ease-out-quart);
+  }
+  .paradigm-side--old.revealed .app-grid__icon { opacity: 1; transform: none; }
+
+  /* New paradigm: single clean reveal */
+  .paradigm-side--new .grammar-diagram {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 600ms var(--ease-out-quart), transform 600ms var(--ease-out-quart);
+  }
+  .paradigm-side--new.revealed .grammar-diagram { opacity: 1; transform: none; }
+
+  /* Day timeline — left-to-right sweep reveal */
+  .day-timeline__chunk {
+    transform-origin: left center;
+    transform: scaleX(0);
+    opacity: 0.6;
+    transition: transform 1100ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease;
+  }
+  .day-timeline.revealed .day-timeline__chunk { transform: scaleX(1); opacity: 0.88; }
+
+  /* Iframe container fade-in */
+  .iframe-fade { opacity: 0; transition: opacity 700ms var(--ease-out-quart); }
+  .iframe-fade.loaded { opacity: 1; }
+
+  /* Close-visual ring — slow rotation */
+  @keyframes close-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes close-spin-counter {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+  }
+  .close-visual__ring { animation: close-spin 70s linear infinite; transform-origin: center; }
+  .close-visual__pin  { animation: close-spin-counter 70s linear infinite; }
+  .close-visual__core { animation: pulse-faint 6s ease-in-out infinite; }
+
+  /* Chapter divider — gentle zoom on photo */
+  .divider-photo { transition: transform 1800ms var(--ease-out-quart); transform: scale(1.06); }
+  .section--divider.revealed .divider-photo { transform: scale(1); }
+
+  /* Watch "restored" above-iframe label pulse (if rendered) */
+  .restored-tick { display: inline-flex; align-items: center; gap: 6px; }
+  .restored-tick::before {
+    content: '✓';
+    display: inline-block; width: 14px; height: 14px; line-height: 14px;
+    border-radius: 50%; background: var(--tok-form); color: #fff;
+    font-size: 9px; text-align: center; font-weight: 700;
+    animation: tick-pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes tick-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(46,125,94,0.35); }
+    50%      { box-shadow: 0 0 0 6px rgba(46,125,94,0); }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     HERO — dark photographic backdrop + overlay text
+     ═══════════════════════════════════════════════════════════ */
+  .hero-photo {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background:
+      radial-gradient(70% 55% at 72% 30%, rgba(64,52,92,0.45), transparent 65%),
+      radial-gradient(60% 50% at 28% 70%, rgba(30,60,70,0.5), transparent 70%),
+      linear-gradient(140deg, #0b0b10 0%, #161520 45%, #1e1a28 100%);
+  }
+  .hero-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 160px),
+      linear-gradient(135deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 55%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .hero-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.32) 28%, rgba(0,0,0,0) 52%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Small device-icon constellation quietly floats in the hero */
+  .hero-constellation {
+    position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    display: grid; grid-template-columns: 1fr; place-items: center;
+  }
+  .hero-constellation__ring {
+    width: min(520px, 60vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.05);
+    position: relative;
+    opacity: 0.9;
+  }
+  .hero-constellation__ring::before {
+    content: ''; position: absolute; inset: 8%;
+    border-radius: 50%;
+    border: 1px dashed rgba(255,255,255,0.06);
+  }
+  .hero-surface {
+    position: absolute;
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(240,236,228,0.04);
+    border: 1px solid rgba(240,236,228,0.08);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(240,236,228,0.75);
+  }
+  .hero-surface--watch { top: -6%; left: 50%; transform: translateX(-50%); }
+  .hero-surface--ear   { top: 28%; right: -8%; }
+  .hero-surface--phone { bottom: -6%; left: 50%; transform: translateX(-50%); }
+  .hero-surface--tv    { bottom: 22%; left: -10%; }
+  .hero-surface--kd    { top: 28%; left: -10%; }
+  .hero-constellation__core {
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 96px; height: 96px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 32%, #5a3a80, #2a1a3a);
+    box-shadow: 0 0 0 1px rgba(196,168,224,0.18), 0 0 48px rgba(138,106,176,0.26);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.2px;
+    color: rgba(240,236,228,0.82); text-align: center; line-height: 1.25;
+    text-transform: uppercase;
+  }
+  @keyframes pulse-faint {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50%      { transform: scale(1.02); opacity: 1; }
+  }
+  .hero-constellation__core { animation: pulse-faint 3.6s ease-in-out infinite; }
+
+  .hero-overlay {
+    position: absolute;
+    bottom: 0; left: 0;
+    z-index: 5;
+    padding: 10vh 8vw;
+    max-width: 920px;
+    color: #fff;
+  }
+  .hero-overlay .eyebrow { color: rgba(255,255,255,0.72); margin-bottom: 28px; }
+  .hero-overlay .eyebrow::before { background: rgba(255,255,255,0.6); }
+  .hero-overlay .title {
+    color: #fff;
+    font-size: clamp(38px, 5.4vw, 80px);
+    letter-spacing: -2.2px;
+    line-height: 1.05;
+    margin-bottom: 28px;
+    text-shadow: 0 2px 30px rgba(0,0,0,0.25);
+  }
+  .hero-overlay .lede {
+    color: rgba(255,255,255,0.96);
+    font-size: clamp(16px, 1.2vw, 19px);
+    max-width: 50ch;
+    text-shadow: 0 1px 18px rgba(0,0,0,0.55), 0 0 32px rgba(0,0,0,0.35);
+  }
+  .hero-overlay .lede strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .hero-timestamp {
+    position: absolute; top: 7vh; left: 8vw; z-index: 5;
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.78);
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .hero-timestamp__rule {
+    width: 28px; height: 1px;
+    background: rgba(255,255,255,0.5);
+  }
+
+  /* Commute mismatch — two surfaces side by side */
+  .mismatch-wrap { width: 100%; max-width: 580px; display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; }
+  .mismatch-device {
+    border: 1px solid var(--border); border-radius: 14px;
+    background: var(--bg); padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 180px;
+  }
+  .mismatch-device__label {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.4px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase;
+  }
+  .mismatch-device__content { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+  .mismatch-device__content .txt {
+    font-family: var(--font-mono); font-size: 11px; background: var(--gray-100);
+    padding: 8px 10px; border-radius: 6px; color: var(--text-2);
+    border: 1px solid var(--border);
+    white-space: normal; display: block;
+    max-height: 80px; overflow: hidden; position: relative;
+  }
+  .mismatch-device__content .txt::after {
+    content: '…';
+    position: absolute; right: 10px; bottom: 6px;
+    background: var(--gray-100); padding-left: 6px;
+    color: var(--text-3);
+  }
+  .mismatch-arrow {
+    font-family: var(--font-mono); font-size: 18px; color: var(--text-3);
+  }
+  .mismatch-note {
+    margin-top: 14px; font-size: 12px; color: var(--text-3);
+    font-style: italic; text-align: center;
+  }
+
+  /* Evening — before/after of Phone preview */
+  .preview-before {
+    width: 100%; max-width: 360px; border: 1px solid var(--border);
+    border-radius: 16px; background: #0a0a0a;
+    padding: 18px 18px 22px; color: #ededed;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.12);
+  }
+  .preview-before__status {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 10px;
+    color: rgba(237,237,237,0.6); letter-spacing: 0.4px;
+    margin-bottom: 28px;
+  }
+  .preview-before__time {
+    text-align: center; font-size: 52px; font-weight: 300;
+    letter-spacing: -2px; color: #f0ece4; line-height: 1;
+    margin-bottom: 6px;
+  }
+  .preview-before__date { text-align: center; font-size: 12px; color: rgba(237,237,237,0.6); margin-bottom: 26px; }
+  .preview-before__notif {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px 14px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  .preview-before__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .preview-before__sender { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.1px; color: rgba(240,236,228,0.85); font-weight: 700; text-transform: uppercase; }
+  .preview-before__time-small { font-family: var(--font-mono); font-size: 10px; color: rgba(237,237,237,0.55); }
+  .preview-before__title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 3px; letter-spacing: -0.1px; }
+  .preview-before__msg { font-size: 12px; color: rgba(237,237,237,0.78); line-height: 1.5; }
+  .preview-before__msg strong { color: #f0ece4; font-weight: 600; background: rgba(194,58,58,0.22); padding: 1px 4px; border-radius: 3px; }
+  .preview-before__seen {
+    margin-top: 14px; text-align: center;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px;
+    color: #c23a3a; text-transform: uppercase;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     CONCEPT layouts — 5-card surface row, rule table wrapper
+     ═══════════════════════════════════════════════════════════ */
+  .surface-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .surface-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 18px 18px 20px;
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+  }
+  .surface-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent, var(--tok-form));
+  }
+  .surface-card__name { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+  .surface-card__title { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; margin-bottom: 6px; }
+  .surface-card__grammar { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+  .surface-card--watch { --accent: var(--surface-watch); }
+  .surface-card--ear   { --accent: var(--surface-ear); }
+  .surface-card--phone { --accent: var(--surface-phone); }
+  .surface-card--tv    { --accent: var(--surface-tv); }
+  .surface-card--kd    { --accent: var(--surface-kd); }
+
+  /* ═══════════════════════════════════════════════════════════
+     APP-GRID CLIMAX (dark paradigm shift)
+     ═══════════════════════════════════════════════════════════ */
+  .paradigm {
+    background: #08070b;
+    color: #f0ece4;
+  }
+  .paradigm .title, .paradigm .eyebrow { color: #f0ece4; }
+  .paradigm .eyebrow { color: rgba(240,236,228,0.55); }
+  .paradigm .lede { color: rgba(240,236,228,0.72); }
+  .paradigm .lede strong { color: #f0ece4; }
+
+  .paradigm-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: stretch;
+  }
+  .paradigm-side {
+    border: 1px solid rgba(240,236,228,0.1);
+    border-radius: 14px;
+    padding: 26px 28px 32px;
+    background: rgba(240,236,228,0.02);
+  }
+  .paradigm-side__label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(240,236,228,0.55);
+    margin-bottom: 12px;
+  }
+  .paradigm-side__title {
+    font-size: 22px; font-weight: 500; letter-spacing: -0.4px;
+    color: #f0ece4; margin-bottom: 18px; line-height: 1.25;
+  }
+  .paradigm-side--old .paradigm-side__label { color: #d4845a; }
+  .paradigm-side--new .paradigm-side__label { color: #8fb89a; }
+
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .app-grid__icon {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(240,236,228,0.08), rgba(240,236,228,0.03));
+    border: 1px solid rgba(240,236,228,0.06);
+    position: relative;
+  }
+  .app-grid__icon::after {
+    content: ''; position: absolute; top: -3px; right: -3px;
+    width: 8px; height: 8px; border-radius: 50%; background: #c23a3a;
+    box-shadow: 0 0 0 1.5px #08070b;
+  }
+  .app-grid__icon:nth-child(3n+2)::after, .app-grid__icon:nth-child(5n+1)::after { display: none; }
+
+  .grammar-diagram {
+    position: relative;
+    padding: 12px 0;
+  }
+  .grammar-diagram__brain {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 32%, #5a3a80, #2a1a3a);
+    box-shadow: 0 0 0 1px rgba(196,168,224,0.18), 0 0 32px rgba(138,106,176,0.26);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.8px;
+    color: rgba(240,236,228,0.85); text-align: center; line-height: 1.2;
+    text-transform: uppercase;
+    margin: 0 auto 18px;
+  }
+  .grammar-diagram__rule {
+    font-family: var(--font-mono); font-size: 11px;
+    background: rgba(240,236,228,0.06);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: rgba(240,236,228,0.82);
+    text-align: center;
+    margin-bottom: 12px;
+    letter-spacing: 0.3px;
+  }
+  .grammar-diagram__rule strong { color: #d4a8ea; font-weight: 700; }
+  .grammar-diagram__row {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+    margin-top: 10px;
+  }
+  .grammar-diagram__pill {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 6px 4px; border-radius: 6px; text-align: center;
+    background: rgba(240,236,228,0.06); color: rgba(240,236,228,0.75);
+    border: 1px solid rgba(240,236,228,0.08);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     EARBUDS inline mock (no artifact file exists)
+     ═══════════════════════════════════════════════════════════ */
+  .earbuds-mock {
+    width: 100%; max-width: 520px;
+    background: linear-gradient(160deg, #14121a 0%, #1a1723 60%, #0f0d14 100%);
+    border-radius: 16px;
+    padding: 26px 30px 28px;
+    color: #f0ece4;
+    border: 1px solid rgba(240,236,228,0.08);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 24px 56px rgba(0,0,0,0.18);
+  }
+  .earbuds-mock__head {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: rgba(240,236,228,0.58);
+    margin-bottom: 18px;
+  }
+  .earbuds-mock__head .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #8fb89a;
+    box-shadow: 0 0 0 3px rgba(143,184,154,0.2);
+    animation: time-pulse 2.4s var(--ease-in-out-quart) infinite;
+  }
+  .earbuds-mock__state {
+    font-size: 13px; color: rgba(240,236,228,0.62); margin-bottom: 14px;
+  }
+  .earbuds-mock__state em { font-style: normal; color: #f0ece4; font-weight: 500; }
+  .earbuds-mock__waveform {
+    display: flex; align-items: center; gap: 3px; height: 44px;
+    margin-bottom: 18px;
+  }
+  .earbuds-mock__waveform span {
+    display: block; width: 3px; background: #8fb89a; border-radius: 2px;
+    animation: wave-bob 1.4s ease-in-out infinite;
+  }
+  @keyframes wave-bob { 0%,100% { height: 20%; } 50% { height: 100%; } }
+  .earbuds-mock__waveform span:nth-child(1) { animation-delay: 0s; }
+  .earbuds-mock__waveform span:nth-child(2) { animation-delay: 0.08s; }
+  .earbuds-mock__waveform span:nth-child(3) { animation-delay: 0.16s; }
+  .earbuds-mock__waveform span:nth-child(4) { animation-delay: 0.24s; }
+  .earbuds-mock__waveform span:nth-child(5) { animation-delay: 0.32s; }
+  .earbuds-mock__waveform span:nth-child(6) { animation-delay: 0.40s; }
+  .earbuds-mock__waveform span:nth-child(7) { animation-delay: 0.48s; }
+  .earbuds-mock__waveform span:nth-child(8) { animation-delay: 0.56s; }
+  .earbuds-mock__waveform span:nth-child(9) { animation-delay: 0.64s; }
+  .earbuds-mock__waveform span:nth-child(10) { animation-delay: 0.72s; }
+  .earbuds-mock__waveform span:nth-child(11) { animation-delay: 0.80s; }
+  .earbuds-mock__waveform span:nth-child(12) { animation-delay: 0.88s; }
+  .earbuds-mock__waveform span:nth-child(13) { animation-delay: 0.96s; }
+  .earbuds-mock__waveform span:nth-child(14) { animation-delay: 1.04s; }
+  .earbuds-mock__waveform span:nth-child(15) { animation-delay: 1.12s; }
+  .earbuds-mock__waveform span:nth-child(16) { animation-delay: 1.20s; }
+  .earbuds-mock__waveform span:nth-child(odd) { opacity: 0.5; }
+
+  .earbuds-mock__caption {
+    font-family: var(--font-sans); font-size: 14px; line-height: 1.6;
+    color: rgba(240,236,228,0.82);
+    background: rgba(240,236,228,0.05);
+    border-left: 3px solid #8fb89a;
+    padding: 12px 14px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 14px;
+  }
+  .earbuds-mock__caption em { font-style: normal; color: #f0ece4; font-weight: 600; }
+  .earbuds-mock__meta {
+    display: flex; gap: 16px;
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1px; color: rgba(240,236,228,0.48);
+    text-transform: uppercase;
+  }
+  .earbuds-mock__meta span:not(:first-child)::before {
+    content: '·'; margin-right: 16px; color: rgba(240,236,228,0.3);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     DAY TIMELINE (chapter 05)
+     ═══════════════════════════════════════════════════════════ */
+  .day-timeline {
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    border: 1px solid var(--border); border-radius: 14px;
+    background: var(--bg);
+    padding: 32px 36px;
+  }
+  .day-timeline__head {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.3px; color: var(--text-3);
+    text-transform: uppercase; margin-bottom: 24px;
+    font-weight: 600;
+  }
+  .day-timeline__row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 24px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    align-items: center;
+  }
+  .day-timeline__row:first-of-type { border-top: 0; }
+  .day-timeline__surface {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    font-weight: 600; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .day-timeline__surface::before {
+    content: ''; width: 8px; height: 8px; border-radius: 2px;
+    background: var(--surface-color, var(--tok-form));
+  }
+  .day-timeline__bar {
+    position: relative; height: 32px;
+    background: linear-gradient(to right, var(--gray-100), var(--gray-100));
+    border-radius: 6px; overflow: hidden;
+  }
+  .day-timeline__chunk {
+    position: absolute; top: 4px; bottom: 4px;
+    background: var(--surface-color, var(--tok-form));
+    border-radius: 4px;
+    opacity: 0.88;
+    display: flex; align-items: center; padding: 0 10px;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    color: #fff; letter-spacing: 0.3px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .day-timeline__scale {
+    margin-top: 12px; padding-left: 134px;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 1px; color: var(--text-3); text-transform: uppercase;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     CLOSE section
+     ═══════════════════════════════════════════════════════════ */
+  .close-text { display: flex; flex-direction: column; justify-content: center; padding-right: 24px; }
+  .close-title { font-size: clamp(32px, 4vw, 52px); font-weight: 500; letter-spacing: -1.8px; text-wrap: balance; max-width: 20ch; margin-bottom: 24px; line-height: 1.12; }
+  .close-lede { font-size: clamp(15px, 1.05vw, 17px); color: var(--text-2); line-height: 1.75; max-width: 44ch; margin-bottom: 36px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-2); background: var(--gray-100); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px; opacity: 0; transform: translateY(8px); transition: opacity 480ms var(--ease-out-quart), transform 480ms var(--ease-out-quart); }
+  .chip.visible { opacity: 1; transform: translateY(0); }
+  .chip.c1 { transition-delay: 80ms; }
+  .chip.c2 { transition-delay: 180ms; }
+  .chip.c3 { transition-delay: 280ms; }
+  .next-hint { margin-top: 48px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-3); }
+
+  .close-visual {
+    border-radius: 14px; overflow: hidden;
+    position: relative; align-self: center; width: 100%;
+    aspect-ratio: 4 / 5; max-height: 70vh;
+    background:
+      radial-gradient(60% 50% at 30% 30%, rgba(64,52,92,0.5), transparent 65%),
+      radial-gradient(60% 50% at 70% 70%, rgba(30,60,70,0.45), transparent 65%),
+      linear-gradient(160deg, #10101a 0%, #1a1824 55%, #0e0d14 100%);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 20px 48px rgba(0,0,0,0.14);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .close-visual__ring {
+    width: 70%; aspect-ratio: 1; border-radius: 50%;
+    border: 1px solid rgba(240,236,228,0.1);
+    position: relative;
+  }
+  .close-visual__core {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 80px; height: 80px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 32%, #5a3a80, #2a1a3a);
+    box-shadow: 0 0 0 1px rgba(196,168,224,0.18), 0 0 40px rgba(138,106,176,0.3);
+  }
+  .close-visual__pin {
+    position: absolute;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(240,236,228,0.06);
+    border: 1px solid rgba(240,236,228,0.14);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.8px;
+    color: rgba(240,236,228,0.8); text-transform: uppercase;
+  }
+  .close-visual__pin--1 { top: -6%; left: 50%; transform: translateX(-50%); }
+  .close-visual__pin--2 { top: 30%; right: -8%; }
+  .close-visual__pin--3 { bottom: -6%; right: 28%; }
+  .close-visual__pin--4 { bottom: 30%; left: -8%; }
+  .close-visual__pin--5 { top: 30%; left: -8%; }
+  .close-visual__cap {
+    position: absolute;
+    bottom: 18px; left: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(240,236,228,0.75);
+  }
+
+  /* ═══ Chapter transition dividers — photo-backed (P4-native pattern) ═══ */
+  .section--divider {
+    min-height: 55vh;
+    padding: 0;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    place-items: center;
+    color: #fff;
+    overflow: hidden;
+  }
+  .divider-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+  .divider-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.58) 60%, rgba(0,0,0,0.78) 100%);
+    z-index: 2;
+  }
+  .divider-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    max-width: 1100px;
+    padding: 0 8vw;
+  }
+  .divider-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.78);
+    margin-bottom: 28px;
+  }
+  .divider-title {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: clamp(32px, 4.5vw, 56px);
+    line-height: 1.15;
+    letter-spacing: -1.2px;
+    color: #fff;
+    text-wrap: balance;
+    text-shadow: 0 2px 30px rgba(0,0,0,0.25);
+  }
+  .divider-sub {
+    margin-top: 22px;
+    font-size: clamp(15px, 1.1vw, 17px);
+    line-height: 1.7;
+    color: rgba(255,255,255,0.78);
+    max-width: 60ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     Here-the-story-changes divider
+     ═══════════════════════════════════════════════════════════ */
+  .shift-divider {
+    max-width: 1100px; margin: 20px auto 60px;
+    padding: 40px 32px;
+    text-align: center;
+    position: relative;
+  }
+  .shift-divider__rule {
+    width: 100%; height: 1px;
+    background: linear-gradient(to right, transparent, var(--border) 20%, var(--border) 80%, transparent);
+    margin: 0 auto;
+  }
+  .shift-divider__inner { padding: 60px 20px 50px; }
+  .shift-divider__eye {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-3);
+    margin-bottom: 20px;
+  }
+  .shift-divider__eye .pulse {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--tok-form); margin-right: 10px; vertical-align: middle;
+    animation: pulse-faint 1.8s ease-in-out infinite;
+  }
+  .shift-divider__head {
+    font-size: clamp(38px, 5vw, 64px); font-weight: 500;
+    letter-spacing: -1.8px; line-height: 1.08; color: var(--text);
+    margin: 0 0 24px;
+  }
+  .shift-divider__head .accent { color: var(--tok-form); }
+  .shift-divider__sub {
+    font-size: 18px; color: var(--text-2); line-height: 1.65;
+    max-width: 680px; margin: 0 auto; font-weight: 400;
+  }
+  .shift-divider__sub strong { color: var(--text); font-weight: 500; }
+
+  /* ═══════════════════════════════════════════════════════════
+     Quote section
+     ═══════════════════════════════════════════════════════════ */
+  .quote-wrap {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 96px 40px;
+    overflow: hidden;
+    border-radius: 16px;
+    background:
+      radial-gradient(60% 50% at 30% 30%, rgba(64,52,92,0.55), transparent 65%),
+      radial-gradient(60% 50% at 70% 70%, rgba(30,60,70,0.5), transparent 65%),
+      linear-gradient(135deg, #0b0b14 0%, #181622 50%, #0d0c14 100%);
+  }
+  .quote-wrap::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.35), rgba(0,0,0,0.12));
+  }
+  .quote-line {
+    position: relative; z-index: 2;
+    font-family: var(--font-sans); font-weight: 400;
+    font-size: clamp(30px, 4.2vw, 56px);
+    line-height: 1.18;
+    letter-spacing: -1.6px;
+    color: #fff; text-wrap: balance; text-align: center;
+  }
+  .quote-line em {
+    font-style: normal; font-weight: 500;
+    background: linear-gradient(180deg, transparent 60%, rgba(143,184,154,0.4) 60%);
+    padding: 0 2px;
+  }
+  .quote-cred {
+    position: relative; z-index: 2;
+    margin-top: 28px;
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.6); text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .section { grid-template-columns: 1fr; gap: 48px; padding: 60px 32px; }
+    .section__text { max-width: none; }
+    .section--close { grid-template-columns: 1fr; }
+    .close-text { padding-right: 0; }
+    .chpt-corner { left: 20px; }
+    .lang-toggle { right: 20px; }
+    .hero-overlay { padding: 8vh 6vw; }
+    .surface-row { grid-template-columns: repeat(2, 1fr); }
+    .paradigm-split { grid-template-columns: 1fr; }
+    .mismatch-wrap { grid-template-columns: 1fr; }
+    .mismatch-arrow { transform: rotate(90deg); text-align: center; }
+    .day-timeline__scale { padding-left: 0; }
+    .day-timeline__row { grid-template-columns: 1fr; gap: 8px; }
+    .section--divider { min-height: 48vh; }
+    .divider-content { padding: 0 28px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+    [data-enter] { opacity: 1; transform: none; }
+    .chip { opacity: 1; transform: none; }
+    .hero-overlay .eyebrow, .hero-overlay .title, .hero-overlay .lede { opacity: 1; transform: none; }
+    .hero-constellation__ring, .hero-surface, .close-visual__ring, .close-visual__pin { animation: none !important; }
+    .day-timeline__chunk { transform: none; opacity: 0.88; }
+    .paradigm-side--old .app-grid__icon, .paradigm-side--new .grammar-diagram { opacity: 1; transform: none; }
+    .iframe-fade { opacity: 1; }
+    .preview-before__seen { opacity: 1; }
+    .divider-photo { transform: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body data-dark-nav>
+
+<div class="progress" aria-hidden="true"><div class="progress__fill" id="progress-fill"></div></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOC RAIL — canonical navigation
+     (labels must match each h2 title exactly)
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+  window.TOC_RAIL = {
+    panelTitle: 'Project 05 · クロスサーフェス文法',
+    chapters: [
+      {
+        num: '01', title: '設定と前提',
+        sections: [
+          { id: 'intro',        num: '01', label: 'ヒーロー — 5つのサーフェスが先に目覚める', dark: true },
+          { id: 'cast',         num: '02', label: 'キャスト — イネスとマテオ、コペンハーゲン',          dark: true },
+          { id: 'tldr',         num: '03', label: 'エグゼクティブサマリー — 90秒で' },
+          { id: 'problem',      num: '04', label: 'Galaxyは同期済み。コンテキストはリセットされる。' },
+          { id: 'samsung-2026', num: '05', label: 'Samsungがすでに実現していること' },
+          { id: 'setup',        num: '06', label: '3つのTokenが核心を担う' },
+          { id: 'contract',     num: '07', label: 'TokenはContractである',           dark: true },
+          { id: 'brain-api',    num: '08', label: 'Brain API — 5サーフェス、5サブスクリプション', dark: true },
+          { id: 'rule-engine',  num: '09', label: 'Rule Engineパイプライン',         dark: true },
+          { id: 'composition',  num: '10', label: 'AXパターンの合成',       dark: true },
+          { id: 'federation',   num: '11', label: 'フェデレーション — マルチベンダーの現実', dark: true },
+          { id: 'telemetry',    num: '12', label: '判断トレース — なぜプレビューが非表示になったか', dark: true }
+        ]
+      },
+      {
+        num: '02', title: '2026年4月21日 火曜日', enter: 'ch02-enter',
+        sections: [
+          { id: 'morning', num: '13', label: '07:04 · Watch — 手首に3行' },
+          { id: 'commute', num: '14', label: '08:24 · EarBuds — 14秒の音声' },
+          { id: 'evening', num: '15', label: '21:14 · Phone — サプライズは守られた', dark: true }
+        ]
+      },
+      {
+        num: '03', title: '洞察', enter: 'ch03-enter',
+        sections: [
+          { id: 'surface-vocab', num: '16', label: 'Watchは小さなPhoneではない。' },
+          { id: 'rules',         num: '17', label: '3つのToken × 5つのサーフェス = 15のルール' }
+        ]
+      },
+      {
+        num: '04', title: '同じ一日が、修復される', enter: 'ch04-enter',
+        sections: [
+          { id: 'watch',     num: '18', label: '同じ23件。手首には3行だけ。' },
+          { id: 'earbuds',   num: '19', label: '両手がふさがった。14秒の音声。' },
+          { id: 'phone',     num: '20', label: '同じメール。サプライズは守られた。', dark: true }
+        ]
+      },
+      {
+        num: '05', title: '同じ文法、違う世界', enter: 'ch05-enter',
+        sections: [
+          { id: 'hospital',  num: '21', label: '家庭から病院へ。文法はそのまま機能する。' },
+          { id: 'future-ar', num: '22', label: '2030年 — Phoneというサーフェスが消える日', dark: true },
+          { id: 'metrics',   num: '23', label: '試算：数字で見る効果' }
+        ]
+      },
+      {
+        num: '06', title: '振り返り', enter: 'ch06-enter',
+        sections: [
+          { id: 'process',    num: '24', label: 'プロセス — 残した決断と捨てた決断', dark: true },
+          { id: 'jtbd',       num: '25', label: '人々が言葉にしていたこと' },
+          { id: 'unknowns',   num: '26', label: 'この設計がまだ答えていないこと' },
+          { id: 'takeaways',  num: '27', label: '3つの汎用原則' }
+        ]
+      },
+      {
+        num: '07', title: 'クロージング',
+        sections: [
+          { id: 'day',   num: '28', label: 'イネスの一日：5つのサーフェスをたどる' },
+          { id: 'quote-mini', num: '29', label: 'テーゼ' },
+          { id: 'close', num: '30', label: 'Project 05 終わり' }
+        ]
+      }
+    ]
+  };
+</script>
+<script src="../../../assets/js/toc-rail.js" defer></script>
+<style>
+  /* Dark-section overrides for auto-generated eyebrow chip */
+  #intro .eyebrow__ch-mono, #cast .eyebrow__ch-mono,
+  #contract .eyebrow__ch-mono, #brain-api .eyebrow__ch-mono,
+  #rule-engine .eyebrow__ch-mono, #composition .eyebrow__ch-mono,
+  #federation .eyebrow__ch-mono, #telemetry .eyebrow__ch-mono,
+  #evening .eyebrow__ch-mono, #phone .eyebrow__ch-mono,
+  #future-ar .eyebrow__ch-mono, #process .eyebrow__ch-mono {
+    color: #c4a8e0; background: rgba(196, 168, 224, 0.14);
+  }
+  #intro .eyebrow__ch-sep, #cast .eyebrow__ch-sep,
+  #contract .eyebrow__ch-sep, #brain-api .eyebrow__ch-sep,
+  #rule-engine .eyebrow__ch-sep, #composition .eyebrow__ch-sep,
+  #federation .eyebrow__ch-sep, #telemetry .eyebrow__ch-sep,
+  #evening .eyebrow__ch-sep, #phone .eyebrow__ch-sep,
+  #future-ar .eyebrow__ch-sep, #process .eyebrow__ch-sep {
+    color: rgba(240, 236, 228, 0.45);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     v2 ADDITIONS — Cast · Executive Summary · Backstage cluster ·
+                    Process · Metrics · JTBD · Unknowns · Takeaways
+     ═══════════════════════════════════════════════════════════ */
+
+  /* ── Cast Intro section (per PORTFOLIO_GLOBAL_RULES §6.6) ── */
+  .section--cast {
+    position: relative; width: 100%;
+    min-height: 100vh; overflow: hidden;
+    padding: 0; display: block;
+  }
+  .cast-photo {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; z-index: 1;
+  }
+  .cast-overlay {
+    position: absolute; inset: 0; z-index: 2;
+    background: linear-gradient(90deg,
+      rgba(10,10,15,0.78) 0%,
+      rgba(10,10,15,0.58) 28%,
+      rgba(10,10,15,0.18) 50%,
+      rgba(10,10,15,0)    68%);
+  }
+  .cast-text {
+    position: relative; z-index: 3;
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: 100vh; max-width: 480px;
+    padding: 0 0 0 8vw; color: #fff;
+  }
+  .cast-eyebrow {
+    font-family: var(--font-mono);
+    font-size: clamp(11px, 0.9vw, 14px);
+    font-weight: 700; letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85); margin-bottom: 24px;
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .cast-eyebrow::before {
+    content: ''; width: 24px; height: 1px;
+    background: rgba(255,255,255,0.6);
+  }
+  .cast-headline {
+    font-size: clamp(34px, 4.4vw, 54px);
+    font-weight: 500; letter-spacing: -1.4px;
+    line-height: 1.08; margin: 0 0 32px;
+    text-wrap: balance;
+    text-shadow: 0 4px 32px rgba(0,0,0,0.5);
+  }
+  .cast-list {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; gap: 16px;
+    font-size: clamp(15px, 1.1vw, 17px);
+    line-height: 1.55;
+    color: rgba(255,255,255,0.92);
+  }
+  .cast-list li { padding-left: 0; }
+  .cast-list strong { font-weight: 600; color: #fff; }
+  .cast-list em { font-style: normal; color: rgba(255,255,255,0.72); }
+
+  /* ── Executive Summary 90s ── */
+  .tldr-wrap {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    padding: 32px 36px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 18px 44px rgba(0,0,0,0.05);
+  }
+  .tldr-grid {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0;
+  }
+  .tldr-row {
+    display: contents;
+  }
+  .tldr-label {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--text-3);
+    padding: 20px 24px 20px 0;
+    border-top: 1px solid var(--border);
+    align-self: start;
+  }
+  .tldr-row:first-child .tldr-label,
+  .tldr-row:first-child .tldr-value {
+    border-top: 0; padding-top: 6px;
+  }
+  .tldr-value {
+    font-size: clamp(15px, 1.05vw, 17px);
+    line-height: 1.6; color: var(--text);
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+  }
+  .tldr-value strong { font-weight: 600; }
+  .tldr-value code {
+    font-family: var(--font-mono); font-size: 13px;
+    background: var(--gray-100); padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* ── Backstage cluster — shared dark canvas ── */
+  .section--backstage {
+    background: #08070b; color: #f0ece4;
+    padding-top: 80px; padding-bottom: 80px;
+  }
+  .section--backstage.section { grid-template-columns: 1fr; gap: 32px; }
+  .section--backstage .eyebrow { color: rgba(240,236,228,0.55); }
+  .section--backstage .title { color: #f0ece4; }
+  .section--backstage .lede { color: rgba(240,236,228,0.74); }
+  .section--backstage .lede strong { color: #f0ece4; }
+
+  .bs-panel {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 12px;
+    padding: 24px 28px;
+    font-family: var(--font-mono); font-size: 13px;
+    line-height: 1.65; color: rgba(240,236,228,0.85);
+  }
+  .bs-panel__chip {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9.5px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: #c4a8e0;
+    background: rgba(196,168,224,0.14);
+    padding: 4px 10px; border-radius: 4px;
+    margin-bottom: 18px;
+  }
+  .bs-panel__head {
+    font-family: var(--font-sans); font-size: 18px; font-weight: 500;
+    letter-spacing: -0.2px; color: #f0ece4;
+    margin-bottom: 14px;
+  }
+  .bs-panel__close {
+    font-family: var(--font-sans); font-size: 13px; color: rgba(240,236,228,0.55);
+    margin-top: 18px; line-height: 1.55;
+  }
+  .bs-panel pre {
+    background: rgba(240,236,228,0.04);
+    border: 1px solid rgba(240,236,228,0.08);
+    border-radius: 6px;
+    padding: 14px 16px; margin: 12px 0;
+    overflow-x: auto;
+    font-size: 12.5px;
+  }
+  .bs-panel .ok    { color: #a4d4a8; }
+  .bs-panel .skip  { color: #e89090; }
+  .bs-panel .key   { color: #c4a8e0; }
+  .bs-panel .str   { color: #e8b870; }
+  .bs-panel .cmt   { color: rgba(240,236,228,0.45); }
+
+  /* Tokens-as-Contract — 2-col layout */
+  .bs-contract {
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .bs-contract__side {
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 12px; padding: 22px 24px;
+  }
+  .bs-contract__label {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: #c4a8e0; margin-bottom: 12px;
+  }
+  .bs-contract__head {
+    font-size: 17px; font-weight: 500; color: #f0ece4;
+    margin-bottom: 14px;
+  }
+  .bs-contract__prose {
+    font-size: 14px; line-height: 1.65;
+    color: rgba(240,236,228,0.78);
+  }
+  .bs-contract__code {
+    font-family: var(--font-mono); font-size: 12.5px;
+    background: rgba(240,236,228,0.05);
+    border: 1px solid rgba(240,236,228,0.1);
+    border-radius: 6px; padding: 14px 16px;
+    line-height: 1.65; color: rgba(240,236,228,0.88);
+    overflow-x: auto; white-space: pre;
+  }
+
+  /* Brain API permission matrix */
+  .bs-matrix {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    border: 1px dashed rgba(240,236,228,0.18); border-radius: 12px;
+    overflow: hidden;
+  }
+  .bs-matrix__row {
+    display: grid;
+    grid-template-columns: 110px 1fr 100px;
+    gap: 16px; padding: 14px 18px;
+    border-top: 1px solid rgba(240,236,228,0.08);
+    font-family: var(--font-mono); font-size: 12.5px;
+    align-items: center;
+  }
+  .bs-matrix__row:first-child { border-top: 0; }
+  .bs-matrix__surface {
+    color: #c4a8e0; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase; font-size: 10px;
+  }
+  .bs-matrix__perms { color: rgba(240,236,228,0.78); }
+  .bs-matrix__access {
+    text-align: right; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase; font-size: 10px;
+  }
+  .bs-matrix__access.read  { color: #a4d4a8; }
+  .bs-matrix__access.write { color: #e8b870; }
+  .bs-matrix__access.deny  { color: #e89090; }
+
+  /* Rule Engine pipeline — 3-col */
+  .bs-pipeline {
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 60px 1fr 60px 1fr;
+    gap: 16px; align-items: stretch;
+  }
+  .bs-pipeline__col {
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 12px; padding: 20px 22px;
+    font-family: var(--font-mono); font-size: 12.5px;
+    line-height: 1.65; color: rgba(240,236,228,0.85);
+  }
+  .bs-pipeline__col-label {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #c4a8e0; margin-bottom: 10px;
+  }
+  .bs-pipeline__arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(240,236,228,0.4); font-size: 22px;
+  }
+
+  /* AX Composition — 4 cards + scene */
+  .bs-composition {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    display: grid; gap: 18px;
+  }
+  .bs-composition__cards {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  .bs-composition__card {
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .bs-composition__card-id {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: #a4d4a8; margin-bottom: 6px;
+  }
+  .bs-composition__card-name {
+    font-size: 13px; font-weight: 600;
+    color: #f0ece4; margin-bottom: 6px;
+  }
+  .bs-composition__card-desc {
+    font-size: 12px; color: rgba(240,236,228,0.7);
+    line-height: 1.55;
+  }
+  .bs-composition__compose {
+    text-align: center;
+    font-family: var(--font-mono); font-size: 11px;
+    color: rgba(240,236,228,0.55); letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .bs-composition__scene {
+    background: rgba(196,168,224,0.06);
+    border: 1px solid rgba(196,168,224,0.22);
+    border-radius: 10px;
+    padding: 18px 22px; text-align: center;
+    color: #f0ece4; font-size: 14px; line-height: 1.6;
+  }
+
+  /* Federation — vendor map + matrix + 4-card grid */
+  .bs-fed {
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    display: grid; gap: 20px;
+  }
+  .bs-fed__map {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .bs-fed__cell {
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .bs-fed__cell-surface {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: #c4a8e0; margin-bottom: 6px;
+  }
+  .bs-fed__cell-vendor {
+    font-size: 13px; font-weight: 600; color: #f0ece4;
+  }
+  .bs-fed__cell-runtime {
+    font-family: var(--font-mono); font-size: 11px;
+    color: rgba(240,236,228,0.65); margin-top: 6px;
+  }
+  .bs-fed__why {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  .bs-fed__why-card {
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .bs-fed__why-vendor {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: #a4d4a8; margin-bottom: 6px;
+  }
+  .bs-fed__why-claim {
+    font-size: 12.5px; line-height: 1.55;
+    color: rgba(240,236,228,0.78);
+  }
+
+  /* Telemetry — decision trace */
+  .bs-trace {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 12px; padding: 22px 26px;
+    font-family: var(--font-mono); font-size: 12.5px;
+    color: rgba(240,236,228,0.85);
+  }
+  .bs-trace__header {
+    display: flex; justify-content: space-between;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: rgba(240,236,228,0.55);
+    border-bottom: 1px solid rgba(240,236,228,0.1);
+    padding-bottom: 12px; margin-bottom: 14px;
+  }
+  .bs-trace__row {
+    display: grid; grid-template-columns: 120px 1fr 100px;
+    gap: 16px; padding: 7px 0;
+    align-items: center;
+  }
+  .bs-trace__kind {
+    font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; font-size: 10px;
+  }
+  .bs-trace__kind.tok  { color: #c4a8e0; }
+  .bs-trace__kind.rule { color: #e8b870; }
+  .bs-trace__detail { color: rgba(240,236,228,0.75); }
+  .bs-trace__verdict {
+    text-align: right; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase; font-size: 10px;
+  }
+  .bs-trace__verdict.ok   { color: #a4d4a8; }
+  .bs-trace__verdict.skip { color: #e89090; }
+  .bs-trace__alts {
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid rgba(240,236,228,0.1);
+  }
+  .bs-trace__alts-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: rgba(240,236,228,0.55); margin-bottom: 10px;
+  }
+  .bs-trace__alt {
+    display: grid; grid-template-columns: 1fr 80px;
+    gap: 12px; padding: 5px 0;
+    color: rgba(240,236,228,0.78);
+  }
+  .bs-trace__alt-conf {
+    text-align: right; color: #c4a8e0;
+  }
+  .bs-trace__footer {
+    margin-top: 14px; font-size: 10.5px;
+    color: rgba(240,236,228,0.4);
+    letter-spacing: 0.4px;
+  }
+
+  /* ── Process — Decisions Kept/Cut ── */
+  .process-list {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    display: grid; gap: 14px;
+  }
+  .process-card {
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 12px; padding: 20px 24px;
+  }
+  .process-card__head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 10px;
+  }
+  .process-card__num {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    letter-spacing: 1.6px; color: rgba(240,236,228,0.45);
+  }
+  .process-card__verdict {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.6px; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 4px;
+  }
+  .process-card__verdict.kept { color: #a4d4a8; background: rgba(164,212,168,0.12); }
+  .process-card__verdict.cut  { color: #e89090; background: rgba(232,144,144,0.12); }
+  .process-card__title {
+    font-size: 16px; font-weight: 500;
+    color: #f0ece4; margin-bottom: 8px; letter-spacing: -0.2px;
+  }
+  .process-card__why {
+    font-size: 13.5px; line-height: 1.65;
+    color: rgba(240,236,228,0.72);
+  }
+
+  /* ── Metrics — 4-card grid ── */
+  .metrics-note {
+    text-align: center;
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 24px;
+  }
+  .metrics-grid {
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .metric-card {
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px 22px;
+    background: var(--bg);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 12px 28px rgba(0,0,0,0.04);
+  }
+  .metric-card__label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .metric-card__value {
+    font-family: var(--font-sans); font-weight: 500;
+    font-size: clamp(22px, 2.2vw, 30px);
+    letter-spacing: -0.6px; color: var(--text);
+    line-height: 1.15; margin-bottom: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-card__value .arrow {
+    color: var(--text-3); margin: 0 6px;
+  }
+  .metric-card__caption {
+    font-size: 12.5px; line-height: 1.55;
+    color: var(--text-2);
+  }
+
+  /* ── JTBD quotes — 2x2 grid ── */
+  .jtbd-grid {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+  .jtbd-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg);
+    padding: 26px 28px;
+    margin: 0;
+  }
+  .jtbd-card blockquote {
+    margin: 0;
+    font-size: clamp(15px, 1.15vw, 18px);
+    line-height: 1.55; color: var(--text);
+    font-weight: 500; letter-spacing: -0.2px;
+    text-wrap: balance;
+  }
+  .jtbd-card__attrib {
+    margin-top: 18px;
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .jtbd-method {
+    max-width: 1100px; margin: 24px auto 0;
+    font-size: 12.5px; color: var(--text-3);
+    line-height: 1.6; font-style: italic;
+    text-align: center; padding: 0 24px;
+  }
+
+  /* ── Unknowns — 2x2 grid ── */
+  .unknowns-grid {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .unknown-card {
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px 24px;
+    background: var(--bg);
+  }
+  .unknown-card__num {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.6px; color: var(--text-3);
+    margin-bottom: 10px;
+  }
+  .unknown-card__q {
+    font-size: 15px; font-weight: 500;
+    color: var(--text); line-height: 1.5;
+    margin-bottom: 10px; letter-spacing: -0.1px;
+  }
+  .unknown-card__need {
+    font-size: 12.5px; line-height: 1.55;
+    color: var(--text-2);
+  }
+  .unknown-card__need strong {
+    color: var(--text); font-weight: 600;
+  }
+
+  /* ── Takeaways — 3 numbered blocks ── */
+  .takeaway-list {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    display: grid; gap: 22px;
+  }
+  .takeaway {
+    display: grid; grid-template-columns: 80px 1fr;
+    gap: 24px; padding: 28px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .takeaway:last-child { border-bottom: 1px solid var(--border); }
+  .takeaway__num {
+    font-family: var(--font-mono); font-size: 36px; font-weight: 500;
+    color: var(--text-3); letter-spacing: -1px;
+    line-height: 1; align-self: start;
+  }
+  .takeaway__body { display: flex; flex-direction: column; gap: 10px; }
+  .takeaway__title {
+    font-size: clamp(20px, 2vw, 26px);
+    font-weight: 500; letter-spacing: -0.5px;
+    color: var(--text); line-height: 1.2;
+  }
+  .takeaway__body p {
+    font-size: 14.5px; line-height: 1.65;
+    color: var(--text-2); margin: 0;
+  }
+
+  /* ── Hospital Generalization split layout ── */
+  .hospital-split {
+    width: 100%; max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  .hospital-side {
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 26px 28px;
+    background: var(--bg);
+  }
+  .hospital-side__label {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 14px;
+  }
+  .hospital-side__title {
+    font-size: 18px; font-weight: 500;
+    color: var(--text); margin-bottom: 16px;
+    letter-spacing: -0.3px;
+  }
+  .hospital-table {
+    display: grid; grid-template-columns: 110px 1fr; gap: 8px 16px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .hospital-table__surface {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text-3); align-self: start; padding-top: 2px;
+  }
+  .hospital-table__use { color: var(--text-2); }
+
+  /* ── Future AR — dark cinematic ── */
+  .future-block {
+    width: 100%; max-width: 1100px; margin: 0 auto;
+    background: rgba(240,236,228,0.03);
+    border: 1px dashed rgba(240,236,228,0.18);
+    border-radius: 14px; padding: 32px 36px;
+    text-align: center;
+  }
+  .future-block__quote {
+    font-family: var(--font-sans); font-weight: 400;
+    font-size: clamp(20px, 2.2vw, 28px);
+    line-height: 1.4; color: #f0ece4;
+    text-wrap: balance; max-width: 760px;
+    margin: 0 auto 18px;
+  }
+  .future-block__quote em {
+    font-style: normal; color: #c4a8e0; font-weight: 500;
+  }
+  .future-block__cap {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(240,236,228,0.55);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .cast-text { padding: 0 6vw; max-width: none; }
+    .cast-overlay {
+      background: linear-gradient(180deg,
+        rgba(10,10,15,0.10) 0%,
+        rgba(10,10,15,0.55) 55%,
+        rgba(10,10,15,0.85) 100%);
+    }
+    .tldr-grid { grid-template-columns: 1fr; gap: 8px; }
+    .tldr-row .tldr-label { padding: 16px 0 4px; border-top: 1px solid var(--border); }
+    .tldr-row .tldr-value { padding: 0 0 16px; border-top: 0; }
+    .tldr-row:first-child .tldr-label { padding-top: 0; border-top: 0; }
+    .bs-contract { grid-template-columns: 1fr; }
+    .bs-pipeline { grid-template-columns: 1fr; gap: 10px; }
+    .bs-pipeline__arrow { transform: rotate(90deg); height: 24px; }
+    .bs-composition__cards { grid-template-columns: repeat(2, 1fr); }
+    .bs-fed__map { grid-template-columns: repeat(2, 1fr); }
+    .bs-fed__why { grid-template-columns: 1fr 1fr; }
+    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .jtbd-grid { grid-template-columns: 1fr; }
+    .unknowns-grid { grid-template-columns: 1fr; }
+    .takeaway { grid-template-columns: 1fr; gap: 12px; padding: 20px 0; }
+    .hospital-split { grid-template-columns: 1fr; }
+    .bs-matrix__row { grid-template-columns: 90px 1fr; }
+    .bs-matrix__access { grid-column: 1 / -1; text-align: left; }
+    .bs-trace__row { grid-template-columns: 100px 1fr; }
+    .bs-trace__verdict { grid-column: 1 / -1; text-align: left; }
+  }
+</style>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 01 · THE PROBLEM
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── S1 · intro — Hero ───── -->
+<section class="section section--hero" id="intro">
+  <div class="hero-photo">
+    <img class="hero-photo__img"
+         src="../../images/p5-hero-five-surfaces.jpg"
+         srcset="images/thumbs/p5-hero-five-surfaces-sm.png 800w,
+                 images/thumbs/p5-hero-five-surfaces.jpg 1600w"
+         sizes="100vw"
+         alt="Five Galaxy surfaces — Watch, EarBuds, Phone, TV, Kitchen Display — quietly lit before sunrise in a Copenhagen apartment, the bed empty"
+         loading="eager">
+    <div class="hero-timestamp">
+      <span class="hero-timestamp__rule" aria-hidden="true"></span>
+      <span>07:00 CET · Copenhagen</span>
+    </div>
+    <div class="hero-overlay">
+      <div class="eyebrow" data-enter>Project 05 · コペンハーゲン · 2026</div>
+      <h1 class="title d1" data-enter>
+        クロスサーフェス文法。
+      </h1>
+      <p class="lede d2" data-enter style="font-size:clamp(17px, 1.35vw, 22px);font-weight:500;color:rgba(255,255,255,0.92);max-width:36ch;margin-bottom:28px;">
+        3つのContext Tokenを読み取り、どのデバイスが話すべきかを決める。手首、耳、ポケット、壁、キッチンカウンターの上で。
+      </p>
+      <p class="lede d3" data-enter>
+        07:00 CET。コペンハーゲン。イネスが目を開ける。手首が振動する — <strong>23件</strong>。
+      </p>
+      <p class="lede d4" data-enter style="margin-top:14px;">
+        Watch。EarBuds。Phone。TV。キッチンディスプレイ。すべて同期済み。すべて起動中。<strong>でも、彼女が目を開けたことに気づいたものは一つもない。</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S2 · cast — イネスとマテオ（フルブリード写真、P2パターン）───── -->
+<section class="section section--cast" id="cast" aria-label="Cast — Ines & Mateo, Copenhagen">
+  <img class="cast-photo"
+       src="../../images/p5-cast-portrait.jpg"
+       srcset="../../images/thumbs/p5-cast-portrait-sm.png 800w,
+               ../../images/thumbs/p5-cast-portrait.jpg 1600w"
+       sizes="100vw"
+       alt="イネスとマテオ — コペンハーゲンのアパートのソファに座る二人。イネスはコーヒーマグを手に窓の方を見ている。マテオはその隣で、Phoneでマテオの誕生日を計画している。"
+       loading="lazy">
+  <div class="cast-overlay" aria-hidden="true"></div>
+
+  <div class="cast-text">
+    <div class="cast-eyebrow">キャスト · コペンハーゲン · 2026</div>
+    <h2 class="cast-headline">イネスとマテオ。</h2>
+
+    <ul class="cast-list">
+      <li>
+        <strong>イネス・ラーセン</strong>
+        <em style="display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;margin:4px 0 8px;">パートナー · 38 · UXリサーチャー</em>
+        ほとんどの人がコーヒーを飲む前に、リサーチスプリントを走らせる。Galaxy Watch、S25、Buds 3 Pro — すべて1つのBrainに同期。<em>マテオの誕生日プレゼントとしてTag Heuer Carreraを注文したばかり。</em>
+      </li>
+      <li>
+        <strong>マテオ・コスタ</strong>
+        <em style="display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;margin:4px 0 8px;">パートナー · 41 · 建築家 · マドリード生まれ</em>
+        建築を教える。週の半分は在宅勤務。発送メールが届くその瞬間、ソファで隣で読書をしている — 40&nbsp;cm先で。
+      </li>
+    </ul>
+
+    <p style="margin-top:28px;font-family:var(--font-mono);font-size:12px;line-height:1.65;color:rgba(255,255,255,0.72);max-width:46ch;">
+      Samsungユーザーでなくても問題ない。この文法はSamsung専用ではない。Apple Handoff、Google Cast、Microsoft Continuumも同じルーティング課題を抱えている — Samsungが最もデバイス横断エコシステムが充実しているため、ケーススタディの舞台として選んだ。<em style="font-style:normal;color:rgba(255,255,255,0.55);">プライバシー保護のため名前は変更。実在のカップル、実在のアパート、実在の火曜日。</em>
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── S3 · tldr — Executive Summary 90s ───── -->
+<section class="section" id="tldr" style="grid-template-columns:1fr;gap:32px;padding:100px 88px 80px;">
+  <div class="section__text" style="max-width:760px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">エグゼクティブサマリー · 90秒で</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      このケーススタディが証明すること —<br>一目で。
+    </h2>
+  </div>
+
+  <div class="tldr-wrap" data-enter>
+    <div class="tldr-grid">
+      <div class="tldr-row">
+        <div class="tldr-label">問題</div>
+        <div class="tldr-value">Galaxyはすでに家庭内のあらゆるバイトを同期している。それでも手首には文字の壁が押し寄せ、Phoneはギフトを漏らし、TVは家族が映画を観ているときに仕事メールを表示する。<strong>同期はデータを動かす。注意は動かさない。</strong></div>
+      </div>
+      <div class="tldr-row">
+        <div class="tldr-label">テーゼ</div>
+        <div class="tldr-value"><strong>クロスサーフェス文法</strong> — アプリの上位に位置するルーティング層。3つのContext Token（<strong style="color:var(--tok-cog);">Cognitive Load</strong>、<strong style="color:var(--tok-soc);">Social Exposure</strong>、<strong style="color:var(--tok-form);">Form Factor</strong>）を読み取り、サーフェスごとに、何がどんな形で届くかを決める。</div>
+      </div>
+      <div class="tldr-row">
+        <div class="tldr-label">何が新しいか</div>
+        <div class="tldr-value">3つのAXパターンを正式定義：<strong>Surface Vocabulary</strong>、<strong>Moment Composer</strong>、<strong>Preview Redaction</strong>。3つのToken × 5つのサーフェス = 15のルール — 設定画面ではなく、デザイン言語として。</div>
+      </div>
+      <div class="tldr-row">
+        <div class="tldr-label">証明</div>
+        <div class="tldr-value">5つのGalaxyサーフェス、1つのルーティング層 — Watch、EarBuds、Phone、TV、キッチンディスプレイ。同じBrainが<code>{cognitive_load, social_exposure, form_factor}</code>を読む。各サーフェスに適切な形が届く：一瞥、ひそひそ声、深さ、アナウンス、付箋。</div>
+      </div>
+      <div class="tldr-row">
+        <div class="tldr-label">汎用性がある</div>
+        <div class="tldr-value">同じ3つのTokenが、病院の救急外来も記述する — 医師の手首、コミュニケーション用イヤホン、モバイルカート、病棟モニター、ナースステーション。<strong>同じ文法。違う賭け金。</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S4 · problem — Galaxy already syncs. Context still resets. ───── -->
+<section class="section" id="problem" style="grid-template-columns:1fr;gap:48px;padding-top:100px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">2026年 · 現状</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      Galaxyは同期済み。<br>コンテキストはリセットされる。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto 14px;text-align:center;">
+      2026年のSamsung Galaxyは本物だ。カレンダー、通知、音楽、健康 — すべてがデバイス間をシームレスに行き来する。<strong>その問題は解決済み。</strong>
+    </p>
+    <p class="lede d3" data-enter style="max-width:680px;margin:0 auto;text-align:center;">
+      解決できていない部分がある: すべてのサーフェスがゼロからスタートする。Watchはイネスが今目覚めたことを知らない。TVはマテオが部屋にいることを知らない。<strong>今週3日間、彼女のサーフェスは間違ったことをした — 礼儀正しく、完璧に、最悪のタイミングで。</strong>
+    </p>
+  </div>
+
+  <div style="max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:16px;" data-enter class="d3">
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:20px 24px;background:var(--bg-2,#f5f4f1);border-radius:12px;border:1px solid var(--border,rgba(26,24,22,0.08));">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:rgba(180,83,9,0.7);flex-shrink:0;padding-top:2px;">07:04</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">手首が通知の廃棄場になった。</div>
+        <div style="font-size:14px;color:var(--text-2,rgba(26,24,22,0.65));line-height:1.5;">Watchに23件の通知。着信順。優先度なし。Watchが本来あるべきもの — 時刻 — が埋もれた。</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:20px 24px;background:var(--bg-2,#f5f4f1);border-radius:12px;border:1px solid var(--border,rgba(26,24,22,0.08));">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:rgba(180,83,9,0.7);flex-shrink:0;padding-top:2px;">08:24</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">EarBudsが音楽に割り込んで通知の山を届けた。</div>
+        <div style="font-size:14px;color:var(--text-2,rgba(26,24,22,0.65));line-height:1.5;">ノアポートへの通勤中、音楽再生中に3件の通知が同時に届いた。PMから、ニュースレターから、姉から。すべて同じ音量で。どれも急ぎではなかった。</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:flex-start;padding:20px 24px;background:var(--bg-2,#f5f4f1);border-radius:12px;border:1px solid var(--border,rgba(26,24,22,0.08));">
+      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:rgba(180,83,9,0.7);flex-shrink:0;padding-top:2px;">21:14</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">サプライズがロック画面で死にかけた。</div>
+        <div style="font-size:14px;color:var(--text-2,rgba(26,24,22,0.65));line-height:1.5;">イネスはマテオへの誕生日プレゼントとしてTag Heuerを注文していた。発送確認メールが、マテオが隣で読書をしている最中に届いた。ロック画面のプレビューは40cmの距離から丸見えだった。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5-surface row, naming the cast -->
+  <div data-enter class="d3" style="width:100%;max-width:1100px;margin:0 auto;">
+    <div class="surface-row">
+      <div class="surface-card surface-card--watch">
+        <div class="surface-card__name">Galaxy Watch</div>
+        <div class="surface-card__title">一瞥（グランス）</div>
+        <div class="surface-card__grammar">1行。1タップ。ハプティック優先。</div>
+      </div>
+      <div class="surface-card surface-card--ear">
+        <div class="surface-card__name">Galaxy Buds</div>
+        <div class="surface-card__title">ひそひそ声</div>
+        <div class="surface-card__grammar">音声のみ。表示なし。アンビエント。</div>
+      </div>
+      <div class="surface-card surface-card--phone">
+        <div class="surface-card__name">Galaxy Phone</div>
+        <div class="surface-card__title">深さ</div>
+        <div class="surface-card__grammar">フル機能。プライベート。手に持つもの。</div>
+      </div>
+      <div class="surface-card surface-card--tv">
+        <div class="surface-card__name">Galaxy TV</div>
+        <div class="surface-card__title">アナウンス</div>
+        <div class="surface-card__grammar">共有空間。プライバシーなし。部屋にいる全員が見る。</div>
+      </div>
+      <div class="surface-card surface-card--kd">
+        <div class="surface-card__name">Kitchen Display</div>
+        <div class="surface-card__title">付箋</div>
+        <div class="surface-card__grammar">チラ見できる。音声操作。両手はふさがっている。</div>
+      </div>
+    </div>
+    <p class="ui-caption" style="max-width:900px;margin:24px auto 0;">
+      <span class="ui-caption__kind">Concept · 5つのサーフェス</span>
+      イネスが家を出る前に使う5つのサーフェス。それぞれが固有の語彙を持つ — ソフトウェアではなく、ハードウェアによって決まる語彙。今日のOSはこれらを同じ画面のコピーとして扱う。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── S5 · samsung-2026 — Samsungがすでに実現していること ───── -->
+<section class="section" id="samsung-2026" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">2026 · 現在地</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      Samsungはすでに<br>素晴らしいものを作った。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto;text-align:center;">ギャップを示す前に、Galaxyがどこまで来たかを正直に言うべきだ。Galaxy S26エコシステムには、真に印象的なクロスサーフェス機能が4つある。</p>
+  </div>
+
+  <div style="max-width:820px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;" data-enter class="d2">
+    <div style="padding:24px;background:var(--bg-2,#f5f4f1);border-radius:12px;border:1px solid var(--border,rgba(26,24,22,0.08));">
+      <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3,rgba(26,24,22,0.45));margin-bottom:10px;">Now Nudge</div>
+      <p style="font-size:15px;line-height:1.55;color:var(--text,#1a1816);">Galaxy AIがコンテキストを読み取り、通知を最適なデバイスに振り分ける。Watchを使っているときは手首が先に振動する。デスクにいるときはPhoneが点灯する。</p>
+    </div>
+    <div style="padding:24px;background:var(--bg-2,#f5f4f1);border-radius:12px;border:1px solid var(--border,rgba(26,24,22,0.08));">
+      <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3,rgba(26,24,22,0.45));margin-bottom:10px;">Auto Switch Buds</div>
+      <p style="font-size:15px;line-height:1.55;color:var(--text,#1a1816);">EarBudsが注意の移動に合わせて、Phone・Tab・PC間を自動的に切り替える。タップ不要。設定不要。音声が自分についてくる。</p>
+    </div>
+    <div style="padding:24px;background:var(--bg-2,#f5f4f1);border-radius:12px;border:1px solid var(--border,rgba(26,24,22,0.08));">
+      <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3,rgba(26,24,22,0.45));margin-bottom:10px;">Samsung Health連携</div>
+      <p style="font-size:15px;line-height:1.55;color:var(--text,#1a1816);">WatchのバイオメトリクスがリアルタイムでPhoneとTabに連携される。AIが睡眠・ストレス・カレンダー密度をクロス分析し、より良いスケジューリングを提案する。</p>
+    </div>
+    <div style="padding:24px;background:var(--bg-2,#f5f4f1);border-radius:12px;border:1px solid var(--border,rgba(26,24,22,0.08));">
+      <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3,rgba(26,24,22,0.45));margin-bottom:10px;">Agentic Galaxy AI</div>
+      <p style="font-size:15px;line-height:1.55;color:var(--text,#1a1816);">MWC 2026でSamsungは、Watch・EarBuds・Phone・TV・スマート家電を単一AIペルソナとして接続するエージェントレイヤーを発表した。</p>
+    </div>
+  </div>
+
+  <div style="max-width:820px;margin:0 auto;padding:28px 32px;background:var(--bg,#fdfcfa);border:1px solid var(--border,rgba(26,24,22,0.10));border-radius:14px;" data-enter class="d3">
+    <p style="font-size:16px;line-height:1.6;color:var(--text,#1a1816);">Samsungは通知をルーティングする。Samsungはオーディオを切り替える。Samsungはバイオメトリクスを読む。<strong>Samsungがまだ持っていないのは、共有のデザイン言語だ</strong> — 各サーフェスに対して、その固有の語彙に合った形で情報を成形する文法。それがイネスの3日間で露わになったものだ。</p>
+  </div>
+</section>
+
+
+<!-- ───── S6 · setup — 3つのTokenが核心を担う ───── -->
+<section class="section" id="setup" style="grid-template-columns:1fr;gap:40px;padding-top:60px;padding-bottom:90px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">フレームワーク、一息で</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      3つのTokenが<br>核心を担う。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto 14px;text-align:center;">
+      <strong>8つのContext Token</strong>のうち、3つがこのフレームワークのほぼすべてを説明する。
+      <strong style="color:var(--tok-cog);">Cognitive Load</strong> — どれだけ大きく伝えるか。
+      <strong style="color:var(--tok-soc);">Social Exposure</strong> — 何を見せて安全か。
+      <strong style="color:var(--tok-form);">Form Factor</strong> — どう形にするか。
+    </p>
+    <p class="lede d3" data-enter style="max-width:680px;margin:0 auto 14px;text-align:center;">
+      各Tokenは<strong>Context Brain · Level 3 — Now Layer</strong>で保持され、数秒ごとに更新される部屋のライブリード。<strong>クロスサーフェス文法</strong>は、その3つのシグナルを読み取り、サーフェスごとに何がどんな形で届くかを決めるルールレイヤーだ。
+    </p>
+    <p class="lede d3" data-enter style="max-width:680px;margin:0 auto;text-align:center;">
+      クロスサーフェス文法は、提案されたデザイン言語レイヤーだ — Matterがスマートホームデバイス通信を標準化したのと同様に、Takaoがコミュニティ標準として提唱する文法。Samsung・Apple・Google・Microsoftはそれぞれ今日すでにその断片を持っている。この提案は、それらの実装を超えた統一言語だ。
+    </p>
+  </div>
+
+  <!-- 3-Token chip row -->
+  <div data-enter class="d2" style="width:100%;max-width:1100px;margin:0 auto;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+      <div style="border:1px solid var(--border);border-radius:12px;padding:22px 24px;background:var(--bg);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--tok-cog);"></div>
+        <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--tok-cog);margin-bottom:8px;">Token · Cognitive Load</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.2px;margin-bottom:6px;">どれだけ大きく伝えるか。</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6;">時刻、カレンダーの密度、直近の活動から推定する。起床直後 = ささやき。深い集中中 = 緊急以外は無音。</div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:12px;padding:22px 24px;background:var(--bg);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--tok-soc);"></div>
+        <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--tok-soc);margin-bottom:8px;">Token · Social Exposure</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.2px;margin-bottom:6px;">何を見せて安全か。</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6;">周囲に誰がいるかを読む。一人 = フルプレビュー。パートナーが近くにいる = ギフト系メッセージを非表示。画面共有中 = 個人的な内容をすべて非表示。</div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:12px;padding:22px 24px;background:var(--bg);position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--tok-form);"></div>
+        <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--tok-form);margin-bottom:8px;">Token · Form Factor</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.2px;margin-bottom:6px;">どう形にするか。</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6;">どのサーフェスが受信しているか、どう持たれているかを読む。Watchを手首に + 移動中 = 俳句。Budsを装着 + 両手がふさがっている = 音声。TVがリビングにある = 仕事系を完全に非表示。</div>
+      </div>
+    </div>
+    <p class="ui-caption" style="max-width:900px;margin:22px auto 0;">
+      <span class="ui-caption__kind">Concept · 3つのToken</span>
+      8つのContext Tokenのうちの3つ。本ケーススタディ全体でアクセントカラーを統一して使用する。残りの5つのToken（Physical State、Priority Weight、Feasibility、Autonomy Dial、Disclosure Dial）は言及されるが、サーフェスルーティングの主役ではない。
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     BACKSTAGE CLUSTER (Act I, opt-in for the reader)
+     6 of 9 canonical Backstage types · per CASE_STUDY_FORMAT.md §
+     Tokens as Contract · Brain API · Rule Engine ·
+     AX Composition · Federation · Decision Trace
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── S6 · contract — Tokens as Contract ───── -->
+<section class="section section--backstage" id="contract">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Backstage · TokenはContractである</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      3つのToken。<br>1つの機械可読Contract。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:700px;margin:0 auto;text-align:center;">
+      すべてのTokenには名前、型、ドメイン、リフレッシュレート、スキーマバージョンがある。同じJSONオブジェクトがWatch、Phone OS、TV、キッチンディスプレイに — 変換なしで届く。
+    </p>
+  </div>
+
+  <div class="bs-contract" data-enter>
+    <div class="bs-contract__side">
+      <div class="bs-contract__label">Narrative</div>
+      <div class="bs-contract__head">Cognitive Load</div>
+      <div class="bs-contract__prose">
+        Brainがどれだけ大きく振る舞ってよいか。計測値ではなく推定値 — 時刻、カレンダーの密度、直近の入力活動の関数。手首は通知を上げる前にこれを読む。TVは点灯する前にこれを読む。キッチンディスプレイはレシピを提案する前にこれを読む。
+      </div>
+    </div>
+    <div class="bs-contract__side">
+      <div class="bs-contract__label">Machine</div>
+      <pre class="bs-contract__code">{
+  "token":     "cognitive_load",
+  "version":   "2.0",
+  "type":      "float",
+  "domain":    [0.0, 1.0],
+  "estimator": "time × calendar × activity",
+  "refresh_ms": 4000,
+  "consumers": [
+    "watch","buds","phone",
+    "tv","kitchen_display"
+  ]
+}</pre>
+    </div>
+  </div>
+  <p class="ui-caption" style="max-width:900px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Backstage · Tokenスキーマ</span>
+    3つのTokenすべてが同じ形を持つ。非推奨契約付きでバージョン管理されている — v1.0で動いている2025年のサーフェスでも、2027年のBrainからの射影を受け取れる。
+  </p>
+</section>
+
+
+<!-- ───── S7 · brain-api — Brain API ───── -->
+<section class="section section--backstage" id="brain-api">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Backstage · Brain API</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      5つのサーフェス。<br>5つのサブスクリプション。<br>5つのスコープ。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:700px;margin:0 auto;text-align:center;">
+      各サーフェスは読み取るTokenと書き込むTokenを宣言する。<strong>権限はAPIレイヤーで強制 — コピーレイヤーではなく。</strong>
+    </p>
+  </div>
+
+  <div class="bs-panel" data-enter style="margin-bottom:18px;max-width:1100px;">
+    <div class="bs-panel__chip">SUBSCRIPTION CALL</div>
+    <div class="bs-panel__head">brain.subscribe([...])</div>
+<pre><span class="cmt">// surface registers its access to live Token state</span>
+brain.subscribe({
+  surface: <span class="str">"watch"</span>,
+  read:    [<span class="key">"cognitive_load"</span>, <span class="key">"form_factor"</span>, <span class="key">"priority_weight"</span>],
+  write:   [<span class="key">"physical_state"</span>],
+  refresh: <span class="str">"on_change"</span>
+});</pre>
+  </div>
+
+  <div class="bs-matrix" data-enter>
+    <div class="bs-matrix__row" style="background:rgba(240,236,228,0.04);">
+      <div class="bs-matrix__surface" style="color:rgba(240,236,228,0.55);">Surface</div>
+      <div class="bs-matrix__perms" style="color:rgba(240,236,228,0.55);">Tokens it consumes</div>
+      <div class="bs-matrix__access" style="color:rgba(240,236,228,0.55);">Access</div>
+    </div>
+    <div class="bs-matrix__row">
+      <div class="bs-matrix__surface">Watch</div>
+      <div class="bs-matrix__perms">cognitive_load · form_factor · priority_weight</div>
+      <div class="bs-matrix__access write">read + write</div>
+    </div>
+    <div class="bs-matrix__row">
+      <div class="bs-matrix__surface">EarBuds</div>
+      <div class="bs-matrix__perms">cognitive_load · form_factor · physical_state</div>
+      <div class="bs-matrix__access read">read</div>
+    </div>
+    <div class="bs-matrix__row">
+      <div class="bs-matrix__surface">Phone</div>
+      <div class="bs-matrix__perms">all 8 Tokens</div>
+      <div class="bs-matrix__access write">read + write</div>
+    </div>
+    <div class="bs-matrix__row">
+      <div class="bs-matrix__surface">TV</div>
+      <div class="bs-matrix__perms">social_exposure · form_factor · feasibility</div>
+      <div class="bs-matrix__access read">read (ambient)</div>
+    </div>
+    <div class="bs-matrix__row">
+      <div class="bs-matrix__surface">Kitchen Display</div>
+      <div class="bs-matrix__perms">cognitive_load · form_factor · physical_state</div>
+      <div class="bs-matrix__access read">read</div>
+    </div>
+  </div>
+  <p class="ui-caption" style="max-width:900px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Backstage · Brain API</span>
+    「Watchは3つのTokenしか見ない」はコピーの中の主張ではなく — APIレイヤーで強制されている。Phoneが唯一のフル読み書き権限を持つ理由は、Phoneこそユーザーが明示的に好みを宣言する場所だからだ。
+  </p>
+</section>
+
+
+<!-- ───── S8 · rule-engine — Rule Engine Pipeline ───── -->
+<section class="section section--backstage" id="rule-engine">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Backstage · Rule Engineパイプライン</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      同じエンジン。<br>5つのレンダラー。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:700px;margin:0 auto;text-align:center;">
+      Token状態が入る。ルールが発火する。サーフェス固有のUIコマンドが出る。すべてのサーフェスが同じエンジンを動かす — 違うのはレンダラーだけ。
+    </p>
+  </div>
+
+  <div class="bs-pipeline" data-enter>
+    <div class="bs-pipeline__col">
+      <div class="bs-pipeline__col-label">IN · Token state</div>
+<pre style="margin:0;font-size:11.5px;line-height:1.55;">{
+  cognitive_load:  <span class="str">0.18</span>,
+  social_exposure: <span class="str">"alone"</span>,
+  form_factor:     <span class="str">"watch"</span>,
+  time:            <span class="str">"07:00"</span>,
+  priority_weight: <span class="str">0.84</span>
+}</pre>
+    </div>
+    <div class="bs-pipeline__arrow">→</div>
+    <div class="bs-pipeline__col">
+      <div class="bs-pipeline__col-label">ENGINE · Rule eval</div>
+<pre style="margin:0;font-size:11.5px;line-height:1.55;"><span class="cmt">match Watch + just-woke:</span>
+  surface_count: <span class="str">3</span>
+  format:        <span class="str">"haiku"</span>
+  haptic:        <span class="str">"single"</span>
+
+<span class="cmt">defer 20 items:</span>
+  to:   <span class="str">"phone"</span>
+  when: <span class="str">"cl &gt; 0.4"</span></pre>
+    </div>
+    <div class="bs-pipeline__arrow">→</div>
+    <div class="bs-pipeline__col">
+      <div class="bs-pipeline__col-label">OUT · UI command</div>
+<pre style="margin:0;font-size:11.5px;line-height:1.55;">watch.render({
+  layout:      <span class="str">"three-line"</span>,
+  items:       [...top3],
+  haptic:      <span class="str">"single"</span>,
+  defer_count: <span class="str">20</span>
+})</pre>
+    </div>
+  </div>
+  <p class="ui-caption" style="max-width:900px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Backstage · Rule Engine</span>
+    同じエンジンがすべてのサーフェスで動く。違いはその後のレンダラー — Watchは3行を描く。EarBudsは14秒の音声クリップを合成する。TVは仕事メールの送信者をすべて非表示にする。
+  </p>
+</section>
+
+
+<!-- ───── S9 · composition — AX Pattern Composition ───── -->
+<section class="section section--backstage" id="composition">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Backstage · AXパターンの合成</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      3つのパターンが組み合わさる —<br>そしてTag Heurのサプライズが金曜日を生き延びる。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:700px;margin:0 auto;text-align:center;">
+      パターンはフラットなカタログではない。組み合わさる。21:14の夜のシーンは、3つのパターンで構築されている — それぞれに名前があり、それぞれが正式定義され、それぞれが<code>CONTEXT_GRAMMAR_TERMS.md</code>に記載されている。
+    </p>
+  </div>
+
+  <div class="bs-composition" data-enter>
+    <div class="bs-composition__cards">
+      <div class="bs-composition__card">
+        <div class="bs-composition__card-id">Pattern · P5-A</div>
+        <div class="bs-composition__card-name">Surface Vocabulary</div>
+        <div class="bs-composition__card-desc">各サーフェスにはハードウェアが決める固有の形がある。Phoneは深さで、プライベート。ルーティング層はそれを尊重する。</div>
+      </div>
+      <div class="bs-composition__card">
+        <div class="bs-composition__card-id">Pattern · P5-B</div>
+        <div class="bs-composition__card-name">Moment Composer</div>
+        <div class="bs-composition__card-desc">Cognitive Load + Social Exposure + Form Factorを合成し、1つのサーフェスに合わせた提案を生成する。</div>
+      </div>
+      <div class="bs-composition__card">
+        <div class="bs-composition__card-id">Pattern · P5-C</div>
+        <div class="bs-composition__card-name">Preview Redaction</div>
+        <div class="bs-composition__card-desc">Social Exposureが未承認の視線を検出すると、ロック画面のプレビューが1行に折りたたまれる。リアクティブ。</div>
+      </div>
+      <div class="bs-composition__card">
+        <div class="bs-composition__card-id">Existing · P1-D2</div>
+        <div class="bs-composition__card-name">Disclosure Matrix</div>
+        <div class="bs-composition__card-desc">N個のエージェント × Mドメイン × M人 = NM²のアクセスルール。Project 01で既に正規化済み。</div>
+      </div>
+    </div>
+    <div class="bs-composition__compose">↓ &nbsp; compose &nbsp; ↓</div>
+    <div class="bs-composition__scene">
+      <strong style="color:#f0ece4;">シーン · 21:14、コペンハーゲン、ソファ。</strong>Tag Heurの発送メールが届く。Surface VocabularyがPhoneを選ぶ。Moment Composerが<em style="color:#c4a8e0;">パートナーが近くにいる</em> + <em style="color:#c4a8e0;">ギフト系購入</em>を読み取る。Preview Redactionが発火。ロック画面は：<em style="color:#e8b870;">"メール1件 · タップして表示"</em>を表示。サプライズは守られた。マテオには見えない。
+    </div>
+  </div>
+  <p class="ui-caption" style="max-width:900px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Backstage · Composition</span>
+    パターンライブラリはボキャブラリーであって、Pinterestボードではない。同じパターンを組み合わせ直すと、次の章のWatch朝のブリーフィングになる。
+  </p>
+</section>
+
+
+<!-- ───── S10 · federation — Federation (multi-vendor) ───── -->
+<section class="section section--backstage" id="federation">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Backstage · フェデレーション — マルチベンダーの現実</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      純粋なGalaxy家庭は存在する。<br>Galaxy + iPhone家庭の方がよく見られる。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:720px;margin:0 auto;text-align:center;">
+      マテオのPhoneはiPhoneだ。Brainは彼のデバイスを所有せずに近接性を読み取らなければならない。<strong>クロスサーフェス文法はベンダーの上位レイヤーである</strong> — スマートホームにとってのMatter、認証にとってのOAuth、認証情報にとってのPasskeysのように。<em style="font-style:normal;color:#e8b870;">提案中 — 現時点では未出荷。</em>
+    </p>
+  </div>
+
+  <div class="bs-fed" data-enter>
+    <div class="bs-fed__map">
+      <div class="bs-fed__cell">
+        <div class="bs-fed__cell-surface">Watch</div>
+        <div class="bs-fed__cell-vendor">Galaxy Watch 7</div>
+        <div class="bs-fed__cell-runtime">on-device · Samsung</div>
+      </div>
+      <div class="bs-fed__cell">
+        <div class="bs-fed__cell-surface">EarBuds</div>
+        <div class="bs-fed__cell-vendor">Galaxy Buds 3 Pro</div>
+        <div class="bs-fed__cell-runtime">on-device · Samsung</div>
+      </div>
+      <div class="bs-fed__cell">
+        <div class="bs-fed__cell-surface">Phone · Ines</div>
+        <div class="bs-fed__cell-vendor">Galaxy S25 Ultra</div>
+        <div class="bs-fed__cell-runtime">on-device · Samsung</div>
+      </div>
+      <div class="bs-fed__cell">
+        <div class="bs-fed__cell-surface">Phone · Mateo</div>
+        <div class="bs-fed__cell-vendor">iPhone 17 Pro</div>
+        <div class="bs-fed__cell-runtime" style="color:#e8b870;">federated · Apple</div>
+      </div>
+      <div class="bs-fed__cell">
+        <div class="bs-fed__cell-surface">TV / Kitchen</div>
+        <div class="bs-fed__cell-vendor">Samsung Frame · Family Hub</div>
+        <div class="bs-fed__cell-runtime">on-device · Samsung</div>
+      </div>
+    </div>
+    <div class="bs-fed__why">
+      <div class="bs-fed__why-card">
+        <div class="bs-fed__why-vendor">Apple</div>
+        <div class="bs-fed__why-claim">UWB近接はiPhoneに既にある。フェデレーション契約は既存の無線を再利用する。新しいチップは不要。</div>
+      </div>
+      <div class="bs-fed__why-card">
+        <div class="bs-fed__why-vendor">Samsung</div>
+        <div class="bs-fed__why-claim">SmartThingsはすでに6つのサーフェスをオーケストレーションしている。クロスサーフェス文法はその上に欠けているルーティング層だ。</div>
+      </div>
+      <div class="bs-fed__why-card">
+        <div class="bs-fed__why-vendor">Google</div>
+        <div class="bs-fed__why-claim">Gemini Liveはすでに認知状態を推定している。フェデレーションにより、Galaxy手首にオーナーシップなしで通知できる。</div>
+      </div>
+      <div class="bs-fed__why-card">
+        <div class="bs-fed__why-vendor">Microsoft</div>
+        <div class="bs-fed__why-claim">Copilot's "presence-aware" is for work. The same primitive applies to home — without enterprise lock-in.</div>
+      </div>
+    </div>
+  </div>
+  <p class="ui-caption" style="max-width:900px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Backstage · フェデレーション</span>
+    Matterは発表から出荷まで5年かかった。Context Tokenのフェデレーション契約も同様の軌跡を辿るだろう。このケーススタディは「これが既に存在する」と主張しているのではなく — 「この設計はそれが存在する場合にのみ機能する」と主張している。
+  </p>
+</section>
+
+
+<!-- ───── S11 · telemetry — Decision Trace ───── -->
+<section class="section section--backstage" id="telemetry">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Backstage · 判断トレース</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      なぜプレビューが非表示になったのか？<br>BrainがLogを見せる。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:700px;margin:0 auto;text-align:center;">
+      クロスサーフェス文法のすべての決定はトレース可能だ。読者は<em style="font-style:normal;">なぜこれか</em>と問い、BrainがToken by Token、ルール by ルールで答える。
+    </p>
+  </div>
+
+  <div class="bs-trace" data-enter>
+    <div class="bs-trace__header">
+      <span>decision_id · 7e3f-21:14-01</span>
+      <span>2.4 ms</span>
+    </div>
+    <div class="bs-trace__row">
+      <div class="bs-trace__kind tok">TOKEN</div>
+      <div class="bs-trace__detail">social_exposure = <strong style="color:#f0ece4;">"partner-nearby"</strong> &nbsp;<span style="color:rgba(240,236,228,0.55);">// Mateo's iPhone within 1.8 m via UWB</span></div>
+      <div class="bs-trace__verdict ok">read</div>
+    </div>
+    <div class="bs-trace__row">
+      <div class="bs-trace__kind tok">TOKEN</div>
+      <div class="bs-trace__detail">form_factor = <strong style="color:#f0ece4;">"phone, face-up, table"</strong> &nbsp;<span style="color:rgba(240,236,228,0.55);">// gyro + lock-screen state</span></div>
+      <div class="bs-trace__verdict ok">read</div>
+    </div>
+    <div class="bs-trace__row">
+      <div class="bs-trace__kind rule">RULE</div>
+      <div class="bs-trace__detail">incoming.email matched against <strong style="color:#f0ece4;">wishlist.gift_class</strong> &nbsp;<span style="color:rgba(240,236,228,0.55);">// originated from Ines.wishlist</span></div>
+      <div class="bs-trace__verdict ok">match</div>
+    </div>
+    <div class="bs-trace__row">
+      <div class="bs-trace__kind rule">RULE</div>
+      <div class="bs-trace__detail">apply <strong style="color:#f0ece4;">Preview Redaction</strong> → preview.collapse(<span style="color:#e8b870;">"1 new email · tap to view"</span>)</div>
+      <div class="bs-trace__verdict ok">fire</div>
+    </div>
+    <div class="bs-trace__row">
+      <div class="bs-trace__kind rule">RULE</div>
+      <div class="bs-trace__detail">apply <strong style="color:#f0ece4;">Focus Mode (iOS legacy)</strong> &nbsp;<span style="color:rgba(240,236,228,0.55);">// not applicable — email isn't a Focus category</span></div>
+      <div class="bs-trace__verdict skip">skip</div>
+    </div>
+
+    <div class="bs-trace__alts">
+      <div class="bs-trace__alts-label">Alternatives weighed</div>
+      <div class="bs-trace__alt">
+        <span>"1 new email · Tag Heuer" &nbsp;<span style="color:rgba(240,236,228,0.55);">(sender visible, body hidden)</span></span>
+        <span class="bs-trace__alt-conf">conf 0.41</span>
+      </div>
+      <div class="bs-trace__alt">
+        <span><strong style="color:#a4d4a8;">"1 new email · tap to view"</strong> &nbsp;<span style="color:rgba(240,236,228,0.55);">(sender + body hidden) ✓</span></span>
+        <span class="bs-trace__alt-conf" style="color:#a4d4a8;">conf 0.86</span>
+      </div>
+      <div class="bs-trace__alt">
+        <span>Suppress arrival entirely &nbsp;<span style="color:rgba(240,236,228,0.55);">(no notification at all)</span></span>
+        <span class="bs-trace__alt-conf">conf 0.23</span>
+      </div>
+    </div>
+    <div class="bs-trace__footer">trace_id · 7e3f-21:14-01 &nbsp; · &nbsp; stored 30d &nbsp; · &nbsp; queryable via <code style="color:rgba(240,236,228,0.6);">brain.trace(id)</code></div>
+  </div>
+  <p class="ui-caption" style="max-width:900px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Backstage · Telemetry</span>
+    トレースとは、「AIが決めた」と「AIが<em>これ</em>を、これらの理由で決めた」の違いだ。これがなければ、クロスサーフェス文法は魔法のように見える。Samsungで魔法は出荷できない。
+  </p>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 02 · TUESDAY, APRIL 21
+     (3 scenes — Watch / EarBuds / Phone)
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Chapter 02 photo divider -->
+<section id="ch02-enter" aria-label="Chapter 02 · A Tuesday in April" style="position:relative;width:100%;overflow:hidden;margin:60px 0 20px;">
+  <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+    <img src="../../images/p5-break-coffee.jpg"
+         alt="Chapter 02 · 2026年4月21日 火曜日 — コペンハーゲンの朝"
+         loading="lazy"
+         style="width:100%;height:100%;object-fit:cover;display:block;">
+    <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.62) 100%);"></div>
+    <div style="position:absolute;left:0;right:0;bottom:11%;text-align:center;padding:0 24px;">
+      <div style="font-family:var(--font-mono);font-size:clamp(11px, 0.9vw, 14px);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;">Chapter 02</div>
+      <div style="font-size:clamp(38px, 5vw, 64px);font-weight:500;letter-spacing:-1.8px;line-height:1.08;color:#fff;max-width:900px;margin:0 auto;text-shadow:0 4px 32px rgba(0,0,0,0.5);">2026年4月21日、火曜日。</div>
+      <div style="font-size:clamp(14px, 1vw, 17px);color:rgba(255,255,255,0.82);max-width:620px;margin:18px auto 0;font-weight:400;line-height:1.55;text-shadow:0 2px 16px rgba(0,0,0,0.4);">3つのサーフェス。文法が場を読んだ、3つの瞬間。</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S3 · morning — 07:04 · Watch · イネス起床 ───── -->
+<section class="section" id="morning">
+  <div class="section__text">
+    <div class="eyebrow" data-enter>07:04 · Watch · イネス起床</div>
+    <h2 class="title d1" data-enter>
+      手首に<br>3行だけ。
+    </h2>
+    <p class="lede d2" data-enter>
+      イネスが目を開ける。Watchに表示されるのは3件だけ — 火曜日07:04に本当に必要なものだけ。
+    </p>
+    <p class="lede d3" data-enter style="margin-top:14px;">
+      残り20件の通知はPhoneに後送りされ、Cognitive Loadが「起床直後」の閾値を超えるまでキューに入る。
+    </p>
+    <p class="lede d4" data-enter style="margin-top:14px;">
+      時刻は主役の位置にある。手首はまだ手首だ。<strong>この決定を文法が下したのは、彼女が腕を上げる前の2.1ms。</strong>
+    </p>
+  </div>
+  <div class="section__visual d2" data-enter>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="galaxywatch galaxywatch--lg" style="--gw2-size:340px;">
+        <img class="galaxywatch__chrome"
+             src="../../../Global_Assets/DeviceFrame/GalaxyWatch.svg"
+             alt="" aria-hidden="true">
+        <div class="galaxywatch__screen">
+          <iframe src="../../../ui-screens/p5-v2/watch-face-morning.html?noframe=1"
+                  loading="lazy"
+                  scrolling="no"
+                  title="Galaxy Watch · 朝 — 3件に絞り込まれた通知"></iframe>
+        </div>
+      </div>
+      <p class="ui-caption" style="margin-top:20px;text-align:center;max-width:360px;">
+        <span class="ui-caption__kind">User UI · Galaxy Watch</span>
+        07:04. Cognitive Load = 0.18（起床直後）。3件が浮上。20件が後送り。時刻はあるべき場所に。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S4 · commute — 08:24 · EarBuds · Nørreportへのデンマーク国鉄 ───── -->
+<section class="section" id="commute" style="grid-template-columns:1fr;gap:40px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">08:24 · EarBuds · Nørreportへのデンマーク国鉄</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      14秒。<br>曲と曲の合間に。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:660px;margin:0 auto 12px;text-align:center;">
+      イネスはNørreport行きの電車の中。EarBudsをつけて音楽を聴いている。PMがQ1デッキについて長いSlackメッセージを投稿する。
+    </p>
+    <p class="lede d3" data-enter style="max-width:660px;margin:0 auto;text-align:center;">
+      クロスサーフェス文法がそれを受け取る。Watchは静かなまま。Phoneはポケットに入ったまま。<strong>曲の切れ目に14秒のTTSが流れる — 要点だけ。音楽が再開する。</strong>
+    </p>
+  </div>
+
+  <div data-enter class="d2" style="width:100%;display:flex;justify-content:center;">
+    <div>
+      <div class="mismatch-wrap">
+        <div class="mismatch-device">
+          <div class="mismatch-device__label">Slack · #product · PM</div>
+          <div class="mismatch-device__content">
+            <span class="txt">Can you review the Q1 strategy deck before the 10am standup? I added two slides about the retail expansion, the second one has the revised forecast we discussed on Friday</span>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.8px;color:var(--text-3);text-transform:uppercase;margin-top:4px;">フルメッセージ · 38語</div>
+        </div>
+        <div class="mismatch-arrow">→</div>
+        <div class="mismatch-device">
+          <div class="mismatch-device__label">EarBuds · TTS · 14秒</div>
+          <div class="mismatch-device__content">
+            <span class="txt" style="color:var(--tok-form);">"PMから：10時スタンドアップ前にQ1デッキをレビューして。"</span>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.8px;color:var(--tok-form);text-transform:uppercase;margin-top:4px;">サーフェスに最適化 · ハンズフリー</div>
+        </div>
+      </div>
+      <p class="ui-caption" style="max-width:580px;margin:22px auto 0;">
+        <span class="ui-caption__kind">Concept · EarBudsルーティング</span>
+        Form Factor = EarBuds装着中 + 移動中。Cognitive Load = 中程度。文法は音声にルーティングし、要点に圧縮して、曲の切れ目に流す。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S5 · evening — 21:14 · Phone · サプライズは守られた ───── -->
+<section class="section" id="evening" style="background:#08070b;color:#f0ece4;">
+  <style>
+    #evening .eyebrow { color: rgba(240,236,228,0.55); }
+    #evening .title { color: #f0ece4; }
+    #evening .lede { color: rgba(240,236,228,0.72); }
+    #evening .lede strong { color: #f0ece4; }
+  </style>
+  <div class="section__text">
+    <div class="eyebrow" data-enter>21:14 · Phone · リビングルーム</div>
+    <h2 class="title d1" data-enter>
+      サプライズは<br>金曜日まで生き延びた。
+    </h2>
+    <p class="lede d2" data-enter>
+      21:14。ソファ。マテオが隣で読書している — 40cm先。
+    </p>
+    <p class="lede d3" data-enter style="margin-top:14px;">
+      イネスのPhoneに発送メールが届く。昨日注文したマテオへの誕生日プレゼント — Tag Heuerの時計だ。Phoneはコーヒーテーブルに上向きで置かれている。
+    </p>
+    <p class="lede d4" data-enter style="margin-top:14px;">
+      ロック画面に表示されるのは：<em style="font-style:normal;display:block;margin-top:8px;color:#fff;"><strong>"新しいメール 1件 · タップして表示"</strong></em>
+    </p>
+    <p class="lede d4" data-enter style="margin-top:14px;">
+      Social Exposureが部屋を読んだ。マテオのiPhoneがUWBで1.8m先にあった。文法はメールをウィッシュリストのギフトクラスと照合し、画面が点灯する前にプレビューを非表示にした。<strong>マテオは"Tag Heuer"を見ることがない。</strong>
+    </p>
+  </div>
+
+  <div class="section__visual d2" data-enter>
+    <div class="preview-before" id="preview-safe">
+      <div class="preview-before__status">
+        <span>21:14</span>
+        <span>5G · 84%</span>
+      </div>
+      <div class="preview-before__time">9:14</div>
+      <div class="preview-before__date">Tuesday, Apr 21</div>
+      <div class="preview-before__notif">
+        <div class="preview-before__head">
+          <span class="preview-before__sender">Mail</span>
+          <span class="preview-before__time-small">now</span>
+        </div>
+        <div class="preview-before__title">新しいメール 1件</div>
+        <div class="preview-before__msg" style="color:rgba(240,236,228,0.55);">タップして表示</div>
+      </div>
+    </div>
+    <p class="ui-caption" style="margin-top:20px;text-align:center;max-width:360px;color:rgba(240,236,228,0.72);">
+      <span class="ui-caption__kind" style="background:rgba(196,168,224,0.12);color:#c4a8e0;">User UI · Galaxy S25</span>
+      21:14. Social Exposure = パートナー近接。Preview Redaction発動。"Tag Heuer"は表面に出ない。誕生日のサプライズは生き延びた。
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 03 · THE INSIGHT — photo divider
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Chapter 03 photo divider -->
+<section id="ch03-enter" aria-label="Chapter 03 · The Insight" style="position:relative;width:100%;overflow:hidden;margin:60px 0 20px;">
+  <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+    <img src="../../images/p5-photo-decision-moment.jpg"
+         alt="Chapter 03 · 洞察 — 何がルールを変えるのか"
+         loading="lazy"
+         style="width:100%;height:100%;object-fit:cover;display:block;">
+    <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.62) 100%);"></div>
+    <div style="position:absolute;left:0;right:0;bottom:11%;text-align:center;padding:0 24px;">
+      <div style="font-family:var(--font-mono);font-size:clamp(11px, 0.9vw, 14px);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;">Chapter 03</div>
+      <div style="font-size:clamp(38px, 5vw, 64px);font-weight:500;letter-spacing:-1.8px;line-height:1.08;color:#fff;max-width:900px;margin:0 auto;text-shadow:0 4px 32px rgba(0,0,0,0.5);">洞察。</div>
+      <div style="font-size:clamp(14px, 1vw, 17px);color:rgba(255,255,255,0.82);max-width:620px;margin:18px auto 0;font-weight:400;line-height:1.55;text-shadow:0 2px 16px rgba(0,0,0,0.4);">3つのサーフェスが彼女を裏切った。同じハードウェアが彼女を救うことができる。ルールがデザインだ。</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S15 · surface-vocab — AXパターン · Surface Vocabulary ───── -->
+<section class="section" id="surface-vocab" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">AXパターン · Surface Vocabulary</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      Watchは小さなPhoneではない。<br>5つのサーフェス、5つの母国語。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto 12px;text-align:center;">
+      Watchは俳句で話す。EarBudsはひそひそ声。TVはアナウンスする。キッチンディスプレイは両手がふさがった人への付箋。Phoneはプライベートオフィス。
+    </p>
+    <p class="lede d3" data-enter style="max-width:680px;margin:0 auto;text-align:center;">
+      これらはスタイル選択ではない。物理学が刻印したハードウェア制約だ。5つのサーフェスすべてに住もうとするデザイン言語は、5つの母国語を流暢に話さなければならない。
+    </p>
+  </div>
+
+  <div data-enter class="d2" style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="bts-frame bts-frame--floating" data-kind="concept">
+      <div class="bts-frame__chip">CONCEPT · Surface Vocabulary</div>
+      <div class="bts-frame__note">What each surface can and cannot say.</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div class="iframe-fade" style="width:100%;aspect-ratio:16/10;border-radius:8px;overflow:hidden;background:transparent;">
+          <iframe src="../../../ui-screens/p5-v2/surface-vocabulary-map.html?noframe=1"
+                  loading="lazy"
+                  scrolling="no"
+                  title="Surface Vocabulary Map — 5 surfaces, 5 dialects"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+      </div>
+    </div>
+    <p class="ui-caption">
+      <span class="ui-caption__kind">Concept · Surface Vocabulary</span>
+      5つのフォームファクター、5つの表現文法。深さ、プライバシー、インタラクションの形はハードウェアによって異なる — デザイン言語はこれらの制約に反してではなく、その上に構築される。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── S16 · rules — Three Tokens. Five surfaces. Fifteen rules. ───── -->
+<section class="section" id="rules" style="grid-template-columns:1fr;gap:40px;padding-top:60px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Concept · クロスサーフェス文法ルール</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      3つのToken。5つのサーフェス。<br>一日を決める15のルール。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:700px;margin:0 auto 14px;text-align:center;">
+      15のシグネチャーセル。それぞれが1つのルール：
+    </p>
+<pre data-enter class="d2" style="max-width:680px;margin:0 auto 18px;font-family:var(--font-mono);font-size:13px;line-height:1.7;color:var(--text-2);background:var(--gray-100);border:1px solid var(--border);border-radius:8px;padding:18px 22px;text-align:left;white-space:pre-wrap;">Social Exposure = partner-nearby + Surface = TV
+  → work notifications hidden entirely
+
+Cognitive Load = deep-focus + Surface = Watch
+  → highest-priority only · haptic
+
+Form Factor = EarBuds-primary + moving
+  → short text read aloud · never displayed</pre>
+    <p class="lede d3" data-enter style="max-width:700px;margin:0 auto;text-align:center;">
+      設定パネルではない。ユーザーが探す必要のある設定でもない。<strong>ユーザーが求める前にOSが語るデザイン言語。</strong>
+    </p>
+  </div>
+
+  <div data-enter class="d2" style="width:100%;max-width:1280px;margin:0 auto;">
+    <div class="bts-frame bts-frame--floating" data-kind="concept">
+      <div class="bts-frame__chip">CONCEPT · クロスサーフェス文法 Rules</div>
+      <div class="bts-frame__note">Signature artifact · 3 Tokens &times; 5 surfaces.</div>
+      <div class="bts-frame__body" style="margin-top:14px;">
+        <div class="iframe-fade" style="width:100%;aspect-ratio:16/10;border-radius:8px;overflow:hidden;background:transparent;">
+          <iframe src="../../../ui-screens/p5-v2/grammar-rules-table.html?noframe=1"
+                  loading="lazy"
+                  scrolling="no"
+                  title="クロスサーフェス文法 Rules — 3 Tokens x 5 surfaces"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+      </div>
+    </div>
+    <p class="ui-caption">
+      <span class="ui-caption__kind">Concept · クロスサーフェス文法ルール</span>
+      Project 05の中核となるデザインアーティファクト。行はToken状態、列はサーフェス、各セルはコンテキストを適切なデバイスの適切な形に変換するルール。
+    </p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 04 · THE SAME DAY, RESTORED — photo divider
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Chapter 04 photo divider -->
+<section id="ch04-enter" aria-label="Chapter 04 · The Same Day, Restored" style="position:relative;width:100%;overflow:hidden;margin:60px 0 20px;">
+  <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+    <img src="../../images/p5-break-afternoon.jpg"
+         alt="Chapter 04 · 同じ一日が、修復される — コペンハーゲンの午後"
+         loading="lazy"
+         style="width:100%;height:100%;object-fit:cover;display:block;">
+    <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.62) 100%);"></div>
+    <div style="position:absolute;left:0;right:0;bottom:11%;text-align:center;padding:0 24px;">
+      <div style="font-family:var(--font-mono);font-size:clamp(11px, 0.9vw, 14px);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;">Chapter 04</div>
+      <div style="font-size:clamp(38px, 5vw, 64px);font-weight:500;letter-spacing:-1.8px;line-height:1.08;color:#fff;max-width:900px;margin:0 auto;text-shadow:0 4px 32px rgba(0,0,0,0.5);">同じ一日が、修復される。</div>
+      <div style="font-size:clamp(14px, 1vw, 17px);color:rgba(255,255,255,0.82);max-width:620px;margin:18px auto 0;font-weight:400;line-height:1.55;text-shadow:0 2px 16px rgba(0,0,0,0.4);">同じ23件の通知。同じPMメッセージ。同じTag Heurのメール。3つのサーフェス、3つの異なる答え。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ───── S11 · watch — Morning, restored ───── -->
+<section class="section" id="watch">
+  <div class="section__text">
+    <div class="eyebrow" data-enter>AXパターン · Moment Composer · 07:00</div>
+    <h2 class="title d1" data-enter>
+      同じ23件の通知。<br>手首には3行だけ。
+    </h2>
+    <p class="lede d2" data-enter>
+      23件はまだ待っている。手首には3行だけが表示される。
+    </p>
+    <p class="lede d3" data-enter style="margin-top:14px;">
+      <strong style="color:var(--tok-cog);">Cognitive Load</strong>が「起床直後」と読む。<strong style="color:var(--tok-form);">Form Factor</strong>が「Watch = 一瞥」と読む。<strong>Moment Composer</strong>が重要な3件を選び、残りの20件をPhoneに送る — コーヒーを飲み終えた後に彼女を待つ。
+    </p>
+    <pre data-enter class="d4" style="font-family:var(--font-mono);font-size:12px;line-height:1.7;color:var(--text-2);background:var(--gray-100);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-top:14px;text-align:left;white-space:pre-wrap;">Pattern · Moment Composer
+  inputs : Cognitive Load · Form Factor ·
+           Priority Weight · Time-of-day
+  surface: Watch
+  output : 3 highest-priority items, one line each
+  defer  : 20 items → Phone, surfaced when CL &gt; 0.4</pre>
+  </div>
+
+  <div class="section__visual d2" data-enter>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+      <!-- Galaxy Watch canonical frame (SVG) -->
+      <div class="galaxywatch galaxywatch--lg" style="--gw2-size:360px;">
+        <img class="galaxywatch__chrome"
+             src="../../../Global_Assets/DeviceFrame/GalaxyWatch.svg"
+             alt="" aria-hidden="true">
+        <div class="galaxywatch__screen">
+          <iframe src="../../../ui-screens/p5-v2/watch-face-morning.html?noframe=1"
+                  loading="lazy"
+                  scrolling="no"
+                  title="Galaxy Watch · 朝のブリーフィング — 23件を3件に絞り込み"></iframe>
+        </div>
+      </div>
+      <p class="ui-caption" style="margin-top:20px;text-align:center;max-width:360px;">
+        <span class="ui-caption__kind">User UI · Galaxy Watch</span>
+        07:04。Cognitive Load（起床直後）× Form Factor（Watch = 一瞥）→ 3行を表示、22件はPhoneに後送り。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S12 · earbuds — Commute, restored ───── -->
+<section class="section" id="earbuds">
+  <div class="section__text">
+    <div class="eyebrow" data-enter>AXパターン · Moment Composer · 08:24 — Nørreport</div>
+    <h2 class="title d1" data-enter>
+      EarBuds装着。両手ふさがり。<br>14秒の音声。
+    </h2>
+    <p class="lede d2" data-enter>
+      同じSlackメッセージ。同じPM。今度は<strong style="color:var(--tok-form);">Form Factor</strong>が「EarBuds主体 · 移動中 · 両手ふさがり」と読む。テキストは一切表示されない。<strong>Moment Composer</strong>がそれを14秒の音声に変換し、2曲の間に滑り込ませる。
+    </p>
+    <p class="lede d3" data-enter>
+      Watchが1回のハプティックパルスを送る — <em style="font-style:normal;">要約配信完了</em>。Phoneはコートのポケットに収まったまま。<strong>それがEarBudsが実現するために作られたことだ。</strong>今日のOSがまだそれを頼んでいないだけで。
+    </p>
+  </div>
+
+  <div class="section__visual d2" data-enter>
+    <div style="width:min(580px,92%);">
+      <!-- EarBuds has no screen surface — Concept Explainer frame per UI taxonomy -->
+      <div class="iframe-fade" style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--bg-2, #f5f4f1);border:1px solid var(--border);">
+        <iframe src="../../../ui-screens/p5-v2/earbuds-audio-summary.html?noframe=1"
+                loading="lazy"
+                scrolling="no"
+                title="Galaxy Buds 3 Pro · audio summary — EarBuds surface vocabulary"
+                style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+      </div>
+      <p class="ui-caption">
+        <span class="ui-caption__kind">Concept · Galaxy Buds 3 Pro</span>
+        EarBudsには画面がない — これは音声再生状態のConceptモックだ。メッセージはテキストとして表示されることは一切なく、2曲の間に14秒の音声として滑り込む。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S13 · phone — Evening, restored ───── -->
+<section class="section" id="phone" style="background:#08070b;color:#f0ece4;">
+  <style>
+    #phone .eyebrow { color: rgba(240,236,228,0.55); }
+    #phone .title { color: #f0ece4; }
+    #phone .lede { color: rgba(240,236,228,0.72); }
+    #phone .lede strong { color: #f0ece4; }
+  </style>
+  <div class="section__text">
+    <div class="eyebrow" data-enter>AXパターン · Preview Redaction · 21:14</div>
+    <h2 class="title d1" data-enter>
+      同じメール。<br>サプライズは守られた。
+    </h2>
+    <p class="lede d2" data-enter>
+      同じTag Heurのメール。同じソファ。Phoneがまだ光る。ロック画面のプレビューは今：<em style="font-style:normal;"><strong>「メール1件 · タップして表示」</strong></em>と表示。送信者なし。件名なし。商品名なし。
+    </p>
+    <p class="lede d3" data-enter>
+      <strong style="color:#c4a8e0;">Social Exposure</strong>がマテオのiPhoneをイネスの2メートル以内で検知した。Rule EngineがメールをウィッシュリストとクロスチェックしてVerdictは「ギフト級」。<strong>Preview Redaction</strong>が発動。ロック画面が1行に折りたたまれる。イネスがPhoneを手に取ると、完全なメッセージがそこにある — 彼女の目だけを待ちながら。
+    </p>
+    <p class="lede d4" data-enter style="padding:14px 18px;border-left:3px solid #8fb89a;background:rgba(143,184,154,0.08);margin-top:8px;border-radius:0 6px 6px 0;color:rgba(240,236,228,0.82);">
+      Focus Modeはアプリでフィルタリングする。文法は部屋を読む。維持するカテゴリリストなし。「邪魔しないで」を覚えてオンにする必要なし。<strong>決定は部屋が変わるスピードで起きる。</strong>
+    </p>
+  </div>
+
+  <div class="section__visual d2" data-enter>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+      <div class="galaxys25 galaxys25--lg" style="--gs-size:280px;">
+        <div class="galaxys25__power" aria-hidden="true"></div>
+        <div class="galaxys25__vol" aria-hidden="true"></div>
+        <div class="galaxys25__screen galaxys25__screen--dark">
+          <iframe src="../../../ui-screens/p5-v2/phone-preview-redaction.html?noframe=1"
+                  loading="lazy"
+                  scrolling="no"
+                  title="Galaxy S25 · プレビュー非表示 — Social Exposure発動"
+                  style="width:100%;height:100%;border:0;display:block;background:transparent;"></iframe>
+        </div>
+        <div class="galaxys25__camera" aria-hidden="true"></div>
+      </div>
+      <p class="ui-caption" style="margin-top:24px;text-align:center;max-width:380px;color:rgba(240,236,228,0.72);">
+        <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">User UI · Galaxy S25</span>
+        21:14。マテオのiPhoneがUWBで&lt;2&nbsp;m。Social Exposureが発動。プレビューは「新しいメール 1件 · タップして表示」に折りたたまれる。Tag Heuerの名前は表面に出ない。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 05 · SAME GRAMMAR, DIFFERENT WORLD
+     (Generalization · Hospital ED + Future Form Factor + Metrics)
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Chapter 05 photo divider -->
+<section id="ch05-enter" aria-label="Chapter 05 · Same Grammar, Different World" style="position:relative;width:100%;overflow:hidden;margin:60px 0 20px;">
+  <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+    <img src="../../images/p5-break-meeting.jpg"
+         alt="Chapter 05 · 同じ文法、違う世界 — フレームワークが汎用であることの証明"
+         loading="lazy"
+         style="width:100%;height:100%;object-fit:cover;display:block;">
+    <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.62) 100%);"></div>
+    <div style="position:absolute;left:0;right:0;bottom:11%;text-align:center;padding:0 24px;">
+      <div style="font-family:var(--font-mono);font-size:clamp(11px, 0.9vw, 14px);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;">Chapter 05</div>
+      <div style="font-size:clamp(38px, 5vw, 64px);font-weight:500;letter-spacing:-1.8px;line-height:1.08;color:#fff;max-width:900px;margin:0 auto;text-shadow:0 4px 32px rgba(0,0,0,0.5);">同じ文法。違う世界。</div>
+      <div style="font-size:clamp(14px, 1vw, 17px);color:rgba(255,255,255,0.82);max-width:620px;margin:18px auto 0;font-weight:400;line-height:1.55;text-shadow:0 2px 16px rgba(0,0,0,0.4);">アパートの家庭を外に出す。病院に入れる。同じ3つのTokenが依然として一日を記述する。</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S21 · hospital — Same Grammar, Different World ───── -->
+<section class="section" id="hospital" style="grid-template-columns:1fr;gap:40px;padding-top:80px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">汎用化 · 同じ3つのToken · 救急外来で</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      家庭を動かす。<br>文法はまだ適合する。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:720px;margin:0 auto 14px;text-align:center;">
+      多忙な病棟シフトの医師も5つのサーフェスを使う。手首でバイタル。イヤピースでインターコム。タブレットでカルテ。病棟モニターでトリアージ。ナースステーション画面で申し送り。<strong>Cognitive Load。Social Exposure。Form Factor。</strong>同じ3つのToken。より高いリスク。
+    </p>
+    <p class="lede d3" data-enter style="max-width:720px;margin:0 auto;text-align:center;">
+      コードブルーでは、手首が1行に折りたたまれる：<em style="font-style:normal;">Bay 4 · 22歳 · 心室細動 · 2分</em>。インターコムが患者のアレルギーを耳元で囁く。病棟モニターが家族向け表示を消す — 見知らぬ人が医師の肩越しに予後を読まないように。<strong>同じエンジン。違うリスク。命が、サプライズではなく。</strong>
+    </p>
+  </div>
+
+  <div class="hospital-split" data-enter>
+    <div class="hospital-side">
+      <div class="hospital-side__label">Consumer · コペンハーゲンのアパート</div>
+      <div class="hospital-side__title">5つのサーフェス、3つのToken、静かな朝。</div>
+      <div class="hospital-table">
+        <div class="hospital-table__surface">Watch</div>
+        <div class="hospital-table__use">イネスへの3行ブリーフィング · 23件はPhoneに後送り</div>
+        <div class="hospital-table__surface">EarBuds</div>
+        <div class="hospital-table__use">通勤中の14秒音声要約</div>
+        <div class="hospital-table__surface">Phone</div>
+        <div class="hospital-table__use">パートナーが同室時にプレビューを非表示</div>
+        <div class="hospital-table__surface">TV</div>
+        <div class="hospital-table__use">家族が一緒に視聴中は仕事のメールを非表示</div>
+        <div class="hospital-table__surface">Kitchen</div>
+        <div class="hospital-table__use">両手が空いているときだけレシピを表示</div>
+      </div>
+    </div>
+    <div class="hospital-side">
+      <div class="hospital-side__label">病院 · 救急外来</div>
+      <div class="hospital-side__title">5つのサーフェス、3つのToken、命がかかっている。</div>
+      <div class="hospital-table">
+        <div class="hospital-table__surface">手首</div>
+        <div class="hospital-table__use">1行バイタル · 最高優先度アラームのみ</div>
+        <div class="hospital-table__surface">イヤピース</div>
+        <div class="hospital-table__use">コードチーム通信 · 入室前のアレルギー囁き</div>
+        <div class="hospital-table__surface">タブレット</div>
+        <div class="hospital-table__use">全カルテアクセス · 回診中はプライベートモード</div>
+        <div class="hospital-table__surface">病棟モニター</div>
+        <div class="hospital-table__use">家族が同席時は家族向け表示</div>
+        <div class="hospital-table__surface">ナースステーション</div>
+        <div class="hospital-table__use">引き継ぎキュー · トリアージ一覧 · 手がふさがっている</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="ui-caption" style="max-width:1100px;margin:24px auto 0;">
+    <span class="ui-caption__kind">Concept · Generalization</span>
+    同じ3つのToken。違うドメイン。証明はクロスサーフェス文法が家庭で機能することではない — デザイン言語がプリミティブを変えずに病院までスケールすることだ。ドメインは問わない。証明が重要だ。
+  </p>
+</section>
+
+
+<!-- ───── S22 · future-ar — Future Form Factor: Galaxy AR Glasses 2030 ───── -->
+<section class="section section--backstage" id="future-ar" style="padding-top:80px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">まだ存在しないサーフェス · 2030</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      Phoneサーフェスがなくなっても、<br>文法はまだ機能する。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:720px;margin:0 auto 14px;text-align:center;">
+      フレームワークを4年先に投影する。Galaxy ARグラス2030 — 6番目のサーフェス、それともPhoneの代替？どちらにせよ、文法は同じ3つのTokenを読む。<em style="font-style:normal;color:#e8b870;">アスピレーショナル — 現在は未出荷。</em>
+    </p>
+  </div>
+
+  <div class="future-block" data-enter>
+    <p class="future-block__quote">
+      イネスが2回瞬きをする。HUDが周辺視野に1行のブリーフィングを重ねる — 3つの会議、1つの決断、1件の後送りメッセージ。彼女の視線がマテオのそれと重なる。<em>HUDが自ら消える</em> — Social Exposureが親密な眼差しを検知した。文法は再学習を必要としなかった。「愛する人を見つめること」が何として読まれるかを学ぶだけでよかった。
+    </p>
+    <div class="future-block__cap">2030 · Galaxy ARグラス · 提案 · 同じ3つのToken</div>
+  </div>
+
+  <p class="ui-caption" style="max-width:900px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Concept · Future Form Factor</span>
+    クロスサーフェス文法は画面のために設計されたのではない。部屋のために設計された。ARは部屋のもう1つのサーフェスにすぎない — 同じCognitive Load、同じSocial Exposure、同じForm Factor。フレームワークは偶然に前方互換性を持ち、そして設計によって持つようになった。
+  </p>
+</section>
+
+
+<!-- ───── S23 · metrics — Indicative outcomes ───── -->
+<section class="section" id="metrics" style="grid-template-columns:1fr;gap:32px;padding-top:80px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:760px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">試算指標 · 2026年ベースラインとの比較</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      ルーティング層が変えること、<br>数字で。
+    </h2>
+    <p class="metrics-note" data-enter style="margin-top:14px;">試算 · シミュレーションコホート · n=120 · 2026年4月</p>
+  </div>
+
+  <div class="metrics-grid" data-enter>
+    <div class="metric-card">
+      <div class="metric-card__label">ユーザーが行うサーフェスルーティング決定</div>
+      <div class="metric-card__value">47/day <span class="arrow">→</span> 8/day</div>
+      <div class="metric-card__caption">以前はユーザーが行っていた決定（どのサーフェスを確認するか、どれを閉じるか）がルーティング層に移行。83%を吸収。</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-card__label">Watch判断2秒以内（成功率）</div>
+      <div class="metric-card__value">41 % <span class="arrow">→</span> 88 %</div>
+      <div class="metric-card__caption">Moment Composerが23の入力を3つのサーフェスに適した行に折りたたむ。手首が再び一瞥のデバイスになる。</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-card__label">ロック画面でのギフト系購入の漏洩</div>
+      <div class="metric-card__value">2.8 %/mo <span class="arrow">→</span> 0 %</div>
+      <div class="metric-card__caption">Preview Redactionがパートナー近接 + ウィッシュリスト一致で発動。シミュレーションコホートでは、設計によって排除。</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-card__label">通勤中のPhoneアンロック回数</div>
+      <div class="metric-card__value">18/hr <span class="arrow">→</span> 2/hr</div>
+      <div class="metric-card__caption">EarBudsがメッセージを運ぶ。ポケットは閉じたまま。WatchはついにWatchであることを許された。</div>
+    </div>
+  </div>
+
+  <p class="ui-caption" style="max-width:1100px;margin:24px auto 0;text-align:center;">
+    <span class="ui-caption__kind">Methodology</span>
+    v2ルーティング層を14日間ロールアウトウィンドウで使用した120人のシミュレーションコホートからの数字。2026年デフォルトのGalaxy動作をベースラインとしている。試算値であり、実際のデプロイからではない。
+  </p>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 06 · REFLECTION
+     (Process · JTBD · Unknowns · Takeaways)
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- Chapter 06 photo divider -->
+<section id="ch06-enter" aria-label="Chapter 06 · Reflection" style="position:relative;width:100%;overflow:hidden;margin:60px 0 20px;">
+  <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;">
+    <img src="../../images/p5-photo-manager-overview.jpg"
+         alt="Chapter 06 · 振り返り — 残したもの、捨てたもの、まだ答えていないこと"
+         loading="lazy"
+         style="width:100%;height:100%;object-fit:cover;display:block;">
+    <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.62) 100%);"></div>
+    <div style="position:absolute;left:0;right:0;bottom:11%;text-align:center;padding:0 24px;">
+      <div style="font-family:var(--font-mono);font-size:clamp(11px, 0.9vw, 14px);font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-bottom:14px;">Chapter 06</div>
+      <div style="font-size:clamp(38px, 5vw, 64px);font-weight:500;letter-spacing:-1.8px;line-height:1.08;color:#fff;max-width:900px;margin:0 auto;text-shadow:0 4px 32px rgba(0,0,0,0.5);">振り返り。</div>
+      <div style="font-size:clamp(14px, 1vw, 17px);color:rgba(255,255,255,0.82);max-width:620px;margin:18px auto 0;font-weight:400;line-height:1.55;text-shadow:0 2px 16px rgba(0,0,0,0.4);">残したもの。捨てたもの。人々が言ったこと。まだ答えていないこと。</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S24 · process — Decisions kept and cut ───── -->
+<section class="section section--backstage" id="process" style="padding-top:80px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:860px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">プロセス · 残した決断と捨てた決断</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      6つの選択。<br>それぞれの背後にある理由。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:700px;margin:0 auto;text-align:center;">
+      シニアポートフォリオはアウトプットだけでなく、理由を示す。Project 05で行われた6つの主要な決断 — 3つ残し、3つ切り捨て — それぞれの背景とともに。
+    </p>
+  </div>
+
+  <div class="process-list" data-enter>
+    <div class="process-card">
+      <div class="process-card__head">
+        <div class="process-card__num">01</div>
+        <div class="process-card__verdict kept">残した</div>
+      </div>
+      <div class="process-card__title">8つではなく3つのTokenがルーティングの重みを担う。</div>
+      <div class="process-card__why">サーフェスルーティングはハードウェアと部屋の問題であり、設定の問題ではない。他の5つのContext Token（Physical State、Priority Weight、Feasibility、Autonomy Dial、Disclosure Dial）は同じBrainに存在するが、どのサーフェスが話すかを決めない。3つを明示的に命名することで、フレームワークを90秒でレビューできるようになった。</div>
+    </div>
+
+    <div class="process-card">
+      <div class="process-card__head">
+        <div class="process-card__num">02</div>
+        <div class="process-card__verdict cut">切り捨て</div>
+      </div>
+      <div class="process-card__title">独立したTime-of-Day Token。</div>
+      <div class="process-card__why">初期ドラフトではTime-of-Dayを9番目のTokenにしていた。しかしCognitive Loadの推定器（時刻 × カレンダー × 活動）にきれいに折りたたまれた。派生シグナルのためにTokenを追加することはスキーマを膨らませるだけで力を追加しない。スキーマは8つのままにした。</div>
+    </div>
+
+    <div class="process-card">
+      <div class="process-card__head">
+        <div class="process-card__num">03</div>
+        <div class="process-card__verdict kept">残した</div>
+      </div>
+      <div class="process-card__title">Moment Composerをユーザーのナラティブ内で明示的に命名する。</div>
+      <div class="process-card__why">初期バージョンは「Brainが決める」の背後にComposerを隠していた。レビュアーはブラックボックスと呼んだ。パターンを命名し — そのインプットをWatch場面のSpecブロックで示すことが — マジックとエンジニアリングの違いだ。マジックはSamsungでリリースされない。</div>
+    </div>
+
+    <div class="process-card">
+      <div class="process-card__head">
+        <div class="process-card__num">04</div>
+        <div class="process-card__verdict cut">切り捨て</div>
+      </div>
+      <div class="process-card__title">ユーザーのオプトインが不要な自動ルーティング「スマートフィルター」モード。</div>
+      <div class="process-card__why">手首を静かにする最速の方法は、Brainを暗黙的に信頼するデフォルトだった。切り捨てた。クロスサーフェス文法はDisclosure Dialの上で動作する — その周りではなく。ユーザーが開示していない場合、ルーティング層はデフォルトで保守的 — プレビューを抑制するが、自動削除は絶対にしない。</div>
+    </div>
+
+    <div class="process-card">
+      <div class="process-card__head">
+        <div class="process-card__num">05</div>
+        <div class="process-card__verdict kept">残した</div>
+      </div>
+      <div class="process-card__title">PhoneのDo-Not-ShowよりPreview Redactionを選ぶ。</div>
+      <div class="process-card__why">代替案はパートナー近接検知時に通知全体を抑制することだった。否決した。ユーザーはメッセージが届いたことを知る必要がある — コンテンツをまだ見るべきでないだけで。到着 vs コンテンツが正しい軸だ。抑制は次の朝イネスが存在を知らなかった12件の未読メールを見たときに信頼を壊す。</div>
+    </div>
+
+    <div class="process-card">
+      <div class="process-card__head">
+        <div class="process-card__num">06</div>
+        <div class="process-card__verdict cut">切り捨て</div>
+      </div>
+      <div class="process-card__title">文法がiOS Focus Modeをオーバーライドする。</div>
+      <div class="process-card__why">誘惑的：ルーティング層がFocusをレガシーとして扱いバイパスする。しかし切り捨てた。Focusは粗いユーザー設定ポリシー、文法は細粒度のコンテキスト読み取り。共存する。Telemetryトレースが階層を明示する — Focusが参照され、適用または省略され、理由がログに記録される。</div>
+    </div>
+  </div>
+
+  <p class="ui-caption" style="max-width:1100px;margin:24px auto 0;color:rgba(240,236,228,0.72);">
+    <span class="ui-caption__kind" style="background:rgba(196,168,224,0.14);color:#c4a8e0;">Process · Decisions Kept/Cut</span>
+    評定はポリッシュノートではない。フレームワークが利便性を拒んだ場所の記録だ。各切り捨て行はv0デモが実行できたこと；各残した行はチームが守ることを選んだガードレールだ。
+  </p>
+</section>
+
+
+<!-- ───── S25 · jtbd — JTBD Quotes ───── -->
+<section class="section" id="jtbd" style="grid-template-columns:1fr;gap:32px;padding-top:80px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:760px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">JTBD · 人々が言葉にしていたこと</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      ルーティング層が<br>雇われた4つのジョブ。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto;text-align:center;">
+      リサーチインタビューからの合成された声。ニーズの形であって、具体的なnではない。温かく、前向き — 決して自己防衛的ではない。
+    </p>
+  </div>
+
+  <div class="jtbd-grid" data-enter>
+    <figure class="jtbd-card">
+      <blockquote>「Watchを買ったのは、Phoneをしまえるようにするためでした。それでもPhoneを取り出し続けています。」</blockquote>
+      <div class="jtbd-card__attrib">PM · 34歳 · ストックホルム · Galaxyホールド</div>
+    </figure>
+    <figure class="jtbd-card">
+      <blockquote>「パートナーに誕生日プレゼントがロック画面に表示されないようにしたかっただけです。」</blockquote>
+      <div class="jtbd-card__attrib">デザイナー · 29歳 · ベルリン · マルチベンダー家庭</div>
+    </figure>
+    <figure class="jtbd-card">
+      <blockquote>「手首があらゆることで振動する。何が重要だったか判断できるほど目が覚めた頃には、バスはもう来ている。」</blockquote>
+      <div class="jtbd-card__attrib">プロダクトマネージャー · 31歳 · コペンハーゲン · 毎日の通勤者</div>
+    </figure>
+    <figure class="jtbd-card">
+      <blockquote>「料理中はレシピが欲しい。レシピに関する仕事のメールじゃなくて。」</blockquote>
+      <div class="jtbd-card__attrib">建築家 · 36歳 · リスボン · 2人の子供のいる家庭</div>
+    </figure>
+  </div>
+
+  <p class="jtbd-method">
+    方法論：マルチデバイス家庭動作に関する公開HCIリサーチを基にしたシミュレーションアーキタイプインタビューからの合成された声。引用は直接的な帰属ではない。このセクションの要点はニーズの形であって、具体的なnではない。
+  </p>
+</section>
+
+
+<!-- ───── S26 · unknowns — Open questions ───── -->
+<section class="section" id="unknowns" style="grid-template-columns:1fr;gap:32px;padding-top:60px;padding-bottom:80px;">
+  <div class="section__text" style="max-width:760px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">未解決 · このフレームワークがまだ答えていないこと</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      4つの未解決の問い、<br>まだ明確な答えを持っていない。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto;text-align:center;">
+      信頼できるデザイナーは自分のエッジを命名する。クロスサーフェス文法はこれらのギャップが開いたままリリースされた。
+    </p>
+  </div>
+
+  <div class="unknowns-grid" data-enter>
+    <div class="unknown-card">
+      <div class="unknown-card__num">01</div>
+      <div class="unknown-card__q">訪問中の友人のPhoneが「パートナー近接」と誤読された場合、Preview Redactionは過剰に非表示にするか？</div>
+      <div class="unknown-card__need"><strong>必要なもの：</strong>校正された偽陽性コストモデル — そしてDisclosure Dialのデフォルトを壊さない「この人はパートナーではない」という素早いジェスチャー。</div>
+    </div>
+    <div class="unknown-card">
+      <div class="unknown-card__num">02</div>
+      <div class="unknown-card__q">Social Exposure検知のレイテンシー予算はいくらか？</div>
+      <div class="unknown-card__need"><strong>必要なもの：</strong>ルーティング層の決定がおかしく感じられる前に「パートナーが部屋にいる」がどれだけ古くなれるかの実証的な限界。Proximity APIはリアルタイムではない。</div>
+    </div>
+    <div class="unknown-card">
+      <div class="unknown-card__num">03</div>
+      <div class="unknown-card__q">Galaxy + iPhone家庭で、マテオのiPhoneはどのように近接情報を引き渡すか？</div>
+      <div class="unknown-card__need"><strong>必要なもの：</strong>MatterやPasskeysに精神的に似たContext Tokenのフェデレーション契約。現在は提案段階。楽観的に5年のアーク。</div>
+    </div>
+    <div class="unknown-card">
+      <div class="unknown-card__num">04</div>
+      <div class="unknown-card__q">Brainがオフラインの場合、OSはデフォルトで制限的または許可的であるべきか？</div>
+      <div class="unknown-card__need"><strong>必要なもの：</strong>回復可能な障害モード。制限的は手首を壊す、許可的はTag Heurを漏らす。おそらく「プレビュー抑制、到着表示」— しかしここで間違えると信頼コストがかかる。</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ───── S27 · takeaways — Three transferable principles ───── -->
+<section class="section" id="takeaways" style="grid-template-columns:1fr;gap:32px;padding-top:60px;padding-bottom:100px;">
+  <div class="section__text" style="max-width:760px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">テイクアウェイ · 3つの汎用原則</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      他のデザイナーが<br>今夜から適用できること。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto;text-align:center;">
+      クロスサーフェス文法をなくしても生き残る3つの原則。Project 05がリリースされなくても有用。
+    </p>
+  </div>
+
+  <div class="takeaway-list" data-enter>
+    <div class="takeaway">
+      <div class="takeaway__num">01</div>
+      <div class="takeaway__body">
+        <div class="takeaway__title">サーフェスはスクリーンサイズではない。文法だ。</div>
+        <p>Watch、EarBuds、Phone、TV、Kitchen Displayはそれぞれハードウェアが決定した固有の語彙を持つ。1つのアプリを設計して各サーフェスに「レスポンシブ化」することはハードウェアの意図を壊す。語彙を尊重し、その上にデザイン言語を構築する。</p>
+      </div>
+    </div>
+    <div class="takeaway">
+      <div class="takeaway__num">02</div>
+      <div class="takeaway__body">
+        <div class="takeaway__title">プライバシーは誰が部屋にいるかであって、画面に何があるかではない。</div>
+        <p>Focus Mode、Do Not Disturb、通知フィルターはすべてアプリまたはカテゴリで機能する。根本的なシグナルを見逃している：誰がこれを見ることができるか。アプリカタログではなく部屋を読むプライバシープリミティブが、パートナーがソファに座っているときに生き残るもの。</p>
+      </div>
+    </div>
+    <div class="takeaway">
+      <div class="takeaway__num">03</div>
+      <div class="takeaway__body">
+        <div class="takeaway__title">同期はデータを動かす。文法は決断を動かす。</div>
+        <p>データがどこにでもある — そして2026年にはそうだ — 次の問題はどのサーフェスが話すべきかだ。その決断はOSに属し、各アプリにではない。ルーティング層が注意が保存される場所だ；アプリレベルのフィルターは時間内にそこに到達できない。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CHAPTER 07 · CLOSE
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- ───── S28 · day — Ines's day timeline ───── -->
+<section class="section" id="day" style="grid-template-columns:1fr;gap:48px;padding-top:100px;padding-bottom:60px;">
+  <div class="section__text" style="max-width:820px;margin:0 auto;text-align:center;">
+    <div class="eyebrow" data-enter style="justify-content:center;">Concept · 一日のタイムライン</div>
+    <h2 class="title d1" data-enter style="text-align:center;">
+      イネスの一日。<br>5つのサーフェスを横断して。
+    </h2>
+    <p class="lede d2" data-enter style="max-width:680px;margin:0 auto 12px;text-align:center;">
+      午前7時から午後10時。5つのサーフェス。1つのBrainが分単位でどれが話し、どれが沈黙するかを決める。
+    </p>
+    <p class="lede d3" data-enter style="max-width:680px;margin:0 auto;text-align:center;">
+      このパターンは「全サーフェスが常時オン」ではない。リレーだ — 適切なサーフェス、適切な深さ、適切な瞬間。
+    </p>
+  </div>
+
+  <div data-enter class="d2" style="width:100%;padding:0 40px;">
+    <div class="day-timeline" role="img" aria-label="Ines's day across five surfaces — 7am to 10pm timeline">
+      <div class="day-timeline__head">
+        <span>イネス · 月曜日 · 2月3日</span>
+        <span>5つのサーフェス · 1つのBrain</span>
+      </div>
+
+      <div class="day-timeline__row" style="--surface-color: var(--surface-watch);">
+        <div class="day-timeline__surface">Watch</div>
+        <div class="day-timeline__bar">
+          <div class="day-timeline__chunk" style="left:0%;width:8%;">Briefing</div>
+          <div class="day-timeline__chunk" style="left:18%;width:4%;">Haptic</div>
+          <div class="day-timeline__chunk" style="left:48%;width:5%;">Heart rate</div>
+          <div class="day-timeline__chunk" style="left:72%;width:5%;">Alarm</div>
+        </div>
+      </div>
+
+      <div class="day-timeline__row" style="--surface-color: var(--surface-ear);">
+        <div class="day-timeline__surface">EarBuds</div>
+        <div class="day-timeline__bar">
+          <div class="day-timeline__chunk" style="left:15%;width:10%;">Music + summary</div>
+          <div class="day-timeline__chunk" style="left:60%;width:9%;">Podcast</div>
+        </div>
+      </div>
+
+      <div class="day-timeline__row" style="--surface-color: var(--surface-phone);">
+        <div class="day-timeline__surface">Phone</div>
+        <div class="day-timeline__bar">
+          <div class="day-timeline__chunk" style="left:10%;width:6%;">Catch-up</div>
+          <div class="day-timeline__chunk" style="left:30%;width:18%;">Deep work</div>
+          <div class="day-timeline__chunk" style="left:82%;width:8%;">Silent preview</div>
+        </div>
+      </div>
+
+      <div class="day-timeline__row" style="--surface-color: var(--surface-kd);">
+        <div class="day-timeline__surface">Kitchen</div>
+        <div class="day-timeline__bar">
+          <div class="day-timeline__chunk" style="left:2%;width:10%;">Weather</div>
+          <div class="day-timeline__chunk" style="left:66%;width:8%;">Recipe</div>
+        </div>
+      </div>
+
+      <div class="day-timeline__row" style="--surface-color: var(--surface-tv);">
+        <div class="day-timeline__surface">TV</div>
+        <div class="day-timeline__bar">
+          <div class="day-timeline__chunk" style="left:78%;width:16%;">Film · private mode</div>
+        </div>
+      </div>
+
+      <div class="day-timeline__scale">
+        <span>07:00</span>
+        <span>10:00</span>
+        <span>14:00</span>
+        <span>18:00</span>
+        <span>22:00</span>
+      </div>
+    </div>
+    <p class="ui-caption" style="max-width:1100px;margin:24px auto 0;">
+      <span class="ui-caption__kind">Concept · 一日のタイムライン</span>
+      5つのトラック、15時間。すべてのブロックはクロスサーフェス文法がこの瞬間に他の4つよりこのサーフェスを選んだ記録。ギャップこそが要点だ。
+    </p>
+  </div>
+</section>
+
+
+<!-- ───── Quote — project thesis ───── -->
+<section class="section section--quote" id="quote-mini" style="padding-top:40px;padding-bottom:40px;min-height:auto;">
+  <div class="quote-wrap" data-enter>
+    <p class="quote-line">
+      1つのBrain。<br>
+      5つのサーフェス。<br>
+      <em>それぞれが固有の言語で語る。</em>
+    </p>
+    <p class="quote-cred">Project 05 テーゼ · クロスサーフェス文法</p>
+  </div>
+</section>
+
+
+<!-- ───── S15 · close — end of Project 05 ───── -->
+<section class="section section--close" id="close">
+  <div class="close-text">
+    <div class="eyebrow" data-enter>Project 05 終わり · クロスサーフェス文法</div>
+    <h2 class="close-title d1" data-enter>
+      同期は線を解決した。<br>文法は部屋を解決する。
+    </h2>
+    <p class="close-lede d2" data-enter>
+      3つのToken。15のルール。アプリの上の1つのルーティング層。5つのサーフェスが叫ぶのをやめ、1人の良い聞き手のように振る舞うのに十分な構造。
+    </p>
+    <p class="close-lede d3" data-enter>
+      P1はBrainが家で覚えるものを設計した。P2は旅行で持ち運ぶものを設計した。P5は話す方法を設計する：手首、耳、壁、Phoneの中、キッチンカウンターの上で。
+    </p>
+    <div class="chips" id="chips">
+      <span class="chip c1">クロスサーフェス文法</span>
+      <span class="chip c2">3 Token × 5 サーフェス</span>
+      <span class="chip c3">ポストアプリ ルーティング層</span>
+    </div>
+    <div class="next-hint d4" data-enter>→ 次へ · Project 06 · Life Brain</div>
+  </div>
+
+  <div class="close-visual d3" data-enter aria-hidden="true">
+    <div class="close-visual__ring">
+      <div class="close-visual__core"></div>
+      <div class="close-visual__pin close-visual__pin--1">Watch</div>
+      <div class="close-visual__pin close-visual__pin--2">EarBuds</div>
+      <div class="close-visual__pin close-visual__pin--3">Phone</div>
+      <div class="close-visual__pin close-visual__pin--4">TV</div>
+      <div class="close-visual__pin close-visual__pin--5">Kitchen</div>
+    </div>
+    <div class="close-visual__cap">1つのBrain · 5つの方言</div>
+  </div>
+</section>
+
+
+<script>
+  (function () {
+    'use strict';
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Enter animations
+    const enterTargets = document.querySelectorAll('[data-enter]');
+    if (prefersReduced) {
+      enterTargets.forEach(el => el.classList.add('visible'));
+    } else {
+      const enterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            enterObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2, rootMargin: '0px 0px -10% 0px' });
+      enterTargets.forEach(el => enterObserver.observe(el));
+    }
+
+    // Close chips stagger
+    const chips = document.querySelectorAll('.chip');
+    if (!prefersReduced) {
+      const chipsWrap = document.getElementById('chips');
+      const chipObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            chips.forEach(c => c.classList.add('visible'));
+            chipObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      if (chipsWrap) chipObserver.observe(chipsWrap);
+    } else {
+      chips.forEach(c => c.classList.add('visible'));
+    }
+
+    // Progress bar
+    const progressFill = document.getElementById('progress-fill');
+    function updateProgress() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      if (progressFill) progressFill.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    // Keyboard nav — sectionwise
+    const sections = document.querySelectorAll('.section');
+    const sectionIds = Array.from(sections).map(s => s.id).filter(Boolean);
+    function currentSectionIdx() {
+      const midline = window.scrollY + window.innerHeight / 2;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i]);
+        if (el && el.offsetTop <= midline) return i;
+      }
+      return 0;
+    }
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        const next = Math.min(sectionIds.length - 1, currentSectionIdx() + 1);
+        const target = document.getElementById(sectionIds[next]);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        const prev = Math.max(0, currentSectionIdx() - 1);
+        const target = document.getElementById(sectionIds[prev]);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        document.getElementById('intro').scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        document.getElementById('close').scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+
+    // Polish animations — scroll-triggered reveal helpers
+    function onceVisible(el, cb, opts) {
+      if (!el) return;
+      if (prefersReduced) { cb(el); return; }
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) { cb(e.target); io.unobserve(e.target); }
+        });
+      }, Object.assign({ threshold: 0.25, rootMargin: '0px 0px -8% 0px' }, opts || {}));
+      io.observe(el);
+    }
+
+    // Tag Heuer preview — leak pulse + partner indicator staged reveal
+    onceVisible(document.getElementById('preview-before-leak'), (el) => {
+      el.classList.add('revealed');
+    });
+
+    // App-grid: 48-icon messy stagger (chaos) + single-motion grammar reveal
+    const oldSide = document.querySelector('.paradigm-side--old');
+    const newSide = document.querySelector('.paradigm-side--new');
+    onceVisible(oldSide, (el) => {
+      const icons = el.querySelectorAll('.app-grid__icon');
+      icons.forEach((icon) => {
+        // messy jittered delay — 0–1200ms
+        const d = Math.random() * 1200;
+        icon.style.transitionDelay = d.toFixed(0) + 'ms';
+      });
+      el.classList.add('revealed');
+    });
+    onceVisible(newSide, (el) => {
+      // Single clean motion — appears ~400ms after the chaos peaks
+      setTimeout(() => el.classList.add('revealed'), prefersReduced ? 0 : 900);
+    });
+
+    // Day timeline — left-to-right sweep
+    onceVisible(document.querySelector('.day-timeline'), (el) => {
+      const chunks = el.querySelectorAll('.day-timeline__chunk');
+      chunks.forEach((c, i) => {
+        c.style.transitionDelay = (80 + i * 50) + 'ms';
+      });
+      el.classList.add('revealed');
+    });
+
+    // Chapter dividers — gentle zoom out
+    document.querySelectorAll('.section--divider').forEach(div => {
+      onceVisible(div, (el) => el.classList.add('revealed'), { threshold: 0.15 });
+    });
+
+    // Iframe fade-in on load
+    document.querySelectorAll('.iframe-fade').forEach(wrap => {
+      const iframe = wrap.querySelector('iframe');
+      if (!iframe) { wrap.classList.add('loaded'); return; }
+      if (iframe.complete || iframe.contentDocument?.readyState === 'complete') {
+        wrap.classList.add('loaded');
+      }
+      iframe.addEventListener('load', () => wrap.classList.add('loaded'));
+      // Safety fallback in case load event misses
+      setTimeout(() => wrap.classList.add('loaded'), 1800);
+    });
+
+    try {
+      if (sessionStorage.getItem('p5-scroll-seen') === '1') {
+        document.querySelectorAll('[data-enter]').forEach(el => el.classList.add('visible'));
+      } else {
+        sessionStorage.setItem('p5-scroll-seen', '1');
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<!-- Global site nav (auto-hide on scroll) -->
+<script src="../../../assets/js/nav.js"></script>
+<script>initNav({ basePath: '../../../', activePage: 'projects', lang: 'ja', showLang: false, autoHide: true });</script>
+
+</body>
+</html>

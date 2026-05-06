@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intent — Combined · Context Grammar</title>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #fdfcfa;
+    --surface: #ffffff;
+    --ink: #0a0a0a;
+    --ink-2: #525252;
+    --ink-3: #a1a1aa;
+    --line: #e5e5e5;
+    --line-strong: #d4d4d4;
+
+    --intent: #a07040;       /* Intent = warm amber (the wanting) */
+    --intent-bg: rgba(160, 112, 64, 0.10);
+    --brain: #6889b4;        /* Brain = blue (memory) */
+    --brain-bg: rgba(104, 137, 180, 0.10);
+    --token: #4a7a5c;        /* Tokens = muted green (situational facts) */
+    --token-bg: rgba(74, 122, 92, 0.10);
+    --inferred: #8a6ab0;     /* Inferred = purple (the reasoning step) */
+    --inferred-bg: rgba(138, 106, 176, 0.10);
+    --green: #16803a;
+    --green-bg: rgba(22, 128, 58, 0.10);
+
+    --font-sans: 'Geist', 'Geist Sans', 'Noto Sans JP', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.7;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 80px 32px; }
+
+  /* ── Hero ─────────────────────────────── */
+  .hero { text-align: center; margin-bottom: 80px; }
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 20px;
+  }
+  .hero__title {
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 24px;
+  }
+  .hero__sub {
+    font-size: 18px;
+    color: var(--ink-2);
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  /* ── Section ──────────────────────────── */
+  section { margin-bottom: 88px; scroll-margin-top: 40px; }
+
+  .sec-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 14px;
+  }
+  .sec-eyebrow::before {
+    content: "";
+    width: 28px; height: 1px;
+    background: var(--ink-3);
+  }
+  .sec-title {
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.8px;
+    margin-bottom: 28px;
+  }
+  .sec-lede {
+    font-size: 18px;
+    color: var(--ink-2);
+    margin-bottom: 32px;
+    max-width: 720px;
+  }
+
+  /* ── Two columns: Explicit vs Implicit ──────── */
+  .vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: stretch;
+    margin: 32px 0;
+  }
+  @media (max-width: 720px) { .vs { grid-template-columns: 1fr; } .vs__divider { display: none; } }
+
+  .vs__card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px 28px;
+    background: var(--surface);
+  }
+  .vs__card--explicit { border-top: 4px solid var(--intent); background: linear-gradient(180deg, var(--intent-bg) 0%, var(--surface) 24%); }
+  .vs__card--implicit { border-top: 4px solid var(--inferred); background: linear-gradient(180deg, var(--inferred-bg) 0%, var(--surface) 24%); }
+
+  .vs__divider {
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+  }
+
+  .vs__icon { font-size: 40px; margin-bottom: 12px; line-height: 1; }
+  .vs__label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .vs__card--explicit .vs__label { color: var(--intent); }
+  .vs__card--implicit .vs__label { color: var(--inferred); }
+
+  .vs__name { font-size: 28px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.5px; }
+  .vs__role { font-size: 16px; color: var(--ink-2); margin-bottom: 18px; line-height: 1.6; }
+  .vs__list { list-style: none; padding: 0; }
+  .vs__list li {
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14.5px;
+    color: var(--ink);
+    display: flex;
+    gap: 10px;
+  }
+  .vs__list li::before {
+    content: "→";
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+
+  /* ── Restaurant metaphor ─────────────── */
+  .restaurant {
+    background: linear-gradient(180deg, #fef9f3 0%, #fffaf0 100%);
+    border: 1px solid #f0d9b5;
+    border-radius: 16px;
+    padding: 36px 32px;
+    margin: 32px 0;
+  }
+  .restaurant__title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #8a4500;
+  }
+  .restaurant__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 600px) { .restaurant__grid { grid-template-columns: 1fr; } }
+
+  .rest-item h4 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .rest-item p { font-size: 16px; color: var(--ink); margin-bottom: 8px; line-height: 1.6; }
+  .rest-item__items { font-size: 14px; color: var(--ink-2); }
+
+  /* ── Step-by-step scenario ──────── */
+  .scenario-intro {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .scenario-intro__quote {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+  .scenario-intro__source { font-size: 14px; color: var(--ink-3); font-family: var(--font-mono); }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 4px;
+  }
+  .step--intent::before { background: var(--intent); }
+  .step--brain::before { background: var(--brain); }
+  .step--token::before { background: var(--token); }
+  .step--inferred::before { background: var(--inferred); }
+  .step--result::before { background: var(--green); }
+
+  .step__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-right: 12px;
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .step--intent   .step__num { background: var(--intent); }
+  .step--brain    .step__num { background: var(--brain); }
+  .step--token    .step__num { background: var(--token); }
+  .step--inferred .step__num { background: var(--inferred); }
+  .step--result   .step__num { background: var(--green); }
+
+  .step__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .step__title { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  .step__chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-left: auto;
+  }
+  .step--intent   .step__chip { color: var(--intent);   background: var(--intent-bg); }
+  .step--brain    .step__chip { color: var(--brain);    background: var(--brain-bg); }
+  .step--token    .step__chip { color: var(--token);    background: var(--token-bg); }
+  .step--inferred .step__chip { color: var(--inferred); background: var(--inferred-bg); }
+  .step--result   .step__chip { color: var(--green);    background: var(--green-bg); }
+
+  .step__body { font-size: 16px; color: var(--ink); line-height: 1.65; }
+  .step__body strong { font-weight: 600; }
+  .step__body em { font-style: normal; color: var(--ink-2); font-family: var(--font-mono); font-size: 14.5px; }
+
+  /* Signal/reads list (re-used pattern) */
+  .signal-reads {
+    background: var(--inferred-bg);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-top: 14px;
+  }
+  .signal-reads--brain { background: var(--brain-bg); }
+  .signal-reads--token { background: var(--token-bg); }
+  .signal-reads__head {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .signal-reads--brain .signal-reads__head { color: var(--brain); }
+  .signal-reads--token .signal-reads__head { color: var(--token); }
+  .signal-reads ul { list-style: none; padding: 0; }
+  .signal-reads li {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 14.5px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .signal-reads li:first-child { border-top: none; padding-top: 0; }
+  .signal-reads li strong {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+  }
+  .signal-reads--brain li strong { color: var(--brain); }
+  .signal-reads--token li strong { color: var(--token); }
+
+  .verdict {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--green-bg);
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--green);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Diagram (Intent → Tokens flow) ─── */
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px;
+    margin: 32px 0;
+  }
+  .flow__title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 20px;
+  }
+  .flow__svg-wrap { width: 100%; overflow-x: auto; }
+
+  /* ── Recommendation cards ──────────── */
+  .recs { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .rec {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 28px;
+    background: var(--surface);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .rec__num {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--intent);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-weight: 700; font-size: 16px;
+  }
+  .rec__title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .rec__body { font-size: 15px; color: var(--ink-2); line-height: 1.65; }
+
+  /* ── Mini callout / aside ─────────── */
+  .callout {
+    border-left: 3px solid var(--ink-3);
+    padding: 14px 20px;
+    margin: 24px 0;
+    color: var(--ink-2);
+    font-size: 15.5px;
+    line-height: 1.65;
+    background: rgba(0,0,0,0.02);
+    border-radius: 0 8px 8px 0;
+  }
+  .callout strong { color: var(--ink); font-weight: 600; }
+
+  /* ── 4-types grid (from existing index, restyled to combined palette) ── */
+  .types4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 28px 0;
+  }
+  @media (max-width: 720px) { .types4 { grid-template-columns: 1fr; } }
+  .type4 {
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--intent);
+    border-radius: 12px;
+    padding: 24px 26px;
+    background: var(--surface);
+  }
+  .type4__num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--intent);
+    margin-bottom: 8px;
+  }
+  .type4__title { font-size: 22px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.3px; }
+  .type4__def { font-size: 15.5px; color: var(--ink-2); line-height: 1.6; margin-bottom: 12px; }
+  .type4__example {
+    background: var(--bg);
+    border-left: 2px solid var(--intent);
+    padding: 12px 14px;
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .type4__example-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+
+  /* ── Compare table (Intent vs JTBD) ─── */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin: 24px 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+  .compare__col {
+    padding: 26px 28px;
+    background: var(--surface);
+  }
+  .compare__col--jtbd { background: var(--bg); border-right: 1px solid var(--line); }
+  @media (max-width: 640px) {
+    .compare__col--jtbd { border-right: none; border-bottom: 1px solid var(--line); }
+  }
+  .compare__label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .compare__title { font-size: 22px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.3px; }
+  .compare__col--intent .compare__title { color: var(--intent); }
+  .compare__body { font-size: 15.5px; color: var(--ink-2); line-height: 1.65; margin-bottom: 14px; }
+  .compare__list { list-style: none; padding: 0; }
+  .compare__list li {
+    padding: 6px 0 6px 18px;
+    position: relative;
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .compare__list li::before {
+    content: "→";
+    position: absolute; left: 0;
+    color: var(--intent);
+  }
+
+  /* ── Brain interplay (multi-Brain version) ── */
+  .interplay {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin: 28px 0;
+  }
+  .brain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brain);
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .brain-card__name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brain);
+    margin-bottom: 6px;
+  }
+  .brain-card__role { font-size: 17px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.2px; }
+  .brain-card__body { font-size: 15px; color: var(--ink-2); line-height: 1.6; }
+
+  .formula {
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 24px 0;
+    font-family: var(--font-mono);
+    font-size: 14.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .formula strong { color: #f5d59c; font-weight: 700; }
+  .formula em { color: #9cc4f5; font-style: normal; }
+
+  /* ── Footer ─────────────────────────── */
+  .foot {
+    margin-top: 100px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── Bottom-right project marker (same pattern as P3) ─── */
+  .chpt-corner {
+    position: fixed;
+    bottom: 24px;
+    right: 28px;
+    z-index: 40;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(10,10,10,0.55);
+    pointer-events: none;
+    mix-blend-mode: difference;
+  }
+  .chpt-corner strong {
+    color: var(--ink);
+    font-weight: 600;
+    margin-right: 10px;
+  }
+  @media (max-width: 768px) {
+    .chpt-corner { right: 16px; bottom: 16px; font-size: 10px; }
+  }
+
+  /* SVG diagram styling */
+  .flow-svg text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .flow-svg .pill {
+    fill: var(--surface);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .flow-svg .pill--intent { stroke: var(--intent); fill: var(--intent-bg); }
+  .flow-svg .pill--brain  { stroke: var(--brain); }
+  .flow-svg .pill--token  { stroke: var(--token); }
+  .flow-svg .pill-label--intent { fill: var(--intent); }
+  .flow-svg .pill-label--brain  { fill: var(--brain); }
+  .flow-svg .pill-label--token  { fill: var(--token); }
+  .flow-svg .arrow {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+    fill: none;
+    vector-effect: non-scaling-stroke;
+  }
+  .flow-svg .arrow-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    fill: var(--ink-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ─────────────────── HERO ─────────────────── -->
+<header class="hero">
+  <div class="hero__eyebrow">Context Grammar · Concept · Intent (Combined)</div>
+  <h1 class="hero__title">Intent は<br>「言ってないけど欲しい」を含む。</h1>
+  <p class="hero__sub">
+    Intent は「ユーザーが今この瞬間に何をしたいか」のシグナル。<br>
+    口に出すこともあるし、出さないこともある。Yamashiro 家の火曜の朝で、<strong>言葉なしで Intent が伝わる</strong>仕組みを追跡しながら、その下にある構造まで掘り下げます。
+  </p>
+</header>
+
+<!-- ═══════════════════════════════════════
+     A · What Intent is — Explicit vs Implicit
+═══════════════════════════════════════ -->
+<section id="a">
+  <div class="sec-eyebrow">A · 根っこ</div>
+  <h2 class="sec-title">Intent には「言う」と「言わない」がある</h2>
+  <p class="sec-lede">
+    多くの人は「Intent = ユーザーが言ったこと」だと思っている。実は<strong>半分しか合っていない</strong>。Intent は2種類あり、現実の生活では<strong>言わない方が圧倒的に多い</strong>。
+  </p>
+
+  <div class="vs">
+    <div class="vs__card vs__card--explicit">
+      <div class="vs__icon">🗣</div>
+      <div class="vs__label">Explicit Intent</div>
+      <div class="vs__name">言葉にする</div>
+      <p class="vs__role">ユーザーが声・タップ・タイプで「これがしたい」とハッキリ宣言する。AI はそれを実行するだけでいい。推論はゼロ。</p>
+      <ul class="vs__list">
+        <li>「タイマー20分セット」</li>
+        <li>「お母さんに電話して」</li>
+        <li>「Sota にサッカーシューズ買って」</li>
+        <li>命令形・直接的・誤解の余地が少ない</li>
+      </ul>
+    </div>
+
+    <div class="vs__divider">vs</div>
+
+    <div class="vs__card vs__card--implicit">
+      <div class="vs__icon">👁</div>
+      <div class="vs__label">Implicit Intent</div>
+      <div class="vs__name">言わずに伝わる</div>
+      <p class="vs__role">ユーザーは何も言ってない。でも<strong>状況 (Token) × 記憶 (Brain)</strong> の交差から、AI が「たぶんこれが欲しい」と推論する。</p>
+      <ul class="vs__list">
+        <li>火曜朝・玄関にユニフォーム → 「サッカーの日」</li>
+        <li>金曜19時・冷蔵庫スカスカ → 「ピザかな？」</li>
+        <li>夜23時・ベッドで読書 → 「静かにして」</li>
+        <li>圧倒的に多いのはこっち</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>覚え方:</strong> Explicit は<strong>命令</strong>。Implicit は<strong>気配</strong>。<br>
+    今の AI（Siri, Alexa, ChatGPT）は Explicit ばかり聞いている。Context Grammar は Implicit も読めるようにする設計言語。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     B · Restaurant metaphor
+═══════════════════════════════════════ -->
+<section id="b">
+  <div class="sec-eyebrow">B · 比喩</div>
+  <h2 class="sec-title">レストランで考えてみる — 「お冷ください」と「お冷ください、を言わせない」</h2>
+  <p class="sec-lede">
+    Intent をレストランに置き換えると、Explicit と Implicit の差がスッと分かる。
+  </p>
+
+  <div class="restaurant">
+    <div class="restaurant__title">🍽 同じ「お冷を出す」でも、出方が3段階ある</div>
+    <div class="restaurant__grid">
+      <div class="rest-item">
+        <h4>🗣 Explicit Intent — お客さんが頼む</h4>
+        <p>「すみません、お冷ください」</p>
+        <div class="rest-item__items">
+          ・お客さんがハッキリ口にする<br>
+          ・どの店員でも対応できる<br>
+          ・誤解の余地ゼロ<br>
+          ・<strong>普通の店</strong>はここ止まり
+        </div>
+      </div>
+      <div class="rest-item">
+        <h4>👁 Implicit Intent — 言わなくても出てくる</h4>
+        <p>料理が辛いのを見たベテラン店員が、無言でお冷を継ぎ足す。</p>
+        <div class="rest-item__items">
+          ・お客さんは何も言ってない<br>
+          ・店員は <strong>状況</strong> (辛い料理 = Token) を見ている<br>
+          ・店員は <strong>記憶</strong> (このお客さんは辛いの苦手 = Brain) も持っている<br>
+          ・<strong>常連の店</strong>はこれができる
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    お冷を「ください」と言わせないのが<strong>Implicit Intent</strong>。<br>
+    ベテラン店員が見ているのは「料理の辛さ」「お客さんの汗」「グラスの残量」 — これが <strong>Token (状況)</strong>。<br>
+    そこに「あの人は辛いの苦手」という<strong>Brain (記憶)</strong>が掛かって、<strong>言われていない欲望</strong>が読める。
+  </div>
+
+  <div class="callout" style="border-left-color: var(--intent); background: var(--intent-bg);">
+    <strong>大事な区別:</strong> Intent は「<strong>何が欲しいか</strong>」。Token は「<strong>今どういう状況か</strong>」。Brain は「<strong>この人は誰か</strong>」。<br>
+    3つは別物だけど、Implicit Intent は <strong>Token × Brain の交差</strong>からしか生まれない。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     C · Sota's shoes — Implicit Intent emerges
+═══════════════════════════════════════ -->
+<section id="c">
+  <div class="sec-eyebrow">C · 実例</div>
+  <h2 class="sec-title">Yamashiro 家の火曜朝 — Sota が一言も言わずに Intent が伝わる</h2>
+  <p class="sec-lede">
+    Sota (11歳) がサッカーシューズを履こうとして「きつい」と感じた朝。Sota は何も言っていない。それでも家の AI には Intent が届く。その仕組みを追ってみよう。
+  </p>
+
+  <div class="scenario-intro">
+    <p class="scenario-intro__quote">(Sota、玄関でシューズを履こうとして眉をしかめる)</p>
+    <p class="scenario-intro__source">— 火曜 7:42 · Yamashiro 家 · 言葉ゼロ</p>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step step--token">
+    <div class="step__head">
+      <span class="step__num">1</span>
+      <span class="step__title">Token (状況) が変化する — 環境のシグナルが立つ</span>
+      <span class="step__chip">Token</span>
+    </div>
+    <div class="step__body">
+      Sota は何も言っていない。でも家の中の <strong>Token (状況)</strong> はすでに動いている。
+      Context Tokens は「今この瞬間、世界はどうなっているか」を表す8つの計器。今朝はこんな状態。
+
+      <div class="signal-reads signal-reads--token">
+        <div class="signal-reads__head">⑥ tokens の現在値</div>
+        <ul>
+          <li><strong>① Physical State</strong><span>Sota の歩幅・姿勢センサーから「足に違和感」が検出されている</span></li>
+          <li><strong>② Cognitive Load</strong><span>朝7:42・登校10分前・推定 LOAD = HIGH (低帯域モード推奨)</span></li>
+          <li><strong>③ Social Exposure</strong><span>家族のみ (private)・スピーカー OK</span></li>
+          <li><strong>⑤ Form Factor</strong><span>家の中・冷蔵庫ディスプレイが目線の前にある</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step step--brain">
+    <div class="step__head">
+      <span class="step__num">2</span>
+      <span class="step__title">複数の Brain が状況を裏付ける</span>
+      <span class="step__chip">Brain</span>
+    </div>
+    <div class="step__body">
+      Token だけだと「足に違和感の少年」までしか分からない。ここで <strong>Brain (記憶)</strong> が出てくる。
+      Context Grammar の家には1つの Brain ではなく <strong>複数の Brain が並列で動いている</strong>。
+      それぞれが別の角度から Sota を覚えている。
+
+      <div class="signal-reads signal-reads--brain">
+        <div class="signal-reads__head">📚 並列で参照される Brain</div>
+        <ul>
+          <li><strong>Person Brain<br>(Sota)</strong><span>11歳・サッカー部・最近5mm 足が伸びた・成長期ピーク</span></li>
+          <li><strong>Household Brain</strong><span>過去3ヶ月で2回「靴がきつい」発言あり・前回は気づくのが遅れて買い替えが間に合わなかった</span></li>
+          <li><strong>Calendar Brain</strong><span>今日は火曜 → サッカー練習日・来週土曜に試合</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step step--inferred">
+    <div class="step__head">
+      <span class="step__num">3</span>
+      <span class="step__title">Coordinator が Token × 複数 Brain の交差で Implicit Intent を生む</span>
+      <span class="step__chip">Inferred</span>
+    </div>
+    <div class="step__body">
+      <strong>Coordinator</strong> は Token と複数の Brain を読み合わせる役。
+      Token (足の違和感 + 火曜朝) × Person Brain (Sota は成長期) × Household Brain (前回の失敗パターン) × Calendar Brain (試合まで5日) を交差させると、
+      <strong>言われていない Intent</strong> が浮かび上がる。
+
+      <div class="signal-reads">
+        <div class="signal-reads__head" style="color: var(--inferred);">推論された Implicit Intent</div>
+        <ul>
+          <li><strong>表層</strong><span>「シューズがきつくて履きにくい」</span></li>
+          <li><strong>本当の欲望</strong><span>「土曜の試合までに新しいサッカーシューズがほしい」</span></li>
+          <li><strong>確信度</strong><span>92% — Person × Household × Calendar の3つの Brain で裏付けあり</span></li>
+        </ul>
+      </div>
+
+      <div class="verdict">→ 結論: 母 Mai に「Sota の靴、買い替え時かも？」と1タップで提案できる状態にする</div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step step--intent">
+    <div class="step__head">
+      <span class="step__num">4</span>
+      <span class="step__title">Sota が一言だけ言う — Explicit Intent に切り替わる</span>
+      <span class="step__chip">Explicit</span>
+    </div>
+    <div class="step__body">
+      Sota が母 Mai に向かって言う。<br>
+      <em>「お母さん、サッカーシューズきつい！」</em><br><br>
+      ここで初めて <strong>Explicit Intent</strong> が登場する。でも面白いのはここ — Coordinator は Sota の発言を聞く<strong>前から</strong>、すでに Implicit で同じ Intent に到達していた。<br>
+      つまり Sota の一言は <strong>確認の上書き</strong>であって、<strong>初めての気づき</strong>ではない。
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step step--result">
+    <div class="step__head">
+      <span class="step__num">5</span>
+      <span class="step__title">Mai の iPhone に通知が出る — 認知負荷ゼロ</span>
+      <span class="step__chip">Result</span>
+    </div>
+    <div class="step__body">
+      Mai が朝食の片付けをしている最中、iPhone に1行通知。<br>
+      <em>"Sota's soccer shoes — outgrown. Match Saturday. Tap to auto-order ($48, EU 37)."</em><br><br>
+      Mai は<strong>判断しない</strong>、<strong>調べない</strong>、<strong>サイズを聞き直さない</strong>。1タップで終わる。<br>
+      これが <strong>Implicit Intent が読める家</strong> の正体。
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 28px;">
+    <strong>気づきポイント:</strong>
+    Sota が <em>「靴きつい」</em>と言う前に、Token と複数 Brain だけで Intent は<strong>すでに 92% 確信されていた</strong>。
+    今の AI なら Sota の一言を待ってからやっと反応する。Context Grammar の AI は<strong>言葉が来る前に準備が終わっている</strong>。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     D · Intent and the Brain (multi-Brain model)
+═══════════════════════════════════════ -->
+<section id="d">
+  <div class="sec-eyebrow">D · 構造</div>
+  <h2 class="sec-title">Intent と Brain — 1つの脳ではなく、複数の脳が同時に読む</h2>
+  <p class="sec-lede">
+    「Intent without memory is just a guess.」 ただし、その memory は<strong>1つの大きな脳</strong>ではない。Context Grammar の家には、役割の違う複数の Brain が並列で存在する。Implicit Intent は <strong>Coordinator がそれらを読み合わせる</strong>ことで初めて生まれる。
+  </p>
+
+  <div class="interplay">
+    <div class="brain-card">
+      <div class="brain-card__name">Person Brain</div>
+      <div class="brain-card__role">「この人は誰か」を覚える脳</div>
+      <div class="brain-card__body">
+        家族の1人ずつに紐づく。3層構造 — <strong>Identity Layer</strong> (Sota は11歳・サッカー部)、<strong>Learning Layer</strong> (3-4ヶ月ごとに靴サイズが変わるパターン)、<strong>Now Layer</strong> (今朝の歩幅に違和感)。Implicit Intent の主語を決める。
+      </div>
+    </div>
+    <div class="brain-card">
+      <div class="brain-card__name">Household Brain</div>
+      <div class="brain-card__role">「家全体の合意」を覚える脳</div>
+      <div class="brain-card__body">
+        家族間の共有事項 — 過去の買い物履歴、未解決の家事、家計の優先順位、前回の失敗パターン (「靴の買い替えが間に合わなかった」)。Person Brain だけだと見えない<strong>家族としての文脈</strong>を補う。
+      </div>
+    </div>
+    <div class="brain-card">
+      <div class="brain-card__name">Calendar Brain</div>
+      <div class="brain-card__role">「いつ・何が起きるか」を覚える脳</div>
+      <div class="brain-card__body">
+        家族カレンダー・学校予定・仕事の出張・試合日。Implicit Intent の<strong>緊急度</strong>を決める。土曜に試合がなければ、Sota の靴は来週でいい。試合があるから「今買う」になる。
+      </div>
+    </div>
+    <div class="brain-card">
+      <div class="brain-card__name">Coordinator</div>
+      <div class="brain-card__role">複数の脳を読み合わせる役</div>
+      <div class="brain-card__body">
+        Brain そのものではなく、<strong>Brain たちの間に立つレイヤー</strong>。Token と Person・Household・Calendar の3つを同時に読み、矛盾を解き、Implicit Intent を1つの命題にまとめる。Disclosure Dial / Autonomy Dial の設定もここで読まれる。
+      </div>
+    </div>
+  </div>
+
+  <div class="callout" style="border-left-color: var(--brain); background: var(--brain-bg);">
+    <strong>1つの脳ではなく、複数の脳。</strong><br>
+    1つの Brain がすべてを覚えるモデルだと、プライバシーも責任範囲も崩れる (例: Sota の生理周期を Household Brain には流したくない)。だから<strong>役割で Brain を分ける</strong>。Coordinator が読み合わせるとき、<strong>Disclosure Dial</strong> の設定で「どの Brain がどの Brain にどこまで見せるか」が決まる。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     E · Existing technical depth preserved
+═══════════════════════════════════════ -->
+<section id="e">
+  <div class="sec-eyebrow">E · 詳細</div>
+  <h2 class="sec-title">Intent の4チャネル分類と、Jobs-to-be-Done との違い</h2>
+  <p class="sec-lede">
+    Implicit / Explicit の2分類は導入として正しい。ただ実装に降ろすときは、Implicit をさらに3つに分けると判断がブレない。Floor 1 で扱う Intent は合計4チャネル。
+  </p>
+
+  <div class="types4">
+    <article class="type4">
+      <div class="type4__num">Type 1</div>
+      <h3 class="type4__title">Explicit Intent</h3>
+      <p class="type4__def">ユーザーが声・タップ・タイプで宣言する。推論ゼロ。</p>
+      <div class="type4__example">
+        <span class="type4__example-label">Example</span>
+        <strong>「お母さんに電話して」</strong> / <strong>「タイマー20分」</strong><br>
+        AI は実行するだけ。
+      </div>
+    </article>
+
+    <article class="type4">
+      <div class="type4__num">Type 2</div>
+      <h3 class="type4__title">Active Intent</h3>
+      <p class="type4__def">ユーザーは何も言わない。でも<strong>今やっている動作</strong>が Intent を露わにする。</p>
+      <div class="type4__example">
+        <span class="type4__example-label">Example</span>
+        Mai が6:42に iPhone を持ち、ランニングウェアでイヤホンを挿す。<br>
+        <strong>Intent: 「これから走る — 天気・ルート・プレイリストを出して」</strong>
+      </div>
+    </article>
+
+    <article class="type4">
+      <div class="type4__num">Type 3</div>
+      <h3 class="type4__title">Passive Intent</h3>
+      <p class="type4__def">ユーザーには<strong>パターン</strong>がある。今この瞬間がそのパターンに合致するから、AI が次に何が来るか分かる。</p>
+      <div class="type4__example">
+        <span class="type4__example-label">Example</span>
+        金曜19時、Yamashiro 家。直近3ヶ月、毎週金曜にピザを注文している。<br>
+        <strong>Intent: 「たぶんピザ。動く前に聞いて」</strong>
+      </div>
+    </article>
+
+    <article class="type4">
+      <div class="type4__num">Type 4</div>
+      <h3 class="type4__title">Ambient Intent</h3>
+      <p class="type4__def">継続的な背景シグナル。具体的な要求はないが、環境がそれを<strong>尊重すべき状態</strong>にユーザーがいる。</p>
+      <div class="type4__example">
+        <span class="type4__example-label">Example</span>
+        Mai が夜23時にベッドで読書中。<br>
+        <strong>Intent: 「静かに。部屋を暖かく。通知ゼロ。本以外は暗く」</strong>
+      </div>
+    </article>
+  </div>
+
+  <p style="font-size:15.5px; color: var(--ink-2); line-height: 1.7; max-width: 720px; margin-top: 18px;">
+    Type 2-4 はすべて Implicit Intent の下位分類。今日の AI が読めるのは Type 1 だけ。Type 2-4 は<strong>誰もが日々経験している「やってほしいけどやってくれない瞬間」</strong>の正体。Context Grammar はこの4つすべてを構造的に扱える設計言語。
+  </p>
+
+  <h3 style="font-size: 22px; font-weight: 600; margin: 48px 0 16px; letter-spacing: -0.4px;">Intent と Jobs-to-be-Done の混同</h3>
+  <p style="font-size: 16px; color: var(--ink-2); line-height: 1.7; max-width: 720px; margin-bottom: 20px;">
+    プロダクト畑の人ほど Intent と JTBD を混同する。両方必要だけど、<strong>時間軸が桁違い</strong>。
+  </p>
+
+  <div class="compare">
+    <div class="compare__col compare__col--jtbd">
+      <div class="compare__label">Framework</div>
+      <h4 class="compare__title">Jobs-to-be-Done</h4>
+      <p class="compare__body">プロダクトを「雇って」達成したい<strong>長期の目標</strong>。一度定義すれば数ヶ月-数年有効。</p>
+      <ul class="compare__list">
+        <li>「親として整理された感覚を保ちたい」</li>
+        <li>「予定を組まずに健康を維持したい」</li>
+        <li>プロダクトの<strong>戦略</strong>を決める</li>
+        <li>roadmap・research deck・年次計画に書く</li>
+      </ul>
+    </div>
+    <div class="compare__col compare__col--intent">
+      <div class="compare__label">Context Grammar</div>
+      <h4 class="compare__title">Intent</h4>
+      <p class="compare__body">今この瞬間、何がしたいかの<strong>瞬間のシグナル</strong>。1分・1タップ・1部屋移動のたびに更新される。</p>
+      <ul class="compare__list">
+        <li>「たぶんピザ。聞いて」</li>
+        <li>「あと5分で走りに出る。メールで邪魔するな」</li>
+        <li>インタラクションの<strong>実行</strong>を決める</li>
+        <li>runtime に住む。ユーザーと Rule Engine の間</li>
+      </ul>
+    </div>
+  </div>
+
+  <p style="font-size: 15.5px; color: var(--ink-2); line-height: 1.75; max-width: 720px; margin-top: 24px;">
+    JTBD は<strong>何を作るか</strong>を教える。Intent は<strong>次の200msで何をするか</strong>を教える。両方ないと、リサーチが立派なのに常にウザいプロダクトか、反応が良いのに違う問題を解いている AI のどちらかになる。
+  </p>
+
+  <h3 style="font-size: 22px; font-weight: 600; margin: 48px 0 16px; letter-spacing: -0.4px;">Intent の生成式 — 1行でまとめると</h3>
+  <p style="font-size: 16px; color: var(--ink-2); line-height: 1.7; max-width: 720px; margin-bottom: 16px;">
+    Implicit Intent は次の式で生まれる。Coordinator がこれを実行する。
+  </p>
+
+  <div class="formula">
+    Implicit Intent (t)<br>
+    &nbsp;&nbsp;= <strong>Coordinator</strong> (<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>Tokens (t)</em>,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>Person Brain (subject)</em>,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>Household Brain</em>,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>Calendar Brain</em>,<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>Disclosure Dial (per-domain)</em><br>
+    &nbsp;&nbsp;)<br>
+    &nbsp;&nbsp;→ <strong>{ proposition, confidence }</strong>
+  </div>
+
+  <p style="font-size: 14.5px; color: var(--ink-3); line-height: 1.65; max-width: 720px; font-family: var(--font-mono);">
+    出力は常に「命題 + 確信度」のペア。確信度は Autonomy Dial の段階を決める入力になる。
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════
+     F · Intent → 8 Tokens diagram
+═══════════════════════════════════════ -->
+<section id="f">
+  <div class="sec-eyebrow">F · 全体図</div>
+  <h2 class="sec-title">Intent と 8 Context Tokens — Intent が「主語」、Tokens が「修飾語」</h2>
+  <p class="sec-lede">
+    よくある誤解: 「Intent も Tokens の1つでは？」 違います。Intent は<strong>別レイヤー</strong>。Tokens は Intent をどう実行するかを決める<strong>修飾情報</strong>。
+  </p>
+
+  <div class="flow">
+    <div class="flow__title">Intent → 8 Tokens → 実行 のフロー</div>
+    <div class="flow__svg-wrap">
+      <svg class="flow-svg" viewBox="0 0 760 380" width="100%">
+
+        <!-- Intent (left) -->
+        <text x="100" y="20" class="arrow-label" text-anchor="middle">Floor 1 · INTENT</text>
+        <rect class="pill pill--intent" x="20" y="140" width="160" height="60" rx="14"/>
+        <text x="100" y="166" text-anchor="middle" class="pill-label--intent" style="font-size:12px;">Implicit Intent</text>
+        <text x="100" y="184" text-anchor="middle" class="pill-label--intent" style="font-size:10px;">"new soccer shoes"</text>
+
+        <!-- Tokens (center) -->
+        <text x="380" y="20" class="arrow-label" text-anchor="middle">8 Context Tokens (Floor 2)</text>
+
+        <rect class="pill pill--token" x="290" y="40"  width="180" height="28" rx="14"/>
+        <text x="380" y="59" text-anchor="middle" class="pill-label--token">① Physical State</text>
+
+        <rect class="pill pill--token" x="290" y="76"  width="180" height="28" rx="14"/>
+        <text x="380" y="95" text-anchor="middle" class="pill-label--token">② Cognitive Load</text>
+
+        <rect class="pill pill--token" x="290" y="112" width="180" height="28" rx="14"/>
+        <text x="380" y="131" text-anchor="middle" class="pill-label--token">③ Social Exposure</text>
+
+        <rect class="pill pill--token" x="290" y="148" width="180" height="28" rx="14"/>
+        <text x="380" y="167" text-anchor="middle" class="pill-label--token">④ Priority Weight</text>
+
+        <rect class="pill pill--token" x="290" y="184" width="180" height="28" rx="14"/>
+        <text x="380" y="203" text-anchor="middle" class="pill-label--token">⑤ Form Factor</text>
+
+        <rect class="pill pill--token" x="290" y="220" width="180" height="28" rx="14"/>
+        <text x="380" y="239" text-anchor="middle" class="pill-label--token">⑥ Feasibility</text>
+
+        <rect class="pill pill--token" x="290" y="256" width="180" height="28" rx="14"/>
+        <text x="380" y="275" text-anchor="middle" class="pill-label--token">⑦ Autonomy Dial</text>
+
+        <rect class="pill pill--token" x="290" y="292" width="180" height="28" rx="14"/>
+        <text x="380" y="311" text-anchor="middle" class="pill-label--token">⑧ Disclosure Dial</text>
+
+        <!-- Arrows Intent → Tokens (Intent feeds into all 8) -->
+        <path class="arrow" d="M 180 170 Q 235 100 290 54" />
+        <path class="arrow" d="M 180 170 Q 235 130 290 90" />
+        <path class="arrow" d="M 180 170 Q 235 150 290 126" />
+        <path class="arrow" d="M 180 170 Q 235 165 290 162" />
+        <path class="arrow" d="M 180 170 Q 235 180 290 198" />
+        <path class="arrow" d="M 180 170 Q 235 200 290 234" />
+        <path class="arrow" d="M 180 170 Q 235 230 290 270" />
+        <path class="arrow" d="M 180 170 Q 235 260 290 306" />
+        <text x="237" y="115" class="arrow-label" text-anchor="middle">読み取り</text>
+
+        <!-- Action (right) -->
+        <text x="640" y="20" class="arrow-label" text-anchor="middle">Floor 4-5 · 実行</text>
+        <rect class="pill pill--intent" x="540" y="140" width="200" height="60" rx="14"/>
+        <text x="640" y="166" text-anchor="middle" class="pill-label--intent" style="font-size:12px;">1-tap notification</text>
+        <text x="640" y="184" text-anchor="middle" class="pill-label--intent" style="font-size:10px;">"$48 · EU 37 · auto?"</text>
+
+        <!-- Arrows Tokens → Action -->
+        <path class="arrow" d="M 470 170 L 540 170" />
+        <text x="503" y="160" class="arrow-label" text-anchor="middle">適用</text>
+
+      </svg>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>読み方:</strong><br>
+    ① Intent = <strong>何をしたいか</strong> (新しい靴がほしい)<br>
+    ② 8 Tokens = <strong>今どういう状況か</strong> (朝・忙しい・冷蔵庫前・予算 OK・Autonomy 高)<br>
+    ③ 実行 = Intent を、Tokens の制約のなかで<strong>適切な方法で</strong>届ける<br><br>
+    同じ Intent でも、Tokens が違えば実行方法が変わる。<strong>夜23時の Mai</strong> なら通知すら出ない (Cognitive Load 低・Social Exposure 寝室)。<strong>朝7時</strong>だから1タップ通知になる。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     G · Recommendations + Q&A
+═══════════════════════════════════════ -->
+<section id="g1">
+  <div class="sec-eyebrow">G · これからどうするか</div>
+  <h2 class="sec-title">推奨アクション — 今日からデザインに入れること</h2>
+  <p class="sec-lede">
+    Intent の概念が整理できたら、portfolio や仕事のフローに反映するべきポイントは3つ。
+  </p>
+
+  <div class="recs">
+    <div class="rec">
+      <div class="rec__num">1</div>
+      <div>
+        <div class="rec__title">「Explicit だけ」のシナリオを書かない</div>
+        <div class="rec__body">
+          ユーザーフローを書くとき、起点が常に<strong>"User taps / User says"</strong>になっていないか確認する。現実の生活では、Implicit が9割。「ユーザーが何も言わない瞬間に、何が起きるか」をデザインの主役に置く。
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec__num">2</div>
+      <div>
+        <div class="rec__title">Implicit Intent には常に「確信度」をセットで書く</div>
+        <div class="rec__body">
+          推論された Intent はあくまで<strong>仮説</strong>。「90% 以上 → 自動実行」「60-90% → 1タップ確認」「60% 未満 → 静かに待つ」の閾値をデザインに含める。Sota の靴のシナリオも、92% だから1タップ通知になっている。確信度ゼロのまま勝手に動く AI は、<strong>気持ち悪い</strong>。
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec__num">3</div>
+      <div>
+        <div class="rec__title">Intent と Tokens と Brain を3層に分けて描く</div>
+        <div class="rec__body">
+          UI レビューで「これは Intent か Token か どの Brain か？」が即答できるように、ドキュメントは3層で図式化する。
+          混ぜると <em>"我々の AI はコンテキストを理解する"</em> という曖昧なポエムにしかならない。3層に分かれた瞬間、設計判断が再現可能になる。Brain は1つではなく Person / Household / Calendar の<strong>どれを参照したか</strong>まで明示すること。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="g2">
+  <div class="sec-eyebrow">G · よくある混乱</div>
+  <h2 class="sec-title">よくある質問を整理する</h2>
+
+  <div class="step step--intent">
+    <div class="step__head">
+      <span class="step__title">Q1. Intent と「Goal (目標)」は同じもの？</span>
+    </div>
+    <div class="step__body">
+      <strong>違います。</strong> Goal (Jobs-to-be-Done) は「今年中に痩せたい」のような<strong>長期の目標</strong>。Intent は「今この瞬間、何がしたいか」の<strong>瞬間のシグナル</strong>。Goal は年単位、Intent は分単位。Goal は roadmap に書くもの、Intent は runtime で動くもの。両方必要だけど、別もの。
+    </div>
+  </div>
+
+  <div class="step step--intent">
+    <div class="step__head">
+      <span class="step__title">Q2. Implicit Intent って、勝手に推測されたら気持ち悪くない？</span>
+    </div>
+    <div class="step__body">
+      <strong>その通りで、だから Disclosure Dial と Autonomy Dial がある。</strong>
+      ユーザーが「ここまでは推測していい」「ここからは聞いてくれ」を<strong>ドメインごと・人ごと・Brain ごと</strong>に設定できるのが Context Grammar の核。Sota の靴は Person × Household × Calendar の読み合わせ OK、Aoi の生理周期は Person Brain の中だけに閉じる。家計は OK、配偶者の私的予算は別。<strong>推測は、許可があるところでしかしない</strong>。
+    </div>
+  </div>
+
+  <div class="step step--intent">
+    <div class="step__head">
+      <span class="step__title">Q3. Implicit Intent が外れたらどうする？</span>
+    </div>
+    <div class="step__body">
+      <strong>外れる前提で設計する。</strong> 確信度に応じて、Autonomy Dial の段階が変わる。92% でも自動購入はせず1タップ確認。50% なら通知すら出さず Person Brain の Learning Layer にメモを残すだけ。<strong>外れても安いコスト</strong>になる設計が大前提。「サイレントで間違って買う」は絶対にやらない。
+    </div>
+  </div>
+
+  <div class="step step--intent">
+    <div class="step__head">
+      <span class="step__title">Q4. 既存の AI (ChatGPT, Siri, Family Hub) と何が違うの？</span>
+    </div>
+    <div class="step__body">
+      ChatGPT / Siri は <strong>Explicit Intent しか聞かない</strong>。ユーザーがタイプ・発話して初めて反応する。Apple Intelligence や Samsung Family Hub は<strong>少しの Implicit</strong> を持っている (家族プロファイル、習慣学習、最大6人のプロファイル、Voice ID、AI Vision) けど、<strong>構造化された Intent モデル</strong>ではない。<br>
+      Context Grammar が提案するのは、<strong>Implicit Intent を Token × 複数 Brain の交差で構造化して扱う</strong>設計言語。Coordinator がそれらを読み合わせる。だから「ベテラン店員のお冷」が再現可能になる。
+    </div>
+  </div>
+
+  <div class="step step--intent">
+    <div class="step__head">
+      <span class="step__title">Q5. Intent はどこの Brain に保存される？</span>
+    </div>
+    <div class="step__body">
+      <strong>Intent そのものは保存されません。</strong> Intent は<strong>瞬間のシグナル</strong>であって、永続記憶ではない。Sota の「サッカーシューズが欲しい」は今日の朝の Intent であって、明日の朝には別の Intent がある。<br>
+      ただし、<strong>Intent から学んだパターン</strong>は該当する Brain の Learning Layer に蓄積される。<br>
+      ・「Sota は3-4ヶ月ごとに靴サイズが変わる」 → <strong>Person Brain (Sota)</strong><br>
+      ・「Yamashiro 家は試合5日前を逃すと買い替えが間に合わない」 → <strong>Household Brain</strong><br>
+      ・「火曜の朝は登校10分前に Cognitive Load HIGH」 → <strong>Calendar Brain</strong><br>
+      Intent そのものは流れる、Pattern が残る。残る場所は<strong>Brain ごとに違う</strong>。
+    </div>
+  </div>
+
+  <div class="step step--intent">
+    <div class="step__head">
+      <span class="step__title">Q6. なぜ Brain を1つにまとめないの？</span>
+    </div>
+    <div class="step__body">
+      <strong>1つにまとめた瞬間、プライバシーと責任範囲が崩れるから。</strong>
+      Aoi の生理周期は Aoi の Person Brain の中で閉じるべきで、Household Brain や Calendar Brain には流れてはいけない。家計データは Household Brain にあるべきで、子供の Person Brain には流れてはいけない。<br>
+      Brain を役割で分けておくと、<strong>Disclosure Dial で「どの Brain がどの Brain にどこまで見せるか」を1つずつ設定できる</strong>。Coordinator が読み合わせるとき、その許可マトリクスを必ず通る。1つの巨大な脳だと、この境界が引けない。
+    </div>
+  </div>
+</section>
+
+<div class="foot">Context Grammar · Intent · Combined · 2026-05-01</div>
+
+</div>
+
+<!-- Bottom-right project marker (same pattern as p3-scroll) -->
+<div class="chpt-corner" aria-hidden="true"><strong>Context Grammar</strong> Intent · Combined</div>
+
+</body>
+</html>

@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2 Dials  — Context Grammar · 関係調整ノブ</title>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #fdfcfa;
+    --surface: #ffffff;
+    --ink: #0a0a0a;
+    --ink-2: #525252;
+    --ink-3: #a1a1aa;
+    --line: #e5e5e5;
+    --line-strong: #d4d4d4;
+
+    /* Two dials get distinct accents */
+    --disclose: #2d6a8f;        /* Disclosure = blue (透明度・知らせる) */
+    --disclose-bg: rgba(45, 106, 143, 0.10);
+    --autonomy: #a07040;        /* Autonomy = warm sand (まかせる) */
+    --autonomy-bg: rgba(160, 112, 64, 0.10);
+
+    --coord: #8a6ab0;
+    --coord-bg: rgba(138, 106, 176, 0.10);
+    --green: #16803a;
+    --green-bg: rgba(22, 128, 58, 0.10);
+    --warn: #b54708;
+    --warn-bg: rgba(181, 71, 8, 0.10);
+
+    --font-sans: 'Geist', 'Geist Sans', 'Noto Sans JP', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.7;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 80px 32px; }
+
+  /* ── Hero ─────────────────────────────── */
+  .hero { text-align: center; margin-bottom: 80px; }
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 20px;
+  }
+  .hero__title {
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 24px;
+  }
+  .hero__sub {
+    font-size: 18px;
+    color: var(--ink-2);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* ── Section ──────────────────────────── */
+  section { margin-bottom: 88px; scroll-margin-top: 40px; }
+
+  .sec-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 14px;
+  }
+  .sec-eyebrow::before {
+    content: "";
+    width: 28px; height: 1px;
+    background: var(--ink-3);
+  }
+  .sec-title {
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.8px;
+    margin-bottom: 28px;
+  }
+  .sec-lede {
+    font-size: 18px;
+    color: var(--ink-2);
+    margin-bottom: 32px;
+    max-width: 720px;
+  }
+
+  /* ── Two columns: Disclosure vs Autonomy ─ */
+  .vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: stretch;
+    margin: 32px 0;
+  }
+  @media (max-width: 720px) { .vs { grid-template-columns: 1fr; } .vs__divider { display: none; } }
+
+  .vs__card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px 28px;
+    background: var(--surface);
+  }
+  .vs__card--disclose { border-top: 4px solid var(--disclose); background: linear-gradient(180deg, var(--disclose-bg) 0%, var(--surface) 24%); }
+  .vs__card--autonomy { border-top: 4px solid var(--autonomy); background: linear-gradient(180deg, var(--autonomy-bg) 0%, var(--surface) 24%); }
+
+  .vs__divider {
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+  }
+
+  .vs__icon { font-size: 40px; margin-bottom: 12px; line-height: 1; }
+  .vs__label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .vs__card--disclose .vs__label { color: var(--disclose); }
+  .vs__card--autonomy .vs__label { color: var(--autonomy); }
+
+  .vs__name { font-size: 28px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.5px; }
+  .vs__role { font-size: 16px; color: var(--ink-2); margin-bottom: 18px; line-height: 1.6; }
+  .vs__list { list-style: none; padding: 0; }
+  .vs__list li {
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14.5px;
+    color: var(--ink);
+    display: flex;
+    gap: 10px;
+  }
+  .vs__list li::before {
+    content: "→";
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+
+  /* ── Restaurant metaphor ─────────────── */
+  .restaurant {
+    background: linear-gradient(180deg, #fef9f3 0%, #fffaf0 100%);
+    border: 1px solid #f0d9b5;
+    border-radius: 16px;
+    padding: 36px 32px;
+    margin: 32px 0;
+  }
+  .restaurant__title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #8a4500;
+  }
+  .restaurant__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 600px) { .restaurant__grid { grid-template-columns: 1fr; } }
+
+  .rest-item h4 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .rest-item p { font-size: 16px; color: var(--ink); margin-bottom: 8px; line-height: 1.6; }
+  .rest-item__items { font-size: 14px; color: var(--ink-2); line-height: 1.65; }
+
+  /* ── Step-by-step Yamashiro scenario ── */
+  .scenario-intro {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .scenario-intro__quote {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+  .scenario-intro__source { font-size: 14px; color: var(--ink-3); font-family: var(--font-mono); }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 4px;
+  }
+  .step--disclose::before { background: var(--disclose); }
+  .step--autonomy::before { background: var(--autonomy); }
+  .step--coord::before    { background: var(--coord); }
+  .step--result::before   { background: var(--green); }
+  .step--warn::before     { background: var(--warn); }
+
+  .step__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-right: 12px;
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .step--disclose .step__num { background: var(--disclose); }
+  .step--autonomy .step__num { background: var(--autonomy); }
+  .step--coord    .step__num { background: var(--coord); }
+  .step--result   .step__num { background: var(--green); }
+  .step--warn     .step__num { background: var(--warn); }
+
+  .step__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .step__title { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  .step__chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-left: auto;
+  }
+  .step--disclose .step__chip { color: var(--disclose); background: var(--disclose-bg); }
+  .step--autonomy .step__chip { color: var(--autonomy); background: var(--autonomy-bg); }
+  .step--coord    .step__chip { color: var(--coord);    background: var(--coord-bg); }
+  .step--result   .step__chip { color: var(--green);    background: var(--green-bg); }
+  .step--warn     .step__chip { color: var(--warn);     background: var(--warn-bg); }
+
+  .step__body { font-size: 16px; color: var(--ink); line-height: 1.65; }
+  .step__body strong { font-weight: 600; }
+  .step__body em { font-style: normal; color: var(--ink-2); font-family: var(--font-mono); font-size: 14.5px; }
+
+  .dial-state {
+    background: var(--disclose-bg);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: var(--disclose);
+    letter-spacing: 0.04em;
+  }
+  .step--autonomy .dial-state { background: var(--autonomy-bg); color: var(--autonomy); }
+  .dial-state strong { font-weight: 700; }
+
+  .verdict {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--green-bg);
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--green);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── 4 Stages of Autonomy ────────────── */
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 24px 0;
+  }
+  @media (max-width: 720px) { .stages { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 420px) { .stages { grid-template-columns: 1fr; } }
+
+  .stage {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 18px;
+    background: var(--surface);
+    position: relative;
+  }
+  .stage__num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--autonomy);
+    margin-bottom: 6px;
+  }
+  .stage__name { font-size: 18px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.2px; }
+  .stage__desc { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 10px; }
+  .stage__example {
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--autonomy-bg);
+    padding: 10px 12px;
+    border-radius: 6px;
+    line-height: 1.5;
+  }
+  .stage__example strong { color: var(--autonomy); font-weight: 700; }
+
+  /* ── 3 Forces diagram ────────────────── */
+  .forces {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px;
+    margin: 32px 0;
+  }
+  .forces__title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .forces__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 720px) { .forces__grid { grid-template-columns: 1fr; } }
+
+  .force {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 18px;
+    background: var(--bg);
+    text-align: center;
+  }
+  .force__icon { font-size: 32px; margin-bottom: 10px; }
+  .force__name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: -0.2px;
+  }
+  .force__desc { font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+
+  .forces__formula {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--autonomy);
+    background: var(--autonomy-bg);
+    padding: 14px;
+    border-radius: 8px;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+
+  /* ── Logical dependency diagram ──────── */
+  .dependency {
+    background: linear-gradient(180deg, var(--disclose-bg) 0%, var(--surface) 60%);
+    border: 1px solid var(--disclose);
+    border-radius: 14px;
+    padding: 32px;
+    margin: 24px 0;
+  }
+  .dependency__row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  @media (max-width: 600px) { .dependency__row { grid-template-columns: 1fr; } .dependency__arrow { display: none; } }
+
+  .dep-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .dep-card--disclose { border-left: 3px solid var(--disclose); }
+  .dep-card--autonomy { border-left: 3px solid var(--autonomy); }
+  .dep-card__label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .dep-card__state { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .dep-card__note { font-size: 13px; color: var(--ink-2); }
+
+  .dependency__arrow {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--ink-3);
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .dep-impossible {
+    background: var(--warn-bg);
+    border: 1px dashed var(--warn);
+    border-radius: 8px;
+    padding: 14px 18px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: var(--warn);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Recommendation cards ──────────── */
+  .recs { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .rec {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 28px;
+    background: var(--surface);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .rec__num {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--coord);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-weight: 700; font-size: 16px;
+  }
+  .rec__title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .rec__body { font-size: 15px; color: var(--ink-2); line-height: 1.65; }
+
+  /* ── Mini callout / aside ─────────── */
+  .callout {
+    border-left: 3px solid var(--ink-3);
+    padding: 14px 20px;
+    margin: 24px 0;
+    color: var(--ink-2);
+    font-size: 15.5px;
+    line-height: 1.65;
+    background: rgba(0,0,0,0.02);
+    border-radius: 0 8px 8px 0;
+  }
+  .callout strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Footer ─────────────────────────── */
+  .foot {
+    margin-top: 100px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── Bottom-right project marker ───── */
+  .chpt-corner {
+    position: fixed;
+    bottom: 24px;
+    right: 28px;
+    z-index: 40;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(10,10,10,0.55);
+    pointer-events: none;
+    mix-blend-mode: difference;
+  }
+  .chpt-corner strong {
+    color: var(--ink);
+    font-weight: 600;
+    margin-right: 10px;
+  }
+  @media (max-width: 768px) {
+    .chpt-corner { right: 16px; bottom: 16px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ─────────────────── HERO ─────────────────── -->
+<header class="hero">
+  <div class="hero__eyebrow">Context Grammar · Concept Explainer · 平易な日本語で</div>
+  <h1 class="hero__title">2つのダイヤルが、<br>信頼を見える化する。</h1>
+  <p class="hero__sub">
+    AI に<strong>どこまで知らせるか</strong>（Disclosure Dial）と、AI に<strong>どこまでまかせるか</strong>（Autonomy Dial）。<br>
+    8つの Context Tokens のうち、最後の2つ — 関係を調整するノブの話です。
+  </p>
+</header>
+
+<!-- ─────────── §1 · Hero / 何の話か ─────────── -->
+<section id="s1">
+  <div class="sec-eyebrow">§1</div>
+  <h2 class="sec-title">2 Dials は何か — 信頼の見える化</h2>
+  <p class="sec-lede">
+    AI と人間の関係って、ふわっとしていて言語化しづらい。「便利だけど、ちょっと怖い」「任せたいけど、全部は嫌」。この感覚を、<strong>2つのつまみ（ダイヤル）</strong>で表すのが Context Grammar の答えです。
+  </p>
+
+  <div class="callout">
+    8つの Context Tokens のうち、6つは<strong>状況を表すトークン</strong>（今どんな場面か）。残り2つは<strong>関係を表すダイヤル</strong>（人と AI のあいだの距離感）。<br>
+    この explainer は、その<strong>関係ダイヤル2つ</strong>だけを徹底的に分解します。
+  </div>
+</section>
+
+<!-- ─────────── §2 · Core distinction ─────────── -->
+<section id="s2">
+  <div class="sec-eyebrow">§2 · 区別</div>
+  <h2 class="sec-title">Disclosure と Autonomy — 別ものです</h2>
+  <p class="sec-lede">
+    「知らせる量」と「まかせる量」は、似ているようで全く違う質問。最初に区別をハッキリさせます。
+  </p>
+
+  <div class="vs">
+    <div class="vs__card vs__card--disclose">
+      <div class="vs__icon">🪟</div>
+      <div class="vs__label">Disclosure Dial</div>
+      <div class="vs__name">どこまで<br>知らせるか</div>
+      <p class="vs__role">AI に自分のことをどれだけ見せるか。家計、健康、家族関係、位置情報 — 領域ごとに別々に決められる。</p>
+      <ul class="vs__list">
+        <li>健康 AI には全部見せる</li>
+        <li>SNS AI には何も見せない</li>
+        <li>領域ごと・人ごとに違う設定</li>
+        <li>「窓のブラインドの開き具合」</li>
+      </ul>
+    </div>
+
+    <div class="vs__divider">vs</div>
+
+    <div class="vs__card vs__card--autonomy">
+      <div class="vs__icon">🎚</div>
+      <div class="vs__label">Autonomy Dial</div>
+      <div class="vs__name">どこまで<br>まかせるか</div>
+      <p class="vs__role">AI に判断と行動をどれだけ預けるか。提案だけ／確認してから／事後通知／全自動 — 4段階。</p>
+      <ul class="vs__list">
+        <li>毎週の食材は全自動でいい</li>
+        <li>高額な買い物は確認してほしい</li>
+        <li>AI の信頼度に応じて変わる</li>
+        <li>「車のクルーズコントロールの強さ」</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>覚え方:</strong> Disclosure は「<strong>窓</strong>」（情報がどれだけ通るか）。Autonomy は「<strong>ハンドル</strong>」（誰が運転するか）。<br>
+    窓を閉じたまま運転を任せることはできない — そこに今日のクライマックスがあります（§6で詳説）。
+  </div>
+</section>
+
+<!-- ─────────── §3 · Restaurant metaphor ─────────── -->
+<section id="s3">
+  <div class="sec-eyebrow">§3 · 比喩</div>
+  <h2 class="sec-title">レストランで考えてみる — 常連客のなり方</h2>
+  <p class="sec-lede">
+    あなたが、近所のレストランの常連になっていく過程を思い浮かべてください。2つのダイヤルは、まさにこの常連化のプロセスです。
+  </p>
+
+  <div class="restaurant">
+    <div class="restaurant__title">🍽 はじめて行った日 vs 100回目の常連</div>
+    <div class="restaurant__grid">
+      <div class="rest-item">
+        <h4>🪟 Disclosure = 何を伝えるか</h4>
+        <p>常連になるほど、お店に教える情報が増える。</p>
+        <div class="rest-item__items">
+          ・初回:「ナッツアレルギーです」だけ伝える<br>
+          ・3回目:「夫がワイン好き」も加わる<br>
+          ・10回目:「来週子供の誕生日」も話す<br>
+          ・100回目: 仕事のストレスまで話す
+        </div>
+      </div>
+      <div class="rest-item">
+        <h4>🎚 Autonomy = どこまで任せるか</h4>
+        <p>常連になるほど、お店に決定権を渡せる。</p>
+        <div class="rest-item__items">
+          ・初回: メニューを見て自分で全部選ぶ<br>
+          ・3回目:「いつもの白ワイン」を提案される<br>
+          ・10回目:「今日のおすすめは白でいい？」<br>
+          ・100回目: 黙って座るだけで完璧な一皿
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>ここが核心:</strong> アレルギーを<strong>伝えていない</strong>のに「いつものお任せで」とは言えない。死ぬかもしれないから。<br>
+    これが <strong>Disclosure → Autonomy</strong> という順番。情報を渡してから、はじめて任せられる。逆はない。
+  </div>
+
+  <div class="callout" style="border-left-color: var(--disclose);">
+    <strong>もうひとつの気づき:</strong> 常連になる過程で、お店の側もあなたを「学習」している。あなたが3年通っても、毎回名前を聞き返すお店は、<strong>覚える気がない＝Disclosure を受け取らないお店</strong>。
+    Disclosure は、あなたが渡すだけでなく、AI 側の<strong>覚える設計</strong>とセットになっている。
+  </div>
+</section>
+
+<!-- ─────────── §4 · Yamashiro family walkthrough ─────────── -->
+<section id="s4">
+  <div class="sec-eyebrow">§4 · 実例</div>
+  <h2 class="sec-title">山城家の火曜の朝 — 2つのダイヤルが同時に動く</h2>
+  <p class="sec-lede">
+    抽象論は終わり。実際の家族の30秒で、2つのダイヤルがどう絡みあって動くかを追跡します。
+  </p>
+
+  <div class="scenario-intro">
+    <p class="scenario-intro__quote">「Sota のサッカーシューズが小さい。あと、Aoi の部活費 ¥8,500 の振込今日が締切。」</p>
+    <p class="scenario-intro__source">— Mai (38歳・母) · 火曜 7:42am · キッチンで Kiran に</p>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step step--disclose">
+    <div class="step__head">
+      <span class="step__num">1</span>
+      <span class="step__title">AI が Disclosure 設定を確認する</span>
+      <span class="step__chip">Disclosure</span>
+    </div>
+    <div class="step__body">
+      家事 AI が会話を聞き取り、まず<strong>誰の・どの領域の情報なら触っていいか</strong>を確認する。山城家は領域ごとに別の Disclosure 設定をしている。
+
+      <div class="dial-state">
+        <strong>Sota の靴サイズ:</strong> Disclosure = FULL (家族 AI に全公開)<br>
+        <strong>家族の家計:</strong> Disclosure = FULL (Mai と Kiran の両方が見える)<br>
+        <strong>Aoi の学校事情:</strong> Disclosure = SUMMARY (詳細は本人だけ・親には要約のみ)
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step step--autonomy">
+    <div class="step__head">
+      <span class="step__num">2</span>
+      <span class="step__title">Autonomy が領域ごとに違う段階で動く</span>
+      <span class="step__chip">Autonomy</span>
+    </div>
+    <div class="step__body">
+      Disclosure を確認したら、それぞれの行動について<strong>Autonomy ダイヤルがどの段階か</strong>を見る。同じ家族の同じ朝でも、領域によって全く違う。
+
+      <div class="dial-state">
+        <strong>子供の必需品 ($50 以下):</strong> Autonomy = AUTO (黙って買う)<br>
+        <strong>毎月の振込:</strong> Autonomy = NOTIFY (実行して事後報告)<br>
+        <strong>新しい習い事:</strong> Autonomy = CONFIRM (買う前に確認)
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step step--coord">
+    <div class="step__head">
+      <span class="step__num">3</span>
+      <span class="step__title">同時並列で実行 — 3つの行動・3つの段階</span>
+      <span class="step__chip">Execute</span>
+    </div>
+    <div class="step__body">
+      <strong>Sota の靴 (¥6,800):</strong> AUTO 段階。Disclosure=FULL で家計枠も見える、Autonomy=AUTO で承認不要。シューズ Agent が即注文。<br><br>
+      <strong>Aoi の部活費 ¥8,500:</strong> NOTIFY 段階。Aoi の学校事情は SUMMARY なので「部活費」とだけ Mai に見える（中身は伏せる）。実行→事後通知。<br><br>
+      <strong>Sota の新しいピアノ教室の見学申し込み:</strong> CONFIRM 段階。新規領域は Autonomy が低く始まる。「この教室で見学申込していい？」と Mai に聞く。
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step step--result">
+    <div class="step__head">
+      <span class="step__num">4</span>
+      <span class="step__title">Mai の iPhone に出る情報も、ダイヤルで決まる</span>
+      <span class="step__chip">UI</span>
+    </div>
+    <div class="step__body">
+      Mai の画面には3つの通知が<strong>違う形式</strong>で並ぶ。<br>
+      <em>✓ Sota's soccer shoes ordered. ¥6,800. (silent)</em><br>
+      <em>📨 Aoi の部活費 ¥8,500 振込完了 (詳細は本人にも届いている)</em><br>
+      <em>❓ ピアノ見学 — Tuesday 4pm でいい？ [Yes] [No]</em>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step step--warn">
+    <div class="step__head">
+      <span class="step__num">5</span>
+      <span class="step__title">Aoi の側でも別の Disclosure 設定が動く</span>
+      <span class="step__chip">Aoi</span>
+    </div>
+    <div class="step__body">
+      Aoi (15・they/them) は親に「部活費の存在」だけ見せて中身は伏せている — これは<strong>子供から親への Disclosure 設定</strong>。<br>
+      AI は2つの Disclosure 設定を<strong>同時に守る</strong>: ① Aoi が親に渡す情報量 ② 親が AI に渡す情報量。同じ事柄でも、誰から誰への流れかで Disclosure は別々に設定される。
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 28px;">
+    <strong>気づきポイント:</strong>
+    たった30秒の会話で、<strong>Disclosure 設定が3パターン × Autonomy 段階が3パターン</strong>同時に動いた。誰一人プログラミングしてない。家族はただ朝ごはんを食べただけ。
+  </div>
+</section>
+
+<!-- ─────────── §5 · 4 stages of Autonomy ─────────── -->
+<section id="s5">
+  <div class="sec-eyebrow">§5 · Autonomy の4段階</div>
+  <h2 class="sec-title">Autonomy Dial — 4つの段階</h2>
+  <p class="sec-lede">
+    Autonomy ダイヤルは無段階ではなく、<strong>はっきり区別された4つの段階</strong>で動く。レベルが上がるほど、AI が前に出る量が増える。
+  </p>
+
+  <div class="stages">
+    <div class="stage">
+      <div class="stage__num">01</div>
+      <div class="stage__name">Suggest</div>
+      <div class="stage__desc">AI は「こうしたら？」と提案するだけ。判断も実行も人間がやる。</div>
+      <div class="stage__example">
+        <strong>例:</strong> Sota のシューズが古いので<strong>新しいモデル3つ提案</strong>します。Mai が選ぶ。
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage__num">02</div>
+      <div class="stage__name">Confirm</div>
+      <div class="stage__desc">AI が候補を1つに絞って実行直前に確認。Yes と言えば動く。</div>
+      <div class="stage__example">
+        <strong>例:</strong> ピアノ教室Aで<strong>見学を申し込みます。よろしい？</strong> [Yes] [No]
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage__num">03</div>
+      <div class="stage__name">Notify</div>
+      <div class="stage__desc">AI が先に実行。終わったら事後通知。取り消しは可能。</div>
+      <div class="stage__example">
+        <strong>例:</strong> Aoi の部活費 ¥8,500 を<strong>振込完了</strong>。Tap で取り消し。
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage__num">04</div>
+      <div class="stage__name">Auto</div>
+      <div class="stage__desc">AI が黙って実行・通知すらしない。必要な時だけログを見る。</div>
+      <div class="stage__example">
+        <strong>例:</strong> 月曜の<strong>食材定期便</strong>。15週連続で問題ない。何も知らせない。
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>段階を進むには「実績」が要る。</strong>
+    新しい領域は <em>Suggest</em> から始まる。10回うまくいったら <em>Confirm</em> に上がる。さらに3か月安定したら <em>Notify</em>。問題が起きたら<strong>すぐに前の段階に戻る</strong>。これが「信頼の階段」。
+  </div>
+</section>
+
+<!-- ─────────── §6 · Why Disclosure must come first ─────────── -->
+<section id="s6">
+  <div class="sec-eyebrow">§6 · 順番</div>
+  <h2 class="sec-title">なぜ Disclosure が先か — 論理的に逆は不可能</h2>
+  <p class="sec-lede">
+    多くの AI プロダクトは Autonomy（自動化レベル）の話だけする。Context Grammar の主張は明確 — <strong>Disclosure を語らずに Autonomy を語るのは順番が逆</strong>。
+  </p>
+
+  <div class="dependency">
+    <div class="dependency__row">
+      <div class="dep-card dep-card--disclose">
+        <div class="dep-card__label">Step 1 · 必須</div>
+        <div class="dep-card__state">Disclosure を開ける</div>
+        <div class="dep-card__note">AI に何を見せるかを決める。家計・健康・家族関係 — 領域ごとに。</div>
+      </div>
+      <div class="dependency__arrow">→</div>
+      <div class="dep-card dep-card--autonomy">
+        <div class="dep-card__label">Step 2 · 可能になる</div>
+        <div class="dep-card__state">Autonomy を上げる</div>
+        <div class="dep-card__note">情報がある領域は、判断を任せられる。情報が無い領域は、任せられない。</div>
+      </div>
+    </div>
+
+    <div class="dep-impossible">
+      ⚠ 知らせない × まかせる = 論理的に不可能
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>常連レストランの比喩に戻ると:</strong><br>
+    アレルギーを伝えずに「お任せで」と言ったら、シェフはピーナッツソースを出すかもしれない。<strong>Disclosure ゼロで Autonomy 最大は、命に関わる。</strong><br>
+    AI も同じ。家計を見せていない AI に「全部任せる」と言ったら、口座残高を超える買い物をする。論理的に避けられない。
+  </div>
+
+  <div class="callout" style="border-left-color: var(--disclose);">
+    <strong>逆方向は OK:</strong> 「全部知らせる × 何もまかせない」（フル開示しつつ Suggest 段階だけ）は、論理的に問題なく成立する。実際これは「家計簿 AI」「健康記録 AI」の典型形。<br>
+    つまり関係は<strong>Disclosure ≥ Autonomy</strong>。Disclosure が天井で、Autonomy はそれ以下にしか上がれない。
+  </div>
+</section>
+
+<!-- ─────────── §7 · 3 Forces driving Autonomy ─────────── -->
+<section id="s7">
+  <div class="sec-eyebrow">§7 · 3つの力</div>
+  <h2 class="sec-title">Autonomy はユーザーだけが動かすのではない</h2>
+  <p class="sec-lede">
+    多くの人が誤解する: 「自動化レベルは私が決める」。実は違う。Autonomy ダイヤルは<strong>3つの力の合成</strong>で決まる。
+  </p>
+
+  <div class="forces">
+    <div class="forces__title">Autonomy Dial を動かす3つの力</div>
+
+    <div class="forces__grid">
+      <div class="force">
+        <div class="force__icon">🏭</div>
+        <div class="force__name">サービスのデフォルト</div>
+        <div class="force__desc">Netflix のオートプレイ、Amazon の1-Click、Spotify の自動再生 — 出荷時点ですでに高い Autonomy が設定されている。誰も「自分で設定した」わけではない。</div>
+      </div>
+      <div class="force">
+        <div class="force__icon">🤖</div>
+        <div class="force__name">AI による調整</div>
+        <div class="force__desc">AI が実績に応じて自動で上げ下げする。10回連続成功 → Auto に昇格。1回失敗 → Confirm に降格。AI が自分の信頼度を自己評価する。</div>
+      </div>
+      <div class="force">
+        <div class="force__icon">👤</div>
+        <div class="force__name">ユーザーの能動的変更</div>
+        <div class="force__desc">「もう確認しなくていい」「これは毎回確認して」と人が直接動かす。これは<strong>3つのうちの1つに過ぎない</strong>。最強の力でもない。</div>
+      </div>
+    </div>
+
+    <div class="forces__formula">
+      Autonomy 位置 = サービス default × AI 調整 × ユーザー能動変更
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>なぜこれが大事か:</strong>
+    「Autonomy はユーザーが選ぶ」と単純化すると、<strong>サービス提供者の責任</strong>が見えなくなる。Netflix が初期値で「次の話を自動再生」にしているのは、ユーザーが選んだのではない。Netflix の設計判断。<br>
+    Context Grammar は、この3つの力を<strong>明示的に分けて設計する</strong>ことを要求する。
+  </div>
+</section>
+
+<!-- ─────────── §8 · 推奨アクション ─────────── -->
+<section id="s8">
+  <div class="sec-eyebrow">§8 · 実用</div>
+  <h2 class="sec-title">設計者へのおすすめ — 3つだけ</h2>
+  <p class="sec-lede">
+    2つのダイヤルが分かったら、明日から AI 機能を設計するときに具体的にどうするか。
+  </p>
+
+  <div class="recs">
+    <div class="rec">
+      <div class="rec__num">1</div>
+      <div>
+        <div class="rec__title">Autonomy だけ並べた UI を疑う</div>
+        <div class="rec__body">
+          「自動化レベル: 高 / 中 / 低」だけある設定画面は、論理的に欠陥がある。先に「この AI は何を見ていいか（Disclosure）」が決まっていない限り、Autonomy だけ動かしても意味がない。<strong>Disclosure 行 → Autonomy 行の二段構成</strong>に変える。
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec__num">2</div>
+      <div>
+        <div class="rec__title">領域ごとに別々のダイヤルを置く</div>
+        <div class="rec__body">
+          家計 / 健康 / 家族 / 仕事 / SNS — それぞれで Disclosure と Autonomy が独立して動く。「全体の自動化レベル」という1つのスライダーは、現実の家族の使い方と合わない。山城家の朝が3つの段階を同時に走るのが普通。
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec__num">3</div>
+      <div>
+        <div class="rec__title">3つの力を明示する</div>
+        <div class="rec__body">
+          設定画面で「これはサービスのデフォルト」「これは AI が学習で上げた」「これはあなたが自分で動かした」を区別して見せる。<strong>誰が今のダイヤル位置を決めたか</strong>がわかると、ユーザーは初めて主体的に関与できる。これは Samsung/Google が今まさに踏み込めていない領域。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── §9 · Q&A ─────────── -->
+<section id="s9">
+  <div class="sec-eyebrow">§9 · よくある混乱</div>
+  <h2 class="sec-title">よくある質問を整理する</h2>
+
+  <div class="step step--disclose">
+    <div class="step__head">
+      <span class="step__title">Q1. プライバシー設定と Disclosure Dial って同じ？</span>
+    </div>
+    <div class="step__body">
+      <strong>違います。</strong> プライバシー設定はだいたい「ON / OFF」の2択（位置情報を共有する／しない）。Disclosure Dial は<strong>4段階</strong>(Full / Summary / Existence / Hidden) × <strong>領域ごと</strong> × <strong>相手ごと</strong>。
+      Sota の足サイズは家族 AI に Full、学校アプリには Existence (持ってることだけ)、SNS には Hidden — こういう細かい設計は、今のプライバシー設定では作れない。
+    </div>
+  </div>
+
+  <div class="step step--autonomy">
+    <div class="step__head">
+      <span class="step__title">Q2. Autonomy Dial を Auto に振り切ったら、人間は何もしないの？</span>
+    </div>
+    <div class="step__body">
+      <strong>違います。</strong> Auto でも人間は<strong>後から見られる</strong>(ログ閲覧)、<strong>取り消せる</strong>(undo)、<strong>例外を設定できる</strong>(「これだけは Confirm に戻す」)。
+      Auto は「監督が席を外す」のではなく「<strong>毎回声をかけない</strong>」だけ。家を出るとき、家族に「いってきます」と言うけど許可は取らない、その関係に近い。
+    </div>
+  </div>
+
+  <div class="step step--disclose">
+    <div class="step__head">
+      <span class="step__title">Q3. 一度開けた Disclosure は閉じられないの？</span>
+    </div>
+    <div class="step__body">
+      <strong>閉じられます。</strong> ダイヤルだから。ただし<strong>すでに学習されたもの</strong>は別途「忘却」を要求する必要がある。<br>
+      Disclosure を Hidden に戻す = <strong>これから新しい情報を渡さない</strong>。<br>
+      過去の情報を消す = <strong>「忘れて」と別に頼む</strong>。<br>
+      この2つは別の操作。Context Grammar の Brain (記憶) ページで詳しく扱う。
+    </div>
+  </div>
+
+  <div class="step step--autonomy">
+    <div class="step__head">
+      <span class="step__title">Q4. 家族でひとつの AI を共有したら、ダイヤルは誰のもの？</span>
+    </div>
+    <div class="step__body">
+      <strong>各メンバーごとに別々に持つ</strong>のが正解。山城家の AI は、Mai 用・Kiran 用・Aoi 用・Sota 用・Leo 用に<strong>5セットの Disclosure × Autonomy ダイヤル</strong>を持つ。同じ家族 AI なのに、Aoi の Autonomy は Suggest 中心、Mai の Autonomy は Auto 多めになる。<br>
+      これが <strong>Multi-Person Orchestration</strong> ── 同じ家族の同じ AI が、人ごとに違う関係を結ぶ。
+    </div>
+  </div>
+
+  <div class="step step--coord">
+    <div class="step__head">
+      <span class="step__title">Q5. これって ChatGPT や Claude にもあるの？</span>
+    </div>
+    <div class="step__body">
+      <strong>部分的にあります。</strong> ChatGPT のメモリ機能 = ごく簡素な Disclosure。OpenAI の "Operator" や Anthropic の "Computer Use" の権限設定 = 簡素な Autonomy。<br>
+      ただし<strong>2つを統一して、領域ごと・人ごとに設計する語彙</strong>はまだ世の中にない。Context Grammar が提案しているのは、その<strong>共通の言葉</strong>。Samsung/Google/Apple のどこかが採用すれば、AI とユーザーの関係を語る業界標準になりうる。
+    </div>
+  </div>
+</section>
+
+<div class="foot">Context Grammar · 2 Dials Explainer · 2026-05-01</div>
+
+</div>
+
+<!-- Bottom-right project marker (same pattern as brain explainer) -->
+<div class="chpt-corner" aria-hidden="true"><strong>Context Grammar</strong> 2 Dials</div>
+
+</body>
+</html>

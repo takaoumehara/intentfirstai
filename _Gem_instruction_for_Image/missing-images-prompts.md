@@ -31,7 +31,7 @@
 ## TOKEN ⑤ Form Factor — 周りにどんな画面があるか
 
 **保存ファイル名:** `IF-Token5-FormFactor.png`
-**用途:** grammar/index.html の Token ⑤ 説明セクション
+**用途:** tokens/index.html の Token ⑤ 説明セクション
 
 ```
 Isometric perspective, minimalist line art with slightly wobbly hand-drawn black lines,
@@ -229,13 +229,13 @@ clean radial orchestration composition showing simultaneous personalization
 
 | 画像 | ページ | セクション |
 |------|--------|----------|
-| IF-Token5-FormFactor.png | context-grammar/grammar/index.html | Token ⑤ Form Factor説明 |
+| IF-Token5-FormFactor.png | context-grammar/tokens/index.html | Token ⑤ Form Factor説明 |
 | IF-BrainL1-Identity.png | context-grammar/brain/index.html | L1 Identity セクション |
 | IF-BrainL2-Learning.png | context-grammar/brain/index.html | L2 Learning セクション |
 | IF-BrainL3-RightNow.png | context-grammar/brain/index.html | L3 Right Now セクション |
 | IF-DisposableBrain.png | context-grammar/brain/index.html | Disposable Brain セクション |
 | IF-MultiPerson.png | context-grammar/brain/index.html | Multi-Person Orchestration セクション |
-| IF-RuleEngine-IfThen.png | context-grammar/grammar/index.html | Rule Engine Bridge セクション |
+| IF-RuleEngine-IfThen.png | context-grammar/tokens/index.html | Rule Engine Bridge セクション |
 | IF-DynamicFriction.png | context-grammar/trust-design/index.html | Dynamic Friction セクション |
 | IF-BreachRecovery.png | context-grammar/trust-design/index.html | Breach & Recovery セクション |
 
@@ -250,7 +250,7 @@ clean radial orchestration composition showing simultaneous personalization
 ## Rule Engine If/Then — トークン入力から出力ルールへの変換
 
 **保存ファイル名:** `IF-RuleEngine-IfThen.png`
-**用途:** grammar/index.html の Rule Engine Bridge セクション
+**用途:** tokens/index.html の Rule Engine Bridge セクション
 
 ```
 Isometric perspective, minimalist line art with slightly wobbly hand-drawn black lines,
