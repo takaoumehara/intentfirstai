@@ -67,10 +67,10 @@ function initSiteNavCompat(opts) {
       href: 'applied/index.html',
       keys: ['projects'],
       children: [
-        { label: 'P1', href: 'projects/project-01/p1-scroll-v2.html' },
+        { label: 'P1', href: 'projects/project-01/p1-scroll.html' },
         { label: 'P2', href: 'projects/project-02/p2-scroll-v2.html', hidden: true }, // HIDDEN — restore by removing hidden:true
         { label: 'P3', href: 'projects/project-03/p3-scroll.html' },
-        { label: 'P4', href: 'projects/project-04/p4-scroll-v2.html' },
+        { label: 'P4', href: 'projects/project-04/p4-scroll-v4.html' },
         { label: 'P5', href: 'projects/project-05/p5-scroll-v2.html', hidden: true }, // HIDDEN — restore by removing hidden:true
         { label: 'P6', href: 'projects/project-06/p6-life-brain-v2.html', hidden: true } // HIDDEN — restore by removing hidden:true
       ]
@@ -342,11 +342,9 @@ function initSiteNavCompat(opts) {
     }
 
     // ── Hide subnav when dark hero is visible ──
-    var heroEl = null;
-    var hasDataDarkNav = document.body.hasAttribute('data-dark-nav');
-    if (hasDataDarkNav) {
-      heroEl = document.body.querySelector('section:first-of-type') || document.body.querySelector('[data-dark-nav]');
-    }
+    // Only targets elements explicitly classed .hero — avoids hiding subnav on
+    // CG sub-pages where the first <section> is content, not a hero.
+    var heroEl = document.querySelector('[data-subnav-hide-on-hero]') || null;
     if (heroEl) {
       var heroObserver = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
