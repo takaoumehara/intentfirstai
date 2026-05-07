@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 · Page Not Found — intentfirst.ai</title>
+  <meta name="robots" content="noindex">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/nav.css">
+  <link rel="stylesheet" href="assets/css/green-animation.css">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+    }
+
+    body {
+      font-family: 'Geist', system-ui, sans-serif;
+      background: #09090b;
+      color: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* leave room for the fixed nav */
+      padding-top: 56px;
+      overflow-x: hidden;
+    }
+
+    /* ── Full-width hero animation section ── */
+    .hero {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(60px, 10vw, 120px) clamp(24px, 6vw, 80px) clamp(48px, 8vw, 88px);
+      cursor: pointer;
+      /* subtle grain */
+      position: relative;
+    }
+
+    /* hint label above scene */
+    .scene-hint {
+      font-family: 'Geist Mono', monospace;
+      font-size: clamp(13px, 1.2vw, 16px);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(250,250,250,0.50);
+      margin-bottom: 32px;
+      transition: color 250ms ease;
+      text-align: center;
+    }
+    body.sending  .scene-hint { color: #30c969; }
+    body.returned .scene-hint { color: rgba(220, 38, 38, 0.9); }
+
+    /* The SVG scene — fills the hero */
+    .scene-svg {
+      width: 100%;
+      max-width: min(860px, 92vw);
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* ─ SVG animation classes ─ */
+
+    /* Green packet */
+    #packet {
+      opacity: 0;
+    }
+
+    /* Server LED */
+    #server-led {
+      transition: fill 200ms ease;
+    }
+
+    /* Server shake keyframes */
+    @keyframes server-shake {
+      0%   { transform: translateX(0); }
+      15%  { transform: translateX(-8px); }
+      30%  { transform: translateX(8px); }
+      45%  { transform: translateX(-6px); }
+      60%  { transform: translateX(6px); }
+      75%  { transform: translateX(-3px); }
+      100% { transform: translateX(0); }
+    }
+    .shaking { animation: server-shake 380ms ease-out forwards; }
+
+    /* Human nudge on click */
+    @keyframes human-poke {
+      0%   { transform: translateX(0); }
+      30%  { transform: translateX(10px); }
+      70%  { transform: translateX(6px); }
+      100% { transform: translateX(0); }
+    }
+    .poking { animation: human-poke 300ms ease-out forwards; }
+
+    /* ── Content below animation ── */
+    .content {
+      width: 100%;
+      max-width: min(860px, 92vw);
+      padding: 0 clamp(24px, 6vw, 80px) clamp(60px, 10vw, 100px);
+      margin: 0 auto;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .error-label {
+      font-family: 'Geist Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(250,250,250,0.35);
+      margin-bottom: 20px;
+    }
+
+    .headline {
+      font-size: clamp(36px, 6.5vw, 80px);
+      font-weight: 500;
+      letter-spacing: -2.5px;
+      line-height: 1.0;
+      color: #fafafa;
+      white-space: nowrap;
+      margin-bottom: clamp(36px, 5vw, 60px);
+    }
+
+    @media (max-width: 680px) {
+      .headline { white-space: normal; }
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: #fafafa;
+      color: #09090b;
+      font-family: 'Geist', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: opacity 150ms ease;
+    }
+    .btn-home:hover { opacity: 0.82; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: transparent;
+      color: rgba(250,250,250,0.50);
+      font-family: 'Geist', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      border: 1px solid rgba(250,250,250,0.12);
+      border-radius: 6px;
+      text-decoration: none;
+      transition: border-color 150ms ease, color 150ms ease;
+    }
+    .btn-ghost:hover {
+      border-color: rgba(250,250,250,0.28);
+      color: rgba(250,250,250,0.88);
+    }
+
+    @media (max-width: 560px) {
+      .headline { letter-spacing: -1px; }
+      .actions { flex-direction: column; align-items: flex-start; }
+      .content { padding-left: 0; padding-right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav injected by nav.js -->
+
+<section class="hero" id="hero" aria-label="404 animation — tap to see what happened">
+
+  <p class="scene-hint" id="hint">CLICK TO OPEN THE PAGE</p>
+
+  <!-- Big interactive SVG -->
+  <svg class="scene-svg" id="scene-svg"
+       viewBox="0 0 860 280"
+       preserveAspectRatio="xMidYMid meet"
+       aria-hidden="true">
+
+    <!-- ── HTTP wire ── -->
+    <line x1="220" y1="140" x2="640" y2="140"
+          stroke="rgba(250,250,250,0.10)" stroke-width="1.5"
+          stroke-dasharray="5 8"/>
+
+    <!-- ── Browser window (left) ── -->
+    <g id="browser-group">
+      <!-- Chrome frame -->
+      <rect x="20" y="70" width="190" height="140"
+            rx="7"
+            stroke="rgba(250,250,250,0.70)" stroke-width="3" fill="none"/>
+      <!-- Title bar divider -->
+      <line x1="20" y1="102" x2="210" y2="102"
+            stroke="rgba(250,250,250,0.30)" stroke-width="1.5"/>
+      <!-- Address bar pill -->
+      <rect x="34" y="82" width="148" height="12"
+            rx="6"
+            stroke="rgba(250,250,250,0.25)" stroke-width="1.2" fill="none"/>
+      <!-- 3 traffic-light dots -->
+      <circle cx="37" cy="89" r="3.5" fill="rgba(250,250,250,0.20)"/>
+      <!-- Page content lines -->
+      <line x1="36" y1="120" x2="150" y2="120"
+            stroke="rgba(250,250,250,0.18)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="36" y1="136" x2="130" y2="136"
+            stroke="rgba(250,250,250,0.14)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="36" y1="152" x2="160" y2="152"
+            stroke="rgba(250,250,250,0.14)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="36" y1="168" x2="120" y2="168"
+            stroke="rgba(250,250,250,0.14)" stroke-width="2" stroke-linecap="round"/>
+      <!-- Cursor arrow (idle) -->
+      <g id="cursor-idle">
+        <path d="M 160,175 L 160,196 L 165,191 L 169,200 L 172,399 L 168,187 L 174,187 Z"
+              fill="rgba(250,250,250,0.80)" stroke="rgba(250,250,250,0)" stroke-width="0"/>
+        <!-- simpler cursor -->
+        <polygon id="cursor-arrow"
+                 points="160,172 160,194 164,190 168,199 172,197 168,188 174,188"
+                 fill="rgba(250,250,250,0.85)"/>
+      </g>
+      <!-- Click ripple (hidden) -->
+      <circle id="click-ripple" cx="166" cy="188" r="0"
+              fill="none" stroke="#30c969" stroke-width="2" opacity="0"/>
+      <text x="115" y="244" text-anchor="middle"
+            font-family="Geist Mono, monospace" font-size="13"
+            letter-spacing="2" fill="rgba(250,250,250,0.45)">BROWSER</text>
+    </g>
+
+    <!-- ── Request packet (green dot, travels right) ── -->
+    <circle id="req-packet" cx="220" cy="140" r="8"
+            fill="#30c969" opacity="0"/>
+
+    <!-- ── Response packet (red dot, travels left) ── -->
+    <circle id="res-packet" cx="640" cy="140" r="8"
+            fill="rgba(220,38,38,0.95)" opacity="0"/>
+
+    <!-- ── Server rack (right) ── -->
+    <g id="server-group" style="transform-origin: 710px 140px;">
+      <!-- Body -->
+      <rect x="648" y="70" width="110" height="140"
+            rx="6"
+            stroke="rgba(250,250,250,0.65)" stroke-width="3" fill="none"/>
+      <!-- Rack slots -->
+      <line x1="662" y1="97"  x2="744" y2="97"  stroke="rgba(250,250,250,0.22)" stroke-width="1.5"/>
+      <line x1="662" y1="116" x2="744" y2="116" stroke="rgba(250,250,250,0.22)" stroke-width="1.5"/>
+      <line x1="662" y1="135" x2="744" y2="135" stroke="rgba(250,250,250,0.22)" stroke-width="1.5"/>
+      <line x1="662" y1="154" x2="744" y2="154" stroke="rgba(250,250,250,0.22)" stroke-width="1.5"/>
+      <line x1="662" y1="173" x2="744" y2="173" stroke="rgba(250,250,250,0.22)" stroke-width="1.5"/>
+      <!-- LED status -->
+      <circle id="server-led" cx="736" cy="194" r="5"
+              fill="rgba(250,250,250,0.25)"/>
+      <!-- Search icon appears while server looks (hidden) -->
+      <g id="server-search" opacity="0">
+        <circle cx="703" cy="130" r="18"
+                stroke="#30c969" stroke-width="2.5" fill="none"/>
+        <line x1="715" y1="142" x2="726" y2="153"
+              stroke="#30c969" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- question mark inside -->
+        <text x="703" y="137" text-anchor="middle"
+              font-family="Geist Mono, monospace" font-size="16"
+              font-weight="500" fill="#30c969">?</text>
+      </g>
+      <text x="703" y="244" text-anchor="middle"
+            font-family="Geist Mono, monospace" font-size="13"
+            letter-spacing="2" fill="rgba(250,250,250,0.45)">SERVER</text>
+    </g>
+
+    <!-- ── 404 shown in browser (hidden until response arrives) ── -->
+    <g id="browser-404" opacity="0">
+      <!-- Red overlay in browser content area -->
+      <rect x="23" y="105" width="184" height="102"
+            rx="4" fill="rgba(220,38,38,0.08)"/>
+      <!-- 404 text in browser -->
+      <text x="115" y="152" text-anchor="middle"
+            font-family="Geist Mono, monospace" font-size="36"
+            font-weight="500" fill="rgba(220,38,38,0.95)">404</text>
+      <text x="115" y="175" text-anchor="middle"
+            font-family="Geist Mono, monospace" font-size="10"
+            letter-spacing="1.5" fill="rgba(220,38,38,0.65)">NOT FOUND</text>
+    </g>
+
+  </svg>
+
+</section>
+
+<!-- Text content -->
+<div class="content">
+  <p class="error-label">404 · NOT_FOUND</p>
+  <h1 class="headline">This page doesn't exist.</h1>
+  <nav class="actions" aria-label="Navigation">
+    <a href="/" class="btn-home">← Back to home</a>
+    <a href="/context-grammar/" class="btn-ghost">Context Grammar</a>
+  </nav>
+</div>
+
+<!-- Nav -->
+<script src="assets/js/nav.js"></script>
+<script>initNav({ basePath: '', activePage: '', lang: 'en', showLang: false });</script>
+
+<script>
+(function () {
+  var running    = false;
+  var reqPkt     = document.getElementById('req-packet');
+  var resPkt     = document.getElementById('res-packet');
+  var serverGrp  = document.getElementById('server-group');
+  var serverLed  = document.getElementById('server-led');
+  var serverSearch = document.getElementById('server-search');
+  var browser404 = document.getElementById('browser-404');
+  var ripple     = document.getElementById('click-ripple');
+  var hint       = document.getElementById('hint');
+  var body       = document.body;
+
+  /* Ease-in-out helper */
+  function eio(p) { return p < 0.5 ? 2*p*p : -1 + (4 - 2*p) * p; }
+
+  /* Animate a circle's cx from start to end over dur ms, then call cb */
+  function moveX(el, startX, endX, dur, cb) {
+    var t0 = performance.now();
+    (function tick(now) {
+      var p = Math.min((now - t0) / dur, 1);
+      el.setAttribute('cx', startX + (endX - startX) * eio(p));
+      if (p < 1) { requestAnimationFrame(tick); }
+      else if (cb) { cb(); }
+    })(t0);
+  }
+
+  function fadeEl(el, from, to, dur, fill) {
+    el.animate([{ opacity: from }, { opacity: to }],
+      { duration: dur, easing: 'ease-out', fill: fill || 'forwards' });
+  }
+
+  function run() {
+    if (running) return;
+    running = true;
+
+    /* ① Click ripple on cursor */
+    ripple.setAttribute('r', '0');
+    ripple.setAttribute('opacity', '1');
+    ripple.animate(
+      [{ r: '0', opacity: '1' }, { r: '24', opacity: '0' }],
+      { duration: 500, easing: 'ease-out', fill: 'forwards' }
+    );
+
+    /* Update hint */
+    body.classList.add('sending');
+    hint.textContent = 'GET /this-page HTTP/1.1  →  intentfirst.ai';
+
+    /* ② Request packet travels right: browser → server */
+    reqPkt.setAttribute('cx', '220');
+    reqPkt.setAttribute('opacity', '1');
+    moveX(reqPkt, 220, 645, 800, function () {
+      reqPkt.setAttribute('opacity', '0');
+      onServerReceive();
+    });
+  }
+
+  function onServerReceive() {
+    /* ③ Server "searches" — LED blinks green, search icon appears */
+    serverLed.setAttribute('fill', '#30c969');
+    fadeEl(serverSearch, 0, 1, 200);
+
+    hint.textContent = 'SERVER SEARCHING FOR PAGE…';
+
+    /* After a beat, server can't find it */
+    setTimeout(function () {
+      fadeEl(serverSearch, 1, 0, 180);
+      serverLed.setAttribute('fill', 'rgba(220,38,38,0.95)');
+
+      /* Server shakes */
+      serverGrp.classList.add('shaking');
+      serverGrp.addEventListener('animationend', function once() {
+        serverGrp.classList.remove('shaking');
+        serverGrp.removeEventListener('animationend', once);
+      });
+
+      hint.textContent = 'HTTP/1.1 404 Not Found  ←  intentfirst.ai';
+      body.classList.remove('sending');
+      body.classList.add('returned');
+
+      /* ④ Response packet travels left: server → browser */
+      resPkt.setAttribute('cx', '645');
+      resPkt.setAttribute('opacity', '1');
+      moveX(resPkt, 645, 210, 800, function () {
+        resPkt.setAttribute('opacity', '0');
+        onBrowserReceive();
+      });
+
+    }, 900);
+  }
+
+  function onBrowserReceive() {
+    /* ⑤ 404 shown inside the browser window */
+    fadeEl(browser404, 0, 1, 300);
+    hint.textContent = 'PAGE NOT FOUND';
+
+    /* Reset after 4 s */
+    setTimeout(reset, 4200);
+  }
+
+  function reset() {
+    fadeEl(browser404, 1, 0, 250);
+    setTimeout(function () {
+      serverLed.setAttribute('fill', 'rgba(250,250,250,0.25)');
+      body.classList.remove('returned');
+      hint.textContent = 'CLICK TO TRY AGAIN';
+      running = false;
+    }, 260);
+  }
+
+  /* Fire on any click not on a link/button */
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('a, button')) return;
+    run();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); run(); }
+  });
+})();
+</script>
+
+</body>
+</html>
