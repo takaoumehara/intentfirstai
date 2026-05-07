@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Grammar Simulator — try the framework live</title>
+<meta name="description" content="Interactive simulator for Context Grammar. Set 8 context tokens, see which AX Patterns fire, and watch a stylized device UI morph in real time.">
+<meta property="og:title" content="Context Grammar Simulator">
+<meta property="og:description" content="Set 8 context tokens. Watch 23 AI design patterns fire. Try the framework live.">
+<meta property="og:url" content="https://intentfirst.ai/context-grammar/simulator/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Context Grammar Simulator">
+<meta name="twitter:description" content="Set 8 context tokens. Watch 23 AI design patterns fire. Try the framework live.">
+
+<!-- Geist fonts -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+
+<!-- Site tokens + nav -->
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+
+<!-- Simulator styles -->
+<link rel="stylesheet" href="simulator.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body class="sim-page" data-mode="today" data-dark-nav>
+
+<!-- Toast for clipboard confirmation -->
+<div class="sim-toast" id="copy-toast" role="status" aria-live="polite" hidden></div>
+
+<!-- Site nav (auto-injected by nav.js) -->
+<script src="../../assets/js/nav.js" defer></script>
+
+<h1 class="visually-hidden">Context Grammar Simulator — Live Console</h1>
+
+<!-- ═══ ONBOARDING HERO ═══ -->
+<section class="console-onboard">
+  <div class="console-onboard__inner">
+    <p class="console-onboard__eyebrow">Live Console · for builders</p>
+    <h2 class="console-onboard__title">Eight context signals decide what the UI does next.</h2>
+    <p class="console-onboard__sub">
+      This is the rule engine, exposed. Pick a scenario to see it run, or change any of the eight tokens on the left and watch the device on the right rebuild itself in real time.
+    </p>
+    <div class="console-onboard__steps">
+      <a href="#" class="console-onboard__step" id="onboard-step-1" data-action="open-scenarios">
+        <span class="console-onboard__step-num">01</span>
+        <span class="console-onboard__step-text">Pick a scenario</span>
+        <span class="console-onboard__step-hint">or change a token</span>
+      </a>
+      <span class="console-onboard__sep" aria-hidden="true">→</span>
+      <span class="console-onboard__step console-onboard__step--passive">
+        <span class="console-onboard__step-num">02</span>
+        <span class="console-onboard__step-text">Watch the device adapt</span>
+        <span class="console-onboard__step-hint">in the centre stage</span>
+      </span>
+      <span class="console-onboard__sep" aria-hidden="true">→</span>
+      <span class="console-onboard__step console-onboard__step--passive">
+        <span class="console-onboard__step-num">03</span>
+        <span class="console-onboard__step-text">See which patterns fire</span>
+        <span class="console-onboard__step-hint">on the right rail</span>
+      </span>
+    </div>
+    <p class="console-onboard__hint">
+      New here? The <a href="index.html">5-scene story</a> is a quicker introduction.
+    </p>
+  </div>
+</section>
+
+<!-- ═══ STICKY STRIP — title + actions ═══ -->
+<header class="sim-strip" role="banner">
+  <div class="sim-strip__inner">
+    <div class="sim-strip__title-block">
+      <span class="sim-strip__eyebrow">Context Grammar · Live</span>
+      <span class="sim-strip__title">Set the context. The interface adapts.</span>
+    </div>
+    <nav class="sim-strip__actions" aria-label="Simulator controls">
+      <button class="sim-strip__btn sim-strip__btn--primary sim-strip__btn--lg" id="scenarios-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="scenarios-popover">
+        Scenarios <span class="sim-strip__caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="mode-toggle" role="group" aria-label="Detection mode">
+        <button class="mode-toggle-btn is-active" data-mode="today" aria-pressed="true">Today</button>
+        <button class="mode-toggle-btn" data-mode="future" aria-pressed="false">Near-future</button>
+      </div>
+      <div class="sim-strip__util" role="group" aria-label="Utilities">
+        <button class="sim-strip__icon-btn" id="copy-brief-btn" title="Copy the current context as a design brief (Markdown)" aria-label="Copy design brief">
+          <span aria-hidden="true">📝</span>
+        </button>
+        <button class="sim-strip__icon-btn" id="copy-state-btn" title="Copy state as JSON + shareable URL" aria-label="Copy state JSON + URL">
+          <span aria-hidden="true">⎘</span>
+        </button>
+        <button class="sim-strip__icon-btn" id="reset-btn" title="Reset all tokens to defaults" aria-label="Reset">
+          <span aria-hidden="true">↺</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ═══ FOCUS BANNER (URL-param driven) ═══ -->
+<div class="sim-focus-banner" id="focus-banner" hidden></div>
+
+<!-- ═══ MAIN — three-zone console ═══ -->
+<main class="sim-console">
+
+  <!-- ── LEFT: Token Rail ── -->
+  <aside class="sim-rail sim-rail--left" aria-label="Token inputs">
+    <p class="sim-rail__zone"><span class="sim-rail__zone-num">01</span> Set context</p>
+    <h2 class="sim-rail__heading">Eight signals · change any one</h2>
+    <p class="sim-rail__hint">The preview on the centre stage rebuilds itself the instant you do.</p>
+    <div class="token-rail" id="token-inputs"></div>
+  </aside>
+
+  <!-- ── CENTER: Preview Stage (sticky on desktop) ── -->
+  <section class="sim-stage" aria-label="Live UI preview">
+    <header class="sim-stage__header">
+      <p class="sim-rail__zone"><span class="sim-rail__zone-num">02</span> Watch the device</p>
+      <h2 class="sim-stage__title">What the user sees</h2>
+    </header>
+    <div class="preview-stage" id="preview-stage" role="img" aria-label="Stylized device showing the UI shape produced by the current token state"></div>
+    <div class="preview-legend" id="preview-legend"></div>
+  </section>
+
+  <!-- ── RIGHT: Result Rail ── -->
+  <aside class="sim-rail sim-rail--right" aria-labelledby="result-rail-heading">
+    <p class="sim-rail__zone"><span class="sim-rail__zone-num">03</span> Read the rules</p>
+    <h2 id="result-rail-heading" class="sim-rail__heading">Why the UI looks that way</h2>
+    <p class="sim-rail__hint">Validity check, firing patterns, hard overrides.</p>
+
+    <!-- Headline: Validity card with traffic-light state -->
+    <div class="validity-headline" id="output-autonomy"></div>
+
+    <!-- Pattern summary chips (always visible) + count -->
+    <section class="result-block">
+      <header class="result-block__head">
+        <h3 class="result-block__title">What fires</h3>
+        <span class="result-block__sub" id="output-pattern-count"></span>
+      </header>
+      <div id="output-patterns"></div>
+    </section>
+
+    <!-- Cross-token overrides (collapsed by default unless overrides active) -->
+    <details class="result-block result-block--details" id="overrides-details">
+      <summary class="result-block__head">
+        <h3 class="result-block__title">What context overrides</h3>
+        <span class="result-block__sub" id="output-override-count">0</span>
+      </summary>
+      <div id="output-overrides"></div>
+    </details>
+
+    <!-- Synthesized design rules (collapsed by default) -->
+    <details class="result-block result-block--details">
+      <summary class="result-block__head">
+        <h3 class="result-block__title">How the UI changes</h3>
+        <span class="result-block__sub">Density · targets · filters</span>
+      </summary>
+      <div id="output-rules"></div>
+    </details>
+
+    <!-- Substitution mode (auto-shown only when feasibility ≠ fully) -->
+    <details class="result-block result-block--details" id="substitution-details" hidden>
+      <summary class="result-block__head">
+        <h3 class="result-block__title">When the plan can't run as-is</h3>
+        <span class="result-block__sub">Substitution mode</span>
+      </summary>
+      <div id="output-substitution"></div>
+    </details>
+
+  </aside>
+</main>
+
+<!-- ═══ SCENARIOS POPOVER (non-modal — peer to the page) ═══ -->
+<div class="scenarios-popover" id="scenarios-popover" role="region" aria-label="Pick a scenario" hidden>
+  <header class="scenarios-popover__head">
+    <p class="scenarios-popover__eyebrow">Scenarios</p>
+    <h2 class="scenarios-popover__title">Pick a context</h2>
+    <button class="scenarios-popover__close" id="scenarios-close" aria-label="Close scenarios"><span aria-hidden="true">×</span></button>
+  </header>
+  <div class="scenarios-grid" id="preset-grid"></div>
+  <p class="scenarios-popover__hint">Each scenario sets all 8 tokens. The device updates in place.</p>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="sim-footer">
+  <nav class="sim-footer__breadcrumb" aria-label="Breadcrumb">
+    <a href="../../">intentfirst.ai</a>
+    <span aria-hidden="true">→</span>
+    <a href="../">Context Grammar</a>
+    <span aria-hidden="true">→</span>
+    <span class="sim-footer__current" aria-current="page">Simulator</span>
+  </nav>
+  <p>
+    Open spec — read
+    <a href="../specs/context-tokens-spec.yaml">tokens</a>,
+    <a href="../specs/ax-patterns-spec.yaml">patterns</a>,
+    <a href="../specs/IMPLEMENTATION.md">implementation guide</a>,
+    or the reference <a href="../sdk/README.md">SDK</a>.
+  </p>
+  <p>
+    <a href="../tokens/">8 Context Tokens</a> ·
+    <a href="../ax-patterns/">23 AX Patterns</a> ·
+    <a href="../brain/">Brain</a> ·
+    <a href="../trust-design/">Trust</a> ·
+    <a href="../specs/">Specs</a>
+  </p>
+</footer>
+
+<!-- preview.js must load BEFORE simulator.js so window.SimPreview exists when render() runs -->
+<script src="preview.js"></script>
+<script src="simulator.js"></script>
+</body>
+</html>

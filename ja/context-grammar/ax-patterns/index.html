@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX Patterns — 23 reusable design moves | Context Grammar</title>
+<meta name="description" content="23 named AX Patterns across three directions: Delegation, Escalation, Adaptation. The vocabulary layer of Context Grammar — reusable, token-triggered, device-independent.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<link rel="stylesheet" href="../../assets/css/context-grammar.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/green-animation.css">
+<link rel="stylesheet" href="../../assets/css/cg-restaurant-aside.css">
+<link rel="stylesheet" href="../../assets/css/simulator-cta.css">
+<style>
+
+@media (max-width: 768px) {
+  .hero-illu { width: 90%; max-width: 380px; height: auto; }
+}
+
+/* ═══ HERO — dark ═══ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: calc(56px + clamp(40px, 6vw, 80px)) clamp(24px, 4vw, 48px) clamp(60px, 8vw, 120px);
+  background: #08070b;
+  color: #f0ece4;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(104, 137, 180, 0.07), transparent);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 780px;
+  position: relative;
+  z-index: 1;
+}
+.hero-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.8vw, 12px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(240, 236, 228, 0.3);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.2s forwards;
+}
+.hero-title {
+  font-weight: 500;
+  font-size: clamp(36px, 5vw, 68px);
+  line-height: 1.15;
+  letter-spacing: -2.5px;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.4s forwards;
+}
+.hero-sub {
+  font-size: clamp(15px, 1.15vw, 19px);
+  font-weight: 300;
+  color: rgba(240, 236, 228, 0.45);
+  line-height: 1.85;
+  max-width: 640px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.6s forwards;
+}
+
+/* ═══ CONTENT TEXT ═══ */
+.content-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.2vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+.content-body {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.9;
+  max-width: 680px;
+}
+.content-body p { margin-bottom: 1.2em; }
+.content-body p:last-child { margin-bottom: 0; }
+.content-body strong { font-weight: 600; color: var(--text); }
+
+/* ═══ VS CARDS — Pattern vs Not-Pattern ═══ */
+.vs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-top: clamp(32px, 4vw, 56px);
+}
+@media (max-width: 720px) {
+  .vs-grid { grid-template-columns: 1fr; }
+  .vs-divider { display: none; }
+}
+.vs-card {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: clamp(24px, 3vw, 40px);
+  background: var(--bg-2);
+}
+.vs-card--yes {
+  border-left: 4px solid var(--color-success);
+}
+.vs-card--no {
+  border-left: 4px solid var(--border-hover);
+}
+.vs-divider {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: 0.1em;
+}
+.vs-card-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.vs-card--yes .vs-card-label { color: var(--color-success); }
+.vs-card--no .vs-card-label { color: var(--text-3); }
+
+.vs-card-name {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 20px);
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.vs-card-role {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  margin-bottom: 16px;
+  line-height: 1.65;
+}
+.vs-list {
+  list-style: none;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.vs-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: clamp(13px, 0.95vw, 15px);
+  color: var(--text-2);
+  display: flex;
+  gap: 10px;
+  line-height: 1.5;
+}
+.vs-list li::before {
+  content: "→";
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.vs-card--no .vs-list li::before { content: "✗"; }
+
+/* 3-question filter */
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.5vw, 20px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+@media (max-width: 680px) {
+  .filter-grid { grid-template-columns: 1fr; }
+}
+.filter-item {
+  padding: clamp(20px, 2vw, 28px);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  text-align: center;
+}
+.filter-num {
+  font-family: var(--font-mono);
+  font-size: clamp(24px, 2.5vw, 32px);
+  font-weight: 500;
+  color: var(--color-grammar);
+  margin-bottom: 10px;
+}
+.filter-q {
+  font-weight: 500;
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.filter-hint {
+  font-size: clamp(12px, 0.9vw, 14px);
+  color: var(--text-3);
+  line-height: 1.5;
+}
+
+/* ═══ CATEGORY CARDS ═══ */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+@media (max-width: 700px) {
+  .cat-grid { grid-template-columns: 1fr; }
+}
+.cat-card {
+  padding: clamp(24px, 3vw, 36px);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-2);
+}
+.cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 100px;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.cat-badge--d { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.cat-badge--e { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.cat-badge--a { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.cat-badge--x { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+
+.cat-card-title {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 22px);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.cat-card-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.cat-card-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.cat-card-direction {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  display: inline-block;
+}
+
+/* ═══ PATTERN CATALOG ═══ */
+.catalog-sec {
+  background: var(--bg-2);
+}
+.catalog-group {
+  margin-bottom: 56px;
+}
+.catalog-group:last-child { margin-bottom: 0; }
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.group-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.group-badge--d { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
+.group-badge--e { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
+.group-badge--a { background: var(--chip-green-bg); color: var(--chip-green-text); }
+.group-badge--x { background: var(--chip-purple-bg); color: var(--chip-purple-text); }
+
+.group-title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 18px);
+  color: var(--text);
+}
+.group-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+  margin-left: auto;
+}
+
+.patterns-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(12px, 1.5vw, 20px);
+}
+@media (max-width: 900px) {
+  .patterns-grid { grid-template-columns: 1fr; }
+}
+
+.pattern-row {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(14px, 1.5vw, 20px);
+  padding: clamp(16px, 2vw, 24px);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  transition: border-color 0.25s var(--ease);
+}
+.pattern-row:hover { border-color: var(--border-hover); }
+
+.pattern-id {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  flex-shrink: 0;
+  min-width: 28px;
+}
+
+.pattern-body { flex: 1; min-width: 0; }
+.pattern-name {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.pattern-essence {
+  font-size: clamp(13px, 0.95vw, 15px);
+  color: var(--text-2);
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.pattern-example {
+  font-size: clamp(12px, 0.85vw, 13px);
+  color: var(--text-3);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ═══ COMPOSITION WALKTHROUGH ═══ */
+.compose-flow {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+.compose-step {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: clamp(16px, 2vw, 24px);
+  align-items: start;
+}
+.compose-step-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding-top: 4px;
+  text-align: right;
+}
+.compose-step-body {
+  padding: clamp(20px, 2.5vw, 28px);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  position: relative;
+}
+.compose-step-body::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+.compose-step--d4 .compose-step-body::before { background: var(--chip-amber-text); }
+.compose-step--d6 .compose-step-body::before { background: var(--chip-amber-text); }
+.compose-step--e5 .compose-step-body::before { background: var(--chip-blue-text); }
+.compose-step--a2 .compose-step-body::before { background: var(--chip-green-text); }
+
+.compose-pattern-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.compose-step--d4 .compose-pattern-tag,
+.compose-step--d6 .compose-pattern-tag { color: var(--chip-amber-text); }
+.compose-step--e5 .compose-pattern-tag { color: var(--chip-blue-text); }
+.compose-step--a2 .compose-pattern-tag { color: var(--chip-green-text); }
+
+.compose-step-title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.compose-step-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.7;
+}
+.compose-result {
+  padding: clamp(20px, 2.5vw, 28px);
+  border: 2px solid var(--color-grammar);
+  border-radius: 0;
+  text-align: center;
+  background: var(--bg);
+  margin-top: 8px;
+}
+.compose-result-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--color-grammar);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.compose-result-name {
+  font-weight: 500;
+  font-size: clamp(17px, 1.3vw, 22px);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.compose-result-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+/* ═══ WHY LIBRARY CARDS ═══ */
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+@media (max-width: 700px) {
+  .why-grid { grid-template-columns: 1fr; }
+}
+.why-card {
+  padding: clamp(24px, 2.5vw, 32px);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+.why-num {
+  font-family: var(--font-mono);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 500;
+  color: var(--color-grammar);
+  margin-bottom: 12px;
+}
+.why-title {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 18px);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.why-desc {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.7;
+}
+
+/* ═══ Q&A ═══ */
+.qa-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+.qa-item {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: clamp(16px, 2vw, 24px);
+}
+.qa-item:last-child { border-bottom: none; }
+.qa-q {
+  font-weight: 500;
+  font-size: clamp(15px, 1.1vw, 18px);
+  color: var(--text);
+  margin-bottom: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.qa-q-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-grammar);
+  padding: 3px 8px;
+  background: rgba(104,137,180,0.1);
+  border-radius: 100px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.qa-a {
+  font-size: clamp(14px, 1vw, 16px);
+  color: var(--text-2);
+  line-height: 1.8;
+  margin-left: 48px;
+}
+
+/* ═══ CTA — dark ═══ */
+.cta {
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px);
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+}
+.cta-inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.cta-text {
+  font-size: clamp(17px, 1.3vw, 22px);
+  font-weight: 300;
+  color: rgba(240, 236, 228, 0.6);
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cta-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 12px 28px;
+  border-radius: 6px;
+  transition: all 0.3s var(--ease);
+}
+.cta-btn--primary {
+  background: #f0ece4;
+  color: #08070b;
+}
+.cta-btn--primary:hover { background: #fff; }
+.cta-btn--secondary {
+  background: transparent;
+  color: rgba(240, 236, 228, 0.6);
+  border: 1px solid rgba(240, 236, 228, 0.15);
+}
+.cta-btn--secondary:hover {
+  border-color: rgba(240, 236, 228, 0.4);
+  color: #f0ece4;
+}
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.d1 { transition-delay: 0.06s; }
+.d2 { transition-delay: 0.12s; }
+.d3 { transition-delay: 0.18s; }
+.d4 { transition-delay: 0.24s; }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+    padding-top: calc(56px + 60px);
+    padding-bottom: 60px;
+  }
+  .hero-title { letter-spacing: -1.5px; }
+}
+
+/* ═══ PATTERN FILTER BAR ═══ */
+.catalog-filter {
+  padding-bottom: clamp(20px, 2vw, 28px);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: clamp(28px, 3vw, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.filter-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.filter-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-top: 6px;
+  flex-shrink: 0;
+  width: 72px;
+}
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.filter-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  white-space: nowrap;
+}
+.filter-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+.filter-btn.active {
+  background: var(--color-grammar);
+  border-color: var(--color-grammar);
+  color: #fff;
+}
+.filter-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+.filter-count span { color: var(--color-grammar); font-weight: 600; }
+
+/* ═══ PATTERN TOKEN CHIPS ═══ */
+.pattern-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.pattern-token {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 100px;
+  background: rgba(104,137,180,0.12);
+  color: var(--color-grammar);
+  white-space: nowrap;
+}
+
+/* ── Pattern spec <details> ── */
+.pattern-spec > summary {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-grammar);
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 0 2px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.pattern-spec > summary::-webkit-details-marker { display: none; }
+.pattern-spec > summary::before {
+  content: '›';
+  font-size: 15px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+  display: inline-block;
+}
+.pattern-spec[open] > summary::before { transform: rotate(90deg); }
+.pattern-spec__body {
+  border-top: 1px solid var(--border);
+  border-left: 2px solid var(--color-grammar);
+  margin-top: 8px;
+  padding: 14px 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pattern-spec__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 680px) { .pattern-spec__grid { grid-template-columns: 1fr; } }
+.pattern-spec__h4 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-3);
+  margin: 0 0 6px;
+}
+.pattern-spec__list {
+  margin: 0;
+  padding-left: 14px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pattern-spec__list--contra li::marker { color: #dc2626; }
+.pattern-spec__criteria {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.6;
+  background: var(--bg-3);
+  padding: 8px 12px;
+  border-left: 2px solid var(--color-success, #30c969);
+  margin: 0;
+}
+.pattern-spec__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pattern-spec__chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  color: var(--color-grammar);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.pattern-spec__chip:hover { border-color: var(--color-grammar); }
+.pattern-spec__copy {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  align-self: flex-start;
+  letter-spacing: 0.3px;
+  transition: color 0.15s ease;
+}
+.pattern-spec__copy:hover { color: var(--text); }
+
+</style>
+</head>
+
+<body data-dark-nav>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero hero--split">
+  <div class="hero-split-text">
+    <p class="hero-label">Context Grammar — Floor 5</p>
+    <h1 class="hero-title">AX Patterns</h1>
+    <p class="hero-sub">23 named patterns for how AI delivers, escalates, and adapts. When the Rule Engine fires, these are the shapes the response takes.</p>
+    <div class="hero-scroll-hint"><span></span></div>
+  </div>
+  <div class="hero-illu">
+    <div data-ga-slot="cg-ax-patterns" aria-label="AX Patterns — 23 response patterns organized by Delivery, Escalation, Autonomy, and Cross-cutting categories"></div>
+  </div>
+</div>
+
+
+<!-- ═══ A · RESTAURANT INTRO ═══ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color: var(--color-grammar);">AX Patterns</p>
+    <h2 class="content-title reveal d1">Techniques, not recipes</h2>
+    <div class="content-body reveal d2">
+      <p>A recipe says what to cook. A technique says how to handle the knife. Context Grammar's Rules are the recipes — they decide what to do. AX Patterns are the kitchen techniques — they decide how to execute it, regardless of which dish you're making.</p>
+      <p><strong>A pattern is device-independent, Token-triggered, and reusable.</strong> D2 Progressive Trust works the same way whether you're on a phone, a fridge display, or a car screen — the trigger is Brain L2 success count, not the surface.</p>
+    </div>
+
+    <aside class="cg-restaurant-aside reveal d3">
+      <div class="cg-restaurant-aside__icon" aria-hidden="true">
+        <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
+      </div>
+      <div class="cg-restaurant-aside__content">
+        <p class="cg-restaurant-aside__label">In restaurant terms</p>
+        <div class="cg-restaurant-aside__body">
+          <p>The menu tells the kitchen what to cook. But how the waiter brings it to the table — whether to describe the dish, ask about allergies, or silently refill the glass — that's technique. A skilled waiter uses the same techniques with every guest, every evening. That's what AX Patterns are.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+
+<!-- ═══ B · PATTERN VS NOT-PATTERN ═══ -->
+<section class="sec" style="background: var(--bg-2);">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color: var(--color-grammar);">Definition</p>
+    <h2 class="content-title reveal d1">Pattern vs. not a pattern</h2>
+    <div class="content-body reveal d2">
+      <p>Not every design decision is a pattern. A pattern must pass three questions before earning a name in the catalog.</p>
+    </div>
+
+    <div class="filter-grid">
+      <div class="filter-item reveal d1">
+        <div class="filter-num">1</div>
+        <p class="filter-q">Token condition?</p>
+        <p class="filter-hint">Does a specific Token value trigger it? If the trigger is vague ("when it feels right"), it's a heuristic, not a pattern.</p>
+      </div>
+      <div class="filter-item reveal d2">
+        <div class="filter-num">2</div>
+        <p class="filter-q">Reusable across contexts?</p>
+        <p class="filter-hint">Can it work in grocery shopping, travel planning, and enterprise approvals? If it only fits one scenario, it's a feature, not a pattern.</p>
+      </div>
+      <div class="filter-item reveal d3">
+        <div class="filter-num">3</div>
+        <p class="filter-q">Device-independent?</p>
+        <p class="filter-hint">Does the interaction logic hold regardless of form factor? If it breaks outside of phones, it's a component, not a pattern.</p>
+      </div>
+    </div>
+
+    <div class="vs-grid reveal">
+      <div class="vs-card vs-card--yes">
+        <p class="vs-card-label">Pattern</p>
+        <p class="vs-card-name">D4 Omakase Mode</p>
+        <p class="vs-card-role">Full delegation to AI — activated when Autonomy = Auto, Disclosure = Full, and Brain L2 trust is high.</p>
+        <ul class="vs-list">
+          <li>Trigger: three specific Token conditions must all be true</li>
+          <li>Works in grocery, scheduling, travel booking, enterprise</li>
+          <li>Same logic on phone, fridge, CarPlay, or enterprise dashboard</li>
+        </ul>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="vs-card vs-card--no">
+        <p class="vs-card-label">Not a pattern</p>
+        <p class="vs-card-name">"Smart suggestions"</p>
+        <p class="vs-card-role">Shows a suggestion when the AI feels confident. No defined trigger, no consistent form, no reuse contract.</p>
+        <ul class="vs-list">
+          <li>No specified Token condition — just "confident"</li>
+          <li>Implementation differs per product team per quarter</li>
+          <li>Cannot be tested against a consistent success criterion</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ C · 4 CATEGORIES ═══ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color: var(--color-grammar);">Categories</p>
+    <h2 class="content-title reveal d1">Four categories, 23 patterns</h2>
+    <div class="content-body reveal d2">
+      <p>Every pattern belongs to one of three directions — Delegation, Escalation, Adaptation — plus an Enterprise extension. Each direction is mutually exclusive at the conceptual level.</p>
+    </div>
+
+    <figure class="reveal d3" style="margin: clamp(24px, 4vw, 48px) auto; max-width: 720px; background: transparent; border: none; padding: 0;">
+      <img src="../images/ISO-GREEN/IF-08-3directions.png"
+           alt="Three Response Directions — AI to Human (Delegation, Escalation, Adaptation), Human to AI, and AI to AI information flows"
+           style="width: 100%; height: auto; display: block;">
+    </figure>
+
+    <div class="cat-grid">
+      <div class="cat-card reveal d1">
+        <span class="cat-badge cat-badge--d">D · Delegation</span>
+        <p class="cat-card-title">Transferring authority to AI</p>
+        <p class="cat-card-sub">6 patterns</p>
+        <p class="cat-card-desc">Designing how humans gradually hand decisions and execution over to AI. Trust is the prerequisite — these patterns both measure it and act on it.</p>
+        <span class="cat-card-direction">Human → AI</span>
+      </div>
+      <div class="cat-card reveal d2">
+        <span class="cat-badge cat-badge--e">E · Escalation</span>
+        <p class="cat-card-title">Returning decisions to humans</p>
+        <p class="cat-card-sub">5 patterns</p>
+        <p class="cat-card-desc">Designing how AI recognizes its own limits and hands control back. Applies regardless of Autonomy Dial level — AI uncertainty always outranks delegation.</p>
+        <span class="cat-card-direction">AI → Human</span>
+      </div>
+      <div class="cat-card reveal d3">
+        <span class="cat-badge cat-badge--a">A · Adaptation</span>
+        <p class="cat-card-title">UI transforms with context</p>
+        <p class="cat-card-sub">8 patterns</p>
+        <p class="cat-card-desc">Designing how the interface restructures itself when Token values change. The content may stay constant while the form, density, and visibility shift.</p>
+        <span class="cat-card-direction">Context ↔ UI</span>
+      </div>
+      <div class="cat-card reveal d4">
+        <span class="cat-badge cat-badge--x">X · Enterprise</span>
+        <p class="cat-card-title">High-stakes organizational patterns</p>
+        <p class="cat-card-sub">4 patterns</p>
+        <p class="cat-card-desc">Patterns specific to multi-person, compliance-heavy, or audit-required contexts. Built on the same three directions but hardened for organizational trust requirements.</p>
+        <span class="cat-card-direction">Team + AI</span>
+      </div>
+    </div>
+
+    <aside class="cg-restaurant-aside reveal" style="margin-top: clamp(32px, 4vw, 56px);">
+      <div class="cg-restaurant-aside__icon" aria-hidden="true">
+        <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
+      </div>
+      <div class="cg-restaurant-aside__content">
+        <p class="cg-restaurant-aside__label">In restaurant terms</p>
+        <div class="cg-restaurant-aside__body">
+          <p><strong>Delegation</strong> is the waiter increasingly trusting the guest's preferences and bringing choices before being asked. <strong>Escalation</strong> is the waiter saying "I'm not sure about the spice — let me check with the chef." <strong>Adaptation</strong> is the dining room adjusting lighting, table spacing, and menu format to the occasion. <strong>Enterprise</strong> is the banquet operations team running 200 covers with documented handoffs.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+
+<!-- ═══ SIMULATOR CTA — try the patterns live ═══ -->
+<section style="padding: 0 clamp(24px, 4vw, 48px);">
+  <a class="sim-cta reveal" href="../simulator/" style="text-decoration: none;">
+    <div class="sim-cta__body">
+      <span class="sim-cta__eyebrow">Live · runs in your browser</span>
+      <h3 class="sim-cta__title">See all 23 patterns fire in real time.</h3>
+      <p class="sim-cta__desc">Set the 8 context tokens and watch which patterns trigger, which overrides activate, and how Autonomy × Disclosure constrain each other. Every pattern row below has a “Try it” link that opens the simulator with that pattern primed.</p>
+    </div>
+    <div class="sim-cta__action">
+      <span class="sim-cta__btn">Open Simulator →</span>
+    </div>
+  </a>
+</section>
+
+
+<!-- ═══ D · 23 PATTERNS GRID ═══ -->
+<section class="sec catalog-sec">
+  <div class="sec-inner--wide" style="padding: 0 clamp(24px, 4vw, 48px);">
+    <p class="sec-label reveal" style="color: var(--color-grammar);">Pattern Catalog</p>
+    <h2 class="content-title reveal d1">All 23 patterns</h2>
+    <div class="content-body reveal d2" style="margin-bottom: clamp(32px, 4vw, 56px);">
+      <p>Each pattern: an ID, a canonical name, its one-line essence, and a Yamashiro family example showing it in real life.</p>
+    </div>
+
+    <!-- D · Delegation (6) -->
+    <div class="catalog-group reveal">
+      <div class="group-header">
+        <span class="group-badge group-badge--d">D</span>
+        <span class="group-title">Delegation</span>
+        <span class="group-count">6 patterns</span>
+      </div>
+      <div class="patterns-grid">
+
+        <div class="pattern-row">
+          <span class="pattern-id">D1</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Approval Gate</p>
+            <p class="pattern-essence">A checkpoint where the user approves, edits, or rejects an AI proposal before it executes.</p>
+            <p class="pattern-example">Trigger: Autonomy = Confirm + Priority Weight = HIGH. Example: The fridge proposes a grocery order — Hana taps Approve, Edit, or Skip before anything is sent.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">D2</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Progressive Trust</p>
+            <p class="pattern-essence">AI earns the right to act with less friction as successful outcomes accumulate over time.</p>
+            <p class="pattern-example">Trigger: Brain L2 success count crosses threshold. Example: Weeks 1–3 Hana approves every grocery sub. By Week 8 the system moves to Notify — she sees the swap after, not before.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">D3</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Proactive Nudge</p>
+            <p class="pattern-essence">AI surfaces a non-urgent suggestion precisely when Cognitive Load is low enough to act on it.</p>
+            <p class="pattern-example">Trigger: Cognitive Load = LOW + Priority Weight = MEDIUM + Feasibility = OK. Example: Saturday morning, nobody's rushing — the app surfaces "Kai's soccer cleats need replacing, end of season sale now."</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">D4</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Omakase Mode</p>
+            <p class="pattern-essence">Full delegation to AI in a domain where trust, disclosure, and Brain confidence are all at maximum.</p>
+            <p class="pattern-example">Trigger: Autonomy = Auto + Disclosure = FULL + Brain L2 trust ≥ HIGH. Example: Hana says nothing — the regular grocery order runs itself, exactly as she would have placed it.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">D5</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Substitution Modes</p>
+            <p class="pattern-essence">Four levels of substitution freedom — Exact, Flexible, Exploring, Surprise — per item and per risk level.</p>
+            <p class="pattern-example">Trigger: Item out of stock + Brain L1 holds substitution settings. Example: Koji's peanut butter is set to Exact (allergy risk). The yogurt brand is Flexible. A new snack is Surprise.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">D6</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Dynamic Friction</p>
+            <p class="pattern-essence">High-cost or high-risk actions keep a confirmation step even when overall trust is mature — a ceiling that Progressive Trust cannot exceed.</p>
+            <p class="pattern-example">Trigger: Feasibility × Risk ≥ threshold. Example: The fridge reorders yogurt automatically. But a ¥15,000 appliance always asks first — trust and risk are independent axes.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- E · Escalation (5) -->
+    <div class="catalog-group reveal">
+      <div class="group-header">
+        <span class="group-badge group-badge--e">E</span>
+        <span class="group-title">Escalation</span>
+        <span class="group-count">5 patterns</span>
+      </div>
+      <div class="patterns-grid">
+
+        <div class="pattern-row">
+          <span class="pattern-id">E1</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Confidence Signal</p>
+            <p class="pattern-essence">AI displays its uncertainty in graduated levels — not hiding doubt, but making it legible.</p>
+            <p class="pattern-example">Trigger: AI confidence ≤ 80% + Social Exposure ≥ MEDIUM. Example: The travel app shows "71% match — alternatives available" for the hotel recommendation, not a confident single choice.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">E2</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Limitation Disclosure</p>
+            <p class="pattern-essence">AI honestly names what it cannot do and redirects to the appropriate resource.</p>
+            <p class="pattern-example">Trigger: Request outside AI capability + Priority Weight = HIGH. Example: Mia reports feeling unwell mid-trip. The app says "I can find nearby clinics, but I cannot make medical decisions" and shows a map.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">E3</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Rollback</p>
+            <p class="pattern-essence">AI reverses a completed action and offers alternatives when external conditions change after execution.</p>
+            <p class="pattern-example">Trigger: Already executed + Feasibility changed post-execution. Example: The booked 14:00 flight is cancelled by the airline. The app strikes it through, shows a 16:30 alternative at no extra cost.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">E4</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Ambiguity Escalation</p>
+            <p class="pattern-essence">AI surfaces gray-zone decisions with a warning and explicitly defers the final call to the human.</p>
+            <p class="pattern-example">Trigger: AI confidence = 40–79%. Example: The planner isn't sure if Kai would enjoy a particular museum. It flags the doubt, shows two options, and says "your call."</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">E5</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Trust Breach Recovery</p>
+            <p class="pattern-essence">After an AI misjudgment, the Autonomy Dial is demoted and trust is rebuilt from a lower stage.</p>
+            <p class="pattern-example">Trigger: User rejects or undoes an AI decision. Example: Hana rejects a substitution she explicitly blocked. The system demotes from Notify → Suggest and confirms every swap until trust is re-earned.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- A · Adaptation (8) -->
+    <div class="catalog-group reveal">
+      <div class="group-header">
+        <span class="group-badge group-badge--a">A</span>
+        <span class="group-title">Adaptation</span>
+        <span class="group-count">8 patterns</span>
+      </div>
+      <div class="patterns-grid">
+
+        <div class="pattern-row">
+          <span class="pattern-id">A1</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Form Factor Transform</p>
+            <p class="pattern-essence">The same content restructures itself when the active device changes — a different vessel, not a different message.</p>
+            <p class="pattern-example">Trigger: Form Factor changes (Phone ↔ TV ↔ Watch). Example: The family trip itinerary is a scrollable list on Hana's phone; cast to the TV it becomes a full-bleed timeline with photos.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">A2</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Cognitive Scaling</p>
+            <p class="pattern-essence">Information density and number of choices contract when Cognitive Load is high, expand when it drops.</p>
+            <p class="pattern-example">Trigger: Cognitive Load = HIGH. Example: Running late at the airport, Hana sees three pre-selected options. At home on a quiet evening, she sees the full 12-item list.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">A3</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Social-Aware Filtering</p>
+            <p class="pattern-essence">Displayed content shifts based on who is present — prices, wish lists, and personal notes hide as exposure increases.</p>
+            <p class="pattern-example">Trigger: Social Exposure ≥ MEDIUM + Disclosure Dial ≠ FULL. Example: Alone, Hana sees prices and budget stats. At a dinner party, the TV shows the recipe — no costs visible.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">A4</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Disclosure Cascade</p>
+            <p class="pattern-essence">Information visibility moves through four levels — FULL → SUMMARY → EXISTENCE → HIDDEN — per domain and per person.</p>
+            <p class="pattern-example">Trigger: Disclosure Dial setting × Social Exposure change. Example: Koji's medical history: Full for Hana, Summary for the family doctor's app, Existence-only for the school nurse's form.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">A5</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Disposable Surface</p>
+            <p class="pattern-essence">A UI instance is born for a specific purpose and dissolves when that purpose is complete — tied to the Disposable Brain lifecycle.</p>
+            <p class="pattern-example">Trigger: Intent = time-bound goal + Disposable Brain created. Example: The Kyoto trip UI appears the morning they leave, learns during the trip, and disappears when they arrive home.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">A6</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Care Architecture</p>
+            <p class="pattern-essence">AI tracks emotional and relational context to surface care opportunities buried in daily life.</p>
+            <p class="pattern-example">Trigger: Brain L2 relationship data + emotional context change. Example: The app surfaces "Hana's mother's birthday is next week — last year you sent flowers" before she thinks to check.</p>
+            <img src="../images/ISO-GREEN/IF-CareArchitecture.png" alt="Care Architecture — AI surfacing care opportunities from Brain L2 relationship data" loading="lazy" style="width:100%;height:auto;display:block;margin:12px 0;border-radius:4px;">
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">A7</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Live Recomposition</p>
+            <p class="pattern-essence">An existing plan is instantly rebuilt when external conditions change — weather, cancellations, or inventory — without the user seeing the seam.</p>
+            <p class="pattern-example">Trigger: External Feasibility change + existing plan present. Example: The outdoor market is rained out. The itinerary silently swaps it for an indoor museum at the same time slot.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">A8</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Temporal Handoff</p>
+            <p class="pattern-essence">When a Disposable Brain ends, its distilled learnings return to the persistent Home Brain — the temporary context dissolves, the knowledge survives.</p>
+            <p class="pattern-example">Trigger: Disposable Brain lifecycle ends + Brain L2 integration window opens. Example: After the Kyoto trip, "Kai loves ramen" and "Mia fades at 3pm" are written into the Home Brain. The Trip Brain is gone.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- X · Enterprise (4) -->
+    <div class="catalog-group reveal">
+      <div class="group-header">
+        <span class="group-badge group-badge--x">X</span>
+        <span class="group-title">Enterprise</span>
+        <span class="group-count">4 patterns</span>
+      </div>
+      <div class="patterns-grid">
+
+        <div class="pattern-row">
+          <span class="pattern-id">X1</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Reasoning Trace</p>
+            <p class="pattern-essence">AI decision rationale is available in a collapsible format — auto-expands for high-risk decisions, silent otherwise.</p>
+            <p class="pattern-example">Trigger: Priority Weight = HIGH or user requests expansion. Example: The AI recommends Vendor A. Priya sees the answer; tapping "Why?" reveals the three CRM threads and two calendar entries that drove it.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">X2</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Inline Edit</p>
+            <p class="pattern-essence">An AI proposal can be edited in place and immediately re-executed — the "edit" path within Approval Gate.</p>
+            <p class="pattern-example">Trigger: "Edit" selected at an Approval Gate. Example: The AI drafts a sales email. Priya changes one sentence inline; the system re-runs the draft and returns a revised version in seconds.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">X3</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Autonomy Dial UI</p>
+            <p class="pattern-essence">Explicit user control over the four-stage Autonomy level — Suggest, Confirm, Notify, Auto — paired with the Disclosure Dial.</p>
+            <p class="pattern-example">Trigger: User explicitly adjusts in settings. Example: Priya sets the brief-writing agent to Confirm for client-facing content, Notify for internal drafts, Auto for first-pass research summaries.</p>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <span class="pattern-id">X4</span>
+          <div class="pattern-body">
+            <p class="pattern-name">Source Attribution</p>
+            <p class="pattern-essence">AI answers include the specific data sources that produced them — CRM, email, calendar — meeting audit and compliance requirements.</p>
+            <p class="pattern-example">Trigger: Compliance rule active or user requests source evidence. Example: "Q3 revenue up 12%" is shown with chips: CRM · Email · Calendar · Sheets — traceable in one tap.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══ E · PATTERNS COMPOSE — Silent Resolution walkthrough ═══ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color: var(--color-grammar);">Composition</p>
+    <h2 class="content-title reveal d1">Patterns compose</h2>
+    <div class="content-body reveal d2">
+      <p>A single pattern rarely runs alone. Real agentic behavior is the result of several patterns firing in sequence or in parallel. Here is one example: <strong>Silent Resolution</strong> — how the Yamashiro family's grocery order handles a blocked item without interrupting anyone's morning.</p>
+    </div>
+
+    <div class="compose-flow">
+
+      <div class="compose-step compose-step--d4 reveal d1">
+        <span class="compose-step-num">1</span>
+        <div class="compose-step-body">
+          <p class="compose-pattern-tag">D4 · Omakase Mode</p>
+          <p class="compose-step-title">The order runs on its own</p>
+          <p class="compose-step-desc">It's a Tuesday morning. Autonomy = Auto, Disclosure = Full, Brain L2 trust is high for the grocery domain. The weekly order runs without prompting anyone.</p>
+        </div>
+      </div>
+
+      <div class="compose-step compose-step--d6 reveal d2">
+        <span class="compose-step-num">2</span>
+        <div class="compose-step-body">
+          <p class="compose-pattern-tag">D6 · Dynamic Friction</p>
+          <p class="compose-step-title">A ¥4,800 item hits the friction ceiling</p>
+          <p class="compose-step-desc">One item — a specific supplement — is out of stock, and the cheapest alternative costs ¥4,800, above Hana's per-item risk threshold. Dynamic Friction blocks auto-execution for this item only.</p>
+        </div>
+      </div>
+
+      <div class="compose-step compose-step--e5 reveal d3">
+        <span class="compose-step-num">3</span>
+        <div class="compose-step-body">
+          <p class="compose-pattern-tag">E5 · Trust Breach Recovery</p>
+          <p class="compose-step-title">Hana rejects the alternative</p>
+          <p class="compose-step-desc">The app surfaces the blocked item with a low-friction notification. Hana rejects the substitute — she wanted the original brand only. E5 records the negative signal in Brain and demotes the Autonomy Dial one stage for this item category.</p>
+        </div>
+      </div>
+
+      <div class="compose-step compose-step--a2 reveal d4">
+        <span class="compose-step-num">4</span>
+        <div class="compose-step-body">
+          <p class="compose-pattern-tag">A2 · Cognitive Scaling</p>
+          <p class="compose-step-title">The recovery notice arrives at the right moment</p>
+          <p class="compose-step-desc">The system waits until Cognitive Load drops — after school drop-off, calendar clear. Then it presents a two-option card: keep waiting for the original brand, or skip this week. Not twelve choices. Two.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="compose-result reveal">
+      <p class="compose-result-label">Result</p>
+      <p class="compose-result-name">Silent Resolution</p>
+      <p class="compose-result-desc">The order completes. One item is held. The family's morning is not interrupted. Trust is recorded accurately — the system knows this category needs more confirmation. No single pattern produced this outcome. Four patterns, in sequence, did.</p>
+    </div>
+
+    <aside class="cg-restaurant-aside reveal" style="margin-top: clamp(32px, 4vw, 56px);">
+      <div class="cg-restaurant-aside__icon" aria-hidden="true">
+        <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
+      </div>
+      <div class="cg-restaurant-aside__content">
+        <p class="cg-restaurant-aside__label">In restaurant terms</p>
+        <div class="cg-restaurant-aside__body">
+          <p>A restaurant that runs smoothly doesn't deploy one technique per meal. The waiter greets without fuss (D4), pauses before pouring an expensive wine (D6), apologizes clearly when the kitchen is wrong (E5), and waits for a natural break to mention the dessert menu (A2). The guest experiences one seamless evening. Behind that evening: four separate professional techniques, composed in real time.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+
+<!-- ═══ F · WHY A LIBRARY MATTERS ═══ -->
+<section class="sec" style="background: var(--bg-2);">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color: var(--color-grammar);">Why It Matters</p>
+    <h2 class="content-title reveal d1">Why a library, not a list</h2>
+    <div class="content-body reveal d2">
+      <p>A list is a collection. A library is a shared contract. When every team names and describes patterns consistently, design decisions become verifiable, transferable, and composable.</p>
+    </div>
+
+    <div class="why-grid">
+      <div class="why-card reveal d1">
+        <div class="why-num">01</div>
+        <p class="why-title">Reusability</p>
+        <p class="why-desc">A pattern defined once works in grocery, travel, healthcare, and enterprise — any surface where the same Token conditions arise. Teams stop reinventing the same interaction from scratch.</p>
+      </div>
+      <div class="why-card reveal d2">
+        <div class="why-num">02</div>
+        <p class="why-title">Consistency</p>
+        <p class="why-desc">When D1 Approval Gate looks and behaves the same across six product areas, users build one mental model, not six. Consistency is not a visual style — it's a behavioral contract.</p>
+      </div>
+      <div class="why-card reveal d3">
+        <div class="why-num">03</div>
+        <p class="why-title">Verifiable</p>
+        <p class="why-desc">A pattern with a named trigger condition can be tested. "Did D6 Dynamic Friction fire when Feasibility × Risk exceeded the threshold?" is a question with a yes/no answer. Vague heuristics cannot be audited.</p>
+      </div>
+      <div class="why-card reveal d4">
+        <div class="why-num">04</div>
+        <p class="why-title">Growing catalog</p>
+        <p class="why-desc">23 patterns today. As new project contexts are designed — P5, P6, enterprise verticals — new patterns are extracted, named, and added. The library grows without breaking the patterns already in use.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ G · Q&A ═══ -->
+<section class="sec">
+  <div class="sec-inner">
+    <p class="sec-label reveal" style="color: var(--color-grammar);">Q&amp;A</p>
+    <h2 class="content-title reveal d1">Questions</h2>
+
+    <div class="qa-list">
+
+      <div class="qa-item reveal d1">
+        <p class="qa-q">
+          <span class="qa-q-label">Q</span>
+          Can a product team invent its own patterns without using this library?
+        </p>
+        <p class="qa-a">Yes — but without a shared name and a specified trigger condition, the pattern cannot be reused, referenced in a spec, or tested by QA. The library's value is the contract, not the catalog. Teams can extend it; they just need to follow the three-question filter.</p>
+      </div>
+
+      <div class="qa-item reveal d2">
+        <p class="qa-q">
+          <span class="qa-q-label">Q</span>
+          What is the difference between a Direction and a Pattern?
+        </p>
+        <p class="qa-a">A Direction (Delegation, Escalation, Adaptation) is a coarse category — it describes the relationship between human and AI. A Pattern is a specific, named, trigger-defined interaction inside that category. All D patterns involve trust transfer; D4 Omakase Mode is the specific form that transfer takes when trust is maximal and disclosure is full.</p>
+      </div>
+
+      <div class="qa-item reveal d3">
+        <p class="qa-q">
+          <span class="qa-q-label">Q</span>
+          Why are there only three Directions? Why not four or five?
+        </p>
+        <p class="qa-a">At the conceptual level, AI behavior in a delegated system can only go in three directions: hand authority over (Delegation), return authority back (Escalation), or reshape the presentation without changing authority (Adaptation). A fourth direction would either duplicate one of these or describe a different system entirely. Enterprise patterns are not a fourth Direction — they are an overlay of higher-stakes constraints on the same three directions.</p>
+      </div>
+
+      <div class="qa-item reveal d4">
+        <p class="qa-q">
+          <span class="qa-q-label">Q</span>
+          Does every Token need a dedicated pattern?
+        </p>
+        <p class="qa-a">No. Tokens are inputs. Patterns are behavioral outputs. Multiple patterns can read the same Token — both D4 and D6 read Autonomy Dial, for example. And some patterns read several Tokens simultaneously (D3 reads Cognitive Load, Priority Weight, and Feasibility together). The relationship is many-to-many.</p>
+      </div>
+
+      <div class="qa-item reveal">
+        <p class="qa-q">
+          <span class="qa-q-label">Q</span>
+          Are the 23 patterns exhaustive?
+        </p>
+        <p class="qa-a">No — and they are not meant to be. This is the catalog as of Projects 1–5. New patterns are extracted when a design scenario cannot be described by combining existing ones. The rule: if two teams invent the same unnamed pattern independently, it earns a name and a slot in the library.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ CTA — dark ═══ -->
+<section class="cta">
+  <div class="cta-inner">
+    <p class="sec-label" style="color: rgba(240,236,228,0.3); text-align: center;">Next</p>
+    <p class="cta-text">Patterns define what the AI does. Specs define how to build it correctly — token resolution, priority logic, and integration contracts.</p>
+    <div class="cta-buttons">
+      <a href="../specs/index.html" class="cta-btn cta-btn--primary">Specs &rarr;</a>
+      <a href="../index.html" class="cta-btn cta-btn--secondary">Overview &rarr;</a>
+    </div>
+  </div>
+</section>
+
+
+<div class="chapter-nav" data-current="axpatterns" data-base="../"></div>
+
+<!-- ═══ NAV + CHAPTER NAV + SCROLL REVEAL ═══ -->
+<script src="../../assets/js/ga-slots.js"></script>
+<script src="../../assets/js/green-animation.js" defer></script>
+<script src="../../assets/js/nav.js" defer></script>
+<script src="../../assets/js/chapter-nav.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initNav({ basePath: '../../', activePage: 'axpatterns', lang: 'en' });
+
+  var reveals = document.querySelectorAll('.reveal');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(function(el) { observer.observe(el); });
+
+  // Inject "Try it →" simulator link into every .pattern-row, deep-linked by pattern ID.
+  document.querySelectorAll('.pattern-row').forEach(function(row) {
+    var idEl = row.querySelector('.pattern-id');
+    var nameEl = row.querySelector('.pattern-name');
+    if (!idEl || !nameEl) return;
+    var patternId = idEl.textContent.trim();
+    var link = document.createElement('a');
+    link.className = 'sim-link';
+    link.href = '../simulator/console.html?pattern=' + encodeURIComponent(patternId);
+    link.textContent = 'Try it';
+    link.title = 'Open the live console with token state primed for ' + patternId;
+    nameEl.parentNode.appendChild(link);
+  });
+
+  // ═══ PATTERN CATALOG FILTER ═══
+  var PATTERN_META = {
+    'D1':{ category:'D', tokens:['Autonomy Dial','Priority Weight'] },
+    'D2':{ category:'D', tokens:['Brain'] },
+    'D3':{ category:'D', tokens:['Cognitive Load','Priority Weight','Feasibility'] },
+    'D4':{ category:'D', tokens:['Autonomy Dial','Disclosure Dial','Brain'] },
+    'D5':{ category:'D', tokens:['Brain','Physical State'] },
+    'D6':{ category:'D', tokens:['Feasibility','Priority Weight'] },
+    'E1':{ category:'E', tokens:['Social Exposure'] },
+    'E2':{ category:'E', tokens:['Priority Weight'] },
+    'E3':{ category:'E', tokens:['Feasibility'] },
+    'E4':{ category:'E', tokens:[] },
+    'E5':{ category:'E', tokens:['Autonomy Dial','Brain'] },
+    'A1':{ category:'A', tokens:['Form Factor'] },
+    'A2':{ category:'A', tokens:['Cognitive Load'] },
+    'A3':{ category:'A', tokens:['Social Exposure','Disclosure Dial'] },
+    'A4':{ category:'A', tokens:['Disclosure Dial','Social Exposure'] },
+    'A5':{ category:'A', tokens:['Brain'] },
+    'A6':{ category:'A', tokens:['Brain'] },
+    'A7':{ category:'A', tokens:['Feasibility'] },
+    'A8':{ category:'A', tokens:['Brain'] },
+    'X1':{ category:'X', tokens:['Priority Weight'] },
+    'X2':{ category:'X', tokens:['Autonomy Dial'] },
+    'X3':{ category:'X', tokens:['Autonomy Dial','Disclosure Dial'] },
+    'X4':{ category:'X', tokens:[] }
+  };
+  var CG_TOKEN_NAMES = ['Physical State','Cognitive Load','Social Exposure','Priority Weight','Form Factor','Feasibility','Autonomy Dial','Disclosure Dial','Brain'];
+  var cgActiveCat = 'all';
+  var cgActiveTokens = [];
+
+  // Tag rows + inject token chips (before "Try it" so order is: name, essence, chips, example, try-it)
+  document.querySelectorAll('.pattern-row').forEach(function(row) {
+    var idEl = row.querySelector('.pattern-id');
+    if (!idEl) return;
+    var meta = PATTERN_META[idEl.textContent.trim()];
+    if (!meta) return;
+    row._cgMeta = meta;
+    if (meta.tokens.length > 0) {
+      var chips = document.createElement('div');
+      chips.className = 'pattern-tokens';
+      meta.tokens.forEach(function(t) {
+        var c = document.createElement('span');
+        c.className = 'pattern-token';
+        c.textContent = t;
+        chips.appendChild(c);
+      });
+      var essence = row.querySelector('.pattern-essence');
+      if (essence) essence.after(chips);
+    }
+  });
+
+  // Build + inject filter bar before the first catalog-group
+  var catalogSec = document.querySelector('.catalog-sec');
+  if (catalogSec) {
+    var secInner = catalogSec.querySelector('.sec-inner--wide') || catalogSec.querySelector('.sec-inner');
+    if (secInner) {
+      var fb = document.createElement('div');
+      fb.className = 'catalog-filter';
+      var catLabels = ['D · Delegation','E · Escalation','A · Adaptation','X · Enterprise'];
+      var catCodes  = ['D','E','A','X'];
+      fb.innerHTML =
+        '<div class="filter-row"><span class="filter-label">Category</span><div class="filter-buttons">' +
+        '<button class="filter-btn active" data-cgcat="all">All 23</button>' +
+        catLabels.map(function(l,i){ return '<button class="filter-btn" data-cgcat="'+catCodes[i]+'">'+l+'</button>'; }).join('') +
+        '</div></div>' +
+        '<div class="filter-row"><span class="filter-label">Token</span><div class="filter-buttons">' +
+        CG_TOKEN_NAMES.map(function(t){ return '<button class="filter-btn" data-cgtoken="'+t+'">'+t+'</button>'; }).join('') +
+        '</div></div>' +
+        '<p class="filter-count">Showing <span id="cg-count">23</span> of 23 patterns</p>';
+      var firstGroup = secInner.querySelector('.catalog-group');
+      secInner.insertBefore(fb, firstGroup || secInner.firstChild);
+
+      function cgFilter() {
+        var n = 0;
+        document.querySelectorAll('.catalog-group').forEach(function(grp) {
+          var gn = 0;
+          grp.querySelectorAll('.pattern-row').forEach(function(row) {
+            var m = row._cgMeta;
+            var ok = !m ||
+              (cgActiveCat==='all' || m.category===cgActiveCat) &&
+              (cgActiveTokens.length===0 || cgActiveTokens.some(function(t){ return m.tokens.indexOf(t)!==-1; }));
+            row.style.display = ok ? '' : 'none';
+            if (ok) { n++; gn++; }
+          });
+          grp.style.display = gn ? '' : 'none';
+        });
+        var el = document.getElementById('cg-count');
+        if (el) el.textContent = n;
+      }
+
+      fb.querySelectorAll('[data-cgcat]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          fb.querySelectorAll('[data-cgcat]').forEach(function(b){ b.classList.remove('active'); });
+          this.classList.add('active');
+          cgActiveCat = this.getAttribute('data-cgcat');
+          cgFilter();
+        });
+      });
+      fb.querySelectorAll('[data-cgtoken]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var t = this.getAttribute('data-cgtoken');
+          var i = cgActiveTokens.indexOf(t);
+          if (i===-1){ cgActiveTokens.push(t); this.classList.add('active'); }
+          else{ cgActiveTokens.splice(i,1); this.classList.remove('active'); }
+          cgFilter();
+        });
+      });
+    }
+  }
+
+  /* ── Pattern spec expansion ── */
+  var PATTERN_SPEC = {
+    'D1': {
+      name: 'Approval Gate',
+      when: ['Autonomy Dial is set to Confirm — the AI proposes, the user decides', 'Priority Weight is HIGH or CRITICAL — the action has real consequences', 'The AI has a concrete proposal ready, not just a vague suggestion'],
+      dont: ['Autonomy Dial is Notify or Auto — gate is bypassed by design', 'The action is trivial and easily reversible', 'Cognitive Load is OVERLOADED — delay the gate, do not force a decision now'],
+      criteria: 'User reviews the proposal and acts (approve, edit, or skip) without confusion. Time-to-decision is short because the proposal is specific.',
+      composes: ['D6','E5','X1','X2']
+    },
+    'D2': {
+      name: 'Progressive Trust',
+      when: ['Brain Level 2 — Learning Layer has ≥ 3 confirmed successes in this domain', 'Same action type has been proposed and accepted repeatedly without rejection', 'No recent trust breach (E5 has not fired in the last session)'],
+      dont: ['New domain — no trust data yet', 'Recent rejection or undo by the user', 'Autonomy Dial was manually set to a lower stage — respect user intent'],
+      criteria: 'Autonomy Dial advances one stage automatically. User does not manually override it back within the next two sessions.',
+      composes: ['E5','D4','D1']
+    },
+    'D3': {
+      name: 'Proactive Nudge',
+      when: ['Cognitive Load is LOW — the user has bandwidth to consider a suggestion', 'Priority Weight is MEDIUM — useful but not urgent', 'Feasibility is Fully Feasible — the AI can actually act on this'],
+      dont: ['Cognitive Load is HIGH or OVERLOADED — the nudge becomes noise', 'Priority Weight is CRITICAL — use D1 Approval Gate instead', 'User has explicitly dismissed this topic in the same session'],
+      criteria: 'User acts on the nudge, or reads it and dismisses without frustration. Does not feel like spam.',
+      composes: ['A2','D1']
+    },
+    'D4': {
+      name: 'Omakase Mode',
+      when: ['Autonomy Dial is Auto — the user has explicitly delegated this domain', 'Disclosure Dial is Full — no information is withheld from the AI', 'Brain Level 2 — Learning Layer trust for this domain has been confirmed over ≥ 3 sessions'],
+      dont: ['Priority Weight is CRITICAL — always use Approval Gate for high-stakes irreversible actions', 'First session in a domain — trust has not been established yet', 'Brain Level 2 has a recent rejection — trust has been breached'],
+      criteria: 'AI completes the action without interruption. User does not undo or modify the result at the next review session.',
+      composes: ['D6','E5','A2']
+    },
+    'D5': {
+      name: 'Substitution Modes',
+      when: ['A planned item is unavailable (Feasibility is Partially or Externally Blocked)', 'Brain Level 2 — Learning Layer has the user\'s substitution preference for this category', 'The substitution is within a known domain (grocery, travel, restaurants)'],
+      dont: ['Allergy or medical constraint is on record — always use Exact mode regardless of preference', 'No prior substitution preference — ask before substituting', 'Priority Weight is CRITICAL — do not substitute silently'],
+      criteria: 'Substitute item is accepted by the user. Correct mode (Exact / Flexible / Exploring / Surprise) was applied per item type and trust level.',
+      composes: ['D1','D4','A7']
+    },
+    'D6': {
+      name: 'Dynamic Friction',
+      when: ['The action is irreversible or has significant downstream consequences', 'Feasibility × consequence risk exceeds the threshold regardless of Autonomy setting', 'A safety-critical condition is detected (driving, medical, financial above threshold)'],
+      dont: ['Low-cost, low-risk actions that are easily undone', 'User is in OVERLOADED cognitive state — delay or simplify the friction, do not add complexity', 'Friction has already fired for this exact action in the same session'],
+      criteria: 'Confirmation is required and received regardless of Autonomy Dial level. User does not feel the friction was unnecessary.',
+      composes: ['D4','D1','E5']
+    },
+    'E1': {
+      name: 'Confidence Signal',
+      when: ['AI confidence for this specific output is ≤ 80%', 'Social Exposure is MEDIUM or PUBLIC — embarrassment risk is real', 'The user would make a materially different decision if they knew the confidence level'],
+      dont: ['Confidence is above 80% — signal becomes noise if shown constantly', 'Private context with no social consequence — calibration can be shown internally only', 'The domain is well-established and confidence is always high'],
+      criteria: 'User understands the uncertainty and makes a choice that reflects correct calibration. Does not express surprise about accuracy later.',
+      composes: ['E4','D1','X1']
+    },
+    'E2': {
+      name: 'Limitation Disclosure',
+      when: ['The request is outside the AI\'s current capability or data coverage', 'Priority Weight is HIGH — the user needs to know to go elsewhere', 'A better resource exists and the AI can name it'],
+      dont: ['Low-priority request where a silent best-effort attempt is acceptable', 'Known-good domain where the AI can deliver reliably', 'The limitation is temporary and will resolve within the same session'],
+      criteria: 'User is redirected to the correct resource without frustration. Does not waste time waiting for an output that will not come.',
+      composes: ['E1','D1']
+    },
+    'E3': {
+      name: 'Rollback',
+      when: ['An AI-initiated action was executed and external feasibility changed after the fact', 'The consequence of the changed feasibility is meaningful to the user', 'A rollback or alternative path is technically available'],
+      dont: ['The action was explicitly user-initiated — they accepted the risk', 'The change is trivial and does not affect the outcome the user cares about', 'User is mid-execution — do not disrupt until the current step completes'],
+      criteria: 'Rollback option is shown clearly and promptly. Alternative path is offered. User does not feel abandoned or confused.',
+      composes: ['D6','A7']
+    },
+    'E4': {
+      name: 'Ambiguity Escalation',
+      when: ['AI confidence is in the 40–79% range — neither certain nor completely lost', 'The decision has meaningful stakes for the user', 'Resolving the ambiguity requires information only the user has'],
+      dont: ['Stakes are very low — just pick the most likely interpretation and proceed', 'Confidence is above 79% — proceed with E1 confidence signal instead', 'User has already answered this clarifying question in the same session'],
+      criteria: 'User makes the call with the information the AI surfaces. AI does not attempt to resolve the ambiguity silently.',
+      composes: ['E1','D1']
+    },
+    'E5': {
+      name: 'Trust Breach Recovery',
+      when: ['User rejects, undoes, or manually overrides an AI decision', 'Prior Autonomy Dial was at a higher stage than the user\'s action implied they wanted', 'The breach occurred in a domain where trust was previously established'],
+      dont: ['User corrects a minor detail (typo, formatting) — not a trust signal', 'First use — no trust has been established yet, nothing to breach', 'User explicitly confirms they still want the same autonomy level after reviewing'],
+      criteria: 'Autonomy Dial is demoted one stage. Subsequent decisions in this domain are more conservative. No repeat breach within the next three sessions.',
+      composes: ['D2','D4']
+    },
+    'A1': {
+      name: 'Form Factor Transform',
+      when: ['Form Factor token has changed — the user is on a different device', 'The same content needs to be presented in the new form factor\'s idiom', 'The content is device-agnostic at the semantic level'],
+      dont: ['Content is device-exclusive by nature (watch notifications ≠ TV ambient display)', 'The user has explicitly customized the layout for this device', 'The content cannot be meaningfully represented on the target form factor'],
+      criteria: 'User recognizes the same information in the new form without confusion. Does not need to re-learn navigation.',
+      composes: ['A2','A3']
+    },
+    'A2': {
+      name: 'Cognitive Scaling',
+      when: ['Cognitive Load is HIGH or OVERLOADED', 'The interface would otherwise present more than 4 choices or a long list', 'A reduced, prioritized view is semantically equivalent to the full view'],
+      dont: ['Cognitive Load is LOW — show everything, trust the user', 'User has explicitly requested the full list', 'The task requires seeing all options to make a valid decision (comparison shopping)'],
+      criteria: 'User sees fewer, better choices. Time-to-decision decreases. No choice the user would have wanted is hidden without a clear path to expand.',
+      composes: ['D3','A1','A3']
+    },
+    'A3': {
+      name: 'Social-Aware Filtering',
+      when: ['Social Exposure is MEDIUM (semi-public) or PUBLIC', 'Disclosure Dial is not set to Full for this session', 'Sensitive personal data (prices, health, relationship data) is present in the view'],
+      dont: ['Private context — no one else can see the screen', 'User has explicitly shared this content with the person present', 'Social Exposure is PRIVATE'],
+      criteria: 'Sensitive information is hidden or anonymized. User is not embarrassed by unintended disclosure. Experience remains coherent without the filtered data.',
+      composes: ['A4','A2']
+    },
+    'A4': {
+      name: 'Disclosure Cascade',
+      when: ['Disclosure Dial setting changes (user adjusts privacy level)', 'Social context changes within a session (new person arrives)', 'A per-person or per-domain disclosure rule is triggered'],
+      dont: ['Full public disclosure was set intentionally and the context has not changed', 'No sensitive data is present in the current view', 'The disclosure change is a system default, not a user or context signal'],
+      criteria: 'Correct visibility level is applied per domain and per person present. No information leaks across disclosure boundaries.',
+      composes: ['A3','D5']
+    },
+    'A5': {
+      name: 'Disposable Surface',
+      when: ['User intent is time-bound — a trip, an event, a single goal', 'A Disposable Brain instance has been created for this intent', 'The interface elements are only meaningful within the goal\'s lifecycle'],
+      dont: ['Recurring or permanent need — use the persistent Home Brain instead', 'User has indicated they want to keep this data after the goal ends', 'The "disposable" framing would confuse or concern the user'],
+      criteria: 'UI appears at goal start and dissolves cleanly at goal end. Learnings are transferred to Home Brain (A8). User does not miss any data they expected to keep.',
+      composes: ['A8','A7']
+    },
+    'A6': {
+      name: 'Care Architecture',
+      when: ['Brain Level 2 — Learning Layer has relational data for this person or relationship', 'An emotionally relevant context has been detected (anniversary, health event, family milestone)', 'The timing is appropriate — not interrupting a high-focus or high-stress moment'],
+      dont: ['No relational data exists — do not fabricate emotional relevance', 'User has opted out of relational context or care features', 'Cognitive Load is HIGH or OVERLOADED — care moments require bandwidth'],
+      criteria: 'Care opportunity is surfaced at the right moment. User responds positively (acts on it, or acknowledges without frustration). Does not feel intrusive.',
+      composes: ['A2','D3']
+    },
+    'A7': {
+      name: 'Live Recomposition',
+      when: ['External Feasibility changed after a plan was already composed', 'The existing plan is present and can be adapted rather than rebuilt from scratch', 'The change affects one or more plan steps but not the overall goal'],
+      dont: ['No plan exists yet — compose fresh', 'User is mid-execution of the current step — wait for a natural break', 'The change is minor enough to note in context without recomposing'],
+      criteria: 'Plan updates silently and the user sees the new version without confusion. The reason for the change is surfaced if the user asks.',
+      composes: ['E3','A5']
+    },
+    'A8': {
+      name: 'Temporal Handoff',
+      when: ['A Disposable Brain lifecycle is ending (trip complete, goal achieved)', 'Learnings worth preserving have accumulated in the Disposable Brain', 'The integration window to Home Brain is open'],
+      dont: ['No learnings worth preserving — let the Disposable Brain dissolve cleanly', 'User has opted for privacy mode — no learning transfer', 'Home Brain already contains equivalent data'],
+      criteria: 'Key learnings are transferred to Home Brain. Disposable Brain is cleanly dissolved. User can access the learnings from Home Brain in subsequent sessions.',
+      composes: ['A5','A7']
+    },
+    'X1': {
+      name: 'Reasoning Trace',
+      when: ['Priority Weight is HIGH or CRITICAL — the stakes justify explanation', 'An audit trail is required (compliance, medical, financial)', 'User has explicitly tapped "Why?" or requested rationale'],
+      dont: ['Low-stakes automatic action where explanation adds friction without value', 'User has not requested detail and stakes are low', 'The reasoning is obvious from context'],
+      criteria: 'Rationale is visible and sufficient. User trusts the recommendation more, or makes a better-informed override. Does not feel overwhelming.',
+      composes: ['X4','D1','E1']
+    },
+    'X2': {
+      name: 'Inline Edit',
+      when: ['User selects "Edit" at an Approval Gate (D1)', 'An AI draft is present and the user wants to modify rather than replace it', 'The edit scope is bounded — field-level or section-level'],
+      dont: ['User approves without edit — do not open edit mode unnecessarily', 'User has a fundamental disagreement with the approach — use Reject and start fresh', 'Edit mode would require re-running the full AI generation'],
+      criteria: 'Edit cycles complete faster than starting from scratch. The revised version is accepted and the user does not undo the edits.',
+      composes: ['X1','D1']
+    },
+    'X3': {
+      name: 'Autonomy Dial UI',
+      when: ['User explicitly wants to adjust their control level for a domain', 'Onboarding or first-time setup for a new agent or service', 'Per-agent or per-domain autonomy settings are being configured'],
+      dont: ['AI-driven automatic adjustment (3-force model) — the dial moves without UI', 'Casual mid-task context — don\'t interrupt flow for autonomy settings', 'User has already set the dial and context has not changed'],
+      criteria: 'User understands what each dial position means. Sets it correctly for their intent. Does not accidentally create a Disclosure × Autonomy conflict.',
+      composes: ['X1','A4']
+    },
+    'X4': {
+      name: 'Source Attribution',
+      when: ['A compliance or audit rule requires traceable claims', 'User taps a source chip to verify a specific claim', 'The output will be shared externally or used in a decision with accountability'],
+      dont: ['Internal drafts that will not be shared externally', 'Sources are not traceable to a single item (synthesized reasoning)', 'Low-stakes creative content where attribution adds friction'],
+      criteria: 'All claims are traceable to their source. Audit trail is valid. No hallucinated citations appear.',
+      composes: ['X1','X2']
+    }
+  };
+
+  /* inject <details> spec blocks + anchor IDs */
+  document.querySelectorAll('.pattern-row').forEach(function(row) {
+    var idEl = row.querySelector('.pattern-id');
+    if (!idEl) return;
+    var pid = idEl.textContent.trim();
+    var spec = PATTERN_SPEC[pid];
+    if (!spec) return;
+
+    /* anchor ID for deep-linking from simulator (matches simulator.js href="#D4" format) */
+    row.id = pid;
+
+    var body = row.querySelector('.pattern-body');
+    var simLink = body ? body.querySelector('.sim-link') : null;
+    if (!body || !spec) return;
+
+    var whenItems = spec.when.map(function(w){ return '<li>' + w + '</li>'; }).join('');
+    var dontItems = spec.dont.map(function(d){ return '<li>' + d + '</li>'; }).join('');
+    var composeChips = spec.composes.map(function(c){
+      return '<a class="pattern-spec__chip" href="#' + c + '">' + c + ' ' + (PATTERN_SPEC[c] ? PATTERN_SPEC[c].name : c) + '</a>';
+    }).join('');
+
+    var detailsEl = document.createElement('details');
+    detailsEl.className = 'pattern-spec';
+    detailsEl.innerHTML =
+      '<summary>Full spec</summary>' +
+      '<div class="pattern-spec__body">' +
+        '<div class="pattern-spec__grid">' +
+          '<div>' +
+            '<p class="pattern-spec__h4">When to use</p>' +
+            '<ul class="pattern-spec__list">' + whenItems + '</ul>' +
+          '</div>' +
+          '<div>' +
+            '<p class="pattern-spec__h4">Do not use when</p>' +
+            '<ul class="pattern-spec__list pattern-spec__list--contra">' + dontItems + '</ul>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<p class="pattern-spec__h4">Success criteria</p>' +
+          '<p class="pattern-spec__criteria">' + spec.criteria + '</p>' +
+        '</div>' +
+        (composeChips ? '<div><p class="pattern-spec__h4">Composes with</p><div class="pattern-spec__chips">' + composeChips + '</div></div>' : '') +
+        '<button class="pattern-spec__copy" data-pid="' + pid + '" type="button">Copy JSON spec ⎘</button>' +
+      '</div>';
+
+    if (simLink) {
+      body.insertBefore(detailsEl, simLink);
+    } else {
+      body.appendChild(detailsEl);
+    }
+  });
+
+  /* Copy JSON spec handler */
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.pattern-spec__copy');
+    if (!btn) return;
+    var pid = btn.getAttribute('data-pid');
+    var spec = PATTERN_SPEC[pid];
+    if (!spec) return;
+    var obj = { id: pid, name: spec.name, when_to_use: spec.when, do_not_use_when: spec.dont, success_criteria: spec.criteria, composes_with: spec.composes };
+    var json = JSON.stringify(obj, null, 2);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(function() {
+        btn.textContent = 'Copied ✓';
+        setTimeout(function(){ btn.textContent = 'Copy JSON spec ⎘'; }, 2000);
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = json;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'Copied ✓';
+      setTimeout(function(){ btn.textContent = 'Copy JSON spec ⎘'; }, 2000);
+    }
+  });
+
+});
+</script>
+
+</body>
+</html>

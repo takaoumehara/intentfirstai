@@ -1,0 +1,937 @@
+# Context Grammar Design Rules
+# Rules engine — how Token x Brain state translates into concrete UI behavior
+# License: CC BY 4.0
+
+spec:
+  name: Context Grammar Design Rules
+  version: "1.0"
+  date: "2026-04-09"
+  description: >
+    Rules engine that transforms Intent + 8 Context Tokens + Brain state
+    into concrete UI behavior decisions. Each rule is derived from real
+    scenarios across three projects: Living Home (P1), Family Trip (P2),
+    and Fluid Handoff (P3).
+  license: "CC BY 4.0"
+  token_reference:
+    situation_tokens:
+      - physical_state
+      - cognitive_load
+      - social_exposure
+      - priority_weight
+      - form_factor
+      - feasibility
+    relationship_dials:
+      - autonomy_dial   # 4 stages: Suggest > Confirm > Notify > Auto
+      - disclosure_dial  # Per-domain, per-person privacy control
+
+rules:
+
+  # ============================================================
+  # P1 — THE LIVING HOME
+  # ============================================================
+
+  - id: p1_dinner_suggestion_timing
+    name: "Commute-aware dinner suggestion"
+    description: >
+      When the user is driving home with depleted cognitive load,
+      suggest a dinner plan that fits the remaining time window.
+      Do not present more than one recommendation; show alternatives
+      only if the user asks.
+    when:
+      tokens:
+        physical_state: [driving, transitioning_home]
+        cognitive_load: [depleted]
+        feasibility:
+          condition: "GPS ETA + fridge inventory + store inventory + delivery ETA are all known"
+      brain:
+        layer: right_now
+        condition: "Commute detected; calendar shows no evening plans"
+    then:
+      ui_density: minimal
+      max_options: 1
+      interaction_mode: "single-card with confirm"
+      form_factor_behavior:
+        car_display: "Show meal name + ETA only. No prices, no alternatives."
+        phone_on_arrival: "Expand to full card with cost comparison and confirm button."
+      autonomy_suggestion: "notify"
+      explanation: >
+        A depleted user driving home cannot process 10 recipe options.
+        The system calculates feasibility (ingredients, delivery time, cook time)
+        and presents the single best option. This is Month 6 behavior —
+        early stages (Month 1) would show this at Suggest level with full alternatives.
+    source_project: "P1"
+
+  - id: p1_substitution_exact
+    name: "Exact Mode — no substitution allowed"
+    description: >
+      When a family member's item is set to Exact Mode, the system must
+      never auto-substitute. If the exact item is out of stock, notify
+      the user and do not purchase anything.
+    when:
+      tokens:
+        priority_weight:
+          condition: "Item tagged as Exact by user's explicit action"
+      brain:
+        layer: accumulated
+        condition: "User has explicitly declared 'this item only, no alternatives'"
+    then:
+      substitution: never
+      out_of_stock_behavior: "notify_only"
+      auto_order: true
+      message_on_stockout: "'{item}' is out of stock. No substitute purchased. Notify when back in stock?"
+      explanation: >
+        Yuki's TJ's Honey Yogurt and Ren's Blueberries & Cream Yogurt are
+        identity-level preferences. Substituting them breaks trust instantly.
+        The system must respect the user's explicit boundary absolutely.
+    source_project: "P1"
+
+  - id: p1_substitution_flexible
+    name: "Flexible Mode — same-category substitution OK"
+    description: >
+      When an item is set to Flexible Mode, the system may auto-select
+      from a user-defined priority list within the same category.
+    when:
+      tokens:
+        priority_weight:
+          condition: "Item tagged as Flexible with ordered alternatives"
+      brain:
+        layer: accumulated
+        condition: "User has provided priority ranking for alternatives"
+    then:
+      substitution: within_category
+      priority_order: "Follow user-defined ranking (e.g. Sweet > Yellow > White onion)"
+      excluded_items: "Respect explicit exclusions (e.g. Purple onion = never)"
+      notification: "Notify when substitute is used: '{original} was out. Got {substitute} instead.'"
+      autonomy_suggestion: "notify"
+      explanation: >
+        Hana's dairy-free yogurt (Cashew or Coconut, either is fine) and
+        generic Greek yogurt for Kenji. The user trusts the system to pick
+        within bounds, but wants to know when a swap happens.
+    source_project: "P1"
+
+  - id: p1_substitution_exploring
+    name: "Exploring Mode — test and learn"
+    description: >
+      When an item is in Exploring Mode, the system proposes new options
+      and records user feedback (OK/NG) to narrow preferences over time.
+    when:
+      tokens:
+        priority_weight:
+          condition: "Item tagged as Exploring by user's explicit action"
+      brain:
+        layer: accumulated
+        condition: "Feedback log exists with OK/NG history for this category"
+    then:
+      substitution: propose_new
+      feedback_capture: true
+      proposal_logic: "Suggest items similar to OK history, avoid NG patterns"
+      notification: "Always notify with rationale: 'Vanilla worked well. Try Unflavored?'"
+      autonomy_suggestion: "suggest"
+      explanation: >
+        The user is actively searching for the right product (e.g. protein
+        powder flavor). Every purchase is a learning opportunity. AI proposes
+        but never auto-orders in this mode.
+    source_project: "P1"
+
+  - id: p1_substitution_surprise
+    name: "Surprise Mode — curated discovery"
+    description: >
+      When an item is in Surprise Mode, the system introduces unknown items
+      within user-defined constraints and records hit/miss feedback.
+    when:
+      tokens:
+        priority_weight:
+          condition: "Item tagged as Surprise with category constraints"
+      brain:
+        layer: accumulated
+        condition: "Hit/miss history exists for this category (e.g. 'senbei = hits, gummy = misses')"
+    then:
+      substitution: curated_unknown
+      constraints: "Must stay within user-defined boundaries (e.g. crunchy + not too sweet)"
+      feedback_capture: true
+      frequency: "Occasional (not every order)"
+      autonomy_suggestion: "notify"
+      explanation: >
+        Japanese snacks discovery. The user wants to be surprised within
+        boundaries. The system learns what types land and adjusts.
+        A surprise that violates constraints is a failure, not a surprise.
+    source_project: "P1"
+
+  - id: p1_autonomy_progression
+    name: "Trust-based autonomy promotion over time"
+    description: >
+      Autonomy Dial advances through stages as the system demonstrates
+      competence through repeated successful actions.
+    when:
+      tokens:
+        autonomy_dial:
+          condition: "Consecutive successful actions exceed promotion threshold"
+      brain:
+        layer: accumulated
+        condition: "Action approval history shows consistent user acceptance"
+    then:
+      promotion_path:
+        month_1: "Suggest — all proposals require explicit confirmation"
+        month_3: "Confirm — constraint calculation is delegated, orders still require approval"
+        month_6: "Notify — routine orders execute automatically, user is notified after"
+        year_1: "Auto — staple items replenish silently (only for Exact/Flexible items with high trust)"
+      demotion_trigger: "Any price anomaly (e.g. salmon jumps from $15 to $22) forces temporary demotion to Confirm"
+      explicit_override: "User-set spending caps always force Confirm regardless of dial position"
+      explanation: >
+        Trust is earned through repeated success, not declared upfront.
+        5 consecutive delivery approvals = promotion candidate.
+        A single price spike = temporary demotion. The system never
+        assumes permanent trust.
+    source_project: "P1"
+
+  - id: p1_allergy_constraint_enforcement
+    name: "Allergy and dietary hard constraints"
+    description: >
+      Allergy and dietary restrictions are absolute constraints that override
+      all other rules including Surprise Mode and AI suggestions.
+    when:
+      tokens:
+        priority_weight:
+          condition: "Allergy or dietary restriction exists for a family member"
+      brain:
+        layer: identity
+        condition: "Family profile contains allergy/dietary data (e.g. Hana = dairy sensitivity)"
+    then:
+      enforcement: absolute
+      override_priority: highest
+      applies_to: "All modes (Exact, Flexible, Exploring, Surprise)"
+      violation_behavior: "Block purchase + alert user: 'This item contains dairy. Hana has dairy sensitivity. Blocked.'"
+      explanation: >
+        A Surprise Mode snack that contains dairy for Hana is not a surprise —
+        it is a safety failure. Allergy constraints sit above all other rules
+        in the priority stack and can never be relaxed by any dial setting.
+    source_project: "P1"
+
+  - id: p1_multi_person_notification
+    name: "Age-appropriate multi-person UI orchestration"
+    description: >
+      During family projects (e.g. spring cleaning), each family member
+      receives UI adapted to their age, capability, and role.
+    when:
+      tokens:
+        social_exposure: [family]
+        form_factor: [tv, phone, tablet_x2, speaker]
+        cognitive_load:
+          parent: high
+          child_10: medium
+          child_7: low
+      brain:
+        layer: identity
+        condition: "Family member capabilities are known (e.g. age 10 = vacuum OK, chemicals NG)"
+    then:
+      tv: "Show whole-house progress map with room-by-room completion bars"
+      parent_phone: "Full orchestration dashboard — all tasks, external service scheduling, budget"
+      child_10_tablet: "Mission screen — sequential tasks matched to capability, progress bar, no unsafe tasks"
+      child_7_tablet: "Simple illustrated checklist — large checkmarks, encouraging messages, no complexity"
+      speaker: "Voice status updates and encouragement; announce external service arrivals"
+      task_assignment: "Auto-suggest next task on completion; safety-critical tasks require parent approval"
+      explanation: >
+        The parent should not have to interrupt their own work to tell each
+        child what to do next. The system distributes tasks by capability
+        and manages the flow, but the parent retains authority over safety
+        decisions and budget.
+    source_project: "P1"
+
+  - id: p1_price_anomaly_demotion
+    name: "Price anomaly forces autonomy demotion"
+    description: >
+      When a routine item's price exceeds learned patterns, the system
+      demotes the Autonomy Dial from Notify/Auto back to Confirm.
+    when:
+      tokens:
+        feasibility:
+          condition: "Item price exceeds learned price range or user-set threshold"
+        autonomy_dial: [notify, auto]
+      brain:
+        layer: accumulated
+        condition: "Historical price pattern exists for this item"
+    then:
+      autonomy_dial: "demote_to_confirm"
+      message: "'{item}' is ${price} today (usually ${usual_price}). Order anyway?"
+      resume_after: "User confirms or price returns to normal range"
+      explanation: >
+        Salmon jumping from $15 to $22 is not a routine purchase anymore.
+        The system earned Notify-level trust at $15. At $22 it must re-ask.
+        Trust is contextual — it applies to the conditions under which it was granted.
+    source_project: "P1"
+
+  # ============================================================
+  # P2 — THE FAMILY TRIP
+  # ============================================================
+
+  - id: p2_weather_itinerary_replan
+    name: "Weather change triggers itinerary replan"
+    description: >
+      When weather changes invalidate outdoor activities, the system
+      replans using Feasibility Token data and presents the new plan
+      differently on each device.
+    when:
+      tokens:
+        feasibility:
+          condition: "Weather API reports rain/storm AND current plan has outdoor activities"
+        priority_weight:
+          condition: "experience > schedule (learned from trip behavior)"
+        form_factor: [tv, phone, tablet_x2]
+      brain:
+        layer: right_now
+        condition: "Today's itinerary contains outdoor-dependent activities"
+    then:
+      replan_speed: "10 seconds from detection to all-device update"
+      indoor_alternatives: "Query Feasibility Token for open indoor venues, transport options, restaurant availability"
+      tv: "Show updated full-day map with change highlights and route"
+      parent_phone: "Show budget impact + confirm button + backup alternatives"
+      child_tablet: "'ADVENTURE CHANGE!' with fun visuals and exciting descriptions of new activities"
+      autonomy_dial: "Force minimum Confirm — schedule changes with budget impact require approval"
+      explanation: >
+        Rain is not a problem; it is a different adventure. The child's tablet
+        frames the change positively to protect family mood. The parent gets
+        budget impact details. The TV shows the logistics. Each surface serves
+        a different emotional and functional need.
+    source_project: "P2"
+
+  - id: p2_child_fever_autonomy_rollback
+    name: "Medical event forces immediate autonomy rollback to Manual"
+    description: >
+      When a health emergency is reported, the Autonomy Dial is forced
+      to Manual (Position 1). AI provides structured information only
+      and makes zero decisions.
+    when:
+      tokens:
+        cognitive_load: [panic, overloaded]
+        priority_weight:
+          condition: "health > everything_else (absolute override)"
+        autonomy_dial:
+          condition: "Any position — forced to Manual regardless"
+      brain:
+        layer: right_now
+        condition: "Health event reported (e.g. child temperature > 37.5)"
+    then:
+      autonomy_dial: "force_manual"
+      ai_role: "information_only"
+      ui_structure:
+        - "Nearest pharmacy with hours and walking distance"
+        - "Insurance-compatible clinic with language support and taxi ETA"
+        - "Next-day plan status (cancellation deadlines, alternatives)"
+        - "Medical disclaimer: 'Medical decisions are outside AI scope'"
+      next_day_plan: "Set to pending — resolve after health check"
+      never_do:
+        - "Say 'it will be fine'"
+        - "Say 'you can still make tomorrow's plan'"
+        - "Make any medical judgment"
+      explanation: >
+        Trust deepens most when the system honestly admits its limits.
+        At 37.8 degrees, the AI's job is to structure options and prepare
+        information (insurance numbers, clinic hours), not to reassure
+        or decide. The Autonomy Dial override is absolute and non-negotiable.
+    source_project: "P2"
+
+  - id: p2_disposable_brain_lifecycle
+    name: "Disposable Brain lifecycle management"
+    description: >
+      Project-scoped Brains (Trip Brain, Shopping Brain) are born when
+      a project is declared, learn during the project, return knowledge
+      to Home Brain, and die when the project completes.
+    when:
+      tokens:
+        intent:
+          condition: "User declares a bounded project (trip, shopping task, cleaning project)"
+      brain:
+        layer: identity
+        condition: "Home Brain exists with transferable family profile data"
+    then:
+      lifecycle:
+        born: "On project declaration — inherit Layer 1 (Identity) from Home Brain"
+        learns: "During project — accumulate Layer 2 observations and Layer 3 real-time state"
+        returns: >
+          On project completion — extract generalizable learnings and write back to Home Brain.
+          Examples: 'son loves ramen' -> Home Brain food preferences update.
+          'hot springs = 1 night max with kids' -> Home Brain travel patterns.
+        dies: "After return is complete and user has reviewed the summary"
+      ui_lifecycle: "Disposable UI follows same pattern — born, transforms across phases, dies"
+      explanation: >
+        A Trip Brain that lives forever becomes clutter. A Trip Brain that
+        dies without returning knowledge wastes learning. The lifecycle
+        ensures knowledge flows back to the permanent Home Brain while
+        keeping the project scope clean.
+    source_project: "P2"
+
+  - id: p2_family_voting_itinerary
+    name: "Family voting for non-critical itinerary changes"
+    description: >
+      For preference-based decisions (not emergencies), the system
+      can collect family input through age-appropriate interfaces.
+    when:
+      tokens:
+        social_exposure: [family]
+        priority_weight:
+          condition: "No time-critical constraint; multiple valid options exist"
+      brain:
+        layer: accumulated
+        condition: "Family member preferences are known for this category"
+    then:
+      parent_phone: "Present options with cost/time tradeoffs"
+      child_tablet: "Present options with fun descriptions and images"
+      aggregation: "Children's preferences are input; parent makes final call"
+      autonomy_dial: "Confirm — parent approves the outcome"
+      explanation: >
+        The system facilitates family decision-making without removing
+        parental authority. Children vote on what sounds fun; the parent
+        sees budget impact and makes the call. Pizza topping democracy
+        at the end of spring cleaning is a lightweight version of this.
+    source_project: "P2"
+
+  - id: p2_priority_collision_resolution
+    name: "Priority collision resolution between competing demands"
+    description: >
+      When multiple priorities compete (e.g. temple visit vs rain vs
+      child energy), resolve using Priority Weight token combined
+      with Brain's learned tradeoff patterns.
+    when:
+      tokens:
+        priority_weight:
+          condition: "Multiple active priorities with conflicting requirements"
+        feasibility:
+          condition: "Environmental constraints eliminate some options"
+        cognitive_load: [divided, overloaded]
+      brain:
+        layer: accumulated
+        condition: "Learned tradeoff patterns exist (e.g. 'this family prioritizes experience over schedule')"
+    then:
+      resolution_method: "Score options against learned priority hierarchy + current feasibility"
+      presentation: "Show top recommendation with rationale, plus 2 alternatives"
+      max_options: 3
+      rationale_required: true
+      rationale_example: "'Moved lunch 1 hour earlier because ramen shops get crowded on rainy days'"
+      autonomy_dial: "Confirm — collisions always require human judgment"
+      explanation: >
+        Priority collision is not about picking the 'most important' thing.
+        It is about finding the resolution that satisfies the most constraints
+        simultaneously. The system proposes; the human decides.
+    source_project: "P2"
+
+  - id: p2_trip_phase_autonomy_gradient
+    name: "Autonomy changes across trip phases"
+    description: >
+      Different trip phases warrant different autonomy levels based
+      on reversibility, stakes, and real-time pressure.
+    when:
+      tokens:
+        autonomy_dial:
+          condition: "Trip phase transition detected"
+      brain:
+        layer: right_now
+        condition: "Current trip phase is identifiable"
+    then:
+      planning_phase: "Confirm — bookings involve irreversible payments"
+      travel_normal: "Notify — route changes are low-stakes and speed matters"
+      travel_exception: "Confirm — weather/health events have budget or safety impact"
+      travel_medical: "Manual — health decisions are always human-owned"
+      post_trip: "Auto — photo selection, expense categorization are fully reversible"
+      explanation: >
+        Autonomy is not a global setting. It varies by phase and by
+        the reversibility of the action. Booking a hotel (irreversible)
+        and reorganizing photos (fully reversible) require completely
+        different autonomy levels even within the same trip.
+    source_project: "P2"
+
+  - id: p2_budget_warning_transparency
+    name: "Budget overspend warning with honest framing"
+    description: >
+      When spending pace exceeds budget, present facts without panic
+      and include 'continue as-is' as a valid option.
+    when:
+      tokens:
+        feasibility:
+          condition: "Projected spend > remaining budget based on daily pace"
+      brain:
+        layer: right_now
+        condition: "Budget tracking data sufficient for projection"
+    then:
+      tone: "Calm and factual — never panic-inducing"
+      always_include: "'Continue as planned' as a valid option — AI does not restrict spending"
+      always_show: "Essential items already secured (flights, hotel) to provide baseline safety"
+      options_format: "Concrete adjustments with exact dollar impact"
+      max_options: 3
+      explanation: >
+        'You spent $400 on ramen' is a discovery, not an accusation.
+        The system presents facts and options. Including 'continue anyway'
+        respects that the user may have good reasons to exceed budget.
+        Showing that flights and hotel are secured reduces anxiety.
+    source_project: "P2"
+
+  # ============================================================
+  # P3 — FLUID HANDOFF
+  # ============================================================
+
+  - id: p3_form_factor_phone_to_tv
+    name: "Form factor transformation: phone to TV"
+    description: >
+      When content is cast from phone to TV in a family context,
+      the information architecture splits: TV becomes an emotional
+      display surface, phone becomes a control surface.
+    when:
+      tokens:
+        form_factor: [phone, tv]
+        social_exposure: [family]
+      brain:
+        layer: right_now
+        condition: "Cast action detected; family members present"
+    then:
+      tv:
+        layout: "large-image-grid"
+        content: "Emotional labels and large visuals — child-readable"
+        price_display: false
+        text_style: "emotional ('Waterproof!' 'Fast!' 'Cool!') not technical ('IPX4 rating')"
+      phone:
+        purge: ["product-images", "comparison-details"]
+        render: ["remote-control (d-pad + OK)", "focused-item-price", "confidence-signal", "buy-button"]
+        role: "Controller, not viewer"
+      explanation: >
+        The phone stops being a screen and becomes a remote control.
+        Product images are purged from the phone because they now live
+        on the TV. Half-measures (small images on phone + big on TV)
+        create cognitive load without benefit.
+    source_project: "P3"
+
+  - id: p3_social_exposure_hide_prices
+    name: "Social exposure: hide prices from minor children on shared surfaces"
+    description: >
+      When Social Exposure shifts to FAMILY with a minor child present,
+      prices are removed from shared display surfaces and shown only
+      on the parent's private device.
+    when:
+      tokens:
+        social_exposure: [family]
+        disclosure_dial:
+          condition: "Child = minor (parent-managed); price domain = parent-only"
+      brain:
+        layer: identity
+        condition: "Family profile includes minor children"
+    then:
+      shared_surface_price: hidden
+      parent_device_price: visible
+      rationale: >
+        This is not about hiding information. It is about controlling
+        who sees what to protect the family decision dynamic.
+        When a child sees prices, they pick the most expensive item.
+        The parent then faces guilt (cheap option) or regret (expensive option).
+        Removing prices from the shared surface preserves the Social Job:
+        'We chose this together as a family.'
+      explanation: >
+        Derived from Disclosure Dial (price domain = parent-only) combined
+        with Social Exposure (family with minor). The rule is not 'hide prices'
+        but 'show prices only on surfaces controlled by the price-owning person.'
+    source_project: "P3"
+
+  - id: p3_confidence_signal_display
+    name: "Confidence signal on every AI-curated candidate"
+    description: >
+      Every item the AI presents must include a confidence signal
+      explaining why it was selected, with escalation for low-confidence items.
+    when:
+      tokens:
+        intent:
+          condition: "AI has filtered/curated options from a larger set"
+      brain:
+        layer: accumulated
+        condition: "Translation Layer has processed qualitative constraints"
+    then:
+      confidence_display: "Show percentage + basis on every candidate card"
+      high_confidence: "94% — '187 reviews analyzed. All mention smooth lining.'"
+      medium_confidence: "88% — 'Sufficient review data. One mention of slight softness.'"
+      low_confidence_threshold: 80
+      low_confidence_behavior: >
+        Escalate to user: 'Not fully confident about this one (67%).
+        Thin fleece lining detected. Include with warning flag?'
+      never_do: "Silently exclude low-confidence items — they might be the best option"
+      explanation: >
+        The user has a right to know why these 3 shoes and not others.
+        Transparency is not optional. Low-confidence items are not failures;
+        they are honest admissions that require human judgment.
+    source_project: "P3"
+
+  - id: p3_child_as_decision_maker
+    name: "Child as decision maker — separate autonomy per person"
+    description: >
+      In the same moment, different family members can have different
+      autonomy levels. The child 'owns' the emotional choice;
+      the parent 'owns' the financial decision.
+    when:
+      tokens:
+        social_exposure: [family]
+        autonomy_dial:
+          condition: "Multiple autonomy levels active simultaneously"
+      brain:
+        layer: identity
+        condition: "Family roles are known (child = preference input, parent = purchase authority)"
+    then:
+      child_autonomy: "Own the selection ('Which one do you like?')"
+      parent_autonomy: "Own the purchase ('Confirm price and buy')"
+      ai_autonomy: "Delegate — research, filtering, cross-referencing"
+      ui_split:
+        tv: "Child's decision surface — point and choose"
+        phone: "Parent's decision surface — price, confirm, buy"
+      explanation: >
+        The child points at the TV and says 'that one!' — they feel they
+        chose it. The parent checks the price on their phone and taps Buy —
+        they feel they controlled the budget. Both are true simultaneously.
+        AI's contribution is ~25%; human decision-making is ~75%.
+    source_project: "P3"
+
+  - id: p3_device_handoff_continuity
+    name: "Cross-device handoff with zero information loss"
+    description: >
+      When the user moves between contexts (station -> train -> home),
+      the UI transforms but all context and progress is preserved.
+    when:
+      tokens:
+        form_factor:
+          condition: "Device or interaction mode change detected"
+        physical_state:
+          condition: "Posture/mobility change detected"
+      brain:
+        layer: right_now
+        condition: "Active task exists with accumulated progress"
+    then:
+      context_preservation: "All selections, filters, scroll position, and candidate state persist"
+      ui_transformation: "Layout adapts to new form factor without losing content"
+      no_dead_ends: "User never has to re-enter information or re-find their place"
+      stock_recheck: "Re-verify inventory and delivery feasibility on each phase transition"
+      stock_change_handling: "If item sold out between phases, escalate honestly — never silently remove"
+      explanation: >
+        The comparison board Naomi built on the platform survives the train,
+        survives arriving home, and survives casting to TV. The UI shape
+        changes; the knowledge state does not. Any inventory change between
+        phases is surfaced explicitly.
+    source_project: "P3"
+
+  - id: p3_one_hand_mode
+    name: "Physical state: one-hand mode adaptation"
+    description: >
+      When the user switches to one-hand operation (train, carrying bags),
+      the UI physically restructures for thumb-zone interaction.
+    when:
+      tokens:
+        physical_state: [one_hand]
+        social_exposure: [public]
+        form_factor: [phone]
+      brain:
+        layer: accumulated
+        condition: "Optional: learned pattern (e.g. weekday 8:05-8:40 train = one-hand)"
+    then:
+      layout: "card-compact"
+      touch_target_size: "56px minimum"
+      interaction_zone: "Thumb zone — bottom 40% of screen"
+      notifications: "Silent (public space)"
+      price_display: "Unchanged — shoe prices are not sensitive information"
+      initial_trigger: "Explicit (voice command or 3-finger swipe)"
+      learned_trigger: "After pattern recognition, predictive activation (Implicit Dial)"
+      revert: "When both-hand touch pattern detected, smoothly return to full layout"
+      explanation: >
+        One-hand mode is not just bigger buttons. The entire interaction
+        zone shifts to where the thumb can reach. After 3 months of the
+        same commute, the system learns to activate this automatically —
+        but the first time always requires explicit action.
+    source_project: "P3"
+
+  - id: p3_selection_as_learning
+    name: "Every user selection is Brain input"
+    description: >
+      Swipe-to-dismiss and swipe-to-keep actions are not just filtering —
+      they are teaching the Brain about unstated preferences.
+    when:
+      tokens:
+        intent:
+          condition: "User is actively reviewing AI-curated candidates"
+      brain:
+        layer: accumulated
+        condition: "Shopping Brain or equivalent project brain is active"
+    then:
+      on_dismiss: "Record rejection reason by analyzing dismissed item's attributes vs kept items"
+      on_keep: "Record positive signal — what attributes align with 'correct direction'"
+      pattern_extraction: "After N selections, extract unstated constraints (e.g. 'white soles = always rejected')"
+      persistence: "Extracted constraints return to Home Brain when project brain dies"
+      next_session_benefit: "Next shopping session starts with tighter initial filter (847->12 instead of 847->20)"
+      explanation: >
+        Naomi never typed 'no white soles.' She just swiped away every
+        white-soled shoe. The Brain extracted that constraint from behavior.
+        This is the core P3 insight: selection is not filtering, it is teaching.
+    source_project: "P3"
+
+  # ============================================================
+  # GENERAL RULES — Cross-project
+  # ============================================================
+
+  - id: gen_cognitive_load_ui_simplification
+    name: "Cognitive load threshold triggers UI simplification"
+    description: >
+      When estimated cognitive load is high or overloaded, reduce
+      information density, limit options, and increase interaction
+      target sizes.
+    when:
+      tokens:
+        cognitive_load: [high, overloaded, depleted]
+      brain:
+        layer: right_now
+        condition: "Cognitive load estimated from: time of day + calendar density + recent activity patterns"
+    then:
+      ui_density: low
+      max_options: 3
+      card_layout: "One primary recommendation + expandable alternatives"
+      interaction_mode: "One-tap confirmation for primary action"
+      remove: "Secondary information, detailed specs, comparison tables"
+      preserve: "Price (if decision-relevant), confidence signals, confirm/cancel"
+      explanation: >
+        Cognitive load is estimation-based (NOT direct measurement).
+        A parent driving home at 7 PM after a full calendar day is depleted.
+        Showing 10 dinner options to that person is hostile design.
+        Show one good option. Let them ask for more if they want.
+    source_project: "General"
+
+  - id: gen_social_exposure_content_filter
+    name: "Social exposure determines content visibility per surface"
+    description: >
+      Content visibility adapts based on who can see the screen.
+      Private = full information. Public = non-sensitive only.
+      Family = split by role and age.
+    when:
+      tokens:
+        social_exposure: [private, public, family]
+    then:
+      private:
+        show: "Everything — prices, AI rationale, confidence signals, personal preferences"
+      public:
+        suppress: "Notifications with personal content"
+        preserve: "Task-relevant information (product cards, maps, schedules)"
+        note: "Non-sensitive prices (shoe prices) remain visible; financial/medical info is suppressed"
+      family:
+        split_by_role: true
+        parent_surface: "Full information including prices and AI confidence"
+        child_surface: "Emotional/experiential information only"
+        shared_surface: "Neutral content — no prices, no private parent data"
+      explanation: >
+        Social exposure is not binary (show/hide). It is a matrix of
+        who sees what on which surface. The same information exists but
+        is routed to the appropriate viewer.
+    source_project: "General"
+
+  - id: gen_autonomy_dial_promotion
+    name: "Autonomy Dial promotion criteria"
+    description: >
+      The Autonomy Dial advances when three conditions are met:
+      service default supports it, AI assessment justifies it,
+      and user behavior confirms it.
+    when:
+      tokens:
+        autonomy_dial:
+          condition: "Promotion candidate based on accumulated success"
+      brain:
+        layer: accumulated
+        condition: "Sufficient action history exists for this domain"
+    then:
+      three_forces:
+        service_default: "Baseline autonomy level set by the service category"
+        ai_adjustment: "AI observes success patterns and proposes promotion"
+        user_active_change: "User can explicitly promote or demote at any time"
+      promotion_evidence: "N consecutive successful actions without user correction"
+      promotion_notification: "'You have approved delivery 5 times. Auto-order for routine items?'"
+      user_override: "User can always demote: 'Stop auto-ordering salmon'"
+      explanation: >
+        Autonomy is not purely user-controlled. Netflix defaults to Auto.
+        Amazon defaults to high. Context Grammar makes the three forces
+        explicit: what the service suggests, what the AI learns, and what
+        the user actively chooses. All three must align for promotion.
+    source_project: "General"
+
+  - id: gen_autonomy_dial_demotion
+    name: "Autonomy Dial demotion triggers"
+    description: >
+      Specific events force the Autonomy Dial down regardless of
+      accumulated trust. Demotion is always immediate; re-promotion
+      requires re-earning trust.
+    when:
+      tokens:
+        autonomy_dial:
+          condition: "Demotion trigger event detected"
+    then:
+      demotion_triggers:
+        - trigger: "Health/medical event"
+          target: "Manual (Position 1) — absolute, non-negotiable"
+        - trigger: "Price anomaly exceeding learned range"
+          target: "Confirm (Position 2) — until price normalizes or user approves"
+        - trigger: "High-stakes irreversible action (booking, large purchase)"
+          target: "Confirm (Position 2) — purchases always require human confirmation"
+        - trigger: "Context change with budget impact (weather replan)"
+          target: "Confirm (Position 2) — new costs require approval"
+        - trigger: "User explicit request"
+          target: "Whatever position the user specifies — immediate effect"
+      re_promotion: "Must re-earn through successful actions at the lower level"
+      explanation: >
+        Demotion is fast; promotion is slow. This asymmetry is intentional.
+        It takes 5 successful deliveries to earn Notify. It takes 1 medical
+        event to drop to Manual. Trust architecture mirrors how humans
+        actually build and lose trust.
+    source_project: "General"
+
+  - id: gen_disclosure_prerequisite
+    name: "Disclosure Dial prerequisite for Autonomy"
+    description: >
+      You cannot delegate what you have not disclosed. The Autonomy Dial
+      is capped by the Disclosure Dial for each domain.
+    when:
+      tokens:
+        disclosure_dial:
+          condition: "Disclosure level for a domain is set to low or none"
+        autonomy_dial:
+          condition: "Autonomy promotion requested for same domain"
+    then:
+      cap_autonomy: "Autonomy cannot exceed Disclosure level for that domain"
+      example_valid: "Disclosure=high for groceries + Autonomy=Auto for staples = works"
+      example_invalid: "Disclosure=none for health + Autonomy=Notify for doctor appointments = blocked"
+      user_message: "'To auto-manage {domain}, we need access to your {data_type}. Share?'"
+      never_do: "Silently access undisclosed data to improve suggestions"
+      explanation: >
+        'Do not tell AI about my health' + 'Let AI manage my doctor appointments'
+        is logically impossible. The system surfaces this contradiction explicitly
+        and lets the user choose which dial to adjust. It never works around
+        the limitation by inferring undisclosed information.
+    source_project: "General"
+
+  - id: gen_escalation_honesty
+    name: "Escalation with honest limitation acknowledgment"
+    description: >
+      When the system cannot solve a problem or has low confidence,
+      it must say so explicitly, structure the available options,
+      and hand decision authority to the human.
+    when:
+      tokens:
+        feasibility:
+          condition: "No good options exist, or confidence is below threshold"
+        cognitive_load:
+          condition: "Any level — escalation format adapts to load"
+    then:
+      never_say: "'It will be fine' / 'Don't worry' / 'I found a great alternative'"
+      always_do:
+        - "State what is known factually"
+        - "State what is uncertain"
+        - "Present structured options (including 'do nothing' if valid)"
+        - "Include information that reduces anxiety (e.g. 'flights are secured')"
+      format_by_cognitive_load:
+        depleted: "2-3 options, minimal text, clear recommended action"
+        normal: "3-4 options with tradeoff details"
+        focused: "Full detail with rationale for each option"
+      explanation: >
+        Trust deepens most when the system admits its limits.
+        'All indoor venues are closed on Tuesday' is more trustworthy than
+        a forced positive spin. The user needs honest information to decide,
+        not false reassurance.
+    source_project: "General"
+
+  - id: gen_disposable_ui_lifecycle
+    name: "UI lifecycle matches project lifecycle"
+    description: >
+      UI surfaces are born when a project starts, transform across phases,
+      and die when the project completes. No permanent app clutter.
+    when:
+      tokens:
+        intent:
+          condition: "Project lifecycle phase transition detected"
+    then:
+      born: "UI surface generated when project is declared (trip planning dashboard, cleaning mission screens)"
+      transforms: "UI changes shape across phases (planning board -> travel mode -> post-trip summary)"
+      dies: "UI disappears after project completion and knowledge return to Home Brain"
+      persistence: "Knowledge persists in Brain; UI does not"
+      timeline_example:
+        - "Trip declared -> Planning UI born"
+        - "Departure eve -> Planning UI transforms into Travel Mode UI"
+        - "Return home -> Travel Mode UI transforms into Post-Trip UI"
+        - "1 week post-return -> Post-Trip UI dies; knowledge lives in Home Brain"
+      explanation: >
+        An app that stays on the home screen forever is cognitive debt.
+        A cleaning dashboard that disappears when the house is clean
+        gives a sense of completion. The UI's death is a feature, not a loss.
+    source_project: "General"
+
+  - id: gen_feasibility_as_universal_filter
+    name: "Feasibility Token as universal reality check"
+    description: >
+      Before any suggestion is presented to the user, it must pass
+      the Feasibility Token filter: does the real world allow this?
+    when:
+      tokens:
+        feasibility:
+          condition: "Any suggestion is about to be presented"
+    then:
+      check_categories:
+        - "Inventory: Is the item in stock?"
+        - "Time: Can this be completed within the available window?"
+        - "Location: Is the venue open? Is it reachable?"
+        - "Budget: Does this fit within known constraints?"
+        - "Physical: Can the user/family actually do this? (child's walking stamina, etc.)"
+      fail_behavior: "Do not present infeasible options. They waste cognitive load."
+      partial_fail: "If partially feasible, flag the constraint: 'Available but delivery after deadline'"
+      explanation: >
+        The fridge has broccoli and soy sauce. Suggesting a salmon recipe
+        without checking if salmon can arrive in time is a feasibility failure.
+        P1 checks fridge + store + delivery. P2 checks venue hours + weather +
+        transport. P3 checks stock + size + delivery window. Same token, different inputs.
+    source_project: "General"
+
+  - id: gen_implicit_vs_explicit_dial
+    name: "Implicit learning never overrides explicit rules"
+    description: >
+      The system may learn patterns implicitly (user always approves deliveries),
+      but user-set explicit rules always take priority.
+    when:
+      tokens:
+        autonomy_dial:
+          condition: "Implicit learning suggests a dial change that conflicts with an explicit rule"
+      brain:
+        layer: accumulated
+        condition: "Both implicit pattern and explicit rule exist for the same domain"
+    then:
+      priority: "Explicit rule always wins"
+      example: >
+        Implicit: User approved FreshDirect 3 times.
+        Explicit: 'Never order from FreshDirect.'
+        Result: Explicit wins. FreshDirect remains blocked.
+      proposal_allowed: "'You have used FreshDirect 3 times recently. Remove the block?'"
+      auto_override: never
+      explanation: >
+        Implicit learning is powerful but must remain subordinate to
+        explicit user declarations. The system may propose revisiting
+        an explicit rule, but it must never silently override one.
+    source_project: "General"
+
+  - id: gen_mode_transition_user_initiated
+    name: "Substitution mode transitions require user initiation"
+    description: >
+      The system may suggest a mode transition based on observed patterns,
+      but the actual switch requires explicit user action.
+    when:
+      tokens:
+        autonomy_dial:
+          condition: "Observed pattern suggests mode transition (e.g. 3 consecutive same choice in Exploring)"
+      brain:
+        layer: accumulated
+        condition: "Sufficient repetition data to suggest transition"
+    then:
+      suggest: "'You have chosen Vanilla 3 times. Switch to Exact?'"
+      require: "User's explicit confirmation to change mode"
+      never_do: "Silently change mode based on observed patterns"
+      valid_transitions:
+        - "Exploring -> Exact (winner found)"
+        - "Exploring -> Flexible (multiple winners)"
+        - "Exact -> Exploring (user bored)"
+        - "Surprise -> Exact (favorite discovered)"
+        - "Flexible -> Exploring (preferences shifting)"
+      explanation: >
+        Mode transitions change the fundamental relationship between
+        user and system for that item. Even if the data clearly suggests
+        a transition, the user must own that decision. AI proposes; user disposes.
+    source_project: "General"

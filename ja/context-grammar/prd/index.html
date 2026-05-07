@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Brain PRD — Product Requirements Document | intentfirst.ai</title>
+<meta name="description" content="Context Brain製品要求定義書。AIに記憶を与える6層アーキテクチャ。npm一発でインストール、家族全員に対応。">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<link rel="stylesheet" href="../../assets/css/context-grammar.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/toc-rail.css">
+<style>
+
+/* ─── PAGE TYPOGRAPHY ─── */
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ─── DARK MODE: SAND SECTION TEXT OVERRIDES ─────────────────────
+   With class="dark", CSS vars resolve to dark-mode values.
+   Sand sections have light bg (#f0e8d8), so child elements using
+   var(--text) / var(--text-2) would render light text on light bg.
+   Override explicitly to dark values here. ─── */
+.prd-section--sand .section-lede           { color: #3a3228; }
+.prd-section--sand .brain-card-title       { color: #1a1816; }
+.prd-section--sand .brain-card-body        { color: #4a3828; }
+.prd-section--sand .brain-card-label--household { color: #5a3a80; }
+.prd-section--sand .brain-card-label--person    { color: #2a4e70; }
+.prd-section--sand .brain-card-label--domain    { color: #1e6038; }
+.prd-section--sand .brain-card-label--coord     { color: #116a28; }
+
+/* ─── HERO ─── */
+.prd-hero {
+  min-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(80px, 10vw, 140px) clamp(24px, 6vw, 80px) clamp(60px, 8vw, 100px);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.prd-tag {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--color-brain, #8a6ab0);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.6s 0.1s forwards;
+}
+.prd-hero-title {
+  font-size: clamp(42px, 6vw, 88px);
+  font-weight: 500;
+  line-height: 1.0;
+  letter-spacing: -2px;
+  color: var(--text);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.25s forwards;
+}
+.prd-hero-sub {
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.5;
+  max-width: 640px;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.4s forwards;
+}
+.prd-hero-meta {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.7s 0.55s forwards;
+}
+.prd-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 2px;
+}
+.prd-badge--green { color: #7ab8e0; border-color: rgba(122,184,224,0.5); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── SECTION WRAPPERS ─── */
+.prd-section {
+  padding: clamp(64px, 8vw, 120px) clamp(24px, 6vw, 80px);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.prd-section--dark {
+  background: #0c0b0f;
+  max-width: 100%;
+  padding: clamp(64px, 8vw, 120px) 0;
+}
+.prd-section--dark .prd-section-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 6vw, 80px);
+}
+.prd-section--sand {
+  background: #f0e8d8;
+  color: #1a1816;
+  max-width: 100%;
+  padding: clamp(64px, 8vw, 120px) 0;
+}
+.prd-section--sand .prd-section-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 6vw, 80px);
+}
+.prd-section--sand .section-eyebrow { color: #7a5520; }
+.prd-section--sand .section-title { color: #1a1816; }
+.prd-section--sand .section-body { color: #3a3228; }
+
+/* ─── SECTION HEADER ─── */
+.section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 16px;
+}
+/* In dark sections, boost eyebrow contrast above var(--text-3) */
+.prd-section--dark .section-eyebrow,
+.prd-section--dark .prd-section-inner .section-eyebrow {
+  color: rgba(255,255,255,0.48);
+}
+.section-title {
+  font-size: clamp(28px, 3.5vw, 52px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+.section-lede {
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.65;
+  color: var(--text-2);
+  max-width: 680px;
+  margin-bottom: 48px;
+}
+
+/* ─── QUOTE BLOCK ─── */
+.prd-quote {
+  border-left: 2px solid var(--color-brain, #8a6ab0);
+  padding: 20px 0 20px 28px;
+  margin: 40px 0;
+  max-width: 700px;
+}
+.prd-quote p {
+  font-size: clamp(16px, 1.4vw, 20px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.prd-quote cite {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.4);
+  font-style: normal;
+}
+
+/* ─── COMPARISON TABLE ─── */
+.compare-wrap {
+  overflow-x: auto;
+  margin: 48px 0;
+}
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(13px, 1vw, 15px);
+}
+.compare-table th {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.compare-table th.col-highlight {
+  color: #30c969;
+  border-bottom-color: #30c969;
+}
+.compare-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.compare-table td:first-child {
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.compare-table td.col-highlight {
+  background: rgba(48, 201, 105, 0.04);
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.check { color: #30c969; }
+.cross { color: var(--text-3); }
+.partial { color: #e0a83c; }
+
+/* ─── SCENARIO ─── */
+.scenario-sentence {
+  font-size: clamp(22px, 2.5vw, 36px);
+  font-weight: 500;
+  letter-spacing: -1px;
+  line-height: 1.3;
+  color: var(--text);
+  margin-bottom: 48px;
+  padding: 32px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  max-width: 720px;
+}
+.scenario-sentence .speaker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.brain-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 40px 0;
+}
+.brain-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 24px;
+}
+.brain-card-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.brain-card-label--household { color: #8a6ab0; }
+.brain-card-label--person    { color: #6889b4; }
+.brain-card-label--domain    { color: #5a9a6a; }
+.brain-card-label--coord     { color: #30c969; }
+.brain-card-title {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+.brain-card-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.brain-card-reads {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.scenario-result {
+  background: rgba(48, 201, 105, 0.06);
+  border: 1px solid rgba(48, 201, 105, 0.2);
+  padding: 28px 32px;
+  max-width: 720px;
+  margin: 40px 0;
+}
+.scenario-result-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #30c969;
+  margin-bottom: 12px;
+}
+.scenario-result p {
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* ─── ARCHITECTURE ─── */
+.arch-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 48px 0;
+  max-width: 800px;
+}
+.arch-layer {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+}
+.arch-layer + .arch-layer { border-top: none; }
+.arch-layer-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.45);
+  padding: 20px 16px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-2);
+}
+.arch-layer-body {
+  padding: 20px 24px;
+}
+.arch-layer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+.arch-layer-desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.arch-layer--highlight .arch-layer-num {
+  background: rgba(48, 201, 105, 0.08);
+  color: #30c969;
+  border-right-color: rgba(48, 201, 105, 0.2);
+}
+.arch-layer--highlight {
+  border-color: rgba(48, 201, 105, 0.25);
+}
+
+.brain-anatomy {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: 40px 0;
+  max-width: 800px;
+}
+.anatomy-layer {
+  padding: 24px;
+  text-align: center;
+}
+.anatomy-layer--identity { background: rgba(138, 106, 176, 0.12); border: 1px solid rgba(138, 106, 176, 0.2); }
+.anatomy-layer--learning { background: rgba(104, 137, 180, 0.12); border: 1px solid rgba(104, 137, 180, 0.2); }
+.anatomy-layer--now      { background: rgba(48, 201, 105, 0.08); border: 1px solid rgba(48, 201, 105, 0.2); }
+.anatomy-layer-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.anatomy-layer--identity .anatomy-layer-name { color: #8a6ab0; }
+.anatomy-layer--learning .anatomy-layer-name { color: #6889b4; }
+.anatomy-layer--now      .anatomy-layer-name { color: #30c969; }
+.anatomy-layer-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.anatomy-layer-desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.anatomy-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 1px;
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* ─── INSTALL ─── */
+.install-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 720px;
+  margin: 40px 0;
+}
+.install-step {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.install-step-num {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: #30c969;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.install-step-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+.install-step-title {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.install-step-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+.code-block {
+  background: #0c0b0f;
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: #a8e8c0;
+  overflow-x: auto;
+}
+.code-block .comment {
+  color: rgba(255,255,255,0.38);
+}
+.code-block .cmd {
+  color: #f0ece4;
+}
+
+/* ─── MVP SCOPE TABLE ─── */
+.scope-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 40px 0;
+  max-width: 800px;
+}
+.scope-col {
+  padding: 28px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+}
+.scope-col--in { border-color: rgba(48, 201, 105, 0.25); }
+.scope-col-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.scope-col--in .scope-col-label   { color: #30c969; }
+.scope-col--out .scope-col-label  { color: var(--text-2); }
+.scope-item {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.scope-item:last-child { border-bottom: none; }
+.scope-item-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.scope-col--in .scope-item-dot   { background: #30c969; }
+.scope-col--out .scope-item-dot  { background: var(--text-3); }
+
+/* ─── ROADMAP ─── */
+.roadmap-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0;
+  border: 1px solid var(--border);
+  margin-bottom: -1px;
+}
+.roadmap-ver {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  padding: 28px 20px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  background: var(--bg-2);
+  color: var(--text-3);
+}
+.roadmap-ver--active { color: #30c969; background: rgba(48, 201, 105, 0.05); border-right-color: rgba(48, 201, 105, 0.2); }
+.roadmap-body {
+  padding: 28px 28px;
+}
+.roadmap-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+.roadmap-subtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+  margin-bottom: 14px;
+}
+.roadmap-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.roadmap-items li {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+  padding: 5px 0;
+  padding-left: 16px;
+  position: relative;
+}
+.roadmap-items li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--text-3);
+}
+
+/* ─── SUCCESS METRICS ─── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2px;
+  margin: 40px 0;
+}
+.metric-cell {
+  padding: 28px 24px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+}
+.metric-num {
+  font-family: var(--font-mono);
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 500;
+  color: #30c969;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.metric-label {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.metric-period {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+
+/* ─── DIVIDER ─── */
+.prd-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .brain-anatomy { grid-template-columns: 1fr; }
+  .scope-grid { grid-template-columns: 1fr; }
+  .arch-layer { grid-template-columns: 56px 1fr; }
+}
+
+
+</style>
+</head>
+<body>
+
+<!-- Global navigation -->
+<nav class="site-nav">
+  <a class="site-nav__logo" href="../../index.html">intentfirst</a>
+  <div class="site-nav__links">
+    <a href="../../index.html">Home</a>
+    <a href="../index.html">Context Grammar</a>
+  </div>
+</nav>
+
+<!-- TOC Rail -->
+<script>
+window.TOC_RAIL = {
+  panelTitle: 'Context Brain · PRD',
+  chapters: [
+    {
+      num: '01', title: '問題と機会',
+      sections: [
+        { id: 'problem', num: '01', label: '現状の問題' },
+        { id: 'compare', num: '02', label: '比較' }
+      ]
+    },
+    {
+      num: '02', title: 'プロダクトビジョン',
+      sections: [
+        { id: 'scenario', num: '01', label: 'Sota のシナリオ' },
+        { id: 'architecture', num: '02', label: 'アーキテクチャ', dark: true }
+      ]
+    },
+    {
+      num: '03', title: '実装',
+      sections: [
+        { id: 'install', num: '01', label: 'インストール', dark: true },
+        { id: 'mvp', num: '02', label: 'MVP スコープ' },
+        { id: 'roadmap', num: '03', label: 'ロードマップ' },
+        { id: 'metrics', num: '04', label: '成功指標' }
+      ]
+    }
+  ]
+};
+</script>
+<link rel="stylesheet" href="../../assets/css/toc-rail.css">
+<script src="../../assets/js/toc-rail.js" defer></script>
+
+<!-- ═══════════════════════════════════════════ HERO ═══ -->
+<section class="prd-hero">
+  <p class="prd-tag">Context Brain · PRD v1.0 · 2026</p>
+  <h1 class="prd-hero-title">あなたのAIには、<br>記憶がない。</h1>
+  <p class="prd-hero-sub">Context Brainは、AIに記憶の構造を与える。家族全員に対応した5つのBrain。6層のアーキテクチャ。npxコマンド一発で始まる。</p>
+  <div class="prd-hero-meta">
+    <span class="prd-badge prd-badge--green">OSS · MIT License</span>
+    <span class="prd-badge">npm · Claude API</span>
+    <span class="prd-badge">V1 MVP · 2026 Q3</span>
+  </div>
+</section>
+
+<hr class="prd-divider">
+
+<!-- ═══════════════════════════════════════════ PROBLEM ═══ -->
+<section id="problem" class="prd-section">
+  <p class="section-eyebrow">CH 01 · 01 — 問題</p>
+  <h2 class="section-title">最先端のユーザーでも、<br>毎回一から説明している。</h2>
+  <p class="section-lede">Obsidian + Claude Codeで最も進んだ使い方をしている人たちが何ヶ月もかけて手動で構築していること——それがContext Brainが自動でやることだ。</p>
+
+  <div class="prd-quote">
+    <p>「The friction is no longer with Obsidian itself, but with the boundary between the vault and agent execution. The next unlocked is figuring out how to get agents tasked to run automatically.」</p>
+    <cite>— Internet Vin（Greg Isenberg Podcast, 2026）</cite>
+  </div>
+
+  <div class="prd-quote">
+    <p>「My relationship with computers has evolved. I cannot believe that I can just be making notes and then all of a sudden this agent can scan through it and build things because of it.」</p>
+    <cite>— Internet Vin</cite>
+  </div>
+
+  <p class="section-lede" style="margin-top: 40px;">Vinは数ヶ月かけてスラッシュコマンドを自作し、毎日ノートを書き続けることで、ようやくAIが「自分のことを知っている」状態を作った。それは天才的な使い方だ。だが99.99%の人にはできない。</p>
+
+  <div style="background: var(--bg-2); border: 1px solid var(--border); padding: 28px 32px; max-width: 720px; margin: 40px 0;">
+    <p style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-3); margin-bottom: 16px;">根本的な問題</p>
+    <p style="font-size: clamp(16px, 1.4vw, 20px); font-weight: 500; color: var(--text); line-height: 1.5; letter-spacing: -0.3px; margin-bottom: 0;">AIに渡すコンテキストを、毎回一から説明している。家族全員分の記憶を、一人のエンジニアが手動で管理している。それは設計の問題だ。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ COMPARE ═══ -->
+<section id="compare" class="prd-section--dark">
+  <div class="prd-section-inner">
+    <p class="section-eyebrow">CH 01 · 02 — 比較</p>
+    <h2 class="section-title" style="color: #f0ece4;">3つのアプローチ。<br>1つだけが自動化されている。</h2>
+    <p class="section-lede">Obsidian、OpenClaw（Vinのセットアップ）、Context Brain——同じ問題への3つの答え。</p>
+
+    <div class="compare-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>機能</th>
+            <th>Obsidian単体</th>
+            <th>Vin式・手動セットアップ<br><span style="font-size:10px;letter-spacing:1px;color:var(--text-3);">OpenClaw / Claude Code</span></th>
+            <th class="col-highlight">Context Brain</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>セットアップ時間</td>
+            <td>数時間（Vault構築）</td>
+            <td class="cross">数ヶ月（コマンド自作）</td>
+            <td class="col-highlight"><span class="check">✓</span> npx 1コマンド</td>
+          </tr>
+          <tr>
+            <td>Brain 3層構造</td>
+            <td class="cross">❌ 手書きルールのみ</td>
+            <td class="cross">❌ 属人的</td>
+            <td class="col-highlight"><span class="check">✓</span> スキーマで強制</td>
+          </tr>
+          <tr>
+            <td>複数人対応</td>
+            <td class="cross">❌ 個人のみ</td>
+            <td class="cross">❌ 個人のみ</td>
+            <td class="col-highlight"><span class="check">✓</span> 家族・組織</td>
+          </tr>
+          <tr>
+            <td>Brain間の調整</td>
+            <td class="cross">❌</td>
+            <td class="cross">❌ 人間がやる</td>
+            <td class="col-highlight"><span class="check">✓</span> Coordinator自動</td>
+          </tr>
+          <tr>
+            <td>Disclosure制御</td>
+            <td class="cross">❌</td>
+            <td class="cross">❌ 怖いと感じる</td>
+            <td class="col-highlight"><span class="check">✓</span> Disclosure Dial</td>
+          </tr>
+          <tr>
+            <td>AX Pattern Engine</td>
+            <td class="cross">❌</td>
+            <td class="cross">❌</td>
+            <td class="col-highlight"><span class="check">✓</span> 23パターン</td>
+          </tr>
+          <tr>
+            <td>コーディング不要</td>
+            <td class="partial">△ 設定必要</td>
+            <td class="cross">❌ 必須</td>
+            <td class="col-highlight"><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td>データはローカル</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="col-highlight"><span class="check">✓</span> .mdファイル</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size:13px; color: rgba(255,255,255,0.42); margin-top: 8px; font-family: var(--font-mono);">Context BrainはObsidianを内部で使える。排除するのではなく、基盤として活用する。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ SCENARIO ═══ -->
+<section id="scenario" class="prd-section--sand">
+  <div class="prd-section-inner">
+    <p class="section-eyebrow">CH 02 · 01 — シナリオ</p>
+    <h2 class="section-title">「靴、どうしよう」<br>たった一文が、5つのBrainを動かす。</h2>
+    <p class="section-lede" style="color: #3a3228;">11歳のSotaがリビングで呟いた。このひとことに、Context Brainは5つのBrainを同時に読み、1つの答えを返す。</p>
+
+    <div class="scenario-sentence" style="background: #fff; border-color: #d4c5a0; color: #1a1816;">
+      <span class="speaker" style="color: #7a5520;">SOTA · 11歳 · リビング · 15:30</span>
+      「靴、どうしようかな。」
+    </div>
+
+    <div class="brain-cards">
+      <div class="brain-card" style="background: #fff; border-color: #d4c5a0;">
+        <p class="brain-card-label brain-card-label--household">Household Brain</p>
+        <p class="brain-card-title">家族の全体状況</p>
+        <p class="brain-card-body">今月の食費が予算より¥8,000オーバー。来週、家族旅行の出発あり。</p>
+        <p class="brain-card-reads" style="border-top-color: #d4c5a0; color: #7a5520;">Learning Layer → 予算・スケジュール読込</p>
+      </div>
+      <div class="brain-card" style="background: #fff; border-color: #d4c5a0;">
+        <p class="brain-card-label brain-card-label--person">Person Brain · Sota</p>
+        <p class="brain-card-title">Sota個人の記憶</p>
+        <p class="brain-card-body">サッカー続行決定（先月確認）。現在のシューズは3サイズ前のもの。幅広タイプ。</p>
+        <p class="brain-card-reads" style="border-top-color: #d4c5a0; color: #7a5520;">Identity + Learning Layer読込</p>
+      </div>
+      <div class="brain-card" style="background: #fff; border-color: #d4c5a0;">
+        <p class="brain-card-label brain-card-label--domain">Domain Brain · スポーツ</p>
+        <p class="brain-card-title">スポーツ用品の知識</p>
+        <p class="brain-card-body">アシックスDS Light 4（幅広・サッカー少年向け）。定価¥12,800。今週セール中。</p>
+        <p class="brain-card-reads" style="border-top-color: #d4c5a0; color: #7a5520;">Learning Layer → 商品情報読込</p>
+      </div>
+      <div class="brain-card" style="background: #fff; border-color: #d4c5a0;">
+        <p class="brain-card-label brain-card-label--coord">Coordinator</p>
+        <p class="brain-card-title">3つのBrainを統合</p>
+        <p class="brain-card-body">予算制約 × Sota需要 × セール機会を照合。Autonomy Dial = Confirm（購買は要承認）。</p>
+        <p class="brain-card-reads" style="border-top-color: #d4c5a0; color: #7a5520;">AX Pattern: D1 Approval Gate + A2 Cognitive Scaling</p>
+      </div>
+    </div>
+
+    <div class="scenario-result" style="background: rgba(48,201,105,0.08); border-color: rgba(48,201,105,0.3);">
+      <p class="scenario-result-label">Context Brain の返答</p>
+      <p style="color: #1a1816;">「Sotaくん、アシックスのDS Light 4（¥12,800）が今週セール中。サッカー続けるなら今がタイミング。先月の食費オーバーはあるけど、旅行前に買っておくほうがいいと思う。お母さんに確認してから注文します？」</p>
+    </div>
+
+    <p style="font-size: 15px; color: #3a3228; max-width: 640px; line-height: 1.65; margin-top: 8px;">Vinのセットアップでこれをやろうとすると、毎回スラッシュコマンドを手打ちし、3つのファイルを手動で開き、自分でコンテキストをつなぎ合わせる必要がある。Context Brainは、それを自動でやる。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ ARCHITECTURE ═══ -->
+<section id="architecture" class="prd-section--dark">
+  <div class="prd-section-inner">
+    <p class="section-eyebrow">CH 02 · 02 — アーキテクチャ</p>
+    <h2 class="section-title" style="color: #f0ece4;">6層のスタック。<br>下から順に積み上げる。</h2>
+    <p class="section-lede">L0が土台（.mdファイル）。L5が出口（テンプレート）。すでに実装済みの層が3つある。</p>
+
+    <div class="arch-stack">
+      <div class="arch-layer">
+        <div class="arch-layer-num">L5</div>
+        <div class="arch-layer-body">
+          <p class="arch-layer-title">Templates</p>
+          <p class="arch-layer-desc">家族 / 企業 / 個人の初期設定パック。インストール後すぐ使えるBrain雛形。</p>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-layer-num">L4</div>
+        <div class="arch-layer-body">
+          <p class="arch-layer-title">AX Pattern Engine</p>
+          <p class="arch-layer-desc">8つのContext Tokenを評価し、23のAXパターンを発火させる。<strong style="color:#30c969;">SDK実装済み（TypeScript）</strong></p>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-layer-num">L3</div>
+        <div class="arch-layer-body">
+          <p class="arch-layer-title">Autonomy Dial + Disclosure Dial</p>
+          <p class="arch-layer-desc">AIがどこまで自動で動くか（Suggest → Confirm → Notify → Auto）。何をAIに見せるか（none → minimal → moderate → full）。</p>
+        </div>
+      </div>
+      <div class="arch-layer arch-layer--highlight">
+        <div class="arch-layer-num">L2</div>
+        <div class="arch-layer-body">
+          <p class="arch-layer-title">Coordinator</p>
+          <p class="arch-layer-desc">複数のBrainを横断して読み、Claude APIに渡すコンテキストを組み立てる。<strong style="color:#30c969;">これがVinのセットアップが手動でやっていること。</strong></p>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-layer-num">L1</div>
+        <div class="arch-layer-body">
+          <p class="arch-layer-title">Schema</p>
+          <p class="arch-layer-desc">3層 × N Brain の構造定義。YAMLフロントマターの規約。どのファイルがIdentityで、どのファイルがLearningか。</p>
+        </div>
+      </div>
+      <div class="arch-layer">
+        <div class="arch-layer-num">L0</div>
+        <div class="arch-layer-body">
+          <p class="arch-layer-title">Storage</p>
+          <p class="arch-layer-desc">.mdファイル。Obsidianを使っても、ただのフォルダでも動く。データはすべてローカル。</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-eyebrow" style="margin-top: 64px;">各 Brain の解剖</p>
+    <h3 style="font-size: clamp(20px, 2.5vw, 32px); font-weight: 500; color: #f0ece4; letter-spacing: -0.8px; margin-bottom: 16px; line-height: 1.2;">すべての Brain は同じ3層構造を持つ。</h3>
+    <p style="font-size: 15px; color: var(--text-2); max-width: 640px; line-height: 1.65; margin-bottom: 32px;">Household BrainでもPerson Brainでも、内部構造は同じ。Identity（変わらないもの）、Learning（積み上がるもの）、Now（リアルタイムで計算されるもの）。</p>
+
+    <div class="brain-anatomy">
+      <div class="anatomy-layer anatomy-layer--identity">
+        <p class="anatomy-layer-name">Identity</p>
+        <p class="anatomy-layer-title">変わらない記憶</p>
+        <p class="anatomy-layer-desc">名前・アレルギー・価値観・家族構成。.mdのYAMLフロントマターに保存。</p>
+        <p class="anatomy-label">months – years</p>
+      </div>
+      <div class="anatomy-layer anatomy-layer--learning">
+        <p class="anatomy-layer-name">Learning</p>
+        <p class="anatomy-layer-title">積み上がる記憶</p>
+        <p class="anatomy-layer-desc">購買履歴・好みの変化・過去の決断。.mdのボディに蓄積。</p>
+        <p class="anatomy-label">days – weeks</p>
+      </div>
+      <div class="anatomy-layer anatomy-layer--now">
+        <p class="anatomy-layer-name">Now</p>
+        <p class="anatomy-layer-title">今この瞬間</p>
+        <p class="anatomy-layer-desc">時刻・場所・物理状態。保存しない。呼び出し時にリアルタイム計算。</p>
+        <p class="anatomy-label">seconds – minutes</p>
+      </div>
+    </div>
+
+    <p class="section-eyebrow" style="margin-top: 64px;">5 Brain Types（家族用）</p>
+
+    <div class="brain-cards" style="margin-top: 24px;">
+      <div class="brain-card">
+        <p class="brain-card-label brain-card-label--household">Household Brain</p>
+        <p class="brain-card-title">家全体の記憶</p>
+        <p class="brain-card-body">予算・スケジュール・家のルール。家族全員が共有する土台。</p>
+      </div>
+      <div class="brain-card">
+        <p class="brain-card-label brain-card-label--person">Person Brain × N</p>
+        <p class="brain-card-title">1人1つの記憶</p>
+        <p class="brain-card-body">Hana、Sota、Kaiそれぞれ。個人の好み・アレルギー・習慣。</p>
+      </div>
+      <div class="brain-card">
+        <p class="brain-card-label brain-card-label--domain">Domain Brain × N</p>
+        <p class="brain-card-title">領域ごとの記憶</p>
+        <p class="brain-card-body">食料品・スポーツ・医療など。ドメイン知識と過去の行動履歴。</p>
+      </div>
+      <div class="brain-card">
+        <p class="brain-card-label brain-card-label--coord">Coordinator</p>
+        <p class="brain-card-title">調整する脳</p>
+        <p class="brain-card-body">複数のBrainを読み、矛盾を解消し、最適なコンテキストをClaudeに渡す。</p>
+      </div>
+      <div class="brain-card">
+        <p class="brain-card-label" style="color: #e0a83c;">Event Brain（使い捨て）</p>
+        <p class="brain-card-title">旅行・プロジェクト用</p>
+        <p class="brain-card-body">期間限定のBrain。終了後、学んだことをHousehold BrainまたはPerson Brainに書き戻す。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ INSTALL ═══ -->
+<section id="install" class="prd-section--dark" style="border-top: 1px solid var(--border);">
+  <div class="prd-section-inner">
+    <p class="section-eyebrow">CH 03 · 01 — インストール</p>
+    <h2 class="section-title" style="color: #f0ece4;">コマンド3つ。<br>5分で家族のBrainが立ち上がる。</h2>
+    <p class="section-lede">Claude DesktopとNode.jsがあれば始められる。コードを書く必要はない。</p>
+
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div>
+          <p class="install-step-label">インストール</p>
+          <p class="install-step-title">Context Brain をグローバルインストール</p>
+          <div class="code-block"><span class="cmd">npm install -g context-brain</span></div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div>
+          <p class="install-step-label">セットアップ</p>
+          <p class="install-step-title">Brain フォルダ構造を自動生成</p>
+          <p class="install-step-desc">家族の人数と名前を入力するだけ。Identity Layerの雛形ファイルが作られる。</p>
+          <div class="code-block"><span class="cmd">context-brain init</span>
+<span class="comment"># → /my-brain/
+#     household/identity.md
+#     household/learning.md
+#     persons/sota/identity.md
+#     persons/sota/learning.md
+#     coordinator/config.yaml</span></div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        <div>
+          <p class="install-step-label">起動</p>
+          <p class="install-step-title">MCP サーバーを起動して Claude Desktop に接続</p>
+          <div class="code-block"><span class="cmd">context-brain start</span>
+<span class="comment"># MCP server running on stdio
+# Add to Claude Desktop: ~/.claude/settings.json</span></div>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">4</div>
+        <div>
+          <p class="install-step-label">Claude Desktop 設定</p>
+          <p class="install-step-title">settings.json に1行追加</p>
+          <div class="code-block"><span class="comment">// ~/.claude/settings.json</span>
+{
+  <span class="cmd">"mcpServers"</span>: {
+    <span class="cmd">"context-brain"</span>: {
+      "command": "context-brain",
+      "args": ["start", "--stdio"]
+    }
+  }
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 24px 28px; background: rgba(48,201,105,0.06); border: 1px solid rgba(48,201,105,0.2); max-width: 720px;">
+      <p style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #30c969; margin-bottom: 12px;">この後できること</p>
+      <p style="font-size: 15px; line-height: 1.7; color: var(--text-2);">Claude Desktopを開いて「今月の食費どう？」「Sotaのサッカーシューズ何がいい？」と話しかけるだけ。BrainファイルはすべてローカルのMarkdown——Claudeに「見せる/見せない」はDisclosure Dialで制御できる。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ MVP ═══ -->
+<section id="mvp" class="prd-section">
+  <p class="section-eyebrow">CH 03 · 02 — MVP スコープ</p>
+  <h2 class="section-title">V1 で作るもの。<br>作らないもの。</h2>
+  <p class="section-lede">「Sotaの靴」シナリオが完全に動くことがV1の合格基準。それ以上は作らない。</p>
+
+  <div class="scope-grid">
+    <div class="scope-col scope-col--in">
+      <p class="scope-col-label">V1 に含む</p>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Household Brain（Identity + Learning Layer）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Person Brain × 1（Sota）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Coordinator — Brain間コンテキスト統合</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>AX Pattern Engine（既存TypeScript SDKを移植）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Autonomy Dial（Suggest / Confirm の2段階）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Claude Desktop MCP 連携</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>.md ストレージ（Obsidian対応・非必須）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>CLI: init / start / status</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>家族用テンプレート（食料品・子ども・スケジュール）</span></div>
+    </div>
+    <div class="scope-col scope-col--out">
+      <p class="scope-col-label">V1 に含まない</p>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>ウェブUI・管理画面</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Electronアプリ</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>複数のPerson Brain（V2以降）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Domain Brain</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Event Brain（使い捨てBrain）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Notify / Auto Autonomy</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>Disclosure Dial の細かい制御</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>npm publish（動作確認後に公開）</span></div>
+      <div class="scope-item"><span class="scope-item-dot"></span><span>企業向けテンプレート</span></div>
+    </div>
+  </div>
+
+  <div style="background: var(--bg-2); border: 1px solid var(--border); padding: 28px 32px; max-width: 720px; margin-top: 40px;">
+    <p style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.44); margin-bottom: 12px;">完了の定義（V1）</p>
+    <p style="font-size: 15px; line-height: 1.7; color: var(--text); margin-bottom: 8px;">Claude Desktopを開いて「靴どうしようかな」と入力する。</p>
+    <p style="font-size: 15px; line-height: 1.7; color: var(--text-2);">Context BrainがHousehold Brain（予算）× Person Brain · Sota（スポーツ・サイズ）を読み、Coordinatorが統合し、Approval Gate（Confirm）付きで推薦を返す。これが動いたらV1完成。</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ ROADMAP ═══ -->
+<section id="roadmap" class="prd-section--dark" style="border-top: 1px solid var(--border);">
+  <div class="prd-section-inner">
+    <p class="section-eyebrow">CH 03 · 03 — ロードマップ</p>
+    <h2 class="section-title" style="color: #f0ece4;">3ステップで、<br>99.99%に届ける。</h2>
+    <p class="section-lede">エンジニアから始めて、一般ユーザーへ。</p>
+
+    <div style="margin: 48px 0;">
+      <div class="roadmap-row">
+        <div class="roadmap-ver roadmap-ver--active">V1<br><span style="font-size:10px;letter-spacing:0;color:#30c969;opacity:0.7;">Now</span></div>
+        <div class="roadmap-body">
+          <p class="roadmap-subtitle">npm · Claude Desktop · OSS</p>
+          <p class="roadmap-title">エンジニア向け CLI</p>
+          <ul class="roadmap-items">
+            <li>npm install -g context-brain</li>
+            <li>Household + Person Brain（1人）</li>
+            <li>Coordinator + AX Pattern Engine</li>
+            <li>Claude Desktop MCP連携</li>
+            <li>GitHubでOSS公開・コントリビューター募集</li>
+          </ul>
+        </div>
+      </div>
+      <div class="roadmap-row">
+        <div class="roadmap-ver">V2</div>
+        <div class="roadmap-body">
+          <p class="roadmap-subtitle">Electron · 非エンジニア向け</p>
+          <p class="roadmap-title">デスクトップアプリ</p>
+          <ul class="roadmap-items">
+            <li>macOS / Windows アプリ（ダウンロード→インストール）</li>
+            <li>Brain設定・Dial調整のGUI</li>
+            <li>複数のPerson Brain・Domain Brain</li>
+            <li>Disclosureダッシュボード（「Claudeが何を知っているか」が見える）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="roadmap-row">
+        <div class="roadmap-ver">V3</div>
+        <div class="roadmap-body">
+          <p class="roadmap-subtitle">Web · SaaS · 誰でも</p>
+          <p class="roadmap-title">ウェブアプリ</p>
+          <ul class="roadmap-items">
+            <li>ブラウザで完結（ダウンロード不要）</li>
+            <li>チャットUI内蔵</li>
+            <li>企業向けBrain（Org / Brand / Research / Project Master Brain）</li>
+            <li>Claudeと直接統合（APIキー不要オプション）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ METRICS ═══ -->
+<section id="metrics" class="prd-section">
+  <p class="section-eyebrow">CH 03 · 04 — 成功指標</p>
+  <h2 class="section-title">V1 の合格ライン。</h2>
+  <p class="section-lede">「Sotaのシナリオが動く」がエンジニアリング上の成功。その先はコミュニティが答える。</p>
+
+  <div class="metrics-grid">
+    <div class="metric-cell">
+      <p class="metric-num">1</p>
+      <p class="metric-label">シナリオ完走</p>
+      <p class="metric-period">V1 Launch</p>
+    </div>
+    <div class="metric-cell">
+      <p class="metric-num">100</p>
+      <p class="metric-label">GitHubスター</p>
+      <p class="metric-period">Month 1</p>
+    </div>
+    <div class="metric-cell">
+      <p class="metric-num">10</p>
+      <p class="metric-label">実際に使っているユーザー</p>
+      <p class="metric-period">Month 2</p>
+    </div>
+    <div class="metric-cell">
+      <p class="metric-num">3</p>
+      <p class="metric-label">外部コントリビューター</p>
+      <p class="metric-period">Month 3</p>
+    </div>
+  </div>
+
+  <div style="background: var(--bg-2); border: 1px solid var(--border); padding: 28px 32px; max-width: 720px; margin-top: 16px;">
+    <p style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.44); margin-bottom: 12px;">次のステップ</p>
+    <p style="font-size: 15px; line-height: 1.75; color: var(--text-2);">
+      1. <strong style="color: var(--text);">/context-grammar/sdk/ のTypeScript SDKをnpmパッケージにポート</strong>（engine.ts + patterns.ts — 既存コードをほぼそのまま使える）<br>
+      2. <strong style="color: var(--text);">Coordinatorを実装</strong>（BrainファイルのMCP読み込み + Claudeへのコンテキスト組み立て）<br>
+      3. <strong style="color: var(--text);">context-brain initのCLIウィザード</strong>（家族の人数入力 → .mdファイル自動生成）<br>
+      4. <strong style="color: var(--text);">Sotaシナリオのエンドツーエンドテスト</strong>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ FOOTER ═══ -->
+<footer style="border-top: 1px solid var(--border); padding: 40px clamp(24px, 6vw, 80px); max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap: 16px;">
+  <p style="font-family: var(--font-mono); font-size: 12px; color: var(--text-2); letter-spacing: 1px;">Context Brain PRD v1.0 · intentfirst.ai · 2026</p>
+  <a href="../index.html" style="font-family: var(--font-mono); font-size: 12px; color: var(--text-2); text-decoration: none; letter-spacing: 1px;">← Context Grammar</a>
+</footer>
+
+</body>
+</html>

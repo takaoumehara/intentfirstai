@@ -1,911 +1,1425 @@
 <!DOCTYPE html>
-<html lang="ja" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Specs — Context Grammar オープン仕様書</title>
-<meta name="description" content="Context Grammarの機械可読な仕様書。YAMLスキーマ、JSON構造、33のデザインルール。エージェントフレームワーク、AIシステム、Claude Codeワークフローに対応。">
+<title>Specs — Tokens as a Portable Contract | Context Grammar</title>
+<meta name="description" content="Every Context Token has two faces: a narrative for humans, a Spec for machines. One JSON file reaches every device. This is how Context Grammar becomes implementation-ready.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
-<link rel="stylesheet" href="../../../assets/css/tokens.css">
-<link rel="stylesheet" href="../../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<link rel="stylesheet" href="../../assets/css/context-grammar.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/green-animation.css">
+<link rel="stylesheet" href="../../assets/css/cg-restaurant-aside.css">
+<link rel="stylesheet" href="../../assets/css/simulator-cta.css">
 <style>
 
-/* ═══ LAYOUT ═══ */
-.page { padding-top: 56px; }
-.section { padding: clamp(56px, 8vw, 100px) clamp(24px, 4vw, 48px); }
-.section-inner { max-width: 1100px; margin: 0 auto; }
+/* ═══ COMMON ═══ */
+/* Page-specific narrow wrapper */
+.sec-inner--narrow {
+  max-width: 800px;
+  margin: 0 auto;
+}
+/* .sec-label color override for this page */
+.sec-label {
+  color: var(--color-grammar);
+}
 
 /* ═══ HERO ═══ */
 .hero {
-  background: var(--bg);
-  color: var(--text);
+  background: #08070b;
+  color: #f0ece4;
   padding: clamp(80px, 12vw, 160px) clamp(24px, 4vw, 48px) clamp(56px, 8vw, 100px);
   text-align: center;
   position: relative;
   overflow: hidden;
+  display: flex;
 }
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(122,155,196,0.06), transparent);
+  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(104,137,180,0.06), transparent);
   pointer-events: none;
 }
 .hero-inner { max-width: 780px; margin: 0 auto; position: relative; }
+@media (max-width: 768px) {
+  .hero-illu { width: 90%; max-width: 380px; height: auto; }
+}
 .hero-label {
   font-family: var(--font-mono);
   font-size: clamp(10px, 0.8vw, 12px);
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--color-grammar);
-  margin-bottom: 20px;
+  color: rgba(240,236,228,0.35);
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.2s forwards;
 }
 .hero-title {
   font-weight: 500;
-  font-size: clamp(36px, 5vw, 64px);
-  line-height: 1.05;
-  letter-spacing: -2px;
-  margin-bottom: 24px;
+  font-size: clamp(36px, 5vw, 68px);
+  line-height: 1.1;
+  letter-spacing: -2.5px;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.4s forwards;
 }
 .hero-sub {
-  font-size: clamp(15px, 1.15vw, 18px);
+  font-size: clamp(16px, 1.2vw, 20px);
   font-weight: 300;
+  color: rgba(240,236,228,0.5);
+  line-height: 1.85;
+  max-width: 640px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease) 0.6s forwards;
+}
+
+/* ═══ CONCEPT NAME HIERARCHY ═══ */
+.concept-header { margin-bottom: 40px; }
+.concept-name {
+  font-weight: 500;
+  font-size: clamp(24px, 2.5vw, 36px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+.concept-sub {
+  font-size: clamp(14px, 1vw, 17px);
+  font-weight: 400;
+  color: var(--text-2);
+  margin-bottom: 32px;
+}
+
+/* ═══ CALLOUT / PULLQUOTE ═══ */
+.callout {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--color-grammar);
+  padding: clamp(20px, 2.5vw, 32px);
+  margin: 32px 0;
+  max-width: 720px;
+}
+.callout p {
+  font-size: clamp(15px, 1.05vw, 17px);
   color: var(--text-2);
   line-height: 1.75;
-  max-width: 640px;
-  margin: 0 auto 32px;
+  margin-bottom: 0.8em;
 }
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { font-weight: 600; color: var(--text); }
+.callout code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: rgba(0,0,0,0.12);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.pullquote {
+  padding: 24px 0 24px 28px;
+  border-left: 2px solid var(--color-grammar);
+  font-weight: 500;
+  font-size: clamp(18px, 1.5vw, 24px);
+  line-height: 1.45;
+  letter-spacing: -0.4px;
+  max-width: 680px;
+  margin: 36px 0;
+  color: var(--text);
+}
+
+/* ═══ VS CARDS (Narrative vs Spec) ═══ */
+.vs-pair {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(16px, 2vw, 28px);
+  align-items: stretch;
+  margin: 40px 0;
+}
+@media (max-width: 720px) {
+  .vs-pair { grid-template-columns: 1fr; }
+  .vs-divider { display: none; }
+}
+.vs-card {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: clamp(24px, 2.5vw, 36px);
+  background: var(--bg);
+}
+.vs-card--narr { border-top: 3px solid var(--color-grammar); }
+.vs-card--spec { border-top: 3px solid var(--color-intent); }
+.vs-divider {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 0 4px;
+}
+.vs-icon { font-size: 36px; margin-bottom: 12px; line-height: 1; }
+.vs-chip {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--color-grammar);
-  border: 1px solid var(--border);
-  padding: 8px 18px;
-  border-radius: 0;
-}
-
-/* ═══ SECTION HEADERS ═══ */
-.sec-label {
-  font-family: var(--font-mono);
-  font-size: clamp(10px, 0.8vw, 12px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--color-grammar);
-  margin-bottom: 14px;
-}
-.sec-title {
   font-weight: 500;
-  font-size: clamp(28px, 3.2vw, 44px);
-  line-height: 1.1;
-  letter-spacing: -1.5px;
-  margin-bottom: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
 }
-.sec-desc {
-  font-size: clamp(15px, 1.1vw, 17px);
-  font-weight: 300;
+.vs-card--narr .vs-chip { color: var(--color-grammar); }
+.vs-card--spec .vs-chip { color: var(--color-intent); }
+.vs-name {
+  font-size: clamp(20px, 1.6vw, 26px);
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.vs-role {
+  font-size: clamp(14px, 1vw, 16px);
   color: var(--text-2);
-  line-height: 1.75;
-  max-width: 600px;
-  margin-bottom: 40px;
+  margin-bottom: 16px;
+  line-height: 1.65;
 }
-
-/* ═══ SPEC CARDS ═══ */
-.spec-cards {
+.vs-list { list-style: none; padding: 0; }
+.vs-list li {
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-size: clamp(13px, 0.9vw, 15px);
+  color: var(--text-2);
   display: flex;
-  flex-direction: column;
-  gap: clamp(24px, 3vw, 40px);
+  gap: 10px;
+  line-height: 1.5;
 }
-.spec-card {
+.vs-list li::before { content: "→"; color: var(--text-3); flex-shrink: 0; }
+
+/* ═══ STEP CARDS ═══ */
+.step-card {
   border: 1px solid var(--border);
   border-radius: 0;
+  padding: clamp(22px, 2.5vw, 32px);
+  margin-bottom: 14px;
+  position: relative;
   overflow: hidden;
   background: var(--bg);
 }
-.spec-card-header {
-  padding: clamp(20px, 2.5vw, 32px);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+.step-card::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 3px;
 }
-.spec-card-title-group { flex: 1; min-width: 240px; }
-.spec-card-filename {
+.step-card--narr::before   { background: var(--color-grammar); }
+.step-card--spec::before   { background: var(--color-intent); }
+.step-card--render::before { background: var(--color-brain); }
+.step-card--result::before { background: var(--color-success); }
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-grammar);
-  margin-bottom: 6px;
+  color: #fff;
 }
-.spec-card-title {
+.step-card--narr   .step-num { background: var(--color-grammar); }
+.step-card--spec   .step-num { background: var(--color-intent); }
+.step-card--render .step-num { background: var(--color-brain); }
+.step-card--result .step-num { background: var(--color-success); }
+.step-title {
+  font-size: clamp(16px, 1.2vw, 19px);
   font-weight: 500;
-  font-size: clamp(20px, 1.6vw, 26px);
-  letter-spacing: -0.5px;
-  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+  color: var(--text);
 }
-.spec-card-desc {
-  font-size: 15px;
-  font-weight: 300;
-  color: var(--text-2);
-  line-height: 1.6;
-}
-.spec-badge {
+.step-chip {
   font-family: var(--font-mono);
   font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+  margin-left: auto;
+}
+.step-card--narr   .step-chip { color: var(--color-grammar); background: var(--chip-blue-bg); }
+.step-card--spec   .step-chip { color: var(--color-intent);  background: var(--chip-amber-bg); }
+.step-card--render .step-chip { color: var(--color-brain);   background: var(--chip-blue-bg); }
+.step-card--result .step-chip { color: var(--color-success); background: var(--chip-green-bg); }
+.step-body {
+  font-size: clamp(15px, 1.05vw, 17px);
+  color: var(--text-2);
+  line-height: 1.7;
+}
+.step-body strong { font-weight: 600; color: var(--text); }
+.step-body em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* ═══ SCENE INTRO ═══ */
+.scene-intro {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: clamp(24px, 2.5vw, 36px);
+  margin: 32px 0;
+  max-width: 720px;
+}
+.scene-quote {
+  font-size: clamp(17px, 1.3vw, 20px);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.scene-source {
+  font-family: var(--font-mono);
+  font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-3);
-  border: 1px solid var(--border);
-  padding: 6px 14px;
-  border-radius: 0;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
-/* ═══ CODE BLOCKS ═══ */
-.code-block-wrapper {
+/* ═══ CODE BLOCK ═══ */
+.code-wrap {
   position: relative;
   background: #08070b;
+  border: 1px solid rgba(240,236,228,0.06);
+  margin-top: 14px;
   overflow: hidden;
 }
-.code-block-header {
+.code-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
-  background: rgba(240,236,228,0.04);
+  padding: 8px 18px;
+  background: rgba(240,236,228,0.03);
   border-bottom: 1px solid rgba(240,236,228,0.06);
 }
-.code-block-lang {
+.code-lang {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: #5a5550;
-}
-.copy-btn {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  color: #5a5550;
-  background: rgba(240,236,228,0.06);
-  border: 1px solid rgba(240,236,228,0.08);
-  padding: 4px 12px;
-  cursor: pointer;
-  transition: all 0.3s var(--ease);
-  border-radius: 0;
-}
-.copy-btn:hover {
-  color: #f0ece4;
-  background: rgba(240,236,228,0.1);
-  border-color: rgba(240,236,228,0.15);
-}
-.copy-btn.copied {
-  color: #34d399;
-  border-color: rgba(52,211,153,0.3);
 }
 pre {
   margin: 0;
   padding: clamp(16px, 2vw, 24px) 20px;
   overflow-x: auto;
   font-family: var(--font-mono);
-  font-size: clamp(12px, 0.85vw, 14px);
+  font-size: clamp(12px, 0.85vw, 13px);
   line-height: 1.7;
-  color: #f0ece4;
-  -webkit-overflow-scrolling: touch;
+  color: rgba(240,236,228,0.7);
 }
-pre code { font-family: inherit; }
+.ck { color: #c2a3ff; }   /* keys */
+.cs { color: #ffd29a; }   /* strings */
+.cn { color: #9ad0ff; }   /* numbers */
+.cc { color: #6b6b73; font-style: italic; }  /* comments */
+.cb { color: #ffb380; }   /* booleans */
 
-/* Syntax colors */
-.sy-key { color: #34d399; }
-.sy-str { color: #fbbf24; }
-.sy-comment { color: #5a5550; }
-.sy-val { color: #7a9bc4; }
-.sy-num { color: #f0ece4; }
-.sy-bracket { color: #8a8580; }
-.sy-bool { color: #f0ece4; }
-
-/* ═══ USE CASE CARDS ═══ */
-.use-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(16px, 2vw, 24px);
-}
-@media (max-width: 900px) { .use-grid { grid-template-columns: 1fr; } }
-.use-card {
-  border: 1px solid var(--border);
-  border-radius: 0;
-  padding: clamp(24px, 2.5vw, 36px);
-  background: var(--bg);
-}
-.use-card-num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: var(--color-grammar);
-  margin-bottom: 12px;
-}
-.use-card-title {
-  font-weight: 500;
-  font-size: clamp(18px, 1.4vw, 22px);
-  letter-spacing: -0.3px;
-  margin-bottom: 12px;
-}
-.use-card-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.use-card-list li {
-  font-size: 15px;
-  font-weight: 300;
-  color: var(--text-2);
-  line-height: 1.6;
-  padding-left: 16px;
-  position: relative;
-}
-.use-card-list li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10px;
-  width: 4px;
-  height: 4px;
-  background: var(--color-grammar);
-  border-radius: 0;
-}
-.use-card-example {
-  margin-top: 16px;
-  padding: 12px 16px;
+/* ═══ SURFACE GRID ═══ */
+.surfaces-panel {
   background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-2);
-  line-height: 1.6;
+  padding: clamp(24px, 2.5vw, 36px);
+  margin: 32px 0;
 }
-
-/* ═══ RULES TABLE ═══ */
-.rules-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.rules-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
-  min-width: 640px;
-}
-.rules-table thead th {
+.surfaces-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 1.5px;
+  font-weight: 500;
+  letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--text-3);
+  margin-bottom: 24px;
+}
+.surfaces-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.5vw, 18px);
+}
+@media (max-width: 720px) { .surfaces-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .surfaces-grid { grid-template-columns: 1fr; } }
+.surface-card {
+  border: 1px solid var(--border);
+  padding: clamp(16px, 1.5vw, 22px);
+  background: var(--bg);
+}
+.surface-icon { font-size: 26px; margin-bottom: 8px; line-height: 1; }
+.surface-name {
+  font-size: clamp(14px, 1vw, 16px);
   font-weight: 500;
-  text-align: left;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.rules-table tbody td {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-2);
-  font-weight: 300;
-  line-height: 1.5;
-}
-.rules-table tbody tr:nth-child(even) {
-  background: var(--bg-2);
-}
-.rules-table tbody td:first-child {
-  font-weight: 500;
+  margin-bottom: 4px;
   color: var(--text);
+  letter-spacing: -0.2px;
 }
-.rules-table tbody td:nth-child(2) {
+.surface-behavior {
+  font-size: clamp(12px, 0.85vw, 13px);
+  color: var(--text-2);
+  line-height: 1.55;
+}
+
+/* ═══ VERDICT ═══ */
+.verdict {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--chip-green-bg);
+  border-left: 3px solid var(--color-success);
   font-family: var(--font-mono);
   font-size: 13px;
+  color: var(--color-success);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* ═══ VERSION ROWS ═══ */
+.versions-panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: clamp(24px, 2.5vw, 36px);
+  margin: 32px 0;
+}
+.versions-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 20px;
+}
+.ver-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 18px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+.ver-row:first-of-type { border-top: none; padding-top: 0; }
+.ver-tag {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-intent);
+  letter-spacing: 0.04em;
+}
+.ver-body {
+  font-size: clamp(14px, 1vw, 15px);
+  color: var(--text-2);
+  line-height: 1.65;
+}
+.ver-body strong { font-weight: 600; color: var(--text); }
+.ver-body em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 12px;
   color: var(--text-3);
 }
-.rules-table .dir-delegation { color: var(--color-grammar); }
-.rules-table .dir-adaptation { color: var(--color-intent); }
-.rules-table .dir-escalation { color: var(--color-brain); }
-.rules-table .dir-all { color: var(--text-2); }
 
-/* ═══ DOWNLOAD SECTION ═══ */
-.download-section .code-block-wrapper {
-  border: 1px solid rgba(240,236,228,0.06);
+/* ═══ COMPAT RULES ═══ */
+.compat-rules {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.5vw, 18px);
+  margin: 32px 0;
+  max-width: 720px;
+}
+@media (max-width: 680px) { .compat-rules { grid-template-columns: 1fr; } }
+.compat-card {
+  border: 1px solid var(--border);
+  padding: clamp(18px, 2vw, 24px);
+  background: var(--bg);
+}
+.compat-num {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--color-grammar);
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+.compat-rule {
+  font-size: clamp(14px, 1vw, 15px);
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.compat-note {
+  font-size: clamp(13px, 0.9vw, 14px);
+  color: var(--text-2);
+  line-height: 1.6;
+}
+.compat-ok   { border-top: 3px solid var(--color-success); }
+.compat-no   { border-top: 3px solid #e5534b; }
+.compat-no   .compat-num { color: #e5534b; }
+
+/* ═══ ANATOMY TABLE ═══ */
+.scale-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 32px 0;
+  font-size: clamp(13px, 0.95vw, 15px);
+}
+.scale-table th, .scale-table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.scale-table th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--bg-2);
+}
+.scale-table td { color: var(--text-2); line-height: 1.55; }
+.scale-table td:first-child {
+  font-weight: 500;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.scale-table em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* ═══ Q&A ═══ */
+.qa-item {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--color-grammar);
+  padding: clamp(22px, 2.5vw, 32px);
+  margin-bottom: 14px;
+  background: var(--bg);
+}
+.qa-q {
+  font-size: clamp(16px, 1.2vw, 19px);
+  font-weight: 500;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+.qa-a {
+  font-size: clamp(15px, 1.05vw, 17px);
+  color: var(--text-2);
+  line-height: 1.7;
+}
+.qa-a strong { font-weight: 600; color: var(--text); }
+.qa-a code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-2);
+  padding: 1px 6px;
+  border-radius: 3px;
 }
 
 /* ═══ CTA ═══ */
-.cta {
-  background: var(--bg);
-  color: var(--text);
+.sec-cta {
   text-align: center;
-  padding: clamp(64px, 10vw, 120px) clamp(24px, 4vw, 48px);
   position: relative;
+  overflow: hidden;
 }
-.cta::before {
+.sec-cta::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(122,155,196,0.04), transparent);
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(106,74,144,0.05), transparent 70%);
   pointer-events: none;
 }
-.cta-inner { position: relative; max-width: 600px; margin: 0 auto; }
+.cta-inner { max-width: var(--max-w); margin: 0 auto; position: relative; }
 .cta-title {
   font-weight: 500;
-  font-size: clamp(24px, 3vw, 40px);
-  letter-spacing: -1px;
-  margin-bottom: 32px;
-  line-height: 1.15;
+  font-size: clamp(28px, 3.5vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
 }
-.cta-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
+.cta-sub {
+  font-size: clamp(15px, 1.1vw, 18px);
+  font-weight: 400;
+  color: rgba(240,236,228,0.5);
+  max-width: 560px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
 }
+.cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.5px;
+  padding: 16px 32px;
   text-decoration: none;
-  padding: 12px 28px;
-  border-radius: 0;
   transition: all 0.3s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
-.cta-btn--primary {
-  background: var(--text);
-  color: var(--bg);
-}
-.cta-btn--primary:hover {
-  opacity: 0.85;
-}
-.cta-btn--secondary {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.cta-btn--secondary:hover {
-  border-color: var(--text-3);
-  color: var(--text);
-}
+.cta-btn--primary { background: #f0ece4; color: #08070b; }
+.cta-btn--primary:hover { background: #fff; transform: translateY(-2px); }
+.cta-btn--secondary { background: transparent; color: rgba(240,236,228,0.6); border: 1px solid rgba(240,236,228,0.12); }
+.cta-btn--secondary:hover { color: #f0ece4; border-color: rgba(240,236,228,0.3); transform: translateY(-2px); }
 
-/* ═══ DARK SECTIONS ═══ */
-.sec-dark {
-  background: var(--bg);
-  color: var(--text);
-}
-
-/* ═══ DIVIDER ═══ */
-.section-divider {
-  max-width: 1100px;
+/* ═══ FOOTER ═══ */
+.footer { background: #08070b; color: rgba(240,236,228,0.35); border-top: 1px solid rgba(240,236,228,0.04); }
+.footer-grid {
+  max-width: var(--max-w);
   margin: 0 auto;
-  border: none;
-  border-top: 1px solid var(--border);
+  padding: clamp(48px, 6vw, 80px) clamp(24px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(24px, 3vw, 48px);
 }
+.footer-col-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(240,236,228,0.25);
+  margin-bottom: 16px;
+}
+.footer-col a {
+  display: block;
+  font-size: 14px;
+  color: rgba(240,236,228,0.45);
+  text-decoration: none;
+  padding: 5px 0;
+  transition: color 0.3s var(--ease);
+  font-weight: 400;
+}
+.footer-col a:hover { color: var(--color-grammar); }
+.footer-bottom {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 20px clamp(24px, 4vw, 48px);
+  border-top: 1px solid rgba(240,236,228,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.footer-logo { height: 16px; width: auto; opacity: 0.3; }
+.footer-links { display: flex; gap: 16px; }
+.footer-links a {
+  color: rgba(240,236,228,0.35);
+  text-decoration: none;
+  transition: color 0.3s var(--ease);
+}
+.footer-links a:hover { color: var(--color-grammar); }
 
-/* ═══ REVEAL ANIMATION ═══ */
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
-}
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-.d1 { transition-delay: 0.06s; }
-.d2 { transition-delay: 0.12s; }
-.d3 { transition-delay: 0.18s; }
-.d4 { transition-delay: 0.24s; }
-
-/* ═══ RESPONSIVE ═══ */
 @media (max-width: 768px) {
-  .hero { padding-top: clamp(80px, 15vw, 120px); }
-  .spec-card-header { flex-direction: column; }
-  pre { font-size: 11px; padding: 14px 16px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
 }
+@media (max-width: 520px) {
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══ MULTI-BRAIN NOTE ═══ */
+.mb-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 1.5vw, 18px);
+  margin: 36px 0;
+  max-width: 720px;
+}
+@media (max-width: 680px) { .mb-grid { grid-template-columns: 1fr; } }
+.mb-card {
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--color-brain);
+  padding: clamp(18px, 2vw, 24px);
+  background: var(--bg);
+}
+.mb-name {
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.mb-note {
+  font-size: clamp(13px, 0.9vw, 14px);
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+/* ── Download Cards ── */
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: clamp(12px, 1.5vw, 20px);
+  margin-top: clamp(28px, 3vw, 40px);
+}
+.download-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: clamp(20px, 2.5vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.download-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.download-card__badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 100px;
+  background: var(--chip-blue-bg, rgba(74,106,144,0.12));
+  color: var(--chip-blue-text, var(--color-grammar));
+  flex-shrink: 0;
+}
+.download-card__badge--ts {
+  background: var(--chip-purple-bg, rgba(138,106,176,0.12));
+  color: var(--chip-purple-text, #8a6ab0);
+}
+.download-card__version {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+}
+.download-card__desc {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.55;
+  margin: 0;
+}
+.download-card__code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--bg-3);
+  padding: 10px 14px;
+  margin: 0;
+  color: var(--text);
+  overflow-x: auto;
+}
+.download-card__link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-grammar);
+  text-decoration: none;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  transition: border-color 0.15s ease;
+  align-self: flex-start;
+}
+.download-card__link:hover { border-bottom-color: var(--color-grammar); }
+
 </style>
 </head>
 <body data-dark-nav>
-<div class="page sec-dark">
+
 
 <!-- ═══════════════════════════════════════
      HERO
      ═══════════════════════════════════════ -->
-<section class="hero sec-dark">
-  <div class="hero-inner">
-    <p class="hero-label">Context Grammar / Specs</p>
-    <h1 class="hero-title">オープン仕様書</h1>
-    <p class="hero-sub">Context Grammarは理論だけではない。機械可読な仕様書だ。YAMLスキーマ、JSON構造、33のデザインルール — エージェントフレームワーク、AIシステム、Claude Codeワークフローにそのまま統合できる。</p>
-    <span class="hero-badge">CC BY 4.0 オープン仕様</span>
+<div class="hero hero--split">
+  <div class="hero-split-text">
+    <p class="hero-label">Context Grammar — Floor 7</p>
+    <h1 class="hero-title">Specs</h1>
+    <p class="hero-sub">YAML schemas and TypeScript types for Context Tokens, Brain layers, and AX Pattern triggers — making the framework portable across teams and platforms.</p>
+    <div class="hero-scroll-hint"><span></span></div>
+  </div>
+  <div class="hero-illu">
+    <div data-ga-slot="cg-specs" aria-label="Context Grammar Specs — rule constellation showing Token, Brain, and AX Pattern schema relationships"></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     SIMULATOR CTA — live reference implementation
+     ═══════════════════════════════════════ -->
+<section style="padding: 0 clamp(24px, 4vw, 48px); background: var(--bg);">
+  <a class="sim-cta reveal" href="../simulator/" style="text-decoration: none;">
+    <div class="sim-cta__body">
+      <span class="sim-cta__eyebrow">Live · reference implementation</span>
+      <h3 class="sim-cta__title">The spec, running in your browser.</h3>
+      <p class="sim-cta__desc">The simulator is the executable form of these YAML files. It loads <code style="font-family:var(--font-mono);font-size:0.92em;color:#8aa9d4;">context-tokens-spec.yaml</code> and <code style="font-family:var(--font-mono);font-size:0.92em;color:#8aa9d4;">ax-patterns-spec.yaml</code>, evaluates the rule engine, and renders the result live — no install required.</p>
+    </div>
+    <div class="sim-cta__action">
+      <span class="sim-cta__btn">Run the spec →</span>
+    </div>
+  </a>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     A · RESTAURANT INTRO
+     ═══════════════════════════════════════ -->
+<section class="sec" id="intro">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Why Specs exist</p>
+    <h2 class="content-title reveal d1">The menu and the recipe card</h2>
+
+    <figure class="reveal d1" style="background:transparent;border:none;max-width:100%;margin:32px 0;padding:0;">
+      <img src="../images/ISO-GREEN/IF_Specs_01_HandlingSpecs.png"
+           alt="A human handing a spec document to a friendly robot — representing Context Grammar as an instruction manual for AI"
+           loading="lazy" style="width:100%;height:auto;">
+    </figure>
+
+    <div class="content-body reveal d2">
+      <p>When a restaurant opens a new branch, the head chef writes a standardized recipe card. Not "slow-cooked chicken." The card reads: <strong>chicken thigh 180 g · oil temp 78°C ± 2 · cook time 90 min · salt ratio 1.2%</strong>.</p>
+      <p>The menu description lets guests imagine the dish. The recipe card lets any kitchen reproduce it exactly. Same dish, two different languages for two different readers.</p>
+      <p>Context Grammar works the same way. The narrative in a portfolio chapter lets a designer understand a scene. The Spec lets an iPhone, a fridge, and a car dashboard act on that scene correctly — without anyone re-explaining it three times.</p>
+    </div>
+
+    <aside class="cg-restaurant-aside reveal d3">
+      <div class="cg-restaurant-aside__icon" aria-hidden="true">
+        <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
+      </div>
+      <div class="cg-restaurant-aside__content">
+        <p class="cg-restaurant-aside__label">In restaurant terms</p>
+        <div class="cg-restaurant-aside__body">
+          <p>The <strong>menu description</strong> says "slow-cooked chicken, tender and golden." Guests read it and want the dish.</p>
+          <p>The <strong>recipe card</strong> says <em>chicken_thigh: 180g, oil_temp: 78°C, cook_time: 90min</em>. The chef reads it and reproduces the dish exactly, every time, in every kitchen.</p>
+          <p>Specs are the recipe card. Narratives are the menu. Same dish — different languages for different readers.</p>
+        </div>
+      </div>
+    </aside>
   </div>
 </section>
 
-<hr class="section-divider">
 
 <!-- ═══════════════════════════════════════
-     THREE SPEC FILES
+     B · NARRATIVE vs SPEC
      ═══════════════════════════════════════ -->
-<section class="section sec-dark">
-  <div class="section-inner">
-    <p class="sec-label">Core Schemas</p>
-    <h2 class="sec-title">3つの仕様ファイル</h2>
-    <p class="sec-desc">エージェントが人間のコンテキストを理解するために必要なすべて。8つのトークン、3層のブレイン、33のデザインルール — 構造化データとして定義。</p>
+<section class="sec sec-dim" id="narrative-vs-spec">
+  <div class="sec-inner--narrow">
+    <div class="concept-header reveal">
+      <p class="sec-label">Two faces of every Token</p>
+      <h2 class="concept-name">Human side and machine side</h2>
+      <p class="concept-sub">The same fact, written twice. One for understanding, one for execution.</p>
+    </div>
 
-    <div class="spec-cards">
+    <figure class="reveal d1" style="background:transparent;border:none;max-width:100%;margin:0 0 32px;padding:0;">
+      <img src="../images/ISO-GREEN/IF_Specs_03_DesignReviewTutorial.png"
+           alt="A designer and robot reviewing a UI wireframe together — representing the human narrative and machine spec working in tandem"
+           loading="lazy" style="width:100%;height:auto;">
+    </figure>
 
-      <!-- TOKEN SCHEMA -->
-      <div class="spec-card reveal">
-        <div class="spec-card-header">
-          <div class="spec-card-title-group">
-            <p class="spec-card-filename">context-tokens.yaml</p>
-            <h3 class="spec-card-title">トークンスキーマ</h3>
-            <p class="spec-card-desc">8トークンの型定義、値域、データソース、実装準備度。</p>
-          </div>
-          <span class="spec-badge">v2.0 · 8 tokens · 6 situation + 2 dials</span>
-        </div>
-        <div class="code-block-wrapper">
-          <div class="code-block-header">
-            <span class="code-block-lang">YAML</span>
-            <button class="copy-btn" data-target="code-tokens" onclick="copyCode(this)">Copy</button>
-          </div>
-          <pre><code id="code-tokens"><span class="sy-key">tokens</span><span class="sy-bracket">:</span>
-  <span class="sy-key">physical_state</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">stationary</span>, <span class="sy-str">walking</span>, <span class="sy-str">running</span>, <span class="sy-str">driving</span>, <span class="sy-str">resting</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">accelerometer</span>, <span class="sy-str">activity_recognition_api</span><span class="sy-bracket">]</span>
-    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">realtime</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
-
-  <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>
-    <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0.0</span>, <span class="sy-num">1.0</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">time_of_day</span>, <span class="sy-str">calendar_density</span>, <span class="sy-str">recent_activity</span><span class="sy-bracket">]</span>
-    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">minutes</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★☆☆☆"</span>
-    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"estimation only — no direct measurement"</span>
-
-  <span class="sy-key">social_exposure</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">alone</span>, <span class="sy-str">trusted_person</span>, <span class="sy-str">acquaintance</span>, <span class="sy-str">public</span>, <span class="sy-str">authority</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">proximity_sensor</span>, <span class="sy-str">voice_id</span>, <span class="sy-str">calendar_context</span><span class="sy-bracket">]</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
-
-  <span class="sy-key">priority_weight</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
-    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
-      <span class="sy-key">current_urgency</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>, <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0</span>, <span class="sy-num">1</span><span class="sy-bracket">]</span> <span class="sy-bracket">}</span>
-      <span class="sy-key">learned_patterns</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>, <span class="sy-key">items</span><span class="sy-bracket">:</span> <span class="sy-val">preference_rule</span> <span class="sy-bracket">}</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
-
-  <span class="sy-key">form_factor</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">watch</span>, <span class="sy-str">phone</span>, <span class="sy-str">tablet</span>, <span class="sy-str">laptop</span>, <span class="sy-str">tv</span>, <span class="sy-str">car</span>, <span class="sy-str">ambient</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">device_type</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
-
-  <span class="sy-key">feasibility</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
-    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
-      <span class="sy-key">available_apis</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span> <span class="sy-bracket">}</span>
-      <span class="sy-key">constraints</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span> <span class="sy-bracket">}</span>
-      <span class="sy-key">alternatives</span><span class="sy-bracket">:</span> <span class="sy-bracket">{</span> <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span> <span class="sy-bracket">}</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
-
-  <span class="sy-key">autonomy_dial</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">suggest</span>, <span class="sy-str">confirm</span>, <span class="sy-str">notify</span>, <span class="sy-str">auto</span><span class="sy-bracket">]</span>
-    <span class="sy-key">driven_by</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">service_default</span>, <span class="sy-str">ai_adjustment</span>, <span class="sy-str">user_override</span><span class="sy-bracket">]</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
-
-  <span class="sy-key">disclosure_dial</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">full</span>, <span class="sy-str">summary</span>, <span class="sy-str">existence</span>, <span class="sy-str">hidden</span><span class="sy-bracket">]</span>
-    <span class="sy-key">scope</span><span class="sy-bracket">:</span> <span class="sy-val">per_domain_per_person</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★☆☆☆☆"</span></code></pre>
-        </div>
+    <div class="vs-pair reveal d1">
+      <div class="vs-card vs-card--narr">
+        <div class="vs-icon">📖</div>
+        <p class="vs-chip">Narrative</p>
+        <p class="vs-name">Human face</p>
+        <p class="vs-role">Written for designers, reviewers, and stakeholders. Prose carries context, emotion, and story.</p>
+        <ul class="vs-list">
+          <li>"7:02 AM — Mai is making lunch boxes while getting dressed for work"</li>
+          <li>Emotion and background included</li>
+          <li>Used in reviews and discussions</li>
+          <li>Portfolio chapters are this</li>
+        </ul>
       </div>
 
-      <!-- BRAIN SCHEMA -->
-      <div class="spec-card reveal d1">
-        <div class="spec-card-header">
-          <div class="spec-card-title-group">
-            <p class="spec-card-filename">context-brain.yaml</p>
-            <h3 class="spec-card-title">ブレインスキーマ</h3>
-            <p class="spec-card-desc">3層メモリ構造。ドメイン軸、開示軸、使い捨てブレインのライフサイクル。</p>
-          </div>
-          <span class="spec-badge">v2.0 · 3 layers · domain-scoped</span>
-        </div>
-        <div class="code-block-wrapper">
-          <div class="code-block-header">
-            <span class="code-block-lang">YAML</span>
-            <button class="copy-btn" data-target="code-brain" onclick="copyCode(this)">Copy</button>
-          </div>
-          <pre><code id="code-brain"><span class="sy-key">brain</span><span class="sy-bracket">:</span>
-  <span class="sy-key">layers</span><span class="sy-bracket">:</span>
-    <span class="sy-key">identity</span><span class="sy-bracket">:</span>
-      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">months_to_years</span>
-      <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">explicit_input</span>
-      <span class="sy-key">disclosure_controlled</span><span class="sy-bracket">:</span> <span class="sy-bool">true</span>
-      <span class="sy-key">fields</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">demographics</span>, <span class="sy-str">family</span>, <span class="sy-str">dietary</span>, <span class="sy-str">accessibility</span>, <span class="sy-str">language</span><span class="sy-bracket">]</span>
+      <span class="vs-divider">vs</span>
 
-    <span class="sy-key">accumulated_learning</span><span class="sy-bracket">:</span>
-      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">days_to_weeks</span>
-      <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">implicit_observation</span>
-      <span class="sy-key">correction_mechanism</span><span class="sy-bracket">:</span> <span class="sy-val">user_feedback</span>
-      <span class="sy-key">fields</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">preferences</span>, <span class="sy-str">habits</span>, <span class="sy-str">patterns</span>, <span class="sy-str">communication_style</span><span class="sy-bracket">]</span>
-
-    <span class="sy-key">right_now</span><span class="sy-bracket">:</span>
-      <span class="sy-key">update_speed</span><span class="sy-bracket">:</span> <span class="sy-val">seconds_to_minutes</span>
-      <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">sensor_data_and_session</span>
-      <span class="sy-key">fields</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">token_values</span>, <span class="sy-str">active_intent</span>, <span class="sy-str">device_state</span><span class="sy-bracket">]</span>
-
-  <span class="sy-key">special_forms</span><span class="sy-bracket">:</span>
-    <span class="sy-key">disposable_brain</span><span class="sy-bracket">:</span>
-      <span class="sy-key">lifecycle</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">born</span>, <span class="sy-str">learns</span>, <span class="sy-str">returns_to_home</span>, <span class="sy-str">dies</span><span class="sy-bracket">]</span>
-      <span class="sy-key">examples</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">trip_brain</span>, <span class="sy-str">project_brain</span><span class="sy-bracket">]</span></code></pre>
-        </div>
+      <div class="vs-card vs-card--spec">
+        <div class="vs-icon">⚙️</div>
+        <p class="vs-chip">Spec</p>
+        <p class="vs-name">Machine face</p>
+        <p class="vs-role">Written for AI and devices. JSON carries value, range, confidence, and source — zero ambiguity.</p>
+        <ul class="vs-list">
+          <li><code>cognitive_load: 0.82</code></li>
+          <li>Value · range · confidence · source</li>
+          <li>Used in implementation</li>
+          <li>YAML / JSON files</li>
+        </ul>
       </div>
+    </div>
 
-      <!-- DESIGN RULES -->
-      <div class="spec-card reveal d2">
-        <div class="spec-card-header">
-          <div class="spec-card-title-group">
-            <p class="spec-card-filename">design-rules.yaml</p>
-            <h3 class="spec-card-title">デザインルール</h3>
-            <p class="spec-card-desc">33のif/thenルール。トークン状態をデザイン動作に変換する。3つの方向性: 委譲、適応、エスカレーション。</p>
-          </div>
-          <span class="spec-badge">v2.0 · 33 rules · 3 directions</span>
-        </div>
-        <div class="code-block-wrapper">
-          <div class="code-block-header">
-            <span class="code-block-lang">YAML</span>
-            <button class="copy-btn" data-target="code-rules" onclick="copyCode(this)">Copy</button>
-          </div>
-          <pre><code id="code-rules"><span class="sy-key">rules</span><span class="sy-bracket">:</span>
-  - <span class="sy-key">id</span><span class="sy-bracket">:</span> <span class="sy-val">R001</span>
-    <span class="sy-key">name</span><span class="sy-bracket">:</span> <span class="sy-val">cognitive_load_reduction</span>
-    <span class="sy-key">when</span><span class="sy-bracket">:</span>
-      <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span> <span class="sy-str">"&gt; 0.7"</span>
-      <span class="sy-key">form_factor</span><span class="sy-bracket">:</span> <span class="sy-val">phone</span>
-    <span class="sy-key">then</span><span class="sy-bracket">:</span>
-      <span class="sy-key">direction</span><span class="sy-bracket">:</span> <span class="sy-val">delegation</span>
-      <span class="sy-key">pattern</span><span class="sy-bracket">:</span> <span class="sy-val">progressive_disclosure</span>
-      <span class="sy-key">action</span><span class="sy-bracket">:</span> <span class="sy-str">"reduce options to top 3, defer detail"</span>
-
-  - <span class="sy-key">id</span><span class="sy-bracket">:</span> <span class="sy-val">R002</span>
-    <span class="sy-key">name</span><span class="sy-bracket">:</span> <span class="sy-val">social_privacy_guard</span>
-    <span class="sy-key">when</span><span class="sy-bracket">:</span>
-      <span class="sy-key">social_exposure</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">public</span>, <span class="sy-str">authority</span><span class="sy-bracket">]</span>
-    <span class="sy-key">then</span><span class="sy-bracket">:</span>
-      <span class="sy-key">direction</span><span class="sy-bracket">:</span> <span class="sy-val">adaptation</span>
-      <span class="sy-key">pattern</span><span class="sy-bracket">:</span> <span class="sy-val">social_aware_filter</span>
-      <span class="sy-key">action</span><span class="sy-bracket">:</span> <span class="sy-str">"suppress sensitive content, enlarge safe elements"</span>
-
-  - <span class="sy-key">id</span><span class="sy-bracket">:</span> <span class="sy-val">R003</span>
-    <span class="sy-key">name</span><span class="sy-bracket">:</span> <span class="sy-val">autonomy_escalation_check</span>
-    <span class="sy-key">when</span><span class="sy-bracket">:</span>
-      <span class="sy-key">autonomy_dial</span><span class="sy-bracket">:</span> <span class="sy-val">auto</span>
-      <span class="sy-key">disclosure_dial</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">hidden</span>, <span class="sy-str">existence</span><span class="sy-bracket">]</span>
-    <span class="sy-key">then</span><span class="sy-bracket">:</span>
-      <span class="sy-key">direction</span><span class="sy-bracket">:</span> <span class="sy-val">escalation</span>
-      <span class="sy-key">pattern</span><span class="sy-bracket">:</span> <span class="sy-val">approval_gate</span>
-      <span class="sy-key">action</span><span class="sy-bracket">:</span> <span class="sy-str">"block auto-action, request confirmation"</span>
-      <span class="sy-key">reason</span><span class="sy-bracket">:</span> <span class="sy-str">"insufficient disclosure for autonomous action"</span></code></pre>
-        </div>
-      </div>
-
-    </div><!-- /spec-cards -->
+    <div class="callout reveal d2">
+      <p>Narrative is <strong>the language of conversation</strong>. Spec is <strong>the language of execution</strong>. The same fact, written for two different readers. When a portfolio chapter says "Mai is overwhelmed at 7 AM," there is always a corresponding Spec behind it.</p>
+    </div>
   </div>
 </section>
 
-<hr class="section-divider">
 
 <!-- ═══════════════════════════════════════
-     HOW TO USE
+     C · CONCRETE TRANSFORMATION
      ═══════════════════════════════════════ -->
-<section class="section sec-dark">
-  <div class="section-inner">
-    <p class="sec-label">Integration</p>
-    <h2 class="sec-title">使い方</h2>
-    <p class="sec-desc">Context Grammarは機械に読まれるために設計されている。システムに応じた3つの統合パス。</p>
+<section class="sec" id="transformation">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Step by step</p>
+    <h2 class="content-title reveal d1">A Tuesday morning becomes a Spec</h2>
+    <div class="content-body reveal d2">
+      <p>Here is how a scene from the portfolio narrative becomes a machine-readable JSON file.</p>
+    </div>
 
-    <div class="use-grid">
+    <div class="scene-intro reveal d2">
+      <p class="scene-quote">"7:02 AM. Mai is making her son's lunch while getting ready for work. The children are shouting in the living room. Cognitive load is high."</p>
+      <p class="scene-source">— P1 Living Home · A Tuesday Morning</p>
+    </div>
 
-      <div class="use-card reveal">
-        <p class="use-card-num">01</p>
-        <h3 class="use-card-title">エージェントフレームワーク統合</h3>
-        <ul class="use-card-list">
-          <li>トークンスキーマをエージェントのコンテキストにロード</li>
-          <li>リアルタイムのトークン値を構造化入力として供給</li>
-          <li>ルールエンジンがコンテキストに応じた動作を生成</li>
+    <div class="step-card step-card--narr reveal d3">
+      <div class="step-head">
+        <span class="step-num">1</span>
+        <span class="step-title">Write the narrative (for humans)</span>
+        <span class="step-chip">Narrative</span>
+      </div>
+      <div class="step-body">
+        This is the sentence that appears in the portfolio. The reader is a <strong>designer, reviewer, or hiring manager</strong>. It carries context, emotion, and story — and a human immediately understands "Mai is under pressure right now." But this sentence alone does not tell an iPhone how to behave.
+      </div>
+    </div>
+
+    <div class="step-card step-card--narr reveal d3">
+      <div class="step-head">
+        <span class="step-num">2</span>
+        <span class="step-title">Find the Tokens inside the narrative</span>
+        <span class="step-chip">Tokenize</span>
+      </div>
+      <div class="step-body">
+        The narrative has Context Tokens embedded in it. A designer extracts them:
+        <ul style="margin-top: 10px; padding-left: 22px; line-height: 1.9;">
+          <li><strong>Cognitive Load</strong> — "lunch boxes + getting dressed + shouting children" → high</li>
+          <li><strong>Physical State</strong> — "cooking, hands occupied"</li>
+          <li><strong>Social Exposure</strong> — "home, family only" → private</li>
+          <li><strong>Form Factor</strong> — "kitchen iPhone"</li>
         </ul>
-        <div class="use-card-example">
-          agent.load_schema("context-tokens.yaml")<br>
-          agent.set_tokens({ cognitive_load: 0.8, form_factor: "phone" })<br>
-          rules = agent.evaluate()
+        The narrative implicitly contains four Tokens. The next step makes them explicit.
+      </div>
+    </div>
+
+    <div class="step-card step-card--spec reveal d3">
+      <div class="step-head">
+        <span class="step-num">3</span>
+        <span class="step-title">Write the Spec (for machines)</span>
+        <span class="step-chip">Spec / JSON</span>
+      </div>
+      <div class="step-body">
+        The same scene, rewritten as machine-readable JSON. Same meaning — different format.
+
+        <div class="code-wrap" style="margin-top: 14px;">
+          <div class="code-header">
+            <span class="code-lang">// yamashiro-mai-0702.json</span>
+          </div>
+<pre>{
+  <span class="ck">"context_id"</span>: <span class="cs">"mai-tuesday-morning"</span>,
+  <span class="ck">"timestamp"</span>: <span class="cs">"2026-04-30T07:02:00+09:00"</span>,
+  <span class="ck">"spec_version"</span>: <span class="cs">"v1.2"</span>,
+
+  <span class="ck">"tokens"</span>: {
+    <span class="ck">"cognitive_load"</span>: {
+      <span class="ck">"value"</span>: <span class="cn">0.82</span>,        <span class="cc">// 0.0–1.0 scale</span>
+      <span class="ck">"confidence"</span>: <span class="cn">0.74</span>,
+      <span class="ck">"source"</span>: <span class="cs">"calendar+activity+time-of-day"</span>
+    },
+    <span class="ck">"physical_state"</span>: {
+      <span class="ck">"value"</span>: <span class="cs">"hands_busy"</span>,
+      <span class="ck">"confidence"</span>: <span class="cn">0.91</span>,
+      <span class="ck">"source"</span>: <span class="cs">"kitchen-presence + cooking-activity"</span>
+    },
+    <span class="ck">"social_exposure"</span>: {
+      <span class="ck">"value"</span>: <span class="cs">"family_private"</span>,
+      <span class="ck">"confidence"</span>: <span class="cn">0.99</span>,
+      <span class="ck">"source"</span>: <span class="cs">"location=home + bluetooth=family-only"</span>
+    },
+    <span class="ck">"form_factor"</span>: {
+      <span class="ck">"value"</span>: <span class="cs">"iphone-kitchen"</span>,
+      <span class="ck">"confidence"</span>: <span class="cn">1.00</span>
+    }
+  },
+
+  <span class="ck">"projection_rules"</span>: {
+    <span class="ck">"voice_priority"</span>: <span class="cb">true</span>,
+    <span class="ck">"text_density"</span>: <span class="cs">"low"</span>,
+    <span class="ck">"interaction_steps"</span>: <span class="cs">"max_1"</span>
+  }
+}</pre>
         </div>
       </div>
+    </div>
 
-      <div class="use-card reveal d1">
-        <p class="use-card-num">02</p>
-        <h3 class="use-card-title">Claude Code / AIアシスタント</h3>
-        <ul class="use-card-list">
-          <li>CLAUDE.md統合: プロジェクト指示にContext Grammarルールを追加</li>
-          <li>トークン対応プロンプティング: システムプロンプトにユーザー状態を含める</li>
-          <li>リアルタイムシグナルに基づくコンテキスト適応型レスポンス</li>
-        </ul>
-        <div class="use-card-example">
-          User cognitive_load: 0.8<br>
-          social_exposure: alone<br>
-          → respond concisely, skip formalities
+    <div class="step-card step-card--render reveal d3">
+      <div class="step-head">
+        <span class="step-num">4</span>
+        <span class="step-title">The AI and devices read the Spec</span>
+        <span class="step-chip">Render</span>
+      </div>
+      <div class="step-body">
+        The iPhone voice agent reads this Spec and decides: <em>cognitive_load = 0.82, hands_busy = true → skip text UI, complete in one voice step.</em><br><br>
+        If Mai were in the car at the same moment, CarPlay would read the same Spec differently. But <strong>the Spec does not change</strong>. Each device translates it according to its own capabilities.
+      </div>
+    </div>
+
+    <div class="step-card step-card--result reveal d3">
+      <div class="step-head">
+        <span class="step-num">5</span>
+        <span class="step-title">Narrative and Spec are confirmed to agree</span>
+        <span class="step-chip">Result</span>
+      </div>
+      <div class="step-body">
+        Narrative: "Mai is overwhelmed, hands full."<br>
+        Spec: <em>cognitive_load=0.82, physical_state=hands_busy</em><br><br>
+        <strong>Same fact, two formats.</strong> Neither is lying. That is why the portfolio story and the device behavior always match.
+        <div class="verdict">→ Narrative ≡ Spec (same meaning, different format)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     D · ONE SPEC → MANY SURFACES
+     ═══════════════════════════════════════ -->
+<section class="sec sec-dim" id="many-surfaces">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Compile once, render anywhere</p>
+    <h2 class="content-title reveal d1">One Spec reaches six devices</h2>
+
+    <figure class="reveal d1" style="background:transparent;border:none;max-width:100%;margin:24px 0 32px;padding:0;">
+      <img src="../images/ISO-GREEN/IF_Specs_05_Adaptive_UI.png"
+           alt="Three phone screens side-by-side showing UI adapting across different contexts — the same Spec rendered differently per device"
+           loading="lazy" style="width:100%;height:auto;">
+    </figure>
+
+    <div class="content-body reveal d2">
+      <p>The designer writes <em>cognitive_load: 0.82</em> and nothing else. Each device translates that single value into its own surface behavior. No device-specific rewrites needed.</p>
+    </div>
+
+    <div class="surfaces-panel reveal d2">
+      <p class="surfaces-label">How each device reads the same Spec (cognitive_load=0.82, hands_busy=true)</p>
+      <div class="surfaces-grid">
+        <div class="surface-card">
+          <div class="surface-icon">📱</div>
+          <p class="surface-name">iPhone (kitchen)</p>
+          <p class="surface-behavior">Voice, one step. Text UI hidden.</p>
+        </div>
+        <div class="surface-card">
+          <div class="surface-icon">❄️</div>
+          <p class="surface-name">Samsung Family Hub</p>
+          <p class="surface-behavior">Large icon + one tap. Minimal text.</p>
+        </div>
+        <div class="surface-card">
+          <div class="surface-icon">🚗</div>
+          <p class="surface-name">CarPlay</p>
+          <p class="surface-behavior">Voice only. Visual UI disabled.</p>
+        </div>
+        <div class="surface-card">
+          <div class="surface-icon">🏠</div>
+          <p class="surface-name">Nest Hub</p>
+          <p class="surface-behavior">Voice + large visual confirmation.</p>
+        </div>
+        <div class="surface-card">
+          <div class="surface-icon">⌚</div>
+          <p class="surface-name">Apple Watch</p>
+          <p class="surface-behavior">Haptic + voice. Screen not assumed.</p>
+        </div>
+        <div class="surface-card">
+          <div class="surface-icon">💻</div>
+          <p class="surface-name">MacBook (study)</p>
+          <p class="surface-behavior">Full UI — not relevant in this context.</p>
         </div>
       </div>
+    </div>
 
-      <div class="use-card reveal d2">
-        <p class="use-card-num">03</p>
-        <h3 class="use-card-title">デザインシステムブリッジ</h3>
-        <ul class="use-card-list">
-          <li>デザインルールをコンポーネントバリアントにマッピング</li>
-          <li>トークン値をCSSカスタムプロパティに変換し、適応型UIを実現</li>
-          <li>高い認知負荷でシンプルなレイアウトと大きなタッチターゲットを発動</li>
-        </ul>
-        <div class="use-card-example">
-          --cg-cognitive-load: 0.8;<br>
-          --cg-form-factor: phone;<br>
-          → .card { grid-cols: 1; font-size: 18px; }
+    <div class="callout reveal d3">
+      <p><strong>The Spec author never thought about iPhone, CarPlay, or a fridge.</strong> They wrote <em>cognitive_load=0.82</em> and nothing more. Each device translated that on its own.</p>
+      <p>When a new device arrives — XR glasses, car HUD — the Spec does not change. The new device adds a translation rule. This is what "implementation-agnostic" means in practice.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     E · MULTI-BRAIN NOTE
+     ═══════════════════════════════════════ -->
+<section class="sec" id="multi-brain">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Universal contract</p>
+    <h2 class="content-title reveal d1">The same Specs flow from every Brain</h2>
+
+    <figure class="reveal d1" style="background:transparent;border:none;max-width:100%;margin:24px 0 32px;padding:0;">
+      <img src="../images/ISO-GREEN/IF_Specs_02_Tokens_Brains_Rules.png"
+           alt="Three interlocking building blocks labeled Tokens, Brain, and Rules — the three spec files that form Context Grammar's portable contract"
+           loading="lazy" style="width:100%;height:auto;">
+    </figure>
+
+    <div class="content-body reveal d2">
+      <p>Specs are defined per Token — not per Brain. Whether the Spec originates from a Person Brain, a Domain Brain, or a Project Brain, the structure is identical. The Token fields do not change based on which Brain produced them.</p>
+      <p>This means a Team Brain and a Home Brain both emit the same <em>cognitive_load</em> field with the same five required keys. A device reading one type of Brain does not need a different parser for another.</p>
+    </div>
+
+    <div class="mb-grid reveal d3">
+      <div class="mb-card">
+        <p class="mb-name">Person Brain</p>
+        <p class="mb-note">Emits <em>cognitive_load, social_exposure</em>. Same fields, person-specific sources.</p>
+      </div>
+      <div class="mb-card">
+        <p class="mb-name">Domain Brain</p>
+        <p class="mb-note">Finance, health, travel — each Brain emits the same Token fields. Domain changes the values, not the schema.</p>
+      </div>
+      <div class="mb-card">
+        <p class="mb-name">Project Brain (P4)</p>
+        <p class="mb-note">Enterprise Brain instances produce the same Spec contract. One parser reads all Brain types.</p>
+      </div>
+    </div>
+
+    <div class="callout reveal d3">
+      <p><strong>Brain is the memory entity. Spec is the output format.</strong> These are separate concerns. Switching from a Home Brain to an Enterprise Brain changes the memory model — not the Spec schema.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     F · VERSIONING
+     ═══════════════════════════════════════ -->
+<section class="sec sec-dim" id="versioning">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Forward compatibility</p>
+    <h2 class="content-title reveal d1">v1 → v2 → v3 without breaking old surfaces</h2>
+    <div class="content-body reveal d2">
+      <p>Context Grammar will keep evolving. New Tokens, new Dials, new AX Patterns will be added. A fridge UI built in 2026 should still work with a 2030 Spec. That requires versioning.</p>
+    </div>
+
+    <div class="versions-panel reveal d2">
+      <p class="versions-label">Spec version history</p>
+      <div class="ver-row">
+        <span class="ver-tag">v1.0</span>
+        <div class="ver-body">
+          <strong>Initial 7 Tokens.</strong> Cognitive Load · Physical State · Social Exposure · Priority Weight · Form Factor · Feasibility · Synchro Rate (predecessor to Autonomy). <em>Released 2025-12.</em>
         </div>
+      </div>
+      <div class="ver-row">
+        <span class="ver-tag">v1.2</span>
+        <div class="ver-body">
+          <strong>Synchro Rate renamed → Autonomy Dial.</strong> Behavior unchanged. <em>Old field kept as alias</em> — surfaces reading v1.0 continue working.
+        </div>
+      </div>
+      <div class="ver-row">
+        <span class="ver-tag">v2.0</span>
+        <div class="ver-body">
+          <strong>Disclosure Dial added → 8 Tokens.</strong> Old surfaces that do not read Disclosure keep working — a default value is injected. Only new surfaces respond to the Disclosure field.
+        </div>
+      </div>
+      <div class="ver-row">
+        <span class="ver-tag">v2.3</span>
+        <div class="ver-body">
+          <strong>Substitution Modes added to Spec.</strong> Exact · Flexible · Exploring · Surprise are selectable. A P1 v1 fridge UI stays on <em>Exact</em> and continues to work.
+        </div>
+      </div>
+      <div class="ver-row">
+        <span class="ver-tag">v3.0 (planned)</span>
+        <div class="ver-body">
+          <strong>Multi-Person Orchestration as a first-class concept.</strong> One Spec represents the full family's state. Surfaces reading v2 extract a single person's slice and continue working.
+        </div>
+      </div>
+    </div>
+
+    <p class="sec-label reveal d2" style="margin-top: 40px;">Three forward-compatibility rules</p>
+
+    <div class="compat-rules reveal d3">
+      <div class="compat-card compat-ok">
+        <p class="compat-num">01</p>
+        <p class="compat-rule">Add new fields — always allowed</p>
+        <p class="compat-note">Old surfaces ignore unknown fields. No breakage.</p>
+      </div>
+      <div class="compat-card compat-no">
+        <p class="compat-num">02</p>
+        <p class="compat-rule">Delete fields — never allowed</p>
+        <p class="compat-note">Old surfaces will break. Keep as alias instead.</p>
+      </div>
+      <div class="compat-card compat-no">
+        <p class="compat-num">03</p>
+        <p class="compat-rule">Change a field's meaning — never allowed</p>
+        <p class="compat-note">Give the new concept a new name. Rename, don't redefine.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     G · ANATOMY TABLE
+     ═══════════════════════════════════════ -->
+<section class="sec" id="anatomy">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Spec anatomy</p>
+    <h2 class="content-title reveal d1">Five fields every Spec must include</h2>
+
+    <figure class="reveal d1" style="background:transparent;border:none;max-width:100%;margin:24px 0 32px;padding:0;">
+      <img src="../images/ISO-GREEN/IF_Specs_04_ArchitectureTutorial.png"
+           alt="An engineer plugging a Context Brain module into a server rack — representing the technical, machine-readable Spec contract"
+           loading="lazy" style="width:100%;height:auto;">
+    </figure>
+
+    <div class="content-body reveal d2">
+      <p>Any Spec with these five fields is machine-readable, reviewable, and evolvable. This is the minimum contract.</p>
+    </div>
+
+    <table class="scale-table reveal d2">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>What it declares</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>token_id</td>
+          <td>Which Token this entry describes</td>
+          <td><em>cognitive_load</em></td>
+        </tr>
+        <tr>
+          <td>value</td>
+          <td>The Token's current value (number, enum, or range)</td>
+          <td><em>0.82</em> (0.0–1.0 scale)</td>
+        </tr>
+        <tr>
+          <td>confidence</td>
+          <td>How certain the estimate is</td>
+          <td><em>0.74</em> (74% confidence)</td>
+        </tr>
+        <tr>
+          <td>source</td>
+          <td>Where the value came from</td>
+          <td><em>calendar+activity+time-of-day</em></td>
+        </tr>
+        <tr>
+          <td>projection_rules</td>
+          <td>Hints passed to the UI layer</td>
+          <td><em>voice_priority: true</em></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout reveal d3">
+      <p><strong>Confidence matters because Cognitive Load is estimated, not measured.</strong> At 70% confidence, the system treats a value as 70% reliable — triggering a check-in rather than silent action. This confidence value is the mechanical foundation of the Autonomy Dial: high confidence → Auto; low confidence → Suggest.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     H · Q&A
+     ═══════════════════════════════════════ -->
+<section class="sec sec-dim" id="qa">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Common questions</p>
+    <h2 class="content-title reveal d1">Q&amp;A</h2>
+
+    <div class="qa-item reveal d1">
+      <p class="qa-q">Q1. Who writes the Spec — designer or engineer?</p>
+      <div class="qa-a">
+        <strong>The designer writes it first.</strong> A Spec is not an implementation detail — it is a declaration of meaning. "The cognitive load in this scene is 0.82" is a design decision. The engineer then implements how each device translates that value into behavior. The Spec is a design artifact.
+      </div>
+    </div>
+
+    <div class="qa-item reveal d2">
+      <p class="qa-q">Q2. Does it have to be JSON? Can I use YAML or TOML?</p>
+      <div class="qa-a">
+        <strong>Any format works.</strong> JSON is easy for machines, YAML is easier for humans — that is the only difference. The Context Grammar Spec is valid in any format as long as the five fields are present. The existing <code>design-rules.yaml</code> is written in YAML. Structure matters, format does not.
+      </div>
+    </div>
+
+    <div class="qa-item reveal d2">
+      <p class="qa-q">Q3. What does the AI do when confidence is low?</p>
+      <div class="qa-a">
+        <strong>It asks or waits.</strong> If <em>cognitive_load.confidence = 0.45</em>, the system asks a minimal confirmation: "Is now a good time?" (Autonomy Dial shifts toward Suggest). If <em>confidence = 0.95</em>, it acts without asking (Autonomy Dial at Auto). The confidence field sets the AI's hesitation level.
+      </div>
+    </div>
+
+    <div class="qa-item reveal d3">
+      <p class="qa-q">Q4. What if the narrative and the Spec disagree?</p>
+      <div class="qa-a">
+        <strong>One of them is wrong — fix both.</strong> Narrative and Spec are two representations of the same fact. If they diverge, the design is incoherent. Check them together in review. Disagreement between the two is a design bug, not an editorial choice.
+      </div>
+    </div>
+
+    <div class="qa-item reveal d3">
+      <p class="qa-q">Q5. How is this different from OpenAPI or JSON Schema?</p>
+      <div class="qa-a">
+        <strong>Different layer, different purpose.</strong> OpenAPI defines the shape of API requests and responses. JSON Schema validates that data types are correct. Context Grammar Spec declares the meaning of a UX scene. A Spec can be described with JSON Schema — but its goal is not type validation, it is answering "what does this scene mean for the user?"
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     DOWNLOAD / USE
+     ═══════════════════════════════════════ -->
+<section class="sec sec-dim" id="use-it">
+  <div class="sec-inner--narrow">
+    <p class="sec-label reveal">Use it in your project</p>
+    <h2 class="content-title reveal d1">Everything you need to implement Context Grammar</h2>
+    <div class="content-body reveal d2">
+      <p>The spec is open. The SDK is zero-dependency TypeScript. The JSON Schema validates your <code style="font-family:var(--font-mono);font-size:0.92em">ContextState</code> at build time. All formats are designed to drop into any codebase.</p>
+    </div>
+    <div class="download-grid reveal d3">
+
+      <div class="download-card">
+        <div class="download-card__header">
+          <span class="download-card__badge download-card__badge--ts">TypeScript SDK</span>
+          <span class="download-card__version">v1.0.0-alpha.1</span>
+        </div>
+        <p class="download-card__desc">Pure function. Zero dependencies. Runs in any JS runtime. Input: 8 enums. Output: fired patterns, design rules, autonomy validity.</p>
+        <pre class="download-card__code">npm install @context-grammar/core</pre>
+        <a class="download-card__link" href="../sdk/README.md">README →</a>
+      </div>
+
+      <div class="download-card">
+        <div class="download-card__header">
+          <span class="download-card__badge">JSON Schema</span>
+          <span class="download-card__version">5 KB · validates ContextState</span>
+        </div>
+        <p class="download-card__desc">Use in your IDE, CI pipeline, or at runtime to validate that a <code style="font-family:var(--font-mono);font-size:0.92em">ContextState</code> object is well-formed before passing it to the engine.</p>
+        <a class="download-card__link" href="context-grammar.schema.json" download>context-grammar.schema.json ↓</a>
+      </div>
+
+      <div class="download-card">
+        <div class="download-card__header">
+          <span class="download-card__badge">TypeScript Types</span>
+          <span class="download-card__version">8 KB · full type definitions</span>
+        </div>
+        <p class="download-card__desc">All 8 token enums, <code style="font-family:var(--font-mono);font-size:0.92em">ContextState</code>, <code style="font-family:var(--font-mono);font-size:0.92em">EvaluationResult</code>, <code style="font-family:var(--font-mono);font-size:0.92em">AXPattern</code>, and design rule types. Works standalone — no SDK install required.</p>
+        <a class="download-card__link" href="context-grammar.d.ts" download>context-grammar.d.ts ↓</a>
+      </div>
+
+      <div class="download-card">
+        <div class="download-card__header">
+          <span class="download-card__badge">Token Spec</span>
+          <span class="download-card__version">YAML · 45 KB</span>
+        </div>
+        <p class="download-card__desc">All 8 Context Tokens — enum values, trigger conditions, estimation methods, and the Disclosure × Autonomy gate. Human-readable and machine-parseable.</p>
+        <a class="download-card__link" href="context-tokens-spec.yaml" download>context-tokens-spec.yaml ↓</a>
+      </div>
+
+      <div class="download-card">
+        <div class="download-card__header">
+          <span class="download-card__badge">Pattern Spec</span>
+          <span class="download-card__version">YAML · 26 KB</span>
+        </div>
+        <p class="download-card__desc">All 23 AX Patterns — trigger predicates, design rules, success criteria, cross-pattern composition rules, and substitution modes.</p>
+        <a class="download-card__link" href="ax-patterns-spec.yaml" download>ax-patterns-spec.yaml ↓</a>
+      </div>
+
+      <div class="download-card">
+        <div class="download-card__header">
+          <span class="download-card__badge">Implementation Guide</span>
+          <span class="download-card__version">Markdown · 11 KB</span>
+        </div>
+        <p class="download-card__desc">Step-by-step guide for integrating Context Grammar into a product: token estimation, Brain schema, rule engine wiring, and forward-compatibility rules.</p>
+        <a class="download-card__link" href="IMPLEMENTATION.md">IMPLEMENTATION.md →</a>
       </div>
 
     </div>
   </div>
 </section>
 
-<hr class="section-divider">
-
-<!-- ═══════════════════════════════════════
-     FULL YAML DOWNLOAD
-     ═══════════════════════════════════════ -->
-<section class="section sec-dark download-section">
-  <div class="section-inner">
-    <p class="sec-label">Download</p>
-    <h2 class="sec-title">完全なトークンスキーマ</h2>
-    <p class="sec-desc">完全版のcontext-tokens.yamlファイル。コピーして、フォークして、あなたのシステムに統合しよう。</p>
-
-    <div class="code-block-wrapper reveal">
-      <div class="code-block-header">
-        <span class="code-block-lang">context-tokens.yaml</span>
-        <button class="copy-btn" data-target="code-full" onclick="copyCode(this)">Copy</button>
-      </div>
-      <pre><code id="code-full"><span class="sy-comment"># Context Grammar — Token Schema v2.0</span>
-<span class="sy-comment"># License: CC BY 4.0</span>
-<span class="sy-comment"># https://intentfirst.ai/context-grammar/specs</span>
-
-<span class="sy-key">version</span><span class="sy-bracket">:</span> <span class="sy-str">"2.0"</span>
-<span class="sy-key">license</span><span class="sy-bracket">:</span> <span class="sy-str">"CC BY 4.0"</span>
-
-<span class="sy-key">tokens</span><span class="sy-bracket">:</span>
-
-  <span class="sy-comment"># ── Situation Tokens (1-6) ──</span>
-
-  <span class="sy-key">physical_state</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">stationary</span>, <span class="sy-str">walking</span>, <span class="sy-str">running</span>, <span class="sy-str">driving</span>, <span class="sy-str">resting</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">accelerometer</span>, <span class="sy-str">activity_recognition_api</span><span class="sy-bracket">]</span>
-    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">realtime</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
-
-  <span class="sy-key">cognitive_load</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>
-    <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0.0</span>, <span class="sy-num">1.0</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">time_of_day</span>, <span class="sy-str">calendar_density</span>, <span class="sy-str">recent_activity</span><span class="sy-bracket">]</span>
-    <span class="sy-key">update_frequency</span><span class="sy-bracket">:</span> <span class="sy-val">minutes</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★☆☆☆"</span>
-    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"estimation only — no direct measurement"</span>
-
-  <span class="sy-key">social_exposure</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">alone</span>, <span class="sy-str">trusted_person</span>, <span class="sy-str">acquaintance</span>, <span class="sy-str">public</span>, <span class="sy-str">authority</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">proximity_sensor</span>, <span class="sy-str">voice_id</span>, <span class="sy-str">calendar_context</span><span class="sy-bracket">]</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
-
-  <span class="sy-key">priority_weight</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
-    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
-      <span class="sy-key">current_urgency</span><span class="sy-bracket">:</span>
-        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">float</span>
-        <span class="sy-key">range</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-num">0</span>, <span class="sy-num">1</span><span class="sy-bracket">]</span>
-      <span class="sy-key">learned_patterns</span><span class="sy-bracket">:</span>
-        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
-        <span class="sy-key">items</span><span class="sy-bracket">:</span> <span class="sy-val">preference_rule</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
-
-  <span class="sy-key">form_factor</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">watch</span>, <span class="sy-str">phone</span>, <span class="sy-str">tablet</span>, <span class="sy-str">laptop</span>, <span class="sy-str">tv</span>, <span class="sy-str">car</span>, <span class="sy-str">ambient</span><span class="sy-bracket">]</span>
-    <span class="sy-key">source</span><span class="sy-bracket">:</span> <span class="sy-val">device_type</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★★☆"</span>
-
-  <span class="sy-key">feasibility</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
-    <span class="sy-key">properties</span><span class="sy-bracket">:</span>
-      <span class="sy-key">available_apis</span><span class="sy-bracket">:</span>
-        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
-      <span class="sy-key">constraints</span><span class="sy-bracket">:</span>
-        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
-      <span class="sy-key">alternatives</span><span class="sy-bracket">:</span>
-        <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">array</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
-
-  <span class="sy-comment"># ── Relationship Dials (7-8) ──</span>
-
-  <span class="sy-key">autonomy_dial</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">suggest</span>, <span class="sy-str">confirm</span>, <span class="sy-str">notify</span>, <span class="sy-str">auto</span><span class="sy-bracket">]</span>
-    <span class="sy-key">driven_by</span><span class="sy-bracket">:</span>
-      - <span class="sy-str">service_default</span>    <span class="sy-comment"># Netflix, Amazon already default high</span>
-      - <span class="sy-str">ai_adjustment</span>      <span class="sy-comment"># system learns trust level</span>
-      - <span class="sy-str">user_override</span>      <span class="sy-comment"># explicit user change</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★★★☆☆"</span>
-    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"not purely user-controlled — 3 forces model"</span>
-
-  <span class="sy-key">disclosure_dial</span><span class="sy-bracket">:</span>
-    <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-    <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">full</span>, <span class="sy-str">summary</span>, <span class="sy-str">existence</span>, <span class="sy-str">hidden</span><span class="sy-bracket">]</span>
-    <span class="sy-key">scope</span><span class="sy-bracket">:</span> <span class="sy-val">per_domain_per_person</span>
-    <span class="sy-key">readiness</span><span class="sy-bracket">:</span> <span class="sy-str">"★☆☆☆☆"</span>
-    <span class="sy-key">note</span><span class="sy-bracket">:</span> <span class="sy-str">"prerequisite for autonomy — hidden + auto is blocked"</span>
-
-<span class="sy-comment"># ── Intent ──</span>
-<span class="sy-comment"># Intent is separate from the 8 tokens.</span>
-<span class="sy-comment"># Can be explicit (user declares) or implicit</span>
-<span class="sy-comment"># (inferred from Token × Brain intersection).</span>
-
-<span class="sy-key">intent</span><span class="sy-bracket">:</span>
-  <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">object</span>
-  <span class="sy-key">properties</span><span class="sy-bracket">:</span>
-    <span class="sy-key">mode</span><span class="sy-bracket">:</span>
-      <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-      <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">explicit</span>, <span class="sy-str">implicit</span><span class="sy-bracket">]</span>
-    <span class="sy-key">substitution_mode</span><span class="sy-bracket">:</span>
-      <span class="sy-key">type</span><span class="sy-bracket">:</span> <span class="sy-val">enum</span>
-      <span class="sy-key">values</span><span class="sy-bracket">:</span> <span class="sy-bracket">[</span><span class="sy-str">exact</span>, <span class="sy-str">flexible</span>, <span class="sy-str">exploring</span>, <span class="sy-str">surprise</span><span class="sy-bracket">]</span></code></pre>
-    </div>
-  </div>
-</section>
-
-<hr class="section-divider">
-
-<!-- ═══════════════════════════════════════
-     DESIGN RULES REFERENCE
-     ═══════════════════════════════════════ -->
-<section class="section sec-dark">
-  <div class="section-inner">
-    <p class="sec-label">Rule Engine</p>
-    <h2 class="sec-title">デザインルール一覧</h2>
-    <p class="sec-desc">7カテゴリに整理された33のルール。各ルールはトークン状態を評価し、デザインの方向性を出力する。</p>
-
-    <div class="rules-table-wrap reveal">
-      <table class="rules-table">
-        <thead>
-          <tr>
-            <th>カテゴリ</th>
-            <th>ルール</th>
-            <th>方向性</th>
-            <th>パターン例</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>認知</td>
-            <td>R001 – R005</td>
-            <td class="dir-delegation">委譲</td>
-            <td>段階的開示、自動要約</td>
-          </tr>
-          <tr>
-            <td>社会</td>
-            <td>R006 – R010</td>
-            <td class="dir-adaptation">適応</td>
-            <td>プライバシーガード、オーディエンス対応コンテンツ</td>
-          </tr>
-          <tr>
-            <td>信頼</td>
-            <td>R011 – R015</td>
-            <td class="dir-escalation">エスカレーション</td>
-            <td>承認ゲート、開示チェック</td>
-          </tr>
-          <tr>
-            <td>デバイス</td>
-            <td>R016 – R020</td>
-            <td class="dir-adaptation">適応</td>
-            <td>フォームファクター最適化</td>
-          </tr>
-          <tr>
-            <td>優先度</td>
-            <td>R021 – R025</td>
-            <td class="dir-delegation">委譲</td>
-            <td>衝突解決</td>
-          </tr>
-          <tr>
-            <td>時間</td>
-            <td>R026 – R030</td>
-            <td class="dir-all">全方向</td>
-            <td>フェーズ適応型動作</td>
-          </tr>
-          <tr>
-            <td>マルチパーソン</td>
-            <td>R031 – R033</td>
-            <td class="dir-all">全方向</td>
-            <td>ユーザー別自律レベル</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
 
 <!-- ═══════════════════════════════════════
      CTA
      ═══════════════════════════════════════ -->
-<section class="cta sec-dark">
-  <div class="cta-inner">
-    <h2 class="cta-title">Context Grammarはオープンだ。<br>これで、つくろう。</h2>
+<section class="sec sec-dark sec-cta">
+  <div class="cta-inner reveal">
+    <h2 class="cta-title">The Spec is the handshake between design and execution.</h2>
+    <p class="cta-sub">Tokens define what to read. Brain provides the memory. Specs carry the meaning forward — to every device, every version.</p>
     <div class="cta-buttons">
-      <a href="../index.html" class="cta-btn cta-btn--primary">概要に戻る</a>
-      <a href="../../projects/index.html" class="cta-btn cta-btn--secondary">プロジェクトを見る</a>
+      <a href="../tokens/index.html" class="cta-btn cta-btn--primary">8 Context Tokens</a>
+      <a href="../brain/index.html" class="cta-btn cta-btn--secondary">Context Brain</a>
+      <a href="../rule-engine/index.html" class="cta-btn cta-btn--secondary">Rule Engine</a>
     </div>
+    <p style="margin-top: 28px; font-size: 13px; color: rgba(240,236,228,0.4); font-family: var(--font-mono); letter-spacing: 1px;">
+      <a href="../index.html" style="color: rgba(240,236,228,0.5); text-decoration: none; border-bottom: 1px solid rgba(240,236,228,0.15); padding-bottom: 2px;">&larr; Back to Context Grammar</a>
+    </p>
   </div>
 </section>
 
-</div><!-- /page -->
 
-<script src="../../../assets/js/nav.js" defer></script>
+<!-- ═══ CHAPTER NAV ═══ -->
+<div class="chapter-nav" data-current="specs" data-base="../"></div>
+<script src="../../assets/js/chapter-nav.js"></script>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <p class="footer-col-title">Framework</p>
+      <a href="../index.html">Context Grammar</a>
+      <a href="../tokens/index.html">8 Tokens</a>
+      <a href="../brain/index.html">Brain</a>
+      <a href="index.html" style="color: rgba(240,236,228,0.7);">Specs</a>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">More</p>
+      <a href="../trust-design/index.html">Trust Design</a>
+      <a href="../rule-engine/index.html">Rule Engine</a>
+      <a href="../ax-patterns/index.html">AX Patterns</a>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">Projects</p>
+      <a href="../../applied/index.html#project-01">The Living Home</a>
+      <a href="../../applied/index.html#project-02">The Family Trip</a>
+      <a href="../../applied/index.html#project-03">Fluid Handoff</a>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">About</p>
+      <a href="../../about/index.html">About Takao</a>
+      <a href="../../contact/index.html">Contact</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <img src="../../assets/logo/IF-lockup-white.svg" alt="intentFirst" class="footer-logo">
+    <span>Takao Umehara &middot; 2026</span>
+    <div class="footer-links">
+      <a href="../../index.html">Home</a>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="../../assets/js/ga-slots.js"></script>
+<script src="../../assets/js/green-animation.js" defer></script>
+<script src="../../assets/js/nav.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  initNav({ basePath: '../../../', activePage: 'specs', lang: 'ja', showLang: false });
-});
+  initNav({ basePath: '../../', activePage: 'specs', lang: 'en', showLang: false });
 
-// ── Copy button ──
-function copyCode(btn) {
-  var targetId = btn.getAttribute('data-target');
-  var codeEl = document.getElementById(targetId);
-  var text = codeEl.textContent;
-  navigator.clipboard.writeText(text).then(function() {
-    btn.textContent = 'Copied';
-    btn.classList.add('copied');
-    setTimeout(function() {
-      btn.textContent = 'Copy';
-      btn.classList.remove('copied');
-    }, 2000);
-  });
-}
+  // Scroll reveal
+  var reveals = document.querySelectorAll('.reveal');
+  if (!reveals.length) return;
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-// ── Scroll reveal ──
-var reveals = document.querySelectorAll('.reveal');
-var observer = new IntersectionObserver(function(entries) {
-  entries.forEach(function(entry) {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-reveals.forEach(function(el) {
-  observer.observe(el);
+  reveals.forEach(function(el) { observer.observe(el); });
 });
 </script>
+
 </body>
 </html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P4-01 Lead Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Noto Sans JP', system-ui, sans-serif;
+    padding: 20px;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: #000;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #fdfcfa;
+    border-radius: 34px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .phone-content::-webkit-scrollbar { display: none; }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #1a1816;
+    background: #fdfcfa;
+    padding-top: 16px;
+  }
+
+  .header {
+    padding: 12px 16px 8px;
+    background: #fdfcfa;
+    border-bottom: 1px solid #f0ece4;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1816;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+    color: #8a8580;
+    margin-top: 2px;
+  }
+
+  .content {
+    padding: 12px 12px 20px;
+  }
+
+  .lead-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #f0ece4;
+    position: relative;
+  }
+
+  .lead-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .lead-badge.hot {
+    background: #fde4e4;
+    color: #c1411c;
+  }
+
+  .lead-badge.warm {
+    background: #fef3e2;
+    color: #d97706;
+  }
+
+  .lead-badge.cool {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  .lead-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1816;
+    margin-bottom: 2px;
+    padding-right: 50px;
+  }
+
+  .lead-company {
+    font-size: 12px;
+    color: #8a8580;
+    margin-bottom: 8px;
+  }
+
+  .confidence-bar {
+    height: 6px;
+    background: #f0ece4;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .confidence-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .lead-card:nth-child(1) .confidence-fill {
+    width: 89%;
+    background: linear-gradient(90deg, #c1411c, #e74c3c);
+  }
+
+  .lead-card:nth-child(2) .confidence-fill {
+    width: 72%;
+    background: linear-gradient(90deg, #d97706, #f59e0b);
+  }
+
+  .lead-card:nth-child(3) .confidence-fill {
+    width: 65%;
+    background: linear-gradient(90deg, #0369a1, #0ea5e9);
+  }
+
+  .confidence-label {
+    font-size: 11px;
+    color: #8a8580;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .lead-signal {
+    font-size: 11px;
+    color: #6889b4;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .signal-dot {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #6889b4;
+  }
+
+  .time-indicator {
+    font-size: 10px;
+    color: #c9c4bc;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-screen">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span style="font-weight: 600;">●●●●●</span>
+    </div>
+
+    <div class="header">
+      <div class="header-title">300件の案件</div>
+      <div class="header-subtitle">今日やるべき3件</div>
+    </div>
+
+    <div class="phone-content">
+      <div class="content">
+        <!-- Lead 1: Hot -->
+        <div class="lead-card">
+          <div class="lead-badge hot">HOT</div>
+          <div class="lead-name">Sony Engineering</div>
+          <div class="lead-company">大規模デバイス生産</div>
+          <div class="confidence-bar">
+            <div class="confidence-fill"></div>
+          </div>
+          <div class="confidence-label">
+            <span>信頼度</span>
+            <span>89%</span>
+          </div>
+          <div class="lead-signal">
+            <span class="signal-dot"></span>
+            <span>昨日メール返信 • 予算確保中</span>
+          </div>
+          <div class="time-indicator">最適な連絡時刻: 9:00-10:30</div>
+        </div>
+
+        <!-- Lead 2: Warm -->
+        <div class="lead-card">
+          <div class="lead-badge warm">WARM</div>
+          <div class="lead-name">Toyota Logistics</div>
+          <div class="lead-company">物流最適化プロジェクト</div>
+          <div class="confidence-bar">
+            <div class="confidence-fill"></div>
+          </div>
+          <div class="confidence-label">
+            <span>信頼度</span>
+            <span>72%</span>
+          </div>
+          <div class="lead-signal">
+            <span class="signal-dot"></span>
+            <span>デモ完了 • 検討中</span>
+          </div>
+          <div class="time-indicator">最適な連絡時刻: 14:00-15:30</div>
+        </div>
+
+        <!-- Lead 3: Cool -->
+        <div class="lead-card">
+          <div class="lead-badge cool">COOL</div>
+          <div class="lead-name">Mitsubishi Energy</div>
+          <div class="lead-company">再生可能エネルギー</div>
+          <div class="confidence-bar">
+            <div class="confidence-fill"></div>
+          </div>
+          <div class="confidence-label">
+            <span>信頼度</span>
+            <span>65%</span>
+          </div>
+          <div class="lead-signal">
+            <span class="signal-dot"></span>
+            <span>初期接触済み • 提案待機</span>
+          </div>
+          <div class="time-indicator">最適な連絡時刻: 10:00-12:00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

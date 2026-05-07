@@ -3,104 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>リファレンス実装 — Context Grammarの実践</title>
-<meta name="description" content="Context Grammarが実際の生活でAIの振る舞いをどう変えるか。モックアップではなく、8つのトークンを適用した完全なシナリオ。">
+<title>応用プロジェクト — Context Grammarの実践</title>
+<meta name="description" content="Context GrammarがAIの振る舞いをどう変えるかを示す3つのシナリオ。モックアップではなく、8つのContext Tokenで動くプロトタイプ。">
+<meta property="og:title" content="応用プロジェクト — Context Grammarの実践">
+<meta property="og:description" content="Context GrammarがAIの振る舞いをどう変えるかを示す3つのシナリオ。モックアップではなく、8つのContext Tokenで動くプロトタイプ。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://intentfirst.ai/ja/applied/">
+<meta property="og:image" content="https://intentfirst.ai/assets/img/intentFirst-hero-m.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="応用プロジェクト — Context Grammarの実践">
+<meta name="twitter:description" content="Context GrammarがAIの振る舞いをどう変えるかを示す3つのシナリオ。モックアップではなく、8つのContext Tokenで動くプロトタイプ。">
+<meta name="twitter:image" content="https://intentfirst.ai/assets/img/intentFirst-hero-m.jpg">
+<link rel="canonical" href="https://intentfirst.ai/ja/applied/">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
 <link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
 <style>
-/* NAV */
-.nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  height: 56px;
-  background: rgba(253,252,250,0.7);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.5s var(--ease);
-}
-.nav.scrolled {
-  background: rgba(253,252,250,0.92);
-  border-bottom-color: rgba(26,24,22,0.06);
-}
-.nav-inner {
-  width: var(--max-w);
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 clamp(24px, 4vw, 48px);
-}
-.nav-logo { text-decoration: none; display: flex; align-items: center; }
-.nav-logo-img { height: 22px; width: auto; }
-.nav-links { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 28px); }
-.nav-links a {
-  font-size: 13px; font-weight: 400; color: var(--text-3);
-  text-decoration: none; transition: color 0.3s var(--ease);
-}
-.nav-links a:hover { color: var(--text); }
-.nav-links a[href="index.html"] { color: var(--text); font-weight: 500; }
-@media (max-width: 768px) {
-  .nav-links a:not(.nav-cta) { display: none; }
-}
-
-/* LANGUAGE SWITCHER */
-.lang-switch {
-  position: fixed;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  background: rgba(253,252,250,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  border-left: none;
-  border-radius: 0 10px 10px 0;
-  padding: 6px 8px;
-  box-shadow: 2px 2px 16px rgba(0,0,0,0.06);
-}
-.lang-switch a {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-decoration: none;
-  color: var(--text-3);
-  padding: 8px 6px;
-  transition: color 0.3s var(--ease);
-  line-height: 1;
-}
-.lang-switch a:hover { color: var(--text); }
-.lang-switch a.active {
-  color: var(--text);
-  font-weight: 700;
-}
-.lang-switch-divider {
-  width: 16px;
-  height: 1px;
-  background: var(--border);
-}
-@media (max-width: 768px) {
-  .lang-switch {
-    top: auto;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    flex-direction: row;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px 10px;
-    gap: 0;
-  }
-  .lang-switch-divider {
-    width: 1px;
-    height: 14px;
-  }
-}
-
 /* COMMON */
 .sec { padding: clamp(80px, 10vw, 140px) clamp(24px, 4vw, 48px); }
 .sec-inner { max-width: var(--max-w); margin: 0 auto; }
@@ -122,7 +41,7 @@
 .sec-sub {
   font-size: clamp(15px, 1.1vw, 17px);
   color: var(--text-2);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.7;
   max-width: 600px;
 }
@@ -167,20 +86,40 @@
   background-position: center;
   position: relative;
 }
-.project-card__num {
+/* Gradient overlay so text is readable */
+.project-card__img::after {
+  content: '';
   position: absolute;
-  top: 16px;
-  left: 16px;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.1) 55%, transparent 100%);
+  border-radius: 0;
+  pointer-events: none;
+}
+.project-card__num-block {
+  position: absolute;
+  bottom: 18px;
+  left: 22px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.project-card__num-label {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
-  letter-spacing: 1px;
-  color: rgba(255,255,255,0.8);
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 5px 14px;
-  border-radius: 8px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  line-height: 1;
+}
+.project-card__num {
+  font-family: var(--font-sans, inherit);
+  font-size: clamp(26px, 3vw, 40px);
+  font-weight: 600;
+  letter-spacing: -1px;
+  color: #ffffff;
+  line-height: 1;
 }
 
 .project-card__body {
@@ -218,7 +157,7 @@
 
 .project-card__desc {
   font-size: clamp(14px, 1vw, 16px);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.7;
   color: var(--text-2);
   margin-bottom: 20px;
@@ -259,7 +198,7 @@
 
 .cta-text {
   font-size: clamp(16px, 1.2vw, 18px);
-  font-weight: 300;
+  font-weight: 400;
   color: var(--text-2);
   line-height: 1.75;
   max-width: 640px;
@@ -312,180 +251,16 @@
 .footer a:hover { color: var(--color-grammar); }
 .footer-links { display: flex; gap: 16px; }
 
-/* HAMBURGER MENU */
-.hamburger-btn {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 40px;
-  height: 40px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 350;
-  -webkit-tap-highlight-color: transparent;
-}
-.hamburger-btn span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--text);
-  border-radius: 2px;
-  transition: all 0.3s var(--ease);
-}
-.hamburger-btn span:nth-child(2) { margin: 4px 0; }
-@media (max-width: 768px) {
-  .hamburger-btn { display: flex; }
-}
-
-/* Mobile menu overlay */
-.mobile-menu-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 300;
-  background: rgba(253,252,250,0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-12px);
-  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease), visibility 0.35s;
-}
-.mobile-menu-overlay.open {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-.mobile-menu-close {
-  position: absolute;
-  top: 12px;
-  right: 20px;
-  width: 44px;
-  height: 44px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-}
-.mobile-menu-close::before,
-.mobile-menu-close::after {
-  content: '';
-  position: absolute;
-  width: 22px;
-  height: 2px;
-  background: var(--text);
-  border-radius: 2px;
-}
-.mobile-menu-close::before { transform: rotate(45deg); }
-.mobile-menu-close::after { transform: rotate(-45deg); }
-.mobile-menu-nav {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.mobile-menu-nav a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 10px 32px;
-  font-family: var(--font-sans);
-  font-size: 18px;
-  font-weight: 400;
-  color: var(--text-2);
-  text-decoration: none;
-  border-radius: 12px;
-  transition: color 0.3s var(--ease), background 0.3s var(--ease);
-}
-.mobile-menu-nav a:hover { color: var(--text); background: rgba(26,24,22,0.04); }
-.mobile-menu-nav a.mobile-active { color: var(--text); font-weight: 500; }
-.mobile-menu-lang {
-  margin-top: 32px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.mobile-menu-lang a {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-decoration: none;
-  color: var(--text-3);
-  padding: 8px 16px;
-  border-radius: 8px;
-  transition: color 0.3s var(--ease), background 0.3s var(--ease);
-}
-.mobile-menu-lang a:hover { color: var(--text); }
-.mobile-menu-lang a.active { color: var(--text); font-weight: 700; background: rgba(26,24,22,0.04); }
-.mobile-menu-lang-divider {
-  width: 1px;
-  height: 16px;
-  background: var(--border);
-}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="nav" id="nav">
-  <div class="nav-inner">
-    <a href="../index.html" class="nav-logo"><img src="../../assets/logo/IF-lockup-black.svg" alt="intentFirst" class="nav-logo-img"></a>
-    <div class="nav-links">
-      <a href="../context-grammar/index.html">Context Grammar</a>
-      <a href="../../projects/index.html">Projects</a>
-      <a href="../industry/index.html">Industry</a>
-      <a href="../about/index.html">About</a>
-      <a href="../about/index.html#contact" class="nav-cta">Contact</a>
-    </div>
-  <button class="hamburger-btn" aria-label="Open menu">
-    <span></span><span></span><span></span>
-  </button>
-  </div>
-</nav>
-
-<!-- MOBILE MENU OVERLAY -->
-<div class="mobile-menu-overlay">
-  <button class="mobile-menu-close" aria-label="Close menu"></button>
-  <nav class="mobile-menu-nav">
-    <a href="../context-grammar/index.html">Context Grammar</a>
-    <a href="../../projects/index.html">Projects</a>
-    <a href="../industry/index.html">Industry</a>
-    <a href="../about/index.html">About</a>
-    <a href="../about/index.html#contact">Contact</a>
-  </nav>
-  <div class="mobile-menu-lang">
-    <a href="../../applied/index.html">EN</a>
-    <div class="mobile-menu-lang-divider"></div>
-    <a href="index.html" class="active">JA</a>
-  </div>
-</div>
-
-<div class="lang-switch">
-  <a href="../../applied/index.html">EN</a>
-  <div class="lang-switch-divider"></div>
-  <a href="index.html" class="active">JA</a>
-</div>
-
 <!-- HERO -->
 <section id="hero" class="sec">
   <div class="sec-inner">
-    <p class="sec-label reveal">Reference Implementations</p>
-    <h1 class="sec-title reveal d1">AIが人の文脈を読んだとき、<br>何が変わるのか。</h1>
-    <p class="sec-sub reveal d2">モックアップではない。Context Grammarが実際の生活でAIの振る舞いをどう変えるかを示す、完全なシナリオ。それぞれ異なる領域、異なる家族、異なる制約の中で8つのトークンを適用している。</p>
+    <p class="sec-label reveal">応用プロジェクト</p>
+    <h1 class="sec-title reveal d1">AIが人の状況を<br>読み取ったとき、何が起こるか。</h1>
+    <p class="sec-sub reveal d2">モックアップではない。Context GrammarがAIの振る舞いをどう変えるかを描く、完成したシナリオ。8つのTokenを、異なる領域、異なる家族、異なる制約のなかで動かしている。</p>
   </div>
 </section>
 
@@ -495,15 +270,18 @@
 <div class="project-grid">
 
   <!-- PROJECT 01 -->
-  <a href="../../projects/project-01/p1-growing-family.html" class="project-card reveal d2" id="project-01">
+  <a href="../../projects/project-01/p1-scroll.html" class="project-card reveal d2" id="project-01">
     <div class="project-card__img" style="background-image: url('../../projects/project-01/image-set02/IP-01_hero-fridge-v2.jpg');">
-      <span class="project-card__num">01</span>
+      <div class="project-card__num-block">
+        <span class="project-card__num-label">Project</span>
+        <span class="project-card__num">01</span>
+      </div>
     </div>
     <div class="project-card__body">
       <p class="project-card__label">The Living Home</p>
-      <p class="project-card__subtitle">意図の分解 &times; Context Grammar &times; 家族オーケストレーション</p>
+      <p class="project-card__subtitle">Intent Decomposition &times; Context Grammar &times; Family Orchestration</p>
       <h2 class="project-card__title">家族の文脈を学ぶAI。誰が何を食べるかを理解し、やがて自律する。</h2>
-      <p class="project-card__desc">初日のオンボーディングから半年後の自律まで。「今夜何にする？」という同じ問いが、誰が・いつ・どんな状態で聞いたかによって、まったく違う答えになる。Autonomy Dialは信頼の蓄積とともにSuggestからAutoへと移行していく。</p>
+      <p class="project-card__desc">初日のオンボーディングから半年後の自律まで。Samsungエコシステムのなかで、「今夜何にする？」という同じ問いが、誰が・いつ・どんな状態で発したかによって、まったく違う答えになる。家族のなかで信頼が積み上がるにつれて、Autonomy DialはSuggestからAutoへと動いていく。</p>
       <div class="token-badges">
         <span class="token-badge">Intent</span>
         <span class="token-badge">Priority Weight</span>
@@ -512,21 +290,21 @@
         <span class="token-badge">Cognitive Load</span>
         <span class="token-badge">Disclosure Dial</span>
       </div>
-      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+      <span class="project-card__cta">プロジェクトを見る &rarr;</span>
     </div>
   </a>
 
   <!-- HIDDEN: P2 — remove style="display:none" to restore -->
   <!-- PROJECT 02 -->
-  <a href="../../projects/project-02/p2-family-trip.html" class="project-card reveal d3" id="project-02" style="display:none">
+  <a href="../../projects/project-02/p2-scroll-v2.html" class="project-card reveal d3" id="project-02" style="display:none">
     <div class="project-card__img" style="background-image: url('../../projects/project-02/image-set02/P2_FamilyTrip/P2-IP01_hero-rain-temple-v2.jpg');">
       <span class="project-card__num">02</span>
     </div>
     <div class="project-card__body">
       <p class="project-card__label">The Family Trip</p>
-      <p class="project-card__subtitle">意図の分解 &times; Context Grammar &times; 使い捨てインターフェース</p>
-      <h2 class="project-card__title">ひとつの宣言から生まれ、旅が終われば消える使い捨てインターフェース。</h2>
-      <p class="project-card__desc">5人家族の京都14日間。雨のリプランニング、発熱時の危機対応、テレビでの家族投票。Trip Brainが5つのフェーズを通じて適応し、家族それぞれに異なるオートノミーレベルを同時に運用する。旅が終われば、学んだことはHome Brainに還元される。</p>
+      <p class="project-card__subtitle">Intent Decomposition &times; Context Grammar &times; Disposable Interface</p>
+      <h2 class="project-card__title">ひとつの宣言から生まれ、旅が終わると消えていく使い捨てインターフェース。</h2>
+      <p class="project-card__desc">5人家族の京都14日間。雨で立て直す行程、発熱時の危機対応、テレビでの家族投票。Trip Brainは5つのフェーズを通じて適応し、家族ひとりひとりに異なる自律レベルを同時にオーケストレーションする。旅が終われば、そこで学んだことはHome Brainへ還っていく。</p>
       <div class="token-badges">
         <span class="token-badge">Intent</span>
         <span class="token-badge">Feasibility</span>
@@ -535,20 +313,23 @@
         <span class="token-badge">Priority Weight</span>
         <span class="token-badge">Autonomy Dial</span>
       </div>
-      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+      <span class="project-card__cta">プロジェクトを見る &rarr;</span>
     </div>
   </a>
 
   <!-- PROJECT 03 -->
-  <a href="../../projects/project-03/p3-fluid-handoff-v3.html" class="project-card reveal d4" id="project-03">
-    <div class="project-card__img" style="background-image: url('../../projects/project-03/image-set03/generated/IP-01_hero-train-swipe-v2.jpg');">
-      <span class="project-card__num">03</span>
+  <a href="../../projects/project-03/p3-scroll.html" class="project-card reveal d4" id="project-03">
+    <div class="project-card__img" style="background-image: url('../../assets/img/p3/P3-hero-naomi-train-thumb.jpg');background-size:cover;background-position:center;">
+      <div class="project-card__num-block">
+        <span class="project-card__num-label">Project</span>
+        <span class="project-card__num">03</span>
+      </div>
     </div>
     <div class="project-card__body">
       <p class="project-card__label">Fluid Handoff</p>
-      <p class="project-card__subtitle">意図の翻訳 &times; デバイス変形 &times; 共同意思決定</p>
-      <h2 class="project-card__title">スマホからテレビへ、そしてお店へ。子供が決め、親が支払う。</h2>
-      <p class="project-card__desc">847件の検索結果を電車の中で20件に絞り、帰宅後はテレビで娘がD-padで選ぶ。父のスマホには価格だけが見える。Social Exposureが同じ画面でも人ごとに見える情報を変える。意図は宣言ではなく、インタラクションを通じて進化する。</p>
+      <p class="project-card__subtitle">Intent Translation &times; Form Factor Transformation &times; Shared Arbitration</p>
+      <h2 class="project-card__title">スマホからテレビへ、そしてお店へ。子が選び、親が支払う。</h2>
+      <p class="project-card__desc">電車のなかで847足のスニーカーが20足まで絞り込まれる。体験は帰宅後のテレビへと引き継がれ、娘はD-padで候補を選び、父のスマホからは価格情報だけが隠される。Social Exposureが、同じ画面でも誰に何が見えるかを切り替える。Intentは宣言で終わらず、インタラクションのなかで姿を変えていく。</p>
       <div class="token-badges">
         <span class="token-badge">Intent</span>
         <span class="token-badge">Physical State</span>
@@ -556,43 +337,67 @@
         <span class="token-badge">Form Factor</span>
         <span class="token-badge">Disclosure Dial</span>
       </div>
-      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+      <span class="project-card__cta">プロジェクトを見る &rarr;</span>
     </div>
   </a>
 
-  <a href="../projects/project-04/p4-scroll.html" class="project-card reveal d5" id="project-04">
-    <div class="project-card__img" style="background: linear-gradient(135deg, #1a1816 0%, #2a2520 50%, #3a3530 100%); display:flex; align-items:center; justify-content:center;">
-      <span class="project-card__num">04</span>
+  <!-- PROJECT 04 -->
+  <a href="../../projects/project-04/p4-scroll-v4.html" class="project-card reveal d5" id="project-04">
+    <div class="project-card__img" style="background-image: url('../../projects/project-04/images/p4-hero-office-morning.jpg');background-size:cover;background-position:center;">
+      <div class="project-card__num-block">
+        <span class="project-card__num-label">Project</span>
+        <span class="project-card__num">04</span>
+      </div>
     </div>
     <div class="project-card__body">
-      <p class="project-card__label">Project Atlas</p>
-      <p class="project-card__subtitle">Four Brains &times; Intent Fidelity &times; 組織の記憶</p>
-      <h2 class="project-card__title">意図が人を超えて残るとき、プロダクトは魂を失わない。</h2>
-      <p class="project-card__desc">月曜の朝、Priya（Product Owner、31歳）はブランドの「なぜ」を説明しきれない。Brand Brain / Research Brain / Living Meeting Brain / Project Brainの4つが、組織の記憶を文法化する。3年後、後任のArmanは初日からAtlas Archiveに繋がり、意図はスプリントと人を超えて生き続ける—家族のためのContext Grammarが、組織のスケールで動く。</p>
+      <p class="project-card__label">Enterprise Context Brain</p>
+      <p class="project-card__subtitle">Enterprise Context Grammar &times; Five Brains</p>
+      <h2 class="project-card__title">ひとつのチーム、5年間。生き続けるひとつのIntent。</h2>
+      <p class="project-card__desc">Context Brainが組織にやってくる。Org Brainという永続的な土台の上に、Brand、Research、Project Master、Projectといった専門化されたBrainが重なっていく。Project 01で家庭を静かに動かしていたのと同じGrammarが、エンタープライズの規模までそのまま伸びていく。</p>
       <div class="token-badges">
-        <span class="token-badge">Social Exposure</span>
-        <span class="token-badge">Cognitive Load</span>
-        <span class="token-badge">Autonomy Dial</span>
-        <span class="token-badge">Priority Weight</span>
+        <span class="token-badge">Autonomy Matrix</span>
+        <span class="token-badge">Intent Match</span>
+        <span class="token-badge">Archive Replay</span>
       </div>
-      <span class="project-card__cta">プレゼンテーションを見る &rarr;</span>
+      <span class="project-card__cta">プロジェクトを見る &rarr;</span>
     </div>
   </a>
 
   <!-- HIDDEN: P5 — remove style="display:none" to restore -->
-  <a href="../projects/project-05/p5-scroll-v2.html" class="project-card reveal d6" id="project-05" style="display:none">
+  <!-- PROJECT 05 -->
+  <a href="../../projects/project-05/p5-scroll-v2.html" class="project-card reveal d6" id="project-05" style="display:none">
     <div class="project-card__img" style="background-image: url('../../projects/project-05/images/p5-hero-five-surfaces.jpg');background-size:cover;background-position:center;">
       <span class="project-card__num">05</span>
     </div>
     <div class="project-card__body">
-      <p class="project-card__label">クロスサーフェス文法</p>
+      <p class="project-card__label">Cross-Surface Grammar</p>
       <p class="project-card__subtitle">Surface Vocabulary &times; Moment Composer &times; Preview Redaction</p>
-      <h2 class="project-card__title">1つのBrain。5つのサーフェス。それぞれが語る固有の言語。</h2>
-      <p class="project-card__desc">Inesがコペンハーゲンで目を覚ます。Watch、EarBuds、Phone、TV、Kitchen Display — すべて同じBrainに同期している。Context Grammarは3つのTokenを読み取り、各通知を最適なサーフェスへ、最適な形で、最適なタイミングで届ける。</p>
+      <h2 class="project-card__title">ひとつのBrain、5つのサーフェス。それぞれが自分の言葉で話す。</h2>
+      <p class="project-card__desc">コペンハーゲンで目を覚ますInes。Watch、EarBuds、Phone、TV、Kitchen Display — すべてが同じBrainに同期している。Context Grammarが3つのTokenを読み、ふさわしいサーフェスに、ふさわしい形で、ふさわしい瞬間にそれぞれの通知を届ける。</p>
       <div class="token-badges">
         <span class="token-badge">Form Factor</span>
         <span class="token-badge">Cognitive Load</span>
         <span class="token-badge">Social Exposure</span>
+      </div>
+      <span class="project-card__cta">ケーススタディを読む &rarr;</span>
+    </div>
+  </a>
+
+  <!-- HIDDEN: P6 — remove style="display:none" to restore -->
+  <!-- PROJECT 06 -->
+  <a href="../../projects/project-06/p6-life-brain-v2.html" class="project-card reveal d7" id="project-06" style="display:none">
+    <div class="project-card__img" style="background-image: url('../../assets/img/p6/P6-hero-predawn-sm.png');background-size:cover;background-position:center;">
+      <span class="project-card__num">06</span>
+    </div>
+    <div class="project-card__body">
+      <p class="project-card__label">Life Brain</p>
+      <p class="project-card__subtitle">Protected Rituals &times; Forgotten Intent Retrieval</p>
+      <h2 class="project-card__title">考えうる最小のスケールのBrain — ひとりの人。</h2>
+      <p class="project-card__desc">LenaとHarukiの1か月。ユーザーがあらかじめ宣言したGrammarの上で、ひとつのLife Brainと4つのDomain Agentが動く。自律性はドメインごとに違う。Protected Ritualsが、AIが立ち入ってはいけない時間を守る。</p>
+      <div class="token-badges">
+        <span class="token-badge">Autonomy Dial</span>
+        <span class="token-badge">Protected Rituals</span>
+        <span class="token-badge">Forgotten Intent</span>
       </div>
       <span class="project-card__cta">ケーススタディを読む &rarr;</span>
     </div>
@@ -605,7 +410,7 @@
 <!-- BOTTOM CTA -->
 <section id="cta">
   <div class="sec-inner">
-    <p class="cta-text reveal">Context Grammarは進化を続けるフレームワークです。ここに紹介した5つの応用例を通じて、設計言語の可能性をお確かめください。</p>
+    <p class="cta-text reveal">Context Grammarは進化を続けるフレームワーク。ここに並べた3つは、最初の応用例にすぎない。Substackで最新の展開をお届けしている。</p>
     <div class="cta-subscribe reveal d1">
       <a href="https://intentfirst.substack.com">Substackで購読 &rarr;</a>
     </div>
@@ -620,7 +425,7 @@
     <div class="footer-links">
       <a href="https://www.linkedin.com/in/takaoumehara/" target="_blank">LinkedIn</a>
       <a href="https://intentfirst.substack.com" target="_blank">Substack</a>
-      <a href="mailto:takaoumehara@gmail.com">Contact</a>
+      <a href="mailto:takaoumehara@gmail.com">お問い合わせ</a>
     </div>
   </div>
 </footer>
@@ -637,40 +442,9 @@ const io = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.08 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-// Nav style on scroll
-const nav = document.getElementById('nav');
-const hero = document.getElementById('hero');
-new IntersectionObserver(([e]) => {
-  nav.classList.toggle('scrolled', !e.isIntersecting);
-}, { threshold: 0.05 }).observe(hero);
-
-// Mobile Hamburger Menu
-(function(){
-  const btn = document.querySelector('.hamburger-btn');
-  const overlay = document.querySelector('.mobile-menu-overlay');
-  const closeBtn = document.querySelector('.mobile-menu-close');
-  if (!btn || !overlay) return;
-
-  function openMenu() {
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeMenu() {
-    overlay.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  btn.addEventListener('click', openMenu);
-  closeBtn.addEventListener('click', closeMenu);
-  overlay.querySelectorAll('.mobile-menu-nav a, .mobile-menu-lang a').forEach(function(link) {
-    link.addEventListener('click', closeMenu);
-  });
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) closeMenu();
-  });
-})();
 </script>
+<script src="../../assets/js/nav.js"></script>
+<script>initNav({ basePath: '../../', activePage: 'projects', lang: 'ja', showLang: false });</script>
 
 </body>
 </html>

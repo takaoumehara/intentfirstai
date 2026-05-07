@@ -119,23 +119,37 @@
 /* ─── Slide-in panel (full titles) ── */
 .tocr__panel {
   position: absolute;
-  left: 28px; top: 0;
+  left: 28px; top: 0; bottom: 0;
   width: 300px;
-  max-height: 100vh;
-  overflow-y: auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--bg, #fff);
   border-right: 1px solid var(--border, rgba(0,0,0,0.1));
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
   box-shadow: 24px 0 48px rgba(0, 0, 0, 0.06);
-  padding: 80px 24px 48px;
+  padding: 0;
   opacity: 0;
   transform: translateX(-14px);
   pointer-events: none;
   transition: opacity 0.28s ease, transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
   font-family: var(--font-sans, system-ui);
 }
-.tocr__panel::-webkit-scrollbar { width: 0; }
+.tocr__panel-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 64px 24px 24px;
+  scrollbar-width: thin;
+}
+.tocr__panel-scroll::-webkit-scrollbar { width: 6px; }
+.tocr__panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.10);
+  border-radius: 3px;
+}
+.tocr[data-ctx="dark"] .tocr__panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(240, 236, 228, 0.14);
+}
 
 /* Panel opens on any hover within the TOC root — more reliable than sibling-selector. */
 .tocr:hover .tocr__panel,
@@ -605,4 +619,102 @@ a.tocr__project:hover .tocr__project-arrow {
   .tocr__panel,
   .tocr__tick,
   .tocr__chapter-label { transition: none !important; }
+}
+
+/* ═══ FONT SIZE SCALE (global, applied via TOC control) ═══════
+   Continuous incremental scale. The actual scaling is performed
+   in toc-rail.js by computing each text node's natural size and
+   multiplying by --fscale. CSS exposes the variable for any opt-in
+   declarations, but JS does the heavy lifting. */
+:root { --fscale: 1; }
+
+/* ─── Font size control inside TOC panel (sticky footer) ─── */
+.tocr__font-ctrl {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 14px 24px 18px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg, #fff);
+}
+.tocr[data-ctx="dark"] .tocr__font-ctrl {
+  border-top-color: rgba(240, 236, 228, 0.10);
+  background: var(--bg, #08070b);
+}
+.tocr__font-ctrl-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 6px;
+}
+.tocr__font-ctrl-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+}
+.tocr[data-ctx="dark"] .tocr__font-ctrl-label {
+  color: rgba(240, 236, 228, 0.45);
+}
+.tocr__font-pct {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+  font-variant-numeric: tabular-nums;
+  min-width: 38px;
+  text-align: right;
+  padding-right: 4px;
+}
+.tocr[data-ctx="dark"] .tocr__font-pct { color: rgba(240, 236, 228, 0.78); }
+
+.tocr__font-btn {
+  width: 30px;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.65);
+  font-family: var(--font-sans, system-ui);
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 120ms, color 120ms, border-color 120ms, transform 120ms;
+}
+.tocr__font-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.07);
+  color: rgba(0, 0, 0, 0.92);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+.tocr__font-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.tocr__font-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.tocr__font-btn--reset {
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-family: var(--font-mono, monospace);
+  width: auto;
+  padding: 0 8px;
+  margin-left: 2px;
+}
+.tocr[data-ctx="dark"] .tocr__font-btn {
+  background: rgba(240, 236, 228, 0.05);
+  border-color: rgba(240, 236, 228, 0.1);
+  color: rgba(240, 236, 228, 0.7);
+}
+.tocr[data-ctx="dark"] .tocr__font-btn:hover:not(:disabled) {
+  background: rgba(240, 236, 228, 0.12);
+  border-color: rgba(240, 236, 228, 0.24);
+  color: #ededed;
 }

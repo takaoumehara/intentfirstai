@@ -1,840 +1,1993 @@
 <!DOCTYPE html>
 <html lang="ja" data-theme="dark">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Context Tokens — 6 + 2 | Context Grammar</title>
-<meta name="description" content="AIに「空気を読む力」を与える8つのContext Token。6つの状況センサーと2つの関係ダイヤル。Context Grammarの語彙を定義する。">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
-<link rel="stylesheet" href="../../../assets/css/tokens.css">
-<link rel="stylesheet" href="../../../assets/css/nav.css">
-<style>
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8つのContext Tokens — 6 + 2 | Context Grammar</title>
+  <meta name="description"
+    content="AIに「場の空気」を読む直感を与える、8つのContext Tokens。状況を読む6つのセンサーと、関係性を司る2つのダイヤル — 各トークンを、仕組み・シグナル源・禁じ手まで踏み込んで解説。">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../../assets/css/components.css">
+  <link rel="stylesheet" href="../../../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../../../assets/css/nav.css">
+  <link rel="stylesheet" href="../../../assets/css/green-animation.css">
+  <link rel="stylesheet" href="../../../assets/css/glossary.css">
+  <link rel="stylesheet" href="../../../assets/css/cg-restaurant-aside.css">
+  <link rel="stylesheet" href="../../../assets/css/simulator-cta.css">
+  <link rel="stylesheet" href="../../../assets/css/toc-rail.css">
 
-/* ═══ COMMON ═══ */
-.sec-label { font-family: var(--font-mono); font-size: clamp(10px, 0.8vw, 13px); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; }
-.sec-title { font-weight: 500; font-size: clamp(28px, 3.2vw, 50px); line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 16px; }
-.sec-title em { font-style: normal; color: var(--color-grammar); }
-.sec-desc { font-size: clamp(15px, 1.1vw, 18px); font-weight: 300; color: var(--text-2); line-height: 1.75; max-width: 620px; }
-
-/* ═══ HERO ═══ */
-.hero {
-  background: #08070b;
-  color: #f0ece4;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: clamp(100px, 14vh, 160px) clamp(24px, 5vw, 80px) clamp(60px, 8vh, 100px);
-  position: relative;
-  overflow: hidden;
-}
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(74,106,144,0.06), transparent);
-  pointer-events: none;
-}
-.hero-label {
-  font-family: var(--font-mono);
-  font-size: clamp(11px, 0.85vw, 13px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(240,236,228,0.3);
-  margin-bottom: 28px;
-  opacity: 0;
-  animation: fadeUp 0.8s 0.2s forwards;
-}
-.hero-title {
-  font-weight: 500;
-  font-size: clamp(36px, 5vw, 72px);
-  line-height: 1.06;
-  letter-spacing: -2.5px;
-  margin-bottom: 24px;
-  max-width: 800px;
-  opacity: 0;
-  animation: fadeUp 0.8s 0.4s forwards;
-}
-.hero-sub {
-  font-size: clamp(15px, 1.15vw, 19px);
-  font-weight: 300;
-  color: rgba(240,236,228,0.45);
-  max-width: 580px;
-  line-height: 1.75;
-  margin: 0 auto;
-  opacity: 0;
-  animation: fadeUp 0.8s 0.6s forwards;
-}
-
-/* ═══ CONTENT SECTIONS ═══ */
-.content-section {
-  padding: clamp(60px, 8vh, 100px) clamp(24px, 5vw, 80px);
-  display: flex;
-  justify-content: center;
-}
-.content-section--light { background: var(--bg); }
-.content-section--alt { background: var(--bg-2); }
-.content-section--dark { background: #08070b; color: #f0ece4; }
-.content-inner {
-  width: 100%;
-  max-width: 900px;
-}
-
-/* ═══ INTRO PROSE ═══ */
-.prose { max-width: 680px; }
-.prose p {
-  font-size: clamp(15px, 1.1vw, 18px);
-  font-weight: 400;
-  line-height: 1.8;
-  color: var(--text-2);
-  margin-bottom: 1.2em;
-}
-.prose p:last-child { margin-bottom: 0; }
-.prose strong {
-  font-weight: 600;
-  color: var(--text);
-}
-.content-section--dark .prose p { color: rgba(240,236,228,0.55); }
-.content-section--dark .prose strong { color: #f0ece4; }
-
-/* ═══ TOKEN CARDS ═══ */
-.token-grid {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(16px, 2vw, 24px);
-  margin-top: clamp(28px, 4vw, 48px);
-}
-.token-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--illust-blue);
-  border-radius: 0;
-  padding: clamp(24px, 2.5vw, 36px);
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: clamp(16px, 2vw, 28px);
-  align-items: start;
-  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
-}
-.token-card:hover {
-  border-color: var(--border-hover);
-  border-left-color: var(--illust-blue);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-}
-.token-card--dial {
-  border-left-color: var(--illust-amber);
-}
-.token-card--dial:hover {
-  border-left-color: var(--illust-amber);
-}
-
-.token-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 600;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.token-badge--blue {
-  background: var(--chip-blue-bg);
-  color: var(--chip-blue-text);
-}
-.token-badge--amber {
-  background: var(--chip-amber-bg);
-  color: var(--chip-amber-text);
-}
-
-.token-body { display: flex; flex-direction: column; gap: 10px; }
-.token-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.token-name {
-  font-size: clamp(18px, 1.4vw, 22px);
-  font-weight: 500;
-  letter-spacing: -0.5px;
-  color: var(--text);
-}
-.token-tagline {
-  font-size: clamp(14px, 1vw, 16px);
-  font-weight: 300;
-  color: var(--text-3);
-}
-.token-desc { display: flex; flex-direction: column; gap: 14px; }
-.token-metaphor, .token-tech {
-  font-size: clamp(14px, 1vw, 16px);
-  line-height: 1.7;
-  color: var(--text-2);
-  font-weight: 400;
-}
-.token-metaphor-label, .token-tech-label {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-weight: 500;
-  display: block;
-  margin-bottom: 4px;
-}
-.token-metaphor-label { color: var(--color-grammar); }
-.token-tech-label { color: var(--text-3); }
-
-/* Readiness badge */
-.readiness {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  padding: 4px 10px;
-  border-radius: 100px;
-  border: 1px solid var(--border);
-  background: var(--bg-2);
-  color: var(--text-2);
-  margin-top: 4px;
-  width: fit-content;
-}
-.readiness-stars { letter-spacing: 1px; }
-
-/* ═══ INSIGHT CALLOUT ═══ */
-.insight {
-  padding: clamp(16px, 1.5vw, 24px);
-  background: rgba(74,106,144,0.04);
-  border: 1px solid rgba(74,106,144,0.12);
-  border-radius: 0;
-  margin-top: 8px;
-}
-.insight--amber {
-  background: rgba(122,85,32,0.04);
-  border-color: rgba(122,85,32,0.12);
-}
-.insight-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: var(--color-grammar);
-  margin-bottom: 6px;
-  display: block;
-}
-.insight--amber .insight-label { color: var(--color-intent); }
-.insight p {
-  font-size: clamp(14px, 1vw, 16px);
-  line-height: 1.7;
-  color: var(--text-2);
-  margin: 0;
-  font-weight: 400;
-}
-
-/* ═══ FORMULA SECTION ═══ */
-.formula-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(12px, 2vw, 28px);
-  flex-wrap: wrap;
-  margin-top: clamp(32px, 5vw, 56px);
-  padding: clamp(32px, 4vw, 56px) clamp(16px, 2vw, 32px);
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 0;
-}
-.formula-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  text-align: center;
-  min-width: 140px;
-}
-.formula-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-.formula-icon--blue { background: var(--chip-blue-bg); color: var(--chip-blue-text); }
-.formula-icon--amber { background: var(--chip-amber-bg); color: var(--chip-amber-text); }
-.formula-icon--green { background: var(--chip-green-bg); color: var(--chip-green-text); }
-.formula-label {
-  font-size: clamp(13px, 1vw, 15px);
-  font-weight: 500;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-.formula-sub {
-  font-size: clamp(12px, 0.85vw, 14px);
-  color: var(--text-3);
-  font-weight: 300;
-}
-.formula-arrow {
-  font-size: clamp(20px, 2vw, 28px);
-  color: var(--text-3);
-  font-weight: 300;
-}
-
-/* ═══ CTA SECTION ═══ */
-.cta {
-  background: #08070b;
-  color: #f0ece4;
-  padding: clamp(80px, 10vh, 120px) clamp(24px, 5vw, 80px);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-.cta::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(106,74,144,0.05), transparent);
-  pointer-events: none;
-}
-.cta-title {
-  font-size: clamp(26px, 3.2vw, 48px);
-  font-weight: 500;
-  letter-spacing: -1.5px;
-  line-height: 1.1;
-  margin-bottom: 16px;
-  position: relative;
-}
-.cta-sub {
-  font-size: clamp(15px, 1.1vw, 18px);
-  font-weight: 300;
-  color: rgba(240,236,228,0.45);
-  max-width: 480px;
-  line-height: 1.7;
-  margin-bottom: 36px;
-  position: relative;
-}
-.cta-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-  position: relative;
-}
-.cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 28px;
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 0;
-  transition: all 0.3s var(--ease);
-}
-.cta-btn--primary {
-  background: #f0ece4;
-  color: #08070b;
-}
-.cta-btn--primary:hover {
-  background: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(240,236,228,0.12);
-}
-.cta-btn--ghost {
-  background: transparent;
-  color: rgba(240,236,228,0.6);
-  border: 1px solid rgba(240,236,228,0.12);
-}
-.cta-btn--ghost:hover {
-  color: #f0ece4;
-  border-color: rgba(240,236,228,0.3);
-}
-
-/* ═══ SECTION DIVIDER ═══ */
-.section-divider {
-  width: 100%;
-  padding: clamp(18px, 2.5vh, 28px) clamp(24px, 5vw, 80px);
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: clamp(12px, 0.9vw, 14px);
-  font-weight: 500;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #fff;
-}
-.section-divider--grammar { background: var(--color-grammar); }
-.section-divider--intent { background: var(--color-intent); }
-
-/* ═══ FOOTER ═══ */
-.footer {
-  background: var(--bg);
-  text-align: center;
-  padding: 40px 24px;
-  font-size: 13px;
-  color: var(--text-3);
-}
-.footer a {
-  color: var(--text-2);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-.footer a:hover { color: var(--color-grammar); }
-
-/* ═══ STAGES LIST (Autonomy Dial) ═══ */
-.stages {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 12px 0 8px;
-}
-@media (max-width: 600px) { .stages { grid-template-columns: repeat(2, 1fr); } }
-.stage {
-  padding: 10px 12px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  text-align: center;
-}
-.stage-num {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 3px;
-}
-.stage-name {
-  font-size: clamp(13px, 1vw, 15px);
-  font-weight: 500;
-  color: var(--text);
-}
-
-/* ═══ DISCLOSURE LEVELS ═══ */
-.levels {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 12px 0 8px;
-}
-@media (max-width: 600px) { .levels { grid-template-columns: repeat(2, 1fr); } }
-.level {
-  padding: 10px 12px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 0;
-  text-align: center;
-}
-.level-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 3px;
-}
-.level-name {
-  font-size: clamp(13px, 1vw, 15px);
-  font-weight: 500;
-  color: var(--text);
-}
-
-/* ═══ MOBILE ═══ */
-@media (max-width: 768px) {
-  .token-card { grid-template-columns: 1fr; }
-  .token-badge { margin-bottom: -4px; }
-  .formula-row { flex-direction: column; }
-  .formula-arrow { transform: rotate(90deg); }
-}
-
-/* ═══ ANIMATION ═══ */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-</style>
-</head>
-<body data-dark-nav>
-
-<!-- ═══════════════════════════════════════
-     HERO
-     ═══════════════════════════════════════ -->
-<section class="hero">
-  <div class="hero-label">Context Grammar / Grammar</div>
-  <h1 class="hero-title">AIに「空気を読む力」を<br>与える8つのToken</h1>
-  <p class="hero-sub">優秀なウェイターは、話しかける前に空気を読む。Context Grammarは、同じ直感をAIに与える。8つの測定可能な次元で。</p>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     WHY TOKENS?
-     ═══════════════════════════════════════ -->
-<section class="content-section content-section--light">
-  <div class="content-inner">
-    <div class="sec-label" style="color: var(--color-grammar);">Why Tokens?</div>
-    <h2 class="sec-title reveal">「気づく」<em>ウェイター</em></h2>
-    <div class="prose reveal d1">
-      <p>優れたウェイターは、注文を取るだけではない。あなたが急いでいることに気づく。上司がテーブルにいることを察する。先週の火曜日にも来たことを覚えている。口調、タイミング、おすすめ。すべてを無言で調整する。</p>
-      <p><strong>今のAIは、泣いている客にデイリースペシャルを読み上げるウェイターである。</strong></p>
-      <p>何を頼まれたかは知っている。あなたの周りで何が起きているかは、まったく知らない。Context Tokenはそれを変える。6つの状況センサーと2つの関係ダイヤル。合計8つの次元で、AIに空気を読む力を与える。</p>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     PART 1 DIVIDER
-     ═══════════════════════════════════════ -->
-<div class="section-divider section-divider--grammar">6つの Situation Token</div>
-
-
-<!-- ═══════════════════════════════════════
-     6 SITUATION TOKENS
-     ═══════════════════════════════════════ -->
-<section class="content-section content-section--alt">
-  <div class="content-inner">
-    <div class="sec-label" style="color: var(--color-grammar);">Situation Tokens</div>
-    <h2 class="sec-title reveal"><em>今、何が起きているか</em>を読む6つのセンサー</h2>
-    <p class="sec-desc reveal d1">これらのトークンは、ユーザーの周囲の世界を記述する。入力信号である。AIが読み取る生のデータであり、ユーザーが操作する設定ではない。</p>
-
-    <div class="token-grid">
-
-      <!-- TOKEN 1 ─────────────────────────── -->
-      <div class="token-card reveal d1">
-        <div class="token-badge token-badge--blue">①</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Physical State</span>
-            <span class="token-tagline">体が今どういう状態か</span>
-          </div>
-          <div class="token-desc">
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              コートを半分脱ぎながら駆け込んでくる客。ウェイターはメニューより先に水を出す。土曜の夜、ゆっくり歩いてくるカップル。フルの挨拶、ワインリスト、急がない。同じレストラン。違うサービス。ウェイターが読んだのは予約情報ではない。体の状態である。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              Activity Recognition APIが歩行・走行・運転・静止を検出する。Galaxy Watchが心拍数、ストレス指数、睡眠負債を追加する。加速度センサーのデータは安価で信頼性が高い。課題は、これらの信号を「状態」という単一の値に統合し、デザイン判断に結びつけることである。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> ほぼ実用化済み
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOKEN 2 ─────────────────────────── -->
-      <div class="token-card reveal d2">
-        <div class="token-badge token-badge--blue">②</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Cognitive Load</span>
-            <span class="token-tagline">頭にどのくらい余裕があるか</span>
-          </div>
-          <div class="token-desc">
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              二人が身を乗り出し、手振りを交えて深い会話をしている。ウェイターは遠くから見守る。一人で天井を見つめ、周囲をぼんやり見回している客。ウェイターは近づく。Cognitive Loadを読むとは、「話しかけていい瞬間」と「邪魔してはいけない瞬間」の境界を読むことである。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              これは推定のみである。時間帯、カレンダーの密度、直近の行動パターン、過去10分間のアプリ切り替え回数。脳スキャナーはない。EEGもない。モデルは観察可能なプロキシから帯域幅を推測する。間違えることもある。正直さが重要である。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9733;&#9734;&#9734;&#9734;</span> 推測ベース、実測不可
-            </div>
-            <div class="insight">
-              <span class="insight-label">Honest Design Note</span>
-              <p>Cognitive Loadは最も推測的なトークンである。今日、直接測定する手段は存在しない。Context Grammarはこれを確実性ではなく推定レイヤーとして使う。このトークンに基づくデザイン判断には、必ず適切なフォールバックを用意すべきである。</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOKEN 3 ─────────────────────────── -->
-      <div class="token-card reveal d3">
-        <div class="token-badge token-badge--blue">③</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Social Exposure</span>
-            <span class="token-tagline">誰が画面を見ているか</span>
-          </div>
-          <div class="token-desc">
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              デートの夜。ウェイターはトーンを落とす。静かな提案。ポイントカードの割引には触れない。CEOとのビジネスランチ。雑談なし。正確なタイミング。テーブルに誰がいるかで、サービスのすべてが変わる。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              近接センサーが近くのデバイスを検出する。Voice IDが家族を識別する。SamsungのFamily Hubはすでに最大6人のプロフィールに対応している。視覚検出（オンデバイス）が人数密度を推定できる。課題は、すべてのデバイスに「今、公共の場にいる」か「一人でいる」かを伝える統一プロトコルである。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> ほぼ実用化済み
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOKEN 4 ─────────────────────────── -->
-      <div class="token-card reveal d4">
-        <div class="token-badge token-badge--blue">④</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Priority Weight</span>
-            <span class="token-tagline">衝突した時の優先順位</span>
-          </div>
-          <div class="token-desc">
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              子供にナッツアレルギーがある。料理はおいしくなければならない。会計は抑えたい。この3つが衝突したとき、アレルギーが勝つ。常に。優れたウェイターはこの順位を説明されなくても知っている。安全 > 味 > 値段。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              カレンダーの優先度、通知設定、GmailのPriority Inbox。断片は存在する。課題は、ドメインを横断する優先度の解決である。「会議が5分後に始まるが、娘の学校から電話がかかってきた」。ユーザーにルールを手動で作らせずに解決すること。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> 部分的に実用化
-            </div>
-            <div class="insight">
-              <span class="insight-label">Design Note</span>
-              <p>Priority Weightには2つのレイヤーがある。今の緊急度（このトークン）と、学習されたトレードオフのパターン（Brainに保存）である。トークンは「今、何が差し迫っているか」を捉え、Brainは「過去に似た衝突をどう解決したか」を記憶する。</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOKEN 5 ─────────────────────────── -->
-      <div class="token-card reveal d5">
-        <div class="token-badge token-badge--blue">⑤</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Form Factor</span>
-            <span class="token-tagline">周りにどんな画面があるか</span>
-          </div>
-          <div class="token-desc">
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              カウンター席。一皿ずつ、手早く、会話は最小限。個室。フルコースのプレゼンテーション、複数の皿、余韻を楽しむ空間。物理的な空間がサービスの形を決める。画面が体験の形を決める。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              デバイスの種類検出は簡単である。Samsung DeX、Apple CarPlay、Continuity Handoff。すべて実用化済みである。課題は、動的なマルチスクリーン配分である。「テレビがついていて、スマホを手に持っている」。それぞれの画面に何を表示するかを同時に変えること。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</span> ほぼ実用化済み
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOKEN 6 ─────────────────────────── -->
-      <div class="token-card reveal d6">
-        <div class="token-badge token-badge--blue">⑥</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Feasibility</span>
-            <span class="token-tagline">実際に今できることは何か</span>
-          </div>
-          <div class="token-desc">
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              「あの魚は今日売り切れです」。ダメなウェイターはそこで止まる。優れたウェイターはこう言う。「ですが、今朝入ったスズキを、同じ調理法でお出しできます」。Feasibilityとは「できない」と言うことではない。「代わりに何ができるか」を提案することである。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              在庫API、天気API、リアルタイム配送見積もり、営業時間。個別のフィージビリティチェックは成熟している。課題は、マルチ制約の最適化である。「雨が降っている + 店が20分で閉まる + 車にはチャイルドシートの子供がいる」。これらを単一のフィージビリティスコアに統合すること。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> 部分的に実用化
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     PART 2 DIVIDER
-     ═══════════════════════════════════════ -->
-<div class="section-divider section-divider--intent">2つの Relationship Dial</div>
-
-
-<!-- ═══════════════════════════════════════
-     2 RELATIONSHIP DIALS
-     ═══════════════════════════════════════ -->
-<section class="content-section content-section--light">
-  <div class="content-inner">
-    <div class="sec-label" style="color: var(--color-intent);">Relationship Dials</div>
-    <h2 class="sec-title reveal">AIの<span style="color: var(--color-intent);">行動範囲</span>を決める2つのダイヤル</h2>
-    <p class="sec-desc reveal d1">Situation Tokenは「何が起きているか」を記述する。Relationship Dialは「AIがそれに対して何をしてよいか」を制御する。センサーではない。境界線である。</p>
-
-    <div class="token-grid">
-
-      <!-- TOKEN 7 ─────────────────────────── -->
-      <div class="token-card token-card--dial reveal d1">
-        <div class="token-badge token-badge--amber">⑦</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Autonomy Dial</span>
-            <span class="token-tagline">どこまでAIに任せるか</span>
-          </div>
-          <div class="token-desc">
-            <div class="stages">
-              <div class="stage"><div class="stage-num">Stage 1</div><div class="stage-name">提案</div></div>
-              <div class="stage"><div class="stage-num">Stage 2</div><div class="stage-name">確認</div></div>
-              <div class="stage"><div class="stage-num">Stage 3</div><div class="stage-name">通知</div></div>
-              <div class="stage"><div class="stage-num">Stage 4</div><div class="stage-name">自動</div></div>
-            </div>
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              初来店。「こちらがメニューです。ごゆっくりどうぞ」。3回目。「いつものでよろしいですか?」。20回目。料理が勝手に出てくる。メニューから自動までの進行は、一貫性によって築かれた信頼である。初日にいきなりフリップするスイッチではない。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              Claude Codeは3段階のオートノミーモードを採用している。Cursor IDEにはオートノミースライダーがある。エージェントフレームワークではsuggest/confirm/autoパターンが標準である。課題は、消費者向けの段階的ダイヤル。ドメインごとに調整でき、単純なON/OFFではないもの。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9733;&#9733;&#9734;&#9734;</span> 開発ツールで実用化
-            </div>
-            <div class="insight insight--amber">
-              <span class="insight-label">Key Insight</span>
-              <p>Autonomy Dialは<strong>ユーザーだけが制御するものではない</strong>。3つの力が形を決める。サービスのデフォルト設定（Netflixは最初から高い）、観察された信頼パターンに基づくAIの調整、ユーザーの能動的な選択。Uber Eatsが再注文に許可を求めないのは、サービスのデフォルトがすでに高いオートノミーを前提としているからである。</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOKEN 8 ─────────────────────────── -->
-      <div class="token-card token-card--dial reveal d2">
-        <div class="token-badge token-badge--amber">⑧</div>
-        <div class="token-body">
-          <div class="token-header">
-            <span class="token-name">Disclosure Dial</span>
-            <span class="token-tagline">どこまでAIに知らせるか</span>
-          </div>
-          <div class="token-desc">
-            <div class="levels">
-              <div class="level"><div class="level-label">Level 1</div><div class="level-name">全開示</div></div>
-              <div class="level"><div class="level-label">Level 2</div><div class="level-name">要約</div></div>
-              <div class="level"><div class="level-label">Level 3</div><div class="level-name">存在のみ</div></div>
-              <div class="level"><div class="level-label">Level 4</div><div class="level-name">非開示</div></div>
-            </div>
-            <div class="token-metaphor">
-              <span class="token-metaphor-label">Restaurant</span>
-              ウェイターにアレルギー、記念日、ワインの好みを伝える。完璧な夜が手に入る。何も伝えない。汎用メニューと10分おきの「お料理いかがですか?」が手に入る。共有すればするほど、サービスは良くなる。だが、共有するかどうかは常にあなたが決める。
-            </div>
-            <div class="token-tech">
-              <span class="token-tech-label">Technology Reality</span>
-              アプリレベルの権限は存在する。Gemini Connected Appsではデータを共有するサービスを選択できる。Samsungのプライバシーダッシュボードがアクセス状況を表示する。課題は、ドメイン横断の統一ダイヤルである。「健康AIには全開示、買い物には要約のみ、SNSには非開示」。一つのインターフェースで、きめ細かい制御を実現すること。
-            </div>
-            <div class="readiness">
-              <span class="readiness-stars">&#9733;&#9734;&#9734;&#9734;&#9734;</span> コンセプト段階
-            </div>
-            <div class="insight insight--amber">
-              <span class="insight-label">Key Insight</span>
-              <p>DisclosureはAutonomyの<strong>前提条件</strong>である。「AIに何も教えるな」と言いながら「すべてを自動でやれ」とは言えない。その組み合わせは論理的に危険である。Autonomy Dialが前進するには、まずDisclosure Dialが開かなければならない。</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     THE CORE FORMULA
-     ═══════════════════════════════════════ -->
-<section class="content-section content-section--alt">
-  <div class="content-inner">
-    <div class="sec-label" style="color: var(--color-grammar);">The Core Formula</div>
-    <h2 class="sec-title reveal"><em>信号</em>からデザインルールへ</h2>
-    <p class="sec-desc reveal d1">8つのトークン。1つのエンジン。無限の組み合わせ。それらがどう繋がるか。</p>
-
-    <div class="formula-row reveal d2">
-      <div class="formula-block">
-        <div class="formula-icon formula-icon--blue">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-        </div>
-        <div class="formula-label">6 Situation Tokens</div>
-        <div class="formula-sub">「今、何が起きているか」</div>
-      </div>
-      <div class="formula-arrow">+</div>
-      <div class="formula-block">
-        <div class="formula-icon formula-icon--amber">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div class="formula-label">2 Relationship Dials</div>
-        <div class="formula-sub">「AIの行動範囲」</div>
-      </div>
-      <div class="formula-arrow">=</div>
-      <div class="formula-block">
-        <div class="formula-icon formula-icon--green">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        <div class="formula-label">Rule Engine</div>
-        <div class="formula-sub">デザインルールを生成</div>
-      </div>
-    </div>
-
-    <div class="prose reveal d3" style="margin-top: clamp(24px, 3vw, 40px);">
-      <p>6つのSituation Tokenが文脈を宣言する。2つのDialが境界を設定する。Rule Engineがその両方を受け取り、具体的なデザイン判断を生成する。何を表示するか、いつ割り込むか、どこまで詳細を見せるか、どのデバイスを使うか。</p>
-      <p>単一のトークンだけでは機能しない。急いでいるユーザー（Physical State）で、認知帯域が低く（Cognitive Load）、ビジネスディナー中で（Social Exposure）、ウォッチを見ている（Form Factor）。同じ人が、自宅でリラックスしながらテレビを見ているのとは、根本的に異なる体験を受ける。同じ人。同じAI。違うGrammar。</p>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     CTA
-     ═══════════════════════════════════════ -->
-<section class="cta">
-  <h2 class="cta-title reveal">語彙は揃った。<br>次は、AIがどう記憶するか。</h2>
-  <p class="cta-sub reveal d1">Context Tokenは「今この瞬間」を記述する。Brainは「あなたが誰か」を瞬間を超えて記憶する。両方が揃って初めて、AIは反応ではなく判断ができるようになる。</p>
-  <div class="cta-buttons reveal d2">
-    <a href="../brain/" class="cta-btn cta-btn--primary">Brainを探る &rarr;</a>
-    <a href="../" class="cta-btn cta-btn--ghost">概要に戻る &rarr;</a>
-  </div>
-</section>
-
-
-<!-- ═══ FOOTER ═══ -->
-<footer class="footer">
-  <p><a href="../">&larr; Context Grammarに戻る</a></p>
-  <p style="margin-top: 8px;">intentfirst.ai &middot; Takao Umehara &middot; 2026</p>
-</footer>
-
-
-<script>
-// ─── Scroll Reveal ───
-(function(){
-  var els = document.querySelectorAll('.reveal');
-  if (!els.length) return;
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
       }
-    });
-  }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-  els.forEach(function(el) { observer.observe(el); });
-})();
-</script>
-<script src="../../../assets/js/nav.js" defer></script>
-<script>initNav({ basePath: '../../../', activePage: 'tokens', lang: 'ja', showLang: false });</script>
+    }
+
+    /* ═══ COMMON ═══ */
+    .sec-title em { font-style: normal; color: var(--color-grammar); }
+
+    /* ═══ HERO ═══ */
+    .hero-label {
+      font-family: var(--font-sans);
+      font-size: clamp(18px, 1.8vw, 26px);
+      font-weight: 400;
+      letter-spacing: -0.2px;
+      text-transform: none;
+      color: rgba(240, 236, 228, 0.62);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    @media (max-width: 768px) {
+      .hero-illu { width: 90%; max-width: 380px; height: auto; }
+    }
+
+    /* ═══ TWO-GROUPS SECTION ═══ */
+    .groups-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 24px;
+      align-items: stretch;
+      margin: clamp(24px, 3vw, 40px) 0;
+    }
+    @media (max-width: 720px) {
+      .groups-grid { grid-template-columns: 1fr; }
+      .groups-divider { display: none; }
+    }
+    .groups-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: clamp(24px, 3vw, 36px);
+    }
+    .groups-card--situation { border-top: 3px solid var(--color-grammar); }
+    .groups-card--dial { border-top: 3px solid var(--color-intent); }
+    .groups-divider {
+      align-self: center;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.1em;
+    }
+    .groups-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .groups-card--situation .groups-label { color: var(--color-grammar); }
+    .groups-card--dial .groups-label { color: var(--color-intent); }
+    .groups-name {
+      font-size: clamp(20px, 1.8vw, 26px);
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .groups-role {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      margin-bottom: 16px;
+      line-height: 1.65;
+    }
+    .groups-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .groups-list li {
+      padding: 9px 0;
+      border-top: 1px solid var(--border);
+      font-size: clamp(13px, 0.9vw, 15px);
+      color: var(--text-2);
+      display: flex;
+      gap: 10px;
+      line-height: 1.5;
+    }
+    .groups-list li::before {
+      content: "→";
+      color: var(--text-3);
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* ═══ TOKEN CARDS (overview grid) ═══ */
+    .token-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: clamp(24px, 3vw, 40px);
+    }
+    @media (max-width: 720px) { .token-overview-grid { grid-template-columns: 1fr; } }
+
+    .tov-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: clamp(20px, 2.5vw, 28px);
+      position: relative;
+      overflow: hidden;
+    }
+    .tov-card::before {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 3px;
+    }
+    .tov-card--token::before { background: var(--color-grammar); }
+    .tov-card--dial::before { background: var(--color-intent); }
+
+    .tov-head {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .tov-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+    }
+    .tov-name {
+      font-size: clamp(17px, 1.3vw, 20px);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+    }
+    .tov-card--token .tov-name { color: var(--color-grammar); }
+    .tov-card--dial .tov-name { color: var(--color-intent); }
+    .tov-stars {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+    }
+    .tov-def {
+      font-size: clamp(13px, 0.9vw, 15px);
+      color: var(--text-2);
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .tov-example {
+      font-size: clamp(13px, 0.9vw, 15px);
+      color: var(--text-2);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      line-height: 1.6;
+    }
+    .tov-example strong {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* ═══ RESTAURANT METAPHOR BOX ═══ */
+    .restaurant-box {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: clamp(28px, 3.5vw, 44px);
+      margin: clamp(24px, 3vw, 40px) 0;
+    }
+    .restaurant-box__title {
+      font-size: clamp(16px, 1.2vw, 20px);
+      font-weight: 500;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+    .restaurant-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 28px;
+    }
+    @media (max-width: 600px) { .restaurant-grid { grid-template-columns: 1fr; } }
+    .rest-item h4 {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+    .rest-item p {
+      font-size: clamp(13px, 0.9vw, 15px);
+      color: var(--text);
+      margin-bottom: 6px;
+      line-height: 1.55;
+    }
+    .rest-item__sub {
+      font-size: 13px;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+    }
+
+    /* ═══ DEEP DIVE CARDS ═══ */
+    .deepdive {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(24px, 3vw, 36px);
+      margin-top: clamp(28px, 4vw, 48px);
+    }
+    .dd-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: clamp(24px, 3vw, 40px);
+      position: relative;
+      overflow: hidden;
+    }
+    .dd-card::before {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 4px;
+    }
+    .dd-card--token::before { background: var(--color-grammar); }
+    .dd-card--dial::before { background: var(--color-intent); }
+
+    .dd-head {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dd-num {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+    }
+    .dd-name {
+      font-size: clamp(20px, 1.8vw, 26px);
+      font-weight: 500;
+      letter-spacing: -0.5px;
+    }
+    .dd-card--token .dd-name { color: var(--color-grammar); }
+    .dd-card--dial .dd-name { color: var(--color-intent); }
+    .dd-tagline {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-3);
+      font-style: italic;
+    }
+    .dd-stars {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-2);
+      letter-spacing: 0.04em;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+
+    .dd-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 20px;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+      font-size: clamp(14px, 1vw, 15px);
+      line-height: 1.65;
+    }
+    .dd-row:first-of-type { border-top: none; padding-top: 0; }
+    .dd-row__label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding-top: 2px;
+    }
+    .dd-row__body { color: var(--text-2); }
+    .dd-row__body strong { color: var(--text); font-weight: 600; }
+    .dd-row__body ul { list-style: none; padding: 0; margin: 0; }
+    .dd-row__body ul li {
+      padding: 4px 0 4px 18px;
+      position: relative;
+      font-size: clamp(13px, 0.9vw, 15px);
+    }
+    .dd-row__body ul li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    @media (max-width: 720px) {
+      .dd-row { grid-template-columns: 1fr; gap: 6px; }
+      .dd-card { padding: clamp(20px, 3vw, 28px); }
+    }
+
+    .dd-source-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      background: rgba(74, 106, 144, 0.1);
+      color: var(--color-grammar);
+      margin-right: 6px;
+      border: 1px solid rgba(74, 106, 144, 0.15);
+    }
+
+    .dd-forbidden {
+      margin-top: 4px;
+      background: rgba(180, 60, 30, 0.04);
+      border-left: 3px solid rgba(180, 60, 30, 0.5);
+      padding: 10px 14px;
+      font-size: clamp(13px, 0.9vw, 15px);
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+    .dd-forbidden strong { color: rgba(180, 60, 30, 0.9); }
+
+    /* ═══ TOKEN ANATOMY ═══ */
+    .token-anatomy {
+      display: grid;
+      grid-template-columns: 1fr auto 2fr;
+      align-items: center;
+      gap: clamp(20px, 3vw, 40px);
+      padding: clamp(36px, 5vw, 64px) clamp(28px, 4vw, 56px);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      margin: clamp(24px, 3vw, 40px) 0 clamp(20px, 2.5vw, 28px);
+    }
+    .token-anatomy__total { text-align: center; }
+    .token-anatomy__num {
+      font-family: var(--font-sans);
+      font-size: clamp(64px, 10vw, 120px);
+      font-weight: 500;
+      line-height: 0.9;
+      letter-spacing: -3px;
+      color: var(--color-grammar);
+    }
+    .token-anatomy__num--sm { font-size: clamp(48px, 7vw, 88px); letter-spacing: -2px; }
+    .token-anatomy__lbl {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-2);
+      margin-top: 12px;
+      font-weight: 500;
+    }
+    .token-anatomy__eq, .token-anatomy__plus {
+      font-family: var(--font-sans);
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 300;
+      color: var(--text-3);
+      line-height: 1;
+    }
+    .token-anatomy__split {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: clamp(16px, 2vw, 28px);
+    }
+    .token-anatomy__part {
+      text-align: center;
+      padding: clamp(20px, 2.5vw, 32px) clamp(16px, 2vw, 24px);
+      background: var(--bg);
+      border-top: 3px solid;
+    }
+    .token-anatomy__part--grammar { border-color: var(--color-grammar); }
+    .token-anatomy__part--grammar .token-anatomy__num { color: var(--color-grammar); }
+    .token-anatomy__part--intent { border-color: var(--color-intent); }
+    .token-anatomy__part--intent .token-anatomy__num { color: var(--color-intent); }
+    .token-anatomy__part-title {
+      font-size: clamp(15px, 1.2vw, 18px);
+      font-weight: 500;
+      letter-spacing: -0.2px;
+      margin: 10px 0 6px;
+      color: var(--text);
+    }
+    .token-anatomy__part-desc { font-size: 13px; line-height: 1.5; color: var(--text-2); }
+    .token-anatomy__part-desc em { font-style: normal; color: var(--text); font-weight: 500; }
+    .token-anatomy__note {
+      font-size: clamp(14px, 1vw, 16px);
+      line-height: 1.7;
+      color: var(--text-2);
+      max-width: 780px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .token-anatomy__note strong { color: var(--text); font-weight: 500; }
+    @media (max-width: 768px) {
+      .token-anatomy { grid-template-columns: 1fr; gap: 20px; padding: 32px 24px; }
+      .token-anatomy__eq { transform: rotate(90deg); }
+      .token-anatomy__split { grid-template-columns: 1fr; gap: 16px; }
+      .token-anatomy__plus { transform: rotate(90deg); }
+    }
+
+    /* ═══ COMBINATION SCENARIO ═══ */
+    .combo {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: clamp(24px, 3vw, 36px);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .combo::before {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 4px;
+      background: var(--color-brain);
+    }
+    .combo__head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .combo__title {
+      font-size: clamp(16px, 1.2vw, 19px);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .combo__chip {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      margin-left: auto;
+      color: var(--color-brain);
+      background: rgba(138, 106, 176, 0.08);
+      border: 1px solid rgba(138, 106, 176, 0.15);
+    }
+    .combo__reads {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: clamp(16px, 2vw, 22px);
+      margin-top: 12px;
+    }
+    .combo__reads ul { list-style: none; padding: 0; margin: 0; }
+    .combo__reads li {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 12px;
+      padding: 8px 0;
+      font-size: clamp(13px, 0.9vw, 15px);
+      border-top: 1px solid var(--border);
+    }
+    .combo__reads li:first-child { border-top: none; padding-top: 0; }
+    .combo__reads li strong {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--color-grammar);
+    }
+    @media (max-width: 600px) {
+      .combo__reads li { grid-template-columns: 1fr; gap: 2px; }
+    }
+    .verdict {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(48, 201, 105, 0.06);
+      border-left: 3px solid var(--color-green);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--color-green);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    /* ═══ SCENARIO INTRO ═══ */
+    .scenario-intro {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: clamp(24px, 3vw, 32px);
+      margin-bottom: 20px;
+    }
+    .scenario-intro__quote {
+      font-size: clamp(18px, 1.6vw, 22px);
+      font-weight: 500;
+      line-height: 1.4;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .scenario-intro__source {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-3);
+      letter-spacing: 0.5px;
+    }
+
+    /* ═══ WHY-8 TABLE ═══ */
+    .scale-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: clamp(20px, 2.5vw, 32px) 0;
+      font-size: clamp(13px, 0.9vw, 15px);
+    }
+    .scale-table th, .scale-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .scale-table th {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .scale-table td:first-child { font-weight: 500; color: var(--text); }
+    .scale-table td { color: var(--text-2); }
+
+    /* ═══ TECH REALITY TABLE ═══ */
+    .tech-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: clamp(16px, 2vw, 24px) 0;
+      font-size: clamp(13px, 0.9vw, 15px);
+    }
+    .tech-table th, .tech-table td {
+      text-align: left;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tech-table th {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      background: var(--bg-2);
+    }
+    .tech-table td:first-child { font-weight: 500; color: var(--text); }
+    .tech-table td { color: var(--text-2); }
+    .tech-table td.stars { font-family: var(--font-mono); color: var(--color-grammar); white-space: nowrap; }
+
+    /* ═══ RECOMMENDATIONS ═══ */
+    .recs { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .rec {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: clamp(20px, 2.5vw, 28px);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .rec__num {
+      width: 40px; height: 40px;
+      background: var(--color-brain);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-weight: 700; font-size: 16px;
+      flex-shrink: 0;
+    }
+    .rec__title { font-size: clamp(15px, 1.1vw, 17px); font-weight: 500; margin-bottom: 6px; color: var(--text); }
+    .rec__body { font-size: clamp(13px, 0.9vw, 15px); color: var(--text-2); line-height: 1.65; }
+
+    /* ═══ Q&A ═══ */
+    .qa-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: clamp(20px, 2.5vw, 28px);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .qa-block::before {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 4px;
+      background: var(--color-grammar);
+    }
+    .qa-question {
+      font-size: clamp(16px, 1.2vw, 18px);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .qa-answer {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+    .qa-answer strong { color: var(--text); font-weight: 600; }
+
+    /* ═══ INSIGHT CALLOUT ═══ */
+    .insight {
+      padding: clamp(16px, 1.5vw, 24px);
+      background: rgba(74, 106, 144, 0.04);
+      border: 1px solid rgba(74, 106, 144, 0.12);
+      border-radius: 0;
+      margin-top: 8px;
+    }
+    .insight--amber {
+      background: rgba(122, 85, 32, 0.04);
+      border-color: rgba(122, 85, 32, 0.12);
+    }
+    .insight-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--color-grammar);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .insight--amber .insight-label { color: var(--color-intent); }
+    .insight p {
+      font-size: clamp(14px, 1vw, 16px);
+      line-height: 1.7;
+      color: var(--text-2);
+      margin: 0;
+      font-weight: 400;
+    }
+
+    /* ═══ CALLOUT ═══ */
+    .callout {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: clamp(20px, 2vw, 28px);
+      margin: 24px 0;
+    }
+    .callout-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      color: var(--text-3);
+    }
+    .callout p {
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      line-height: 1.7;
+      margin: 0;
+    }
+    .callout strong { font-weight: 600; color: var(--text); }
+
+    /* ═══ 4-STAGE / 4-LEVEL GRIDS ═══ */
+    .stages, .levels {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 12px 0 8px;
+    }
+    @media (max-width: 600px) { .stages, .levels { grid-template-columns: repeat(2, 1fr); } }
+    .stage, .level {
+      padding: 10px 12px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      text-align: center;
+    }
+    .stage-num, .level-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 3px;
+    }
+    .stage-name, .level-name {
+      font-size: clamp(13px, 1vw, 15px);
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* ═══ CTA ═══ */
+    .cta {
+      background: #08070b;
+      color: #f0ece4;
+      padding: clamp(80px, 10vh, 120px) clamp(24px, 5vw, 80px);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(106, 74, 144, 0.05), transparent);
+      pointer-events: none;
+    }
+    .cta-title {
+      font-size: clamp(26px, 3.2vw, 48px);
+      font-weight: 500;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .cta-sub {
+      font-size: clamp(15px, 1.1vw, 18px);
+      font-weight: 400;
+      color: rgba(240, 236, 228, 0.45);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 36px;
+      position: relative;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      position: relative;
+    }
+    .cta-btn--primary:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(240, 236, 228, 0.12);
+    }
+    .cta-btn--ghost {
+      background: transparent;
+      color: rgba(240, 236, 228, 0.6);
+      border: 1px solid rgba(240, 236, 228, 0.12);
+    }
+    .cta-btn--ghost:hover {
+      color: #f0ece4;
+      border-color: rgba(240, 236, 228, 0.3);
+    }
+  </style>
+</head>
+
+<body data-dark-nav class="nav-has-subnav">
+
+  <!-- ═══════════════════════════════════════
+       HERO
+       ═══════════════════════════════════════ -->
+  <div class="hero hero--split">
+    <div class="hero-split-text">
+      <p class="hero-label">Context Grammar — Floor 2</p>
+      <h1 class="hero-title">Context Tokens</h1>
+      <p class="hero-sub">人の「いま」を測るための、8つの軸。AIが言葉を発する前に、まず場の空気を読むための語彙。</p>
+      <div class="hero-scroll-hint"><span></span></div>
+    </div>
+    <div class="hero-illu">
+      <div data-ga-slot="cg-tokens" aria-label="Context Tokens — 8つのシグナル: 状況を読む6つのトークンと、関係性を司る2つのダイヤル"></div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION A — RESTAURANT INTRO
+       ═══════════════════════════════════════ -->
+  <section id="sec-01" class="content-section content-section--light">
+    <div class="content-inner cg-prose">
+      <div class="sec-label" style="color: var(--color-grammar);">Context Tokensの役割</div>
+      <h2 class="sec-title reveal">AIが<em>場の空気を読む</em></h2>
+      <p class="sec-desc reveal d1">AIが振る舞いを変えるには、まず状況を読み取らなければならない。Context Tokensは、優れたウェイターが注文を取る前にテーブルを一瞥して読み取るような直感を、AIに与えるための8つの測定可能なシグナルだ。</p>
+
+      <aside class="cg-restaurant-aside reveal d1">
+        <div class="cg-restaurant-aside__icon" aria-hidden="true">
+          <img src="../../../assets/img/cg-icons/restaurant.svg" alt="">
+        </div>
+        <div class="cg-restaurant-aside__content">
+          <p class="cg-restaurant-aside__label">レストランで例えると</p>
+          <div class="cg-restaurant-aside__body">
+            <p>優れたウェイターは、ひとつも質問せずに同時に8つのシグナルを読む。テーブルは料理で埋まっている — Cognitive Loadが高い。キャンドルを灯した二人席 — Social Exposureが高い（同僚ではなく、デート）。客は腕時計を何度も見る — Priority Weightは「料理の質」ではなく「時間」。カウンターは狭い — Form Factorがフル展開を許さない。</p>
+            <p>Context Grammarは、この直感をAIに8つの軸として与える。各軸は、そのままひとつのトークンに対応する: ① Physical State、② Cognitive Load、③ Social Exposure、④ Priority Weight、⑤ Form Factor、⑥ Feasibility、⑦ Autonomy Dial、⑧ Disclosure Dial。</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION B — THE TWO GROUPS
+       ═══════════════════════════════════════ -->
+  <section id="sec-02" class="content-section content-section--alt">
+    <div class="content-inner cg-prose">
+      <div class="sec-label" style="color: var(--color-grammar);">2つのグループ</div>
+      <h2 class="sec-title reveal">8つのトークン — <em>6つの状況</em> + 2つのダイヤル</h2>
+      <p class="sec-desc reveal d1">8つを丸暗記するのは大変だ。2つのグループに分けると、一気に腹落ちする: 周囲の世界を読み取る6つのセンサーと、AIが「知っていいこと・やっていいこと」を司る2つのダイヤル。</p>
+
+      <div class="token-anatomy reveal d1">
+        <div class="token-anatomy__total">
+          <div class="token-anatomy__num">8</div>
+          <p class="token-anatomy__lbl">Context Tokens</p>
+        </div>
+        <div class="token-anatomy__eq" aria-hidden="true">=</div>
+        <div class="token-anatomy__split">
+          <div class="token-anatomy__part token-anatomy__part--grammar">
+            <div class="token-anatomy__num token-anatomy__num--sm">6</div>
+            <p class="token-anatomy__part-title">Situation Tokens</p>
+            <p class="token-anatomy__part-desc"><em>いま</em>何が起きているか — AIが読み取るシグナル</p>
+          </div>
+          <div class="token-anatomy__plus" aria-hidden="true">+</div>
+          <div class="token-anatomy__part token-anatomy__part--intent">
+            <div class="token-anatomy__num token-anatomy__num--sm">2</div>
+            <p class="token-anatomy__part-title">Relationship Dials</p>
+            <p class="token-anatomy__part-desc">AIがどこまで<em>動いていいか</em> — 関係性を司るダイヤル</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="groups-grid reveal d1">
+        <div class="groups-card groups-card--situation">
+          <div class="groups-label">Group A · 6 Situation Tokens</div>
+          <div class="groups-name">状況センサー</div>
+          <p class="groups-role"><strong>いま、何が起きているか</strong>を読む — 測定可能な6つの軸。ユーザーが設定する項目ではなく、AIが読み取るインプット。</p>
+          <ul class="groups-list">
+            <li>① Physical State — 身体モード（歩行 / 運転 / 静止）</li>
+            <li>② Cognitive Load — 認知の余裕（ピーク / 低 / リラックス）</li>
+            <li>③ Social Exposure — 誰が見ているか（一人 / 家族 / 同僚）</li>
+            <li>④ Priority Weight — 要求が競合したとき何が勝つか（時間 vs お金 vs 安全）</li>
+            <li>⑤ Form Factor — どのサーフェスが使えるか（Watch / スマホ / TV / 車）</li>
+            <li>⑥ Feasibility — いま実際に何が可能か（在庫 / 時間 / 距離）</li>
+          </ul>
+        </div>
+
+        <div class="groups-divider">+</div>
+
+        <div class="groups-card groups-card--dial">
+          <div class="groups-label">Group B · 2 Relationship Dials</div>
+          <div class="groups-name">関係性ダイヤル</div>
+          <p class="groups-role"><strong>人とAIのあいだの距離</strong>を決める。サービス側のデフォルト × AIの自動調整 × ユーザーの能動的な変更 — この3つの力が両方のダイヤルを同時に動かす。</p>
+          <ul class="groups-list">
+            <li>⑦ Autonomy Dial — AIはどこまで自分で動いていいか（Suggest / Confirm / Notify / Auto）</li>
+            <li>⑧ Disclosure Dial — AIはあなたについてどこまで知っていいか（領域ごと、相手ごと）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout reveal d2">
+        <div class="callout-label">重要な区別</div>
+        <p><strong>Situation Tokensは「いまのあなた」を表す</strong> — 瞬間ごとに変わる。<strong>Relationship Dialsは「あなたとAIの関係」を定義する</strong> — 時間をかけて少しずつ育つ。瞬間の状況 + 長期の関係 = AIの振る舞い。</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION C — 4×2 TOKEN GRID (YAMASHIRO EXAMPLES)
+       ═══════════════════════════════════════ -->
+  <div class="section-divider section-divider--grammar">8つのトークン — 全体俯瞰</div>
+
+  <section id="sec-03" class="content-section content-section--alt">
+    <div class="content-inner cg-wide">
+      <div class="sec-label" style="color: var(--color-grammar);">Overview · 山城家</div>
+      <h2 class="sec-title reveal">8つすべて — <em>山城家の朝</em></h2>
+      <p class="sec-desc reveal d1">抽象的な定義はすぐ忘れる。ここでは各トークンを、母・舞、息子・颯太（11歳）、娘・はな（6歳）の火曜日の朝に紐づけて見ていく。星の数は<strong>2026年3月時点の技術的現実</strong>を反映している。</p>
+
+      <div class="token-overview-grid reveal d1">
+
+        <!-- ① Physical State -->
+        <div class="tov-card tov-card--token">
+          <div class="tov-head">
+            <span class="tov-num">①</span>
+            <span class="tov-name">Physical State</span>
+            <span class="tov-stars">★★★★☆</span>
+          </div>
+          <div class="tov-def">いま身体が何をしているか — 歩いている、運転している、座っている、運動している。</div>
+          <div class="tov-example">
+            <strong>山城家 · 07:45</strong>
+            舞は駅に向かって全力疾走中。Watchは速度6km/h、心拍110を読み取っている。AIは通知をすべて保留する — 走りながらでは、どうせ読めない。
+          </div>
+        </div>
+
+        <!-- ② Cognitive Load -->
+        <div class="tov-card tov-card--token">
+          <div class="tov-head">
+            <span class="tov-num">②</span>
+            <span class="tov-name">Cognitive Load</span>
+            <span class="tov-stars">★★☆☆☆</span>
+          </div>
+          <div class="tov-def">頭にどれだけ余裕が残っているか。直接は測れない — <strong>時刻 × カレンダー密度 × 直近の行動</strong>から推定する。</div>
+          <div class="tov-example">
+            <strong>山城家 · 07:02</strong>
+            舞は2人分のお弁当を作りながら、はなの保育園バッグを詰めている。AIは「過負荷」と推定。冷蔵庫の画面は1行だけ表示する: 「昨日の残り + 卵焼き」。タップは不要。
+          </div>
+        </div>
+
+        <!-- ③ Social Exposure -->
+        <div class="tov-card tov-card--token">
+          <div class="tov-head">
+            <span class="tov-num">③</span>
+            <span class="tov-name">Social Exposure</span>
+            <span class="tov-stars">★★★★☆</span>
+          </div>
+          <div class="tov-def">いま、ほかに誰が見ている・聞いているか — 一人 / 家族 / 同僚 / 公共。8つの中で最も既に実装されているトークン。</div>
+          <div class="tov-example">
+            <strong>山城家 · 会議中</strong>
+            舞が会議室のTVに画面ミラーリング。AIは家計関連の通知を即座に外す。「いま、他の人にもこの画面が見えている」。
+          </div>
+        </div>
+
+        <!-- ④ Priority Weight -->
+        <div class="tov-card tov-card--token">
+          <div class="tov-head">
+            <span class="tov-num">④</span>
+            <span class="tov-name">Priority Weight</span>
+            <span class="tov-stars">★★★☆☆</span>
+          </div>
+          <div class="tov-def">要求が競合している — いま、何が勝つか? 時間 vs お金 vs 健康。単なる重要度ランキングではなく、<strong>衝突を解く判断</strong>。</div>
+          <div class="tov-example">
+            <strong>山城家 · 夕方</strong>
+            颯太の塾が遅れる。舞のBrainは「平日は、時間 > 食事の質」と学習している。AIは夕食を冷凍ストックで提案 + 19:50に塾までお迎え。
+          </div>
+        </div>
+
+        <!-- ⑤ Form Factor -->
+        <div class="tov-card tov-card--token">
+          <div class="tov-head">
+            <span class="tov-num">⑤</span>
+            <span class="tov-name">Form Factor</span>
+            <span class="tov-stars">★★★★☆</span>
+          </div>
+          <div class="tov-def">いまAIが届くサーフェス — Watch / スマホ / タブレット / TV / 冷蔵庫 / 車 / 音声 / アンビエント。</div>
+          <div class="tov-example">
+            <strong>山城家 · 同じ情報、違うサーフェス</strong>
+            舞のWatch: 「19:00 お迎え」。冷蔵庫: 家族全員のタイムラインが展開。CarPlay: 音声で「19時にお迎え」と読み上げ。
+          </div>
+        </div>
+
+        <!-- ⑥ Feasibility -->
+        <div class="tov-card tov-card--token">
+          <div class="tov-head">
+            <span class="tov-num">⑥</span>
+            <span class="tov-name">Feasibility</span>
+            <span class="tov-stars">★★★☆☆</span>
+          </div>
+          <div class="tov-def">それは、いま本当にできるのか? 在庫、時間、距離、天気、予算 — 欠けている制約がひとつでもあれば「不可」。</div>
+          <div class="tov-example">
+            <strong>山城家 · 夕食</strong>
+            AIはカレーを提案しかけた。冷蔵庫に玉ねぎがない + 外は雨 → 提案を「いまある食材でパスタ」に切り替える。
+          </div>
+        </div>
+
+        <!-- ⑦ Autonomy Dial -->
+        <div class="tov-card tov-card--dial">
+          <div class="tov-head">
+            <span class="tov-num">⑦</span>
+            <span class="tov-name">Autonomy Dial</span>
+            <span class="tov-stars">★★★☆☆</span>
+          </div>
+          <div class="tov-def">AIはどこまで自分で動いていいか? <strong>Suggest → Confirm → Notify → Auto。</strong> サービス側のデフォルト × AIの自動調整 × ユーザーの選択、という3つの力で形作られる。</div>
+          <div class="tov-example">
+            <strong>山城家 · リスクの段階に応じて</strong>
+            颯太の靴 $48（消耗品・リスク低）= Auto。家族のホテル $400 = Confirm。舞の手術同意 = Suggest（自動化は永遠に不可 — Identity Layerでの宣言）。
+          </div>
+        </div>
+
+        <!-- ⑧ Disclosure Dial -->
+        <div class="tov-card tov-card--dial">
+          <div class="tov-head">
+            <span class="tov-num">⑧</span>
+            <span class="tov-name">Disclosure Dial</span>
+            <span class="tov-stars">★☆☆☆☆</span>
+          </div>
+          <div class="tov-def">AIはあなたについてどこまで知っているか — 領域ごと、相手ごと。<strong>Autonomyの前提条件</strong>（Hidden × Auto は論理的に成立しない）。</div>
+          <div class="tov-example">
+            <strong>山城家 · プライバシー</strong>
+            舞は「家計」をAIにFullで開示しているが、「健康診断の結果」はHiddenのまま。AIは食費の最適化はできるが、コレステロール値に基づく食事提案には一切踏み込まない。
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout reveal d2" style="margin-top: clamp(24px, 3vw, 36px);">
+        <div class="callout-label">星の読み方</div>
+        <p><strong>★★★★☆ = 今日にも出荷可能</strong> — センサーAPIやOSのフックがすでにある。<strong>★★☆☆☆ = 推定のみ</strong> — 直接の測定はできない。<strong>★☆☆☆☆ = コンセプト段階</strong> — 領域横断のAPIがまだ存在しない。「Cognitive Loadは計測できる」と書けばそれは嘘になる。Context Grammarは、できることとできないことを正直に区別する。</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION D — PER-TOKEN DEEP DIVE
+       ═══════════════════════════════════════ -->
+  <div class="section-divider section-divider--grammar">トークン別ディープダイブ</div>
+
+  <section id="sec-04" class="content-section content-section--alt">
+    <div class="content-inner cg-wide">
+      <div class="sec-label" style="color: var(--color-grammar);">技術的な内側</div>
+      <h2 class="sec-title reveal">8つのトークン — <em>仕組みのレベルまで</em></h2>
+      <p class="sec-desc reveal d1">各トークンについて、仕組み（どう計算されるか）、シグナル源（Brainのどの層から来るか）、山城家の具体例、投影ルール、そして禁じ手まで踏み込んで見ていく。</p>
+
+      <div class="deepdive">
+
+        <!-- ════════ ① Physical State ════════ -->
+        <article class="dd-card dd-card--token reveal d1" id="dd-physical-state">
+          <header class="dd-head">
+            <span class="dd-num">①</span>
+            <span class="dd-name">Physical State</span>
+            <span class="dd-tagline">「急いでいるのか、落ち着いているのか」</span>
+            <span class="dd-stars">★★★★☆ ほぼ実装済み</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token1-physical.png" alt="アイソメトリックの人物 — 歩行・運転・静止のそれぞれが、UIの応答に直結する" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              いま身体が何をしているか — 歩いている、走っている、運転している、座っている、寝ている、運動している。設計判断に最初に効いてくる軸: 身体状態が読めなければ、AIは中身（content）に手をつける前に<strong>形態（form）</strong>を変えることすらできない。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              Activity Recognition API（iOS / Android）が<em>歩行 / 走行 / 運転 / 静止</em>を分類する。Galaxy WatchやApple Watchが心拍、ストレス指数、睡眠負債を加える。複数のシグナルがひとつの「state」値に圧縮され、設計判断 — 表示するか抑制するか、音声か画面か — を駆動する。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Now Layer</span>加速度計、心拍、ジャイロ、CarPlay / Android Autoの接続状態</li>
+                <li><span class="dd-source-chip">Learning Layer</span>パターン: 「舞は平日7:30–7:50は必ず駅まで全力疾走」</li>
+                <li><span class="dd-source-chip">Identity Layer</span>身体的な制約 — 持病、術後、妊娠中</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              07:45 — 舞は駅に向かって全力疾走中。Watchは速度6km/h、心拍110。AIは通知をすべて保留。19:00の塾リマインダーは「電車の座席に座ったあと」に再スケジュール。<br>
+              土曜日の朝、ソファ、心拍65 — AIは家族カレンダーの提案をスマホに上げてくる。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              <strong>状態が「読めない」ときは、保守的に倒す。</strong> 走行・運転中 → 通知を音声に切り替えるか、丸ごと抑制する。<strong>まず形態を変える、それから中身を考える。</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> 走っている人に長文リッチ通知を送る。運転中に画面操作を要求する確認ダイアログを出す。「鳴らした = 届いた」前提で設計する。</div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ════════ ② Cognitive Load ════════ -->
+        <article class="dd-card dd-card--token reveal d1" id="dd-cognitive-load">
+          <header class="dd-head">
+            <span class="dd-num">②</span>
+            <span class="dd-name">Cognitive Load</span>
+            <span class="dd-tagline">「頭にどれだけ余裕が残っているか」</span>
+            <span class="dd-stars">★★☆☆☆ 推定のみ</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token2-congnitiveload.png" alt="認知の余裕メーター — 低・中・高の負荷がUIの情報密度を左右する" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              認知の残り帯域 — 脳がどれだけ忙しいか。<strong>直接の測定はできない。</strong> EEGも脳スキャナーも使わない。観測可能な代理指標から推定するしかない。8つの中で、推定の限界をもっとも正直に書く必要があるトークン。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              時刻 × カレンダー密度 × 直近10分のアプリ切り替え回数 × 行動履歴。複数の代理指標を重みづけして平均し、3〜5段階の<em>density</em>（minimal / low / medium / high / overload）に集約する。<strong>「これは推定値である」というメタデータを常に持ち回る。</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Now Layer</span>15分単位のカレンダー埋まり度、直近のタスク完了、画面切り替え頻度</li>
+                <li><span class="dd-source-chip">Learning Layer</span>パターン: 「平日朝7:00–7:30は必ず過負荷」 — および手動オーバーライド履歴（「いや、空いてる」）</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              平日 07:02 — 舞は2人分のお弁当を作りながら、はなの保育園バッグを詰めている。AIはdensity:overloadと推定。冷蔵庫の画面は1行だけ表示する: 「昨日の残り + 卵焼き」。タップは不要。<br>
+              土曜日 10:00 — 同じ舞、density:low → 写真つきのフルレシピ提案が妥当。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              high / overload時: <strong>1画面、1判断</strong>。3つ以上の選択肢を出さない。<strong>探索や学習系の提案は、負荷が低いときにだけ解禁する。</strong> AIが推定を外したとき、ユーザーが「いや、空いてる」と上書きできるUIが必要だ — それがないと、AIは「分かったふり」をしているように見える。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> 「あなたはいま負荷が高い状態です」と<strong>断定する</strong>UI。推定なのに測定したかのように振る舞うこと。過負荷時の複数選択ダイアログ。フォールバックを省略すること。</div>
+            </div>
+          </div>
+
+          <div class="insight" style="margin-top: 12px;">
+            <span class="insight-label">誠実なデザインノート</span>
+            <p>Cognitive Loadは8つの中で最も推測の度合いが大きい。直接の測定方法は今日存在しない。このトークンに依存する設計判断には、必ず優雅なフォールバックを用意し、推定の精度を超えた確信を主張しないこと。</p>
+          </div>
+        </article>
+
+
+        <!-- ════════ ③ Social Exposure ════════ -->
+        <article class="dd-card dd-card--token reveal d1" id="dd-social-exposure">
+          <header class="dd-head">
+            <span class="dd-num">③</span>
+            <span class="dd-name">Social Exposure</span>
+            <span class="dd-tagline">「いま、ほかに誰が見ているか」</span>
+            <span class="dd-stars">★★★★☆ ほぼ実装済み</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token3-SocialExposure.png" alt="さまざまな観客に囲まれた人物 — 一人、公共空間、同僚と" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              いま、この画面・音声を誰が見ている・聞いているか — 一人 / 家族 / 同僚 / 不特定多数（カフェ、電車）。8つの中で<strong>もっとも既に実装が進んでいる</strong>トークン。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              Bluetooth / Wi-Fiの近接で周囲のデバイスを検出。Voice IDで家族の個人を識別する（Samsung Family Hubは最大6プロファイル対応）。ミラーリング状態（AirPlay / Cast / DeX）はOSから取得。可能な範囲ではオンデバイスVisionで人数も推定する。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Now Layer</span>近接デバイス、Voice ID、ミラーリングのON/OFF、画面共有中かどうか</li>
+                <li><span class="dd-source-chip">Identity Layer</span>関係マップ — 「家族」「同僚」「友人」 — がそばにいる相手に意味を与える</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              舞が会議室のTVに画面ミラーリング → AIは家計関連の通知を即座に外し、塾代の相談を19:30まで遅らせる。リビングでVoice IDが颯太を検出 → 舞のスマホに表示されていた「颯太の誕生日サプライズ」計画は自動的に隠れる。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              <strong>観客が変えるのはフィルタであって、中身そのものではない。</strong> 同僚が同席 → 家庭領域を抑制。子どもが同席 → サプライズを隠す。このトークンはDisclosure Dialの「領域ごとの開示設定」と掛け算される。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> 画面共有中に金額・パスワード・健康データを表示する。家族デバイスで個人スコープの通知を全員にブロードキャストする。Voice IDで確認せずに「いつもの人」と決めつける。</div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ════════ ④ Priority Weight ════════ -->
+        <article class="dd-card dd-card--token reveal d1" id="dd-priority-weight">
+          <header class="dd-head">
+            <span class="dd-num">④</span>
+            <span class="dd-name">Priority Weight</span>
+            <span class="dd-tagline">「要求が競合したとき、何が勝つか」</span>
+            <span class="dd-stars">★★★☆☆ 一部実装中</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token4_PriorityWeight.png" alt="天秤に乗る競合する要求 — 緊急 vs 重要、衝突を解く判断" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              複数の要求が衝突したとき — スピード vs コスト vs 健康 vs 家族 — <strong>いま、何が勝つか?</strong> 単純な重要度ランキングではない。衝突の瞬間に下す<strong>トレードオフの判断</strong>。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              二層構造。<strong>レイヤー1 = いまの緊急度</strong>（Now Layerから — カレンダーの直近性、通知の種別、締め切り）。<strong>レイヤー2 = 学習されたトレードオフのパターン</strong>（Learning Layerから — 「舞は平日、食事の質より時間を優先する」）。Rule Engineが両者を掛け算する。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Now Layer</span>カレンダーの優先度、フラグつきメール、通知の重要度、締め切りまでの時間</li>
+                <li><span class="dd-source-chip">Learning Layer</span>過去の衝突解決 — 「同じ状況で、彼女は何を諦めたか」</li>
+                <li><span class="dd-source-chip">Identity Layer</span>絶対に譲れない軸 — アレルギー > 味 > 価格、子どもの安全 > 仕事の予定</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              颯太の塾が遅れる → 夕食を早めるか、お迎えを優先するか? Learning Layer: 「平日は、時間 > 食事の質」。AIは冷凍ストックの夕食 + 19:50に塾までお迎えを提案。<br>
+              もうひとつの例: 5分後に会議開始 + 学校からアレルギー関連の電話 → Identity Layerが勝つ — 「会議に1分遅れる」。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              AIは<strong>重みを一方的に決めない。</strong> 学習履歴に基づいて提案するだけ。ユーザーが上書きすれば、その選択はLearning Layerに書き戻される。<strong>Identity Layerの軸（安全、健康）は学習パターンを常に上回る — 例外なし。</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> 毎回ユーザーに「優先度を1〜5で並べてください」と聞くこと。学習パターンがIdentity Layerの軸（アレルギー、既往歴）を上書きするのを許すこと。</div>
+            </div>
+          </div>
+
+          <div class="insight" style="margin-top: 12px;">
+            <span class="insight-label">デザインノート</span>
+            <p>Priority Weightは二層構造を持つ: いまの緊急度（このトークン、瞬間ごとに変わる）と、学習されたトレードオフのパターン（Brainに蓄積され、時間をかけて育つ）。トークンは「いま何が押し迫っているか」を捉える。Brainは「過去、似た衝突がどう解かれたか」を覚えている。</p>
+          </div>
+        </article>
+
+
+        <!-- ════════ ⑤ Form Factor ════════ -->
+        <article class="dd-card dd-card--token reveal d1" id="dd-form-factor">
+          <header class="dd-head">
+            <span class="dd-num">⑤</span>
+            <span class="dd-name">Form Factor</span>
+            <span class="dd-tagline">「いま、どんなサーフェスに囲まれているか」</span>
+            <span class="dd-stars">★★★★☆ ほぼ実装済み</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token5-FormFactor.png" alt="デバイス・ファミリーのグリッド — スマホ、Watch、TV、車載ダッシュボード、それぞれの能力" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              いま<strong>AIが届くサーフェスの集合</strong> — Watch / スマホ / タブレット / TV / 冷蔵庫 / 車、そして音声のみ / AR / アンビエント。<strong>画面の話だけではない。</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              OSが現在のデバイス状態 + Continuity / DeX / CarPlay / Castの接続状況を保持している。複数サーフェスが同時にアクティブなとき、AIは<strong>コンテンツの種類に応じて最適なサーフェスを選ぶ</strong>（動的なマルチサーフェス配分）。音声 / ジェスチャー / アンビエントもサーフェスとして扱う。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Now Layer</span>接続中のデバイス、画面サイズ、入力モダリティ、CarPlay / ARのアクティブ状態</li>
+                <li><span class="dd-source-chip">Identity Layer</span>所有デバイス、主たるサーフェス（「舞はいつもWatchをつけている」）</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              同じ情報 — 家族のスケジュール — がサーフェスごとに違う形で出る: Watchは「19:00 お迎え」（1行）。冷蔵庫は家族全員のフルタイムライン。CarPlayは「19時にお迎え」と音声のみ。<br>
+              イヤホンの音声のみ: あらゆる確認が「はい / いいえ」の2択に圧縮される。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              <strong>サーフェスが変われば、情報密度が変わる。</strong> Watch = 1行。スマホ = 段落。タブレット / TV = 並列カラム。音声 = 一度にひとつの質問。<strong>同じ情報、サーフェスごとに異なる表現</strong> — それがForm Factorの契約だ。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> スマホ用UIをそのまま縮小してWatchに載せる。音声のみのサーフェスで長文をそのまま読み上げる。「レスポンシブWebで十分」と決めつけてアンビエントや音声サーフェスを無視する。</div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ════════ ⑥ Feasibility ════════ -->
+        <article class="dd-card dd-card--token reveal d1" id="dd-feasibility">
+          <header class="dd-head">
+            <span class="dd-num">⑥</span>
+            <span class="dd-name">Feasibility</span>
+            <span class="dd-tagline">「いま、本当にできるのは何か」</span>
+            <span class="dd-stars">★★★☆☆ 一部実装中</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token6-Feasibility.png" alt="信号機 — いまこの文脈で、AIにできることとできないこと" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              そのアクションは、<strong>いま実行可能か?</strong> 在庫、時間、距離、天気、お金、人手 — 欠けている制約がひとつでもあれば成立しない。目指すのは「無理」で終わることではなく、<strong>「では、代わりに何ができるか?」</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              各ドメインのAPI（在庫 / 配送ETA / 天気 / 営業時間 / 口座残高）から個別の実行可能性を取り、複数の制約をひとつの<strong>feasibilityスコア</strong>に統合する。ブロックされた場合は、Substitution Mode（Exact / Flexible / Exploring / Surprise）が代替案を生成する。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Now Layer</span>在庫API、天気API、配送ETA、店舗営業時間、口座残高</li>
+                <li><span class="dd-source-chip">Learning Layer</span>「いつもの品が欠品したとき、彼女は何で代用したか?」 → Substitution Modeの学習</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              AIは夕食にカレーを提案しかけた — が、冷蔵庫に玉ねぎがない、外は雨 → 提案を「いまある食材でパスタ」に切り替える。<br>
+              もうひとつの例: 舞が明治ブルガリアヨーグルトを注文したが欠品。Substitution Mode Flexible → AIは別のブルガリア系ヨーグルトに静かに差し替える。Mode Exact → AIは「本日は入手不可」と報告する。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              <strong>「無理」で終わらせない。</strong> 必ず1〜3個の代替案を添える。<strong>FeasibilityとSubstitution Modeは常にセットで実装する。</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> 「在庫切れ」だけ返して終わる。1つの制約だけで「行ける」と判断し、他（雨 + 閉店時間 + 子どもが車内）を見落とす。Exact以外のモードで、開示なしに勝手に差し替えて信頼を壊す。</div>
+            </div>
+          </div>
+
+          <!-- Substitution Modes — tied to Feasibility -->
+          <div class="dd-row" style="border-top: 1px solid var(--border); margin-top: 4px;">
+            <div class="dd-row__label">Substitution Modes</div>
+            <div class="dd-row__body">
+              <p style="margin: 0 0 12px; font-size: clamp(13px, 0.9vw, 15px); color: var(--text-2); line-height: 1.6;">Feasibilityが本来のリクエストをブロックしたとき、Substitution ModeがAIの代替提案を支配する。4つのモード — 左から右へ、AIの裁量が広がっていく。</p>
+              <div style="margin-bottom: 12px;">
+                <img src="../images/ISO-GREEN/Substtution/Substitution-arrow.png" alt="Exact → Flexible → Exploring → Surprise — AIの裁量が右に向かって広がる" style="width: 100%; height: auto; display: block;">
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <img src="../images/ISO-GREEN/Substtution/Substitution_01-Exact.png" alt="Exactモード — 厳密一致のみ" loading="lazy" style="width: 100%; height: auto; display: block;">
+                  <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); text-align: center;">Exact</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <img src="../images/ISO-GREEN/Substtution/Substitution_02-Flexible.png" alt="Flexibleモード — 十分近い代替を許す" loading="lazy" style="width: 100%; height: auto; display: block;">
+                  <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); text-align: center;">Flexible</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <img src="../images/ISO-GREEN/Substtution/Substitution_03-Exploring.png" alt="Exploringモード — AIが新しい選択肢を提案する" loading="lazy" style="width: 100%; height: auto; display: block;">
+                  <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); text-align: center;">Exploring</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <img src="../images/ISO-GREEN/Substtution/Substitution_04-Surprise.png" alt="Surpriseモード — AIが予期せぬ選択で驚かせる" loading="lazy" style="width: 100%; height: auto; display: block;">
+                  <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); text-align: center;">Surprise</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+
+        <!-- ════════ ⑦ Autonomy Dial ════════ -->
+        <article class="dd-card dd-card--dial reveal d1" id="dd-autonomy-dial">
+          <header class="dd-head">
+            <span class="dd-num">⑦</span>
+            <span class="dd-name">Autonomy Dial</span>
+            <span class="dd-tagline">「AIはどこまで自分で動いていいか」</span>
+            <span class="dd-stars">★★★☆☆ 開発ツールでは実装済み</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token7-AutonomyDial.png" alt="SuggestからAutoまで4段階のダイヤル — 実績を積みながら信頼を育てる" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              AIが、聞かずにどこまで動けるか。<strong>Suggest → Confirm → Notify → Auto。</strong> これは<strong>ユーザーが自由に切り替えるトグルではない</strong> — 3つの力が同時に働いた結果として決まる。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">4段階</div>
+            <div class="dd-row__body">
+              <div class="stages">
+                <div class="stage"><div class="stage-num">Stage 1</div><div class="stage-name">Suggest</div></div>
+                <div class="stage"><div class="stage-num">Stage 2</div><div class="stage-name">Confirm</div></div>
+                <div class="stage"><div class="stage-num">Stage 3</div><div class="stage-name">Notify</div></div>
+                <div class="stage"><div class="stage-num">Stage 4</div><div class="stage-name">Auto</div></div>
+              </div>
+              <p style="font-size: clamp(13px, 0.9vw, 15px); color: var(--text-2); margin-top: 10px; line-height: 1.6;">Suggest — AIは選択肢を出し、ユーザーが選ぶ。 &nbsp;|&nbsp; Confirm — AIが決めるが、実行前にユーザーが承認する。 &nbsp;|&nbsp; Notify — AIが実行し、事後に報告する。 &nbsp;|&nbsp; Auto — AIが静かに実行する。</p>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              ひとつのダイヤル値を、3つの力が決める:<br>
+              ① <strong>サービス側のデフォルト</strong> — Netflixのレコメンドはすでに高いAutonomyで出荷されている<br>
+              ② <strong>AIの自動調整</strong> — 深夜、初回利用、失敗直後はデフォルトを下げる<br>
+              ③ <strong>ユーザーの能動的な変更</strong> — 自分でスライダーを動かす<br>
+              各ドメイン（家計 / 健康 / 仕事 / 子育て）はそれぞれ独立のダイヤルを持つ。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Now Layer</span>取引額、可逆性、緊急度</li>
+                <li><span class="dd-source-chip">Learning Layer</span>過去のAI提案の成功率、ユーザーの介入履歴 → 信頼スコア</li>
+                <li><span class="dd-source-chip">Identity Layer</span>「この領域は絶対に自動化しない」という宣言（医療同意、重要契約）</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              颯太の靴 $48（消耗品、リスク低、前回と同じモデル）= <strong>Auto。</strong> 家族のホテル $400 = <strong>Confirm。</strong> 舞の手術同意 = <strong>Suggest</strong> — 自動化は永遠に不可、Identity Layerでの宣言。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              常にSuggestから始める。<strong>実績</strong>（成功 / 失敗の履歴）が積まれるたびに1段階ずつ進める。失敗が起きたら1段階戻す。<strong>Identity Layerで「自動化しない」と宣言された領域はロックされる — どれだけ完璧な実績があっても、これは動かない。</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> 「AI自動化 ON / OFF」の単一トグルで出荷する。初回利用からAutoで始める。失敗が起きてもAutonomyを高いまま維持する。DisclosureがHiddenのままAutonomyを上げる（トークン⑧参照）。</div>
+            </div>
+          </div>
+
+          <div class="insight insight--amber" style="margin-top: 12px;">
+            <span class="insight-label">重要なインサイト</span>
+            <p>Autonomy Dialは<strong>純粋にユーザーが制御するものではない。</strong> 3つの力で形作られる: サービス側のデフォルト、AIの自動調整、ユーザーの選択。Uber Eatsが再注文の許可をいちいち聞かないのは、サービス側のデフォルトがすでに高いAutonomyを前提にしているからだ。3つの力モデルの全体像は<a href="../trust-design/" style="color: var(--color-intent); font-weight: 500;">Trust Design →</a>で扱う。</p>
+          </div>
+        </article>
+
+
+        <!-- ════════ ⑧ Disclosure Dial ════════ -->
+        <article class="dd-card dd-card--dial reveal d1" id="dd-disclosure-dial">
+          <header class="dd-head">
+            <span class="dd-num">⑧</span>
+            <span class="dd-name">Disclosure Dial</span>
+            <span class="dd-tagline">「AIはあなたについてどこまで知っているか」</span>
+            <span class="dd-stars">★☆☆☆☆ コンセプト段階</span>
+          </header>
+
+          <div class="dd-token-illust" style="margin: 0 calc(-1 * clamp(24px, 3vw, 40px)) 20px; overflow: hidden; border-bottom: 1px solid var(--border);">
+            <img src="../images/ISO-GREEN/IF-Token8-DisclosureDial.png" alt="プライバシーの制御パネル — 領域ごとの開示設定、鍵アイコン" loading="lazy" style="width: 100%; height: auto; display: block; max-height: 280px; object-fit: cover; object-position: center;">
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">定義</div>
+            <div class="dd-row__body">
+              ユーザーが自分自身についてAIに開示する量 — <strong>領域ごと × 相手ごと</strong>に独立で。これは<strong>Autonomyの論理的な前提</strong>: Hidden × Autoは「保守的な選択」ではなく、矛盾だ。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">4段階</div>
+            <div class="dd-row__body">
+              <div class="levels">
+                <div class="level"><div class="level-label">Level 1</div><div class="level-name">Full</div></div>
+                <div class="level"><div class="level-label">Level 2</div><div class="level-name">Summary</div></div>
+                <div class="level"><div class="level-label">Level 3</div><div class="level-name">Existence</div></div>
+                <div class="level"><div class="level-label">Level 4</div><div class="level-name">Hidden</div></div>
+              </div>
+              <p style="font-size: clamp(13px, 0.9vw, 15px); color: var(--text-2); margin-top: 10px; line-height: 1.6;">Full — すべてのデータを開示。 &nbsp;|&nbsp; Summary — 集計値のみ、生ログは渡さない。 &nbsp;|&nbsp; Existence — 「この領域が存在する」ことだけ。 &nbsp;|&nbsp; Hidden — AIはこの領域の存在自体を知らない。</p>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">仕組み</div>
+            <div class="dd-row__body">
+              ドメイン（家計 / 健康 / 仕事 / 子育て / 人間関係 / 趣味）× 相手（AI / 家族 / 同僚 / 友人 / 公共）の<strong>マトリクス</strong>。各セルが4段階のいずれかを取る。アプリごとの権限トグルではなく、OSレベルの統一ダイヤルとして実装する。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">シグナル源</div>
+            <div class="dd-row__body">
+              <ul>
+                <li><span class="dd-source-chip">Identity Layer</span>宣言的な設定 — 「家計: 配偶者にはFull、子どもにはHidden、同僚にはHidden」</li>
+                <li><span class="dd-source-chip">Learning Layer</span>過去に手動で非公開化した履歴 — 「彼女は前にもこの種のコンテンツを隠した」</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">具体例</div>
+            <div class="dd-row__body">
+              舞は「家計」をAIにFullで開示している。「健康診断の結果」はHidden。<br>
+              AIは食費の最適化はできるが、コレステロール値に基づく食事提案には踏み込めない。<br>
+              家計の設定は: 夫にはFull、子どもにはHidden、同僚にはHidden — それぞれ独立に決められる。この構造は、現在のどのOSにも存在しない。
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">投影ルール</div>
+            <div class="dd-row__body">
+              <strong>DisclosureがHiddenの領域は、AutonomyをAutoにしてはいけない</strong>（開示していないものは委譲できない）。AutonomyがAutoを要求するなら、UIはまずDisclosureを上げる確認を出すこと。<strong>Disclosure → Autonomyは、一方向の前提条件である。</strong>
+            </div>
+          </div>
+
+          <div class="dd-row">
+            <div class="dd-row__label">禁じ手</div>
+            <div class="dd-row__body">
+              <div class="dd-forbidden"><strong>禁じ手:</strong> 「プライバシー設定 ON / OFF」を2値トグルにする。UI上でHidden × Autoの組み合わせを許可してしまう。明示的な同意なしに、内部で「学習」と称してデータを使う。</div>
+            </div>
+          </div>
+
+          <div class="insight insight--amber" style="margin-top: 12px;">
+            <span class="insight-label">重要なインサイト</span>
+            <p>Disclosureは<strong>Autonomyの前提条件だ。</strong> 「AIには何も教えたくない」と言いながら「全部自動で任せたい」とは言えない。その組み合わせは論理的に不可能 — そして危険だ。<span data-term="autonomy-dial">Autonomy Dial</span>が上がる前に、<span data-term="disclosure-dial">Disclosure Dial</span>が先に開いていなければならない。</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION E — COMBINATIONS
+       ═══════════════════════════════════════ -->
+  <section id="sec-05" class="content-section content-section--light">
+    <div class="content-inner cg-prose">
+      <div class="sec-label" style="color: var(--color-grammar);">トークンはどう組み合わさるか</div>
+      <h2 class="sec-title reveal">単独では成立しない — <em>掛け算で効く</em></h2>
+      <p class="sec-desc reveal d1">ひとつのトークンだけでAIの振る舞いが決まることはない。山城家の2つのシナリオで、3〜5個のトークンがどう絡み合ってひとつの具体的な判断を生むかを見ていく。</p>
+
+      <div class="scenario-intro reveal d1">
+        <p class="scenario-intro__quote">07:02 — 舞が冷蔵庫の前で立ち止まる</p>
+        <p class="scenario-intro__source">— 山城家 · 火曜の朝</p>
+      </div>
+
+      <div class="combo reveal d1">
+        <div class="combo__head">
+          <span class="combo__title">Combo 1 — 「お弁当に何を入れる?」</span>
+          <span class="combo__chip">3 tokens × 1 dial</span>
+        </div>
+        <div class="combo__reads">
+          <ul>
+            <li><strong>② Cognitive Load</strong><span>平日朝07:02 = 過負荷（カレンダー密度 + 平日パターン）</span></li>
+            <li><strong>① Physical State</strong><span>立ったまま、両手はふさがっている</span></li>
+            <li><strong>③ Social Exposure</strong><span>家族のみ（プライベート）</span></li>
+            <li><strong>⑦ Autonomy Dial</strong><span>朝食領域 = Auto-suggest（提案を出す、確認不要）</span></li>
+          </ul>
+        </div>
+        <div class="verdict">→ 結論: 冷蔵庫の画面は1行だけ表示する — 「昨日の残り + 卵焼き」。タップは不要。</div>
+      </div>
+
+      <div class="combo reveal d1">
+        <div class="combo__head">
+          <span class="combo__title">Combo 2 — 「いま、塾代の話を表に出していいか?」</span>
+          <span class="combo__chip">3 tokens × 2 dials</span>
+        </div>
+        <div class="combo__reads">
+          <ul>
+            <li><strong>③ Social Exposure</strong><span>会議中、画面共有ON（同僚から画面が見えている）</span></li>
+            <li><strong>⑤ Form Factor</strong><span>MacBook、会議室TVにミラーリング中</span></li>
+            <li><strong>⑥ Feasibility</strong><span>金銭の話は緊急ではない — 夕方まで待てる</span></li>
+            <li><strong>⑧ Disclosure Dial</strong><span>家計 = 同僚にはHidden</span></li>
+            <li><strong>⑦ Autonomy Dial</strong><span>金銭通知 = Notifyレベル（確認が必要）</span></li>
+          </ul>
+        </div>
+        <div class="verdict">→ 結論: 通知を抑制。舞が一人になる19:30に再浮上させる。</div>
+      </div>
+
+      <div class="callout reveal d2">
+        <p><strong>重要な観察:</strong> 同じ「塾代の通知」が、タイミングと場所で全く別物になる。これを決めるのは単独のトークンではない — 8つのトークンが<strong>掛け算</strong>で「いま、これを出していいか?」を決定する。</p>
+      </div>
+
+      <a class="sim-cta reveal" href="../simulator/" style="text-decoration: none; margin-top: clamp(40px, 5vw, 64px);">
+        <div class="sim-cta__body">
+          <span class="sim-cta__eyebrow">Live · ブラウザ上で動作</span>
+          <h3 class="sim-cta__title">読むのをやめて、組み合わせを試そう。</h3>
+          <p class="sim-cta__desc">8つのトークンを自分で設定してみる。シミュレータは、どのAX Patternsが発火し、どの設計ルールが適用され、Autonomy × Disclosureの組み合わせが論理的に成立するかどうかを — 入力を変えるたびに即時に表示する。</p>
+        </div>
+        <div class="sim-cta__action">
+          <span class="sim-cta__btn">シミュレータを開く →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION F — MULTI-BRAIN NOTE
+       ═══════════════════════════════════════ -->
+  <section id="sec-06" class="content-section content-section--alt">
+    <div class="content-inner cg-prose">
+      <div class="sec-label" style="color: var(--color-grammar);">Tokens × Brain</div>
+      <h2 class="sec-title reveal">トークンは<em>複数のBrain Layerから</em>引き出される</h2>
+      <p class="sec-desc reveal d1">各トークンは、ひとつのセンサー値ではない — Context Brainの中の複数の記憶レイヤーが連動して出すアウトプットだ。この多層構造の出自を理解しているかどうかが、token-awareなシステムと、ただのルールエンジンを分ける。</p>
+
+      <div class="callout reveal d1">
+        <div class="callout-label">レイヤーが各トークンを供給する仕組み</div>
+        <p>あらゆるBrain — 個人のContext Brainでも、企業のBrainでも — は3つのレイヤーを持つ: <strong>Identity Layer</strong>（変わらないもの）、<strong>Learning Layer</strong>（蓄積されていくもの）、<strong>Now Layer</strong>（いま流動しているもの）。トークンは、必要なレイヤーから引き出される。</p>
+        <p style="margin-top: 12px;">Priority Weightが最もわかりやすい例だ: <strong>いまの緊急度（Now Layer）</strong> + <strong>学習されたトレードオフのパターン（Learning Layer）</strong> + <strong>絶対に譲れない原則（Identity Layer）</strong>。3つすべてのレイヤーがひとつの複合的な読みを作る。Physical StateはNow Layerが中心。Disclosure DialはIdentity Layerが中心だ。</p>
+      </div>
+
+      <div class="callout reveal d2" style="margin-top: 0;">
+        <div class="callout-label">なぜこれがデザインに効いてくるか</div>
+        <p>Brainが記憶を保持する。トークンが瞬間を捉える。Rule Engineが判断を下す — 3つすべてが揃って、はじめてAIは反射ではなく判断で動ける。AIが判断の理由を説明するとき、シグナルがどのレイヤーから来たかを正確に指し示せる: <strong>「Learning Layerの記録上、あなたの会議は10:00に終わるので、通知を後ろにずらしました」</strong>。</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION G — WHY 8 NOT 7
+       ═══════════════════════════════════════ -->
+  <section id="sec-07" class="content-section content-section--alt">
+    <div class="content-inner cg-prose">
+      <div class="sec-label" style="color: var(--color-grammar);">なぜ7ではなく8なのか</div>
+      <h2 class="sec-title reveal"><em>7から8へ</em> — Disclosureを独立したトークンに</h2>
+      <p class="sec-desc reveal d1">Context Grammarは7つのトークンから始まった。2026年初頭、Disclosure Dialを独立したトークンに昇格させた — プライバシーをSocial Exposureに埋め込まれた付け足しではなく、設計の一級市民にするためだ。</p>
+
+      <table class="scale-table reveal d1">
+        <thead>
+          <tr>
+            <th>軸</th>
+            <th>7トークン時代</th>
+            <th>8トークン時代（現行）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>プライバシー</td>
+            <td>Social Exposureの内側に埋め込み（曖昧）</td>
+            <td>Disclosure Dialとして独立（明示）</td>
+          </tr>
+          <tr>
+            <td>Autonomyとの関係</td>
+            <td>暗黙の前提</td>
+            <td>「Hidden × Autoは不可能」を明文化</td>
+          </tr>
+          <tr>
+            <td>領域ごとの制御</td>
+            <td>不可</td>
+            <td>家計 / 健康 / 仕事 / 子育てを別々に開示</td>
+          </tr>
+          <tr>
+            <td>相手ごとの制御</td>
+            <td>不可</td>
+            <td>家族にはFull、同僚にはHidden</td>
+          </tr>
+          <tr>
+            <td>ダイヤルの数</td>
+            <td>1ダイヤル（Autonomyのみ）</td>
+            <td>2ダイヤル（Autonomy + Disclosure のペア）</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout reveal d2">
+        <p><strong>議論の中心:</strong> Autonomy Dial（どこまで委譲するか）とDisclosure Dial（どこまで共有するか）は<strong>必ずペアで動く。</strong> AIに何も教えないまま「全部任せたい」と言うのは、自分のことを知らないアシスタントに完璧な仕事を期待するのと同じだ。Disclosureを一級の概念として独立させる以外に道はなかった。</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION H — TECH REALITY + RECOMMENDATIONS
+       ═══════════════════════════════════════ -->
+  <section id="sec-08" class="content-section content-section--light">
+    <div class="content-inner cg-prose">
+      <div class="sec-label" style="color: var(--color-grammar);">実装する人へ</div>
+      <h2 class="sec-title reveal">技術的な現実 + <em>どこから始めるか</em></h2>
+      <p class="sec-desc reveal d1">「8つすべてが今日にも出荷可能」と書いたら嘘になる。各トークンの2026年時点の状態と、推奨される実装順序を以下に示す。</p>
+
+      <table class="tech-table reveal d1">
+        <thead>
+          <tr>
+            <th>トークン</th>
+            <th>現実</th>
+            <th>ステータス</th>
+            <th>一行サマリ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>① Physical State</td><td class="stars">★★★★☆</td><td>ほぼ実装済み</td><td>Activity Recognition + Watchセンサー — 今すぐ実装可能</td></tr>
+          <tr><td>② Cognitive Load</td><td class="stars">★★☆☆☆</td><td>推定のみ</td><td>直接測定は不可 — 代理指標による推定</td></tr>
+          <tr><td>③ Social Exposure</td><td class="stars">★★★★☆</td><td>ほぼ実装済み</td><td>Voice ID / 近接 / ミラーリング — 今日すべて読み取れる</td></tr>
+          <tr><td>④ Priority Weight</td><td class="stars">★★★☆☆</td><td>一部実装中</td><td>領域内ならYes、領域横断の衝突解決はこれから</td></tr>
+          <tr><td>⑤ Form Factor</td><td class="stars">★★★★☆</td><td>ほぼ実装済み</td><td>OSがすでに保持。マルチサーフェスへの配信が次の壁。</td></tr>
+          <tr><td>⑥ Feasibility</td><td class="stars">★★★☆☆</td><td>一部実装中</td><td>個別APIはある、複数制約の統合がギャップ</td></tr>
+          <tr><td>⑦ Autonomy Dial</td><td class="stars">★★★☆☆</td><td>開発ツールで実装済み</td><td>Claude Code / Cursorに事例あり、コンシューマ展開はこれから</td></tr>
+          <tr><td>⑧ Disclosure Dial</td><td class="stars">★☆☆☆☆</td><td>コンセプト段階</td><td>領域 × 相手のマトリクスUIは現在のどのOSにも存在しない</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="sec-title reveal" style="font-size: clamp(20px, 2vw, 28px); margin-top: clamp(32px, 4vw, 48px);">推奨される実装順序</h3>
+
+      <div class="recs reveal d1">
+        <div class="rec">
+          <div class="rec__num">1</div>
+          <div>
+            <div class="rec__title">③ Social Exposureと⑤ Form Factorから始める</div>
+            <div class="rec__body">どちらも★★★★☆。OSがすでに情報を保持している — ミラーリング状態、デバイスの種類。それを読むだけで「画面共有中は家庭領域の通知を抑制する」が実装できる。ユーザー体験の変化は即時に出る。</div>
+          </div>
+        </div>
+        <div class="rec">
+          <div class="rec__num">2</div>
+          <div>
+            <div class="rec__title">⑦ Autonomy Dialを、機能ごとの4段階UIとして露出する</div>
+            <div class="rec__body">Suggest / Confirm / Notify / Auto を、システム全体の単一トグルではなく機能ごとに切り替えられるようにする。エージェント系プロダクト（Claude Code、Cursor）はすでにこの形に標準化している。Disclosureとビジュアル上ペアにして、「両方を一緒に動かす」設計にすると、即座に安心感が立つ。</div>
+          </div>
+        </div>
+        <div class="rec">
+          <div class="rec__num">3</div>
+          <div>
+            <div class="rec__title">⑧ Disclosure Dialを、領域 × 相手のマトリクスとして実装する</div>
+            <div class="rec__body">家計 / 健康 / 仕事 / 子育て × 家族 / 同僚 / 友人 / 公共 のグリッドを見せる。各セルでFull / Summary / Existence / Hidden を選ばせる。このひとつのUIがあるだけで、Autonomyを上げることが安全に感じられる — AIが何を知っていて何を知らないかが、ユーザーから見える。</div>
+          </div>
+        </div>
+        <div class="rec">
+          <div class="rec__num">4</div>
+          <div>
+            <div class="rec__title">② Cognitive LoadはUI上で「推定」と明示する</div>
+            <div class="rec__body">直接測定していないのだから、正直に書く — 「ビジー・モード（推定）」。常にユーザーが上書きできる手段を用意する: 「いや、空いてる」。これがないと、AIは「分かったふり」をしているように見え、推定を外したときに信頼が崩れる。</div>
+          </div>
+        </div>
+        <div class="rec">
+          <div class="rec__num">5</div>
+          <div>
+            <div class="rec__title">8つ全部を一度にやる必要はない — シーンごとに3〜4個で十分</div>
+            <div class="rec__body">ひとつの判断に8つすべてが必要なことはまずない。「朝のお弁当提案」に必要なのは ② + ① + ③ + ⑦ だけ。残りはデフォルトのまま。デザイナーがシーンごとにアクティブなトークンを選ぶ — システム全体の一括ON/OFFスイッチではない。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SECTION I — Q&A
+       ═══════════════════════════════════════ -->
+  <section id="sec-09" class="content-section content-section--alt">
+    <div class="content-inner cg-prose">
+      <div class="sec-label" style="color: var(--color-grammar);">Q&amp;A</div>
+      <h2 class="sec-title reveal">よくある質問</h2>
+
+      <div style="margin-top: clamp(24px, 3vw, 40px);">
+
+        <div class="qa-block reveal d1">
+          <div class="qa-question">Q1. トークンとBrainは同じものですか?</div>
+          <div class="qa-answer">
+            <strong>違います。</strong> トークンは<strong>いまの状況</strong> — センサーの読み取り値。Brainは<strong>長期の記憶</strong> — 積み上がった知識。「舞はいま会議中」はトークン（瞬間）。「火曜日の朝は舞が必ず一番忙しい」はBrain（パターン）。Rule Engineが<strong>トークン × Brain</strong>を掛け合わせて、振る舞いを決める。
+          </div>
+        </div>
+
+        <div class="qa-block reveal d1">
+          <div class="qa-question">Q2. Cognitive Loadは本当に測れますか?</div>
+          <div class="qa-answer">
+            <strong>直接は測れません。</strong> EEGも脳スキャナーもない。だから<strong>推定する</strong>しかない: 「平日朝7時 + カレンダー満杯 + 直近1時間で12タスク完了」→ おそらく高負荷。この限界を正直に書くのがContext Grammarの立場だ。「Cognitive Loadを直接測る」と主張するフレームワークは、技術的に間違っている。
+          </div>
+        </div>
+
+        <div class="qa-block reveal d1">
+          <div class="qa-question">Q3. Autonomy Dialはユーザー自身が設定するんですか?</div>
+          <div class="qa-answer">
+            <strong>純粋にはそうではありません。</strong> 3つの力が決める:<br>
+            ① <strong>サービス側のデフォルト</strong> — Netflixのレコメンドはすでに高いAutonomyで出荷されている<br>
+            ② <strong>AIの自動調整</strong> — 夜間・初回・失敗直後はデフォルトを下げる<br>
+            ③ <strong>ユーザーの能動的な変更</strong> — 自分でスライダーを動かす<br>
+            「ユーザーがゼロから決める」というのは古いUIの前提で、現実には3つの力の合成で決まる。
+          </div>
+        </div>
+
+        <div class="qa-block reveal d1">
+          <div class="qa-question">Q4. Disclosure Dialは既存のプライバシー設定と同じですか?</div>
+          <div class="qa-answer">
+            <strong>違います — 粒度が圧倒的に細かい。</strong> 既存のプライバシー設定はON / OFFの2値。Disclosure Dialは<strong>領域ごと × 相手ごと</strong>。たとえば: 舞は「家計」をAIにFull、夫にFull、子どもにHidden、同僚にHidden — それぞれ独立に設定する。このマトリクス構造は、現在のどのOSにも存在しない。
+          </div>
+        </div>
+
+        <div class="qa-block reveal d1">
+          <div class="qa-question">Q5. 各トークンは、ひとつのBrainから来るんですか? 複数からですか?</div>
+          <div class="qa-answer">
+            <strong>多くは複数のレイヤーから引き出されます。</strong> Priority Weightは「いまの緊急度（Now Layer）」+「学習されたトレードオフのパターン（Learning Layer）」+「絶対に譲れない軸（Identity Layer）」の合算。Multi-Brainモデルでは、各トークンが<strong>「このシグナルはどのレイヤーから来たか」</strong>の参照を保持する — だからAIは後から、なぜその判断をしたかを説明できる。
+          </div>
+        </div>
+
+        <div class="qa-block reveal d1">
+          <div class="qa-question">Q6. トークンを持つと、結局何が変わるんですか?</div>
+          <div class="qa-answer">
+            <strong>AIの振る舞いがコンテキスト感応的になります。</strong> 今日のAI（ChatGPT、Siri）は、あなたがどんな状況でも同じトーンを返す。トークンがあれば、AIはこう動ける: 「舞はいま会議中 — 返信は後で」「颯太がそろそろ寝る — 明るい色は避けよう」。気の利くウェイターと、機械的に皿を運ぶ店員の差だ。
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       CTA
+       ═══════════════════════════════════════ -->
+  <section class="cta">
+    <h2 class="cta-title reveal">語彙はもう手に入った。<br>次は、AIがどう記憶するか。</h2>
+    <p class="cta-sub reveal d1">Context Tokensは瞬間を捉える。<span data-term="brain">Brain</span>は瞬間を超えて「その人が誰か」を記憶する。両方が揃ってはじめて、AIは反射ではなく判断で動ける。</p>
+    <div class="cta-buttons reveal d2">
+      <a href="../brain/index.html" class="cta-btn cta-btn--primary">Brainを見る &rarr;</a>
+      <a href="../ax-patterns/index.html" class="cta-btn cta-btn--ghost">23のAX Patternsを見る &rarr;</a>
+      <a href="../trust-design/index.html" class="cta-btn cta-btn--ghost">Trust Design &rarr;</a>
+    </div>
+    <p class="reveal d3" style="margin-top:28px;font-size:13px;color:rgba(240,236,228,0.4);font-family:var(--font-mono);letter-spacing:1px;">
+      <a href="../index.html" style="color:rgba(240,236,228,0.5);text-decoration:none;border-bottom:1px solid rgba(240,236,228,0.15);padding-bottom:2px;">&larr; 概要に戻る</a>
+    </p>
+  </section>
+
+
+  <!-- ═══ FOOTER ═══ -->
+  <div class="chapter-nav" data-current="tokens" data-base="../"></div>
+  <script src="../../../assets/js/chapter-nav.js"></script>
+
+  <footer class="footer">
+    <p><a href="../index.html">&larr; Context Grammarに戻る</a></p>
+    <p style="margin-top: 8px;">intentfirst.ai &middot; Takao Umehara &middot; 2026</p>
+  </footer>
+
+
+  <script>
+    (function () {
+      var els = document.querySelectorAll('.reveal');
+      if (!els.length) return;
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      els.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+  <script src="../../../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../../../', activePage: 'tokens', lang: 'ja', showLang: false });</script>
+  <script src="../../../assets/js/ga-slots.js"></script>
+  <script src="../../../assets/js/green-animation.js" defer></script>
+  <script src="../../../assets/js/glossary.js" defer></script>
+
+  <!-- TOC Rail navigation -->
+  <script>
+    window.TOC_RAIL = {
+      panelTitle: 'Context Tokens · 8つのトークン',
+      chapters: [
+        {
+          num: '01', title: '概観',
+          sections: [
+            { id: 'sec-01', num: '01', label: 'AIが場の空気を読む' },
+            { id: 'sec-02', num: '02', label: '8つのトークン — 6つの状況 + 2つのダイヤル' },
+            { id: 'sec-03', num: '03', label: '8つすべて — 山城家の朝' }
+          ]
+        },
+        {
+          num: '02', title: 'トークン詳細',
+          sections: [
+            { id: 'sec-04', num: '01', label: '8つのトークン — 仕組みのレベルまで' }
+          ]
+        },
+        {
+          num: '03', title: '組み合わせ・Brain・進化',
+          sections: [
+            { id: 'sec-05', num: '01', label: '単独では成立しない — 掛け算で効く' },
+            { id: 'sec-06', num: '02', label: 'トークンは複数のBrain Layerから引き出される' },
+            { id: 'sec-07', num: '03', label: '7から8へ — Disclosureを独立したトークンに' }
+          ]
+        },
+        {
+          num: '04', title: '現実とFAQ',
+          sections: [
+            { id: 'sec-08', num: '01', label: '技術的な現実 + どこから始めるか' },
+            { id: 'sec-09', num: '02', label: 'よくある質問' }
+          ]
+        }
+      ]
+    };
+  </script>
+  <script src="../../../assets/js/toc-rail.js" defer></script>
 </body>
+
 </html>

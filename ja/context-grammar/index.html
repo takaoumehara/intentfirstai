@@ -1,15 +1,750 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<title>Context Grammar — intentfirst.ai</title>
-<meta http-equiv="refresh" content="0; url=/ja/#context-grammar">
-<link rel="canonical" href="https://intentfirst.ai/ja/#context-grammar">
-<meta name="robots" content="noindex">
-<style>body{font-family:'Geist',system-ui,sans-serif;color:#525252;padding:48px;text-align:center}a{color:#30c969}</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Grammar — ポストアプリ時代のデザイン言語 | intentfirst.ai</title>
+<meta name="description" content="Context Grammarは、人の意図をAIに伝え、ふさわしい瞬間にふさわしい行動へ翻訳するための語彙。8つのContext Tokens、3層構造のBrain、23のAX Patterns。">
+<link rel="canonical" href="https://intentfirst.ai/ja/context-grammar/">
+
+<script>
+  (function(){
+    var t = localStorage.getItem('cg-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/components.css">
+<link rel="stylesheet" href="../../assets/css/context-grammar.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/green-animation.css">
+<link rel="stylesheet" href="../../assets/css/toc-rail.css">
+
+<style>
+/* ── Variables & Base ── */
+:root { --max-w: 1280px; }
+body { background: var(--bg); color: var(--text); }
+
+/* ── Reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.reveal.visible { opacity: 1; transform: none; }
+.d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; }
+.d3 { transition-delay: 0.3s; } .d4 { transition-delay: 0.4s; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(56px + clamp(48px, 8vw, 100px)) clamp(24px, 4vw, 60px) clamp(60px, 8vw, 100px);
+  background: #08070b;
+  color: #f0ece4;
+  position: relative;
+  overflow: hidden;
+}
+/* Override the global .nav-has-subnav rule from context-grammar.css —
+   this page's hero already has the right padding for nav+subnav. */
+body[data-dark-nav].nav-has-subnav .hero {
+  padding-top: calc(96px + clamp(48px, 8vw, 100px));
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 50%, rgba(48, 201, 105, 0.04), transparent 65%),
+    radial-gradient(ellipse 50% 50% at 75% 40%, rgba(74, 106, 144, 0.07), transparent 65%);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 980px;
+  position: relative;
+  z-index: 1;
+}
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 11px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(240, 236, 228, 0.55);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  animation: heroFadeUp 0.8s var(--ease) 0.15s forwards;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: #30c969;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.hero-title {
+  font-weight: 600;
+  font-size: clamp(34px, 5.2vw, 76px);
+  line-height: 1.06;
+  letter-spacing: -3px;
+  margin-bottom: 44px;
+  text-wrap: balance;
+  max-width: 14em;
+  opacity: 0;
+  animation: heroFadeUp 0.8s var(--ease) 0.35s forwards;
+}
+.hero-title em {
+  font-style: normal;
+  color: #30c969;
+}
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── PIPELINE SECTION ── */
+.pipeline-section {
+  background: #08070b;
+  padding: 0 0 clamp(72px, 9vw, 112px);
+  overflow: hidden;
+}
+.pipeline-header {
+  max-width: var(--max-w);
+  margin: 0 auto clamp(8px, 1.2vw, 16px);
+  padding: 0 clamp(24px, 4vw, 60px) 0;
+}
+.pipeline-label {
+  font-family: var(--font-sans);
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  color: rgba(240, 236, 228, 0.95);
+}
+.pipeline-anim-wrap {
+  width: 100%;
+  padding: 0 clamp(20px, 3vw, 48px);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.pipeline-anim-wrap .ga { width: 100% !important; }
+.pipeline-anim-wrap .ga svg {
+  width: 100% !important;
+  height: auto !important;
+  max-height: clamp(180px, 25vh, 280px);
+  display: block;
+}
+.pipeline-steps {
+  max-width: var(--max-w);
+  margin: clamp(28px, 3.5vw, 48px) auto 0;
+  padding: 0 clamp(24px, 4vw, 60px);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+}
+@media (max-width: 860px) { .pipeline-steps { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 540px) { .pipeline-steps { grid-template-columns: repeat(2, 1fr); } }
+.pipeline-step {
+  border-top: 1px solid rgba(240, 236, 228, 0.08);
+  padding: 18px 20px 18px 0;
+}
+.pipeline-step__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(240, 236, 228, 0.7);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.pipeline-step__name {
+  font-size: clamp(15px, 1.2vw, 18px);
+  font-weight: 600;
+  color: rgba(240, 236, 228, 0.98);
+  margin-bottom: 8px;
+  letter-spacing: -0.2px;
+}
+.pipeline-step__desc {
+  font-size: clamp(14px, 0.95vw, 15px);
+  color: rgba(240, 236, 228, 0.78);
+  line-height: 1.65;
+}
+.pipeline-step--green .pipeline-step__name { color: #30c969; }
+
+/* ── SECTION BASE ── */
+.sec {
+  padding: clamp(80px, 10vw, 130px) clamp(24px, 4vw, 60px);
+}
+.sec-label {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.75vw, 11px);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.sec-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.5vw, 48px);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.sec-sub {
+  font-size: clamp(15px, 1.1vw, 18px);
+  color: var(--text-2);
+  line-height: 1.65;
+  max-width: 580px;
+}
+
+/* ── 7 FLOORS GRID ── */
+.floors-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: clamp(36px, 4.5vw, 56px);
+}
+@media (max-width: 900px) { .floors-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .floors-grid { grid-template-columns: 1fr; } }
+
+.floor-cell {
+  background: var(--bg);
+  padding: clamp(24px, 3vw, 36px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  min-height: 290px;
+  transition: background 0.3s var(--ease);
+}
+.floor-cell:hover { background: var(--bg-2); }
+
+.floor-cell__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.floor-cell__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+.floor-cell__tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.floor-cell__canvas {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+  max-height: 155px;
+}
+.floor-cell__canvas .ga {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.floor-cell__canvas .ga svg {
+  max-width: 100%;
+  max-height: 150px;
+}
+.floor-cell__name {
+  font-size: clamp(17px, 1.4vw, 21px);
+  font-weight: 500;
+  letter-spacing: -0.4px;
+  color: var(--text);
+}
+.floor-cell__desc {
+  font-size: clamp(14px, 0.95vw, 15px);
+  color: var(--text);
+  line-height: 1.65;
+}
+.floor-cell__link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+  transition: color 0.2s, gap 0.2s;
+}
+.floor-cell:hover .floor-cell__link { color: var(--text); gap: 10px; }
+.floor-cell__link::after { content: "→"; }
+
+/* Floor accent colors */
+.floor-cell--intent .floor-cell__num { color: var(--color-intent); }
+.floor-cell--tokens .floor-cell__num { color: var(--color-grammar); }
+.floor-cell--brain  .floor-cell__num { color: var(--color-brain); }
+.floor-cell--trust  .floor-cell__num { color: var(--color-intent); }
+.floor-cell--engine .floor-cell__num { color: var(--color-grammar); }
+.floor-cell--ax     .floor-cell__num { color: var(--color-success); }
+.floor-cell--specs  .floor-cell__num { color: var(--text-3); }
+
+/* ── CTA SECTION ── */
+.sec-cta {
+  background: #08070b;
+  color: #f0ece4;
+  text-align: center;
+  padding: clamp(80px, 10vw, 130px) clamp(24px, 4vw, 60px);
+  position: relative;
+  overflow: hidden;
+}
+.sec-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(48, 201, 105, 0.04), transparent 65%);
+  pointer-events: none;
+}
+.cta-inner { max-width: 640px; margin: 0 auto; position: relative; }
+.cta-title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 14px;
+}
+.cta-sub {
+  font-size: clamp(15px, 1.1vw, 17px);
+  color: rgba(240, 236, 228, 0.65);
+  max-width: 480px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+.cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.cta-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 13px 26px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.25s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.cta-btn--primary { background: #f0ece4; color: #08070b; }
+.cta-btn--primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(240, 236, 228, 0.1); }
+.cta-btn--ghost { background: transparent; color: rgba(240, 236, 228, 0.5); border: 1px solid rgba(240, 236, 228, 0.1); }
+.cta-btn--ghost:hover { color: #f0ece4; border-color: rgba(240, 236, 228, 0.25); }
+
+/* ── FOOTER ── */
+.page-footer {
+  background: #08070b;
+  color: rgba(240, 236, 228, 0.5);
+  padding: clamp(28px, 4vw, 44px) clamp(24px, 4vw, 60px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  border-top: 1px solid rgba(240, 236, 228, 0.04);
+}
+.page-footer a {
+  color: rgba(240, 236, 228, 0.5);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.page-footer a:hover { color: #30c969; }
+.footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* Text selection fix for anchor-wrapped cells */
+.floor-cell__name,
+.floor-cell__desc { user-select: text; }
+</style>
 </head>
-<body>
-<p><a href="/ja/#context-grammar">Context Grammar</a> へ移動中…</p>
-<script>location.replace('/ja/#context-grammar');</script>
+<body data-dark-nav>
+
+<!-- ═══════════════════════════════
+     HERO
+     ═══════════════════════════════ -->
+<div class="hero" data-theme="dark" id="sec-intro">
+  <div class="hero-inner">
+    <p class="hero-eyebrow">ポストアプリ時代のデザイン言語</p>
+    <h1 class="hero-title">Context Grammarは、人の<em>意図</em>をAIに伝え、ふさわしい瞬間にふさわしい行動へ翻訳するための語彙だ。</h1>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     PIPELINE
+     ═══════════════════════════════ -->
+<section class="pipeline-section" data-theme="dark" id="sec-pipeline">
+  <div class="pipeline-header reveal">
+    <p class="pipeline-label">Context Grammarの流れ ─ 意図が行動に変わるまで</p>
+  </div>
+
+  <div class="pipeline-anim-wrap reveal d1">
+    <div data-ga-slot="cg-pipeline" data-dials="true"
+         aria-label="Context Grammarのパイプライン：Human → Intent → 8 Context Tokens → 3-Layer Brain → Rule Engine → AX Patterns"></div>
+  </div>
+
+  <div class="pipeline-steps">
+    <div class="pipeline-step reveal">
+      <div class="pipeline-step__num">01 · Human</div>
+      <div class="pipeline-step__name">意図を持った人</div>
+      <p class="pipeline-step__desc">実在する人と、実在するその瞬間。これまでの経緯と文脈、そして果たしたい目的がそこにある。</p>
+    </div>
+    <div class="pipeline-step reveal d1">
+      <div class="pipeline-step__num">02 · Intent</div>
+      <div class="pipeline-step__name pipeline-step__name">依頼の奥にある目的</div>
+      <p class="pipeline-step__desc">本人が口にすることもあれば、状況から読み取られることもある。ただの文字列ではなく、構造化された目的のかたち。</p>
+    </div>
+    <div class="pipeline-step reveal d2">
+      <div class="pipeline-step__num">03 · 8 Tokens</div>
+      <div class="pipeline-step__name">いまの状況</div>
+      <p class="pipeline-step__desc">6つの状況シグナルと2つの信頼ダイヤル。どこにいるのか、システムは何まで踏み込めるのかを記述する。</p>
+    </div>
+    <div class="pipeline-step reveal d3">
+      <div class="pipeline-step__num">04 · Brain</div>
+      <div class="pipeline-step__name">構造化された記憶</div>
+      <p class="pipeline-step__desc">3つの層 ─ Identity（数ヶ月単位）、Learning（数週間単位）、Now（数秒単位）。家庭で動く5種類のBrain。</p>
+    </div>
+    <div class="pipeline-step pipeline-step--green reveal d4">
+      <div class="pipeline-step__num">05 · Rule Engine → Output</div>
+      <div class="pipeline-step__name">ふさわしい行動</div>
+      <p class="pipeline-step__desc">Tokens × Brain から設計ルールが生まれ、23のAX Patternsに着地する。委ねる、上げる、合わせる。</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     7 FLOORS
+     ═══════════════════════════════ -->
+<section class="sec dark" id="floors" data-theme="dark">
+  <div class="sec-inner">
+    <h2 class="sec-title reveal">7つの入口。ひとつのフレームワーク。</h2>
+    <p class="sec-sub reveal d1">IntentからAX Patternsまでの5階建てパイプライン、その横にTrust DesignとSpecs。どこから読み始めてもいい。それぞれが単体で成り立っている。</p>
+
+    <div class="floors-grid reveal d3">
+
+      <a href="intent/index.html" class="floor-cell floor-cell--intent" data-cg-key="intent">
+        <div class="floor-cell__head">
+          <span class="floor-cell__num">01</span>
+          <span class="floor-cell__tag">Intent</span>
+        </div>
+        <div class="floor-cell__canvas">
+          <div data-ga-slot="cg-intent" data-feedback="false"
+               aria-label="Intent ─ 4つのチャネル：明示、能動、受動、環境"></div>
+        </div>
+        <div class="floor-cell__name">Intent</div>
+        <p class="floor-cell__desc">人が発するシグナルを4つのチャネルで受け取る ─ 明示、能動、受動、環境。Intentはただの文字列ではなく、構造化された目的のかたちだ。</p>
+        <span class="floor-cell__link">読む</span>
+      </a>
+
+      <a href="tokens/index.html" class="floor-cell floor-cell--tokens" data-cg-key="tokens">
+        <div class="floor-cell__head">
+          <span class="floor-cell__num">02</span>
+          <span class="floor-cell__tag">Context Tokens</span>
+        </div>
+        <div class="floor-cell__canvas">
+          <div data-ga-slot="cg-tokens"
+               aria-label="8 Context Tokens ─ 6つの状況シグナルと2つの信頼ダイヤル"></div>
+        </div>
+        <div class="floor-cell__name">8 Context Tokens</div>
+        <p class="floor-cell__desc">6つの状況シグナルと2つの信頼ダイヤル。いまどこにいるのか、システムはどこまで責任を持って動けるのか ─ それを書き表すための変数群。</p>
+        <span class="floor-cell__link">読む</span>
+      </a>
+
+      <a href="brain/index.html" class="floor-cell floor-cell--brain" data-cg-key="brain">
+        <div class="floor-cell__head">
+          <span class="floor-cell__num">03</span>
+          <span class="floor-cell__tag">Brain</span>
+        </div>
+        <div class="floor-cell__canvas">
+          <div data-ga-slot="cg-brain"
+               aria-label="Context Brain ─ 3つの層：Identity、Learning、Now"></div>
+        </div>
+        <div class="floor-cell__name">Brain</div>
+        <p class="floor-cell__desc">記憶を成す3つの層 ─ Identity Layer、Learning Layer、Now Layer。家庭で動く5種類のBrainは、どれも同じ構造を持つ。</p>
+        <span class="floor-cell__link">読む</span>
+      </a>
+
+      <a href="trust-design/index.html" class="floor-cell floor-cell--trust" data-cg-key="trust">
+        <div class="floor-cell__head">
+          <span class="floor-cell__num">06</span>
+          <span class="floor-cell__tag">Side Stream</span>
+        </div>
+        <div class="floor-cell__canvas">
+          <div data-ga-slot="cg-trust-coupling"
+               aria-label="信頼の連動 ─ Autonomy DialとDisclosure Dial"></div>
+        </div>
+        <div class="floor-cell__name">2つのダイヤル — Trust Design</div>
+        <p class="floor-cell__desc">Autonomy Dial：システムは確認を取らずにどこまで動いてよいか。Disclosure Dial：個人の文脈をどこまで共有するか。ドメインごとに、本人が握る。</p>
+        <span class="floor-cell__link">読む</span>
+      </a>
+
+      <a href="rule-engine/index.html" class="floor-cell floor-cell--engine" data-cg-key="rule-engine">
+        <div class="floor-cell__head">
+          <span class="floor-cell__num">04</span>
+          <span class="floor-cell__tag">Rule Engine</span>
+        </div>
+        <div class="floor-cell__canvas">
+          <div data-ga-slot="cg-rule-engine"
+               aria-label="Rule Engine ─ Context TokensとBrainの記憶から設計ルールを導く"></div>
+        </div>
+        <div class="floor-cell__name">Rule Engine</div>
+        <p class="floor-cell__desc">Tokens × Brainから設計ルールを導く。Priority Weightのぶつかり合いをほどき、行き先は3つ ─ 委ねる、上げる、合わせる。</p>
+        <span class="floor-cell__link">読む</span>
+      </a>
+
+      <a href="ax-patterns/index.html" class="floor-cell floor-cell--ax" data-cg-key="ax-patterns">
+        <div class="floor-cell__head">
+          <span class="floor-cell__num">05</span>
+          <span class="floor-cell__tag">AX Patterns</span>
+        </div>
+        <div class="floor-cell__canvas">
+          <div data-ga-slot="cg-ax-patterns"
+               aria-label="23のAX Patterns ─ 4つのグループに整理"></div>
+        </div>
+        <div class="floor-cell__name">AX Patterns</div>
+        <p class="floor-cell__desc">名前を持った23のパターン ─ Delivery、Escalation、Autonomy、Cross-cutting。Rule Engineが発火した瞬間に、UIがどう振る舞うべきかを定める。</p>
+        <span class="floor-cell__link">読む</span>
+      </a>
+
+      <a href="specs/index.html" class="floor-cell floor-cell--specs" data-cg-key="specs">
+        <div class="floor-cell__head">
+          <span class="floor-cell__num">07</span>
+          <span class="floor-cell__tag">Schema</span>
+        </div>
+        <div class="floor-cell__canvas">
+          <div data-ga-slot="cg-specs"
+               aria-label="Specs ─ YAMLとJSONによるスキーマ定義"></div>
+        </div>
+        <div class="floor-cell__name">Specs &amp; Schema</div>
+        <p class="floor-cell__desc">Context Tokens、Brainの各層、AX Patternの発火条件をYAMLで定義する。チームやプラットフォームをまたいで持ち運べるかたちにしておく。</p>
+        <span class="floor-cell__link">読む</span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     SIMULATOR BANNER — Try it live
+     ═══════════════════════════════ -->
+<section class="sec-simulator">
+  <div class="sim-banner reveal">
+    <div class="sim-banner__left">
+      <span class="sim-banner__eyebrow">ライブ · ブラウザで動く</span>
+      <h2 class="sim-banner__title">Context Grammarを動かす。<br/>パターンが発火するその瞬間を見る。</h2>
+      <p class="sim-banner__desc">
+        8つのContext Tokensをセットして、23のAX Patternsのうちどれが発火するかを観察する。
+        Autonomy DialとDisclosure Dialがどう互いを縛るかも、その場で見てとれる。バックエンドなしで、ルールエンジンがブラウザの中で動く。
+      </p>
+      <a href="simulator/index.html" class="sim-banner__cta">Simulatorを開く →</a>
+    </div>
+    <div class="sim-banner__right">
+      <div class="sim-banner__stat-grid">
+        <div class="sim-banner__stat"><span class="sim-banner__stat-num">8</span><span class="sim-banner__stat-label">Tokens</span></div>
+        <div class="sim-banner__stat"><span class="sim-banner__stat-num">23</span><span class="sim-banner__stat-label">Patterns</span></div>
+        <div class="sim-banner__stat"><span class="sim-banner__stat-num">6</span><span class="sim-banner__stat-label">Scenarios</span></div>
+        <div class="sim-banner__stat"><span class="sim-banner__stat-num">0</span><span class="sim-banner__stat-label">Backend</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+.sec-simulator {
+  padding: clamp(60px, 8vw, 120px) clamp(24px, 4vw, 48px) clamp(40px, 5vw, 80px);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.sim-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 64px);
+  align-items: center;
+  padding: clamp(36px, 5vw, 72px) clamp(28px, 4vw, 56px);
+  background: #08070b;
+  color: #f0ece4;
+  position: relative;
+  overflow: hidden;
+}
+.sim-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 50% 60% at 80% 50%, rgba(104, 137, 180, 0.18), transparent 70%);
+  pointer-events: none;
+}
+@media (max-width: 760px) {
+  .sim-banner { grid-template-columns: 1fr; }
+}
+.sim-banner__left { position: relative; z-index: 1; }
+.sim-banner__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(240, 236, 228, 0.55);
+  display: block;
+  margin-bottom: 18px;
+}
+.sim-banner__title {
+  font-weight: 500;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.18;
+  letter-spacing: -1.5px;
+  margin: 0 0 18px;
+}
+.sim-banner__desc {
+  font-size: clamp(15px, 1.05vw, 17px);
+  font-weight: 400;
+  color: rgba(240, 236, 228, 0.7);
+  line-height: 1.7;
+  margin: 0 0 28px;
+  max-width: 540px;
+}
+.sim-banner__cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 26px;
+  background: #f0ece4;
+  color: #08070b;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: -0.2px;
+  transition: transform 0.18s var(--ease-hover), background 0.18s var(--ease-hover);
+}
+.sim-banner__cta:hover {
+  background: #fff;
+  transform: translateX(4px);
+}
+.sim-banner__right {
+  position: relative;
+  z-index: 1;
+}
+.sim-banner__stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(240, 236, 228, 0.1);
+  border: 1px solid rgba(240, 236, 228, 0.1);
+}
+.sim-banner__stat {
+  background: #08070b;
+  padding: clamp(20px, 2.5vw, 32px) clamp(16px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.sim-banner__stat-num {
+  font-family: var(--font-mono);
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 500;
+  color: #f0ece4;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+.sim-banner__stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(240, 236, 228, 0.5);
+}
+</style>
+
+
+<!-- ═══════════════════════════════
+     CTA
+     ═══════════════════════════════ -->
+<section class="sec-cta">
+  <div class="cta-inner">
+    <h2 class="cta-title reveal">まずはBrainから読む</h2>
+    <p class="cta-sub reveal d1">記憶は、エージェント設計でいちばん難しい部分だ。3つの層という骨組みが、ほかのすべての土台になる。</p>
+    <div class="cta-buttons reveal d2">
+      <a href="brain/index.html" class="cta-btn cta-btn--primary">Brain &amp; Agentsを読む →</a>
+      <a href="../index.html" class="cta-btn cta-btn--ghost">← ポートフォリオに戻る</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     FOOTER
+     ═══════════════════════════════ -->
+<footer class="page-footer">
+  <span>intentfirst.ai · Context Grammar · 2026</span>
+  <div class="footer-links">
+    <a href="../index.html">Home</a>
+    <a href="../about/index.html">About</a>
+    <a href="../applied/index.html">Applied</a>
+    <a href="../../projects/project-01/index.html">Project 01</a>
+  </div>
+</footer>
+
+
+<!-- ── TOC Rail ── -->
+<script>
+  window.TOC_RAIL = {
+    panelTitle: 'Context Grammar · 概観',
+    chapters: [
+      {
+        num: '01', title: '概観',
+        sections: [
+          { id: 'sec-intro',    num: '01', label: 'はじめに', dark: true },
+          { id: 'sec-pipeline', num: '02', label: 'パイプラインの流れ', dark: true },
+          { id: 'floors',       num: '03', label: '7つの入口', dark: true }
+        ]
+      }
+    ]
+  };
+</script>
+<script src="../../assets/js/toc-rail.js" defer></script>
+
+<!-- ── Scripts ── -->
+<script src="../../assets/js/cg-floors-data.js"></script>
+<script src="../../assets/js/ga-slots.js"></script>
+<script src="../../assets/js/green-animation.js" defer></script>
+<script src="../../assets/js/nav.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    initNav({ basePath: '../../', activePage: 'context-grammar', lang: 'ja', showLang: false });
+  });
+
+  /* Scroll reveal */
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(function (el) { obs.observe(el); });
+</script>
+
 </body>
 </html>

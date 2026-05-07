@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intent — Floor 1 | Context Grammar</title>
+  <meta name="description"
+    content="Intent is Floor 1 of Context Grammar — what the user wants, in the moment. Explicit and Implicit. Four types: Explicit, Active, Passive, Ambient. Not Jobs-to-be-Done, but the real-time signal that starts every interaction.">
+  <meta property="og:title" content="Intent — Floor 1 | Context Grammar">
+  <meta property="og:description"
+    content="Intent is Floor 1 of Context Grammar — what the user wants, in the moment. Explicit and Implicit. Four channels. Not JTBD.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://intentfirst.ai/context-grammar/intent/">
+  <link rel="canonical" href="https://intentfirst.ai/context-grammar/intent/">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../../assets/css/nav.css">
+  <link rel="stylesheet" href="../../assets/css/green-animation.css">
+  <link rel="stylesheet" href="../../assets/css/cg-restaurant-aside.css">
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ═══ HERO SPLIT ═══ */
+    /* Page-specific: slightly wider text panel */
+    .hero-split-text { max-width: 420px; }
+    @media (max-width: 768px) {
+      .hero-illu { width: 90%; max-width: 380px; height: auto; }
+    }
+
+    /* ═══ SECTION LABELS ═══ */
+    .sec-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .sec-title {
+      font-size: clamp(28px, 3.2vw, 44px);
+      font-weight: 500;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
+    .sec-desc {
+      font-size: clamp(16px, 1.15vw, 19px);
+      font-weight: 400;
+      color: var(--text-2);
+      line-height: 1.75;
+      margin-bottom: 28px;
+    }
+
+    /* ═══ VS CARDS (Explicit vs Implicit) ═══ */
+    .vs-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: clamp(16px, 2.5vw, 28px);
+      align-items: stretch;
+      margin: clamp(28px, 4vw, 48px) 0;
+    }
+    @media (max-width: 720px) {
+      .vs-grid { grid-template-columns: 1fr; }
+      .vs-divider { display: none; }
+    }
+    .vs-card {
+      border: 1px solid var(--border);
+      padding: clamp(24px, 3vw, 36px);
+      background: var(--bg-2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .vs-card--explicit { border-top: 3px solid var(--color-intent); }
+    .vs-card--implicit { border-top: 3px solid var(--color-brain); }
+    .vs-card__badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .vs-card--explicit .vs-card__badge { color: var(--color-intent); }
+    .vs-card--implicit .vs-card__badge { color: var(--color-brain); }
+    .vs-card__title {
+      font-size: clamp(22px, 1.8vw, 28px);
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      margin: 0;
+      color: var(--text);
+    }
+    .vs-card__role {
+      font-size: clamp(15px, 1.05vw, 17px);
+      color: var(--text-2);
+      line-height: 1.7;
+      margin: 0;
+    }
+    .vs-card__list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .vs-card__list li {
+      padding: 8px 0 8px 18px;
+      position: relative;
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+    .vs-card__list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      top: 9px;
+      color: var(--text-3);
+    }
+    .vs-divider {
+      align-self: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-3);
+      letter-spacing: 0.1em;
+    }
+
+    /* ═══ CALLOUT ═══ */
+    .callout {
+      border-left: 3px solid var(--border);
+      padding: 16px 22px;
+      margin: clamp(20px, 3vw, 32px) 0;
+      color: var(--text-2);
+      font-size: clamp(15px, 1.05vw, 17px);
+      line-height: 1.7;
+      background: var(--bg-2);
+    }
+    .callout strong { color: var(--text); font-weight: 600; }
+    .callout--intent { border-left-color: var(--color-intent); background: rgba(122,85,32,0.05); }
+    .callout--brain  { border-left-color: var(--color-brain);  background: rgba(106,74,144,0.05); }
+
+    /* ═══ EMERGENCE BLOCK (how implicit intent emerges) ═══ */
+    .emergence {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: clamp(8px, 1.5vw, 16px);
+      align-items: center;
+      margin: clamp(28px, 3.5vw, 44px) 0;
+      padding: clamp(22px, 2.5vw, 36px);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+    }
+    @media (max-width: 768px) {
+      .emergence { grid-template-columns: 1fr; }
+      .emergence__op { transform: rotate(90deg); margin: 4px auto; }
+    }
+    .emergence__block {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .emergence__block-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .emergence__block-title {
+      font-size: clamp(17px, 1.3vw, 21px);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .emergence__block--token .emergence__block-title { color: var(--color-grammar); }
+    .emergence__block--brain .emergence__block-title { color: var(--color-brain); }
+    .emergence__block--result .emergence__block-title { color: var(--color-intent); }
+    .emergence__block-sub {
+      font-size: clamp(13px, 0.95vw, 15px);
+      color: var(--text-3);
+      line-height: 1.55;
+    }
+    .emergence__op {
+      font-size: clamp(22px, 2.2vw, 32px);
+      color: var(--text-3);
+      font-weight: 300;
+    }
+
+    /* ═══ SCENARIO STEPS ═══ */
+    .scenario-intro {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: clamp(22px, 2.5vw, 32px);
+      margin-bottom: clamp(16px, 2vw, 22px);
+    }
+    .scenario-intro__quote {
+      font-size: clamp(18px, 1.4vw, 22px);
+      font-weight: 500;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .scenario-intro__source {
+      font-size: 13px;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+    }
+
+    .step-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: clamp(22px, 2.5vw, 32px);
+      margin-bottom: clamp(12px, 1.5vw, 16px);
+      position: relative;
+      overflow: hidden;
+    }
+    .step-card::before {
+      content: "";
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 3px;
+    }
+    .step-card--token::before   { background: var(--color-grammar); }
+    .step-card--brain::before   { background: var(--color-brain); }
+    .step-card--inferred::before { background: var(--color-brain); }
+    .step-card--explicit::before { background: var(--color-intent); }
+    .step-card--result::before  { background: var(--color-success); }
+
+    .step-card__head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .step-card__num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px; height: 30px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--text);
+      color: var(--bg);
+    }
+    .step-card--token   .step-card__num { background: var(--color-grammar); }
+    .step-card--brain   .step-card__num { background: var(--color-brain); }
+    .step-card--inferred .step-card__num { background: var(--color-brain); }
+    .step-card--explicit .step-card__num { background: var(--color-intent); }
+    .step-card--result  .step-card__num { background: var(--color-success); }
+    .step-card__title {
+      font-size: clamp(17px, 1.3vw, 20px);
+      font-weight: 500;
+      letter-spacing: -0.2px;
+      color: var(--text);
+    }
+    .step-card__chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      margin-left: auto;
+    }
+    .step-card--token   .step-card__chip { color: var(--color-grammar); background: rgba(74,106,144,0.08); }
+    .step-card--brain   .step-card__chip { color: var(--color-brain);   background: rgba(106,74,144,0.08); }
+    .step-card--inferred .step-card__chip { color: var(--color-brain);  background: rgba(106,74,144,0.08); }
+    .step-card--explicit .step-card__chip { color: var(--color-intent); background: rgba(122,85,32,0.08); }
+    .step-card--result  .step-card__chip { color: var(--color-success); background: rgba(58,106,58,0.08); }
+
+    .step-card__body {
+      font-size: clamp(15px, 1.05vw, 17px);
+      color: var(--text-2);
+      line-height: 1.7;
+    }
+    .step-card__body strong { color: var(--text); font-weight: 600; }
+    .step-card__body em {
+      font-style: normal;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 0.95vw, 15px);
+    }
+
+    .signal-reads {
+      background: rgba(106,74,144,0.06);
+      padding: 16px 20px;
+      margin-top: 14px;
+    }
+    .signal-reads--token { background: rgba(74,106,144,0.06); }
+    .signal-reads--green { background: rgba(58,106,58,0.06); }
+    .signal-reads__head {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      color: var(--color-brain);
+    }
+    .signal-reads--token .signal-reads__head { color: var(--color-grammar); }
+    .signal-reads--green .signal-reads__head { color: var(--color-success); }
+    .signal-reads ul { list-style: none; padding: 0; }
+    .signal-reads li {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 12px;
+      padding: 7px 0;
+      font-size: clamp(13px, 0.95vw, 15px);
+      border-top: 1px solid var(--border);
+    }
+    .signal-reads li:first-child { border-top: none; padding-top: 0; }
+    .signal-reads li strong {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      color: var(--color-brain);
+    }
+    .signal-reads--token li strong { color: var(--color-grammar); }
+
+    .verdict {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(58,106,58,0.08);
+      border-left: 3px solid var(--color-success);
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 0.95vw, 15px);
+      color: var(--color-success);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* ═══ BRAIN CARDS (multi-Brain model) ═══ */
+    .brain-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(12px, 1.5vw, 16px);
+      margin: clamp(28px, 3.5vw, 40px) 0;
+    }
+    .brain-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--color-brain);
+      padding: clamp(18px, 2.2vw, 26px) clamp(20px, 2.5vw, 30px);
+    }
+    .brain-card__name {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--color-brain);
+      margin-bottom: 4px;
+    }
+    .brain-card__role {
+      font-size: clamp(16px, 1.2vw, 19px);
+      font-weight: 500;
+      margin-bottom: 6px;
+      letter-spacing: -0.2px;
+      color: var(--text);
+    }
+    .brain-card__body {
+      font-size: clamp(14px, 1.05vw, 16px);
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+    .brain-card__body strong { color: var(--text); font-weight: 600; }
+
+    /* ═══ INTERPLAY DIAGRAM ═══ */
+    .interplay {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: clamp(12px, 1.8vw, 24px);
+      align-items: center;
+      margin-top: clamp(24px, 3.5vw, 44px);
+      padding: clamp(22px, 2.5vw, 36px);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+    }
+    @media (max-width: 768px) {
+      .interplay { grid-template-columns: 1fr; }
+      .interplay__op { transform: rotate(90deg); }
+    }
+    .interplay__block {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .interplay__block-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .interplay__block-title {
+      font-size: clamp(17px, 1.3vw, 21px);
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .interplay__block--intent .interplay__block-title { color: var(--color-intent); }
+    .interplay__block--brain  .interplay__block-title { color: var(--color-brain); }
+    .interplay__block--result .interplay__block-title { color: var(--color-success); }
+    .interplay__block-sub {
+      font-size: clamp(13px, 0.95vw, 15px);
+      color: var(--text-3);
+      line-height: 1.55;
+    }
+    .interplay__op {
+      font-size: clamp(22px, 2.2vw, 32px);
+      color: var(--text-3);
+      font-weight: 300;
+    }
+
+    /* ═══ 4-TYPE GRID ═══ */
+    .intent-types {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: clamp(14px, 2vw, 22px);
+      margin-top: clamp(28px, 3.5vw, 44px);
+    }
+    @media (max-width: 768px) { .intent-types { grid-template-columns: 1fr; } }
+    .intent-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--color-intent);
+      padding: clamp(22px, 2.5vw, 34px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .intent-card__num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--color-intent);
+    }
+    .intent-card__title {
+      font-size: clamp(20px, 1.6vw, 26px);
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+      margin: 0;
+      color: var(--text);
+    }
+    .intent-card__def {
+      font-size: clamp(15px, 1.05vw, 17px);
+      color: var(--text-2);
+      line-height: 1.65;
+      margin: 0;
+    }
+    .intent-card__example {
+      margin-top: 4px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border-left: 2px solid var(--color-intent);
+      font-size: clamp(14px, 1vw, 16px);
+      line-height: 1.65;
+      color: var(--text-2);
+    }
+    .intent-card__example-label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    /* ═══ COMPARE TABLE (Intent vs JTBD) ═══ */
+    .compare-table {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-top: clamp(22px, 3vw, 36px);
+      border: 1px solid var(--border);
+    }
+    @media (max-width: 640px) { .compare-table { grid-template-columns: 1fr; } }
+    .compare-col {
+      padding: clamp(22px, 2.5vw, 36px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .compare-col:first-child {
+      background: var(--bg-2);
+      border-right: 1px solid var(--border);
+    }
+    @media (max-width: 640px) {
+      .compare-col:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    .compare-col__label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .compare-col__title {
+      font-size: clamp(20px, 1.6vw, 26px);
+      font-weight: 500;
+      letter-spacing: -0.4px;
+      margin: 0;
+      color: var(--text);
+    }
+    .compare-col--intent .compare-col__title { color: var(--color-intent); }
+    .compare-col__body {
+      font-size: clamp(15px, 1.05vw, 17px);
+      color: var(--text-2);
+      line-height: 1.7;
+      margin: 0;
+    }
+    .compare-col__list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: clamp(14px, 1vw, 16px);
+      color: var(--text-2);
+    }
+    .compare-col__list li {
+      padding-left: 18px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .compare-col__list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--color-intent);
+      font-weight: 500;
+    }
+
+    /* ═══ FORMULA BOX ═══ */
+    .formula-box {
+      background: #08070b;
+      color: #f0ece4;
+      padding: clamp(22px, 2.5vw, 32px) clamp(24px, 3vw, 36px);
+      margin: clamp(22px, 3vw, 32px) 0;
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 1vw, 15px);
+      line-height: 1.75;
+      overflow-x: auto;
+    }
+    .formula-box strong { color: #f5d59c; font-weight: 600; }
+    .formula-box em { color: #9cc4f5; font-style: normal; }
+    .formula-box .formula-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: rgba(240,236,228,0.45);
+      letter-spacing: 0.03em;
+    }
+
+    /* ═══ FLOW SVG ═══ */
+    .flow-panel {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      padding: clamp(24px, 3vw, 40px);
+      margin: clamp(24px, 3.5vw, 44px) 0;
+    }
+    .flow-panel__title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 18px;
+    }
+    .flow-panel__svg-wrap { width: 100%; overflow-x: auto; }
+    .flow-svg text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .flow-svg .pill { fill: var(--bg-2); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+    .flow-svg .pill--intent { stroke: var(--color-intent); fill: rgba(122,85,32,0.08); }
+    .flow-svg .pill--token  { stroke: var(--color-grammar); fill: var(--bg-2); }
+    .flow-svg .pill-label--intent { fill: var(--color-intent); }
+    .flow-svg .pill-label--token  { fill: var(--color-grammar); }
+    .flow-svg .arrow { stroke: var(--text-3); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
+    .flow-svg .arrow-label { font-size: 9.5px; font-weight: 500; fill: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* ═══ Q&A ═══ */
+    .qa-block {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--color-intent);
+      padding: clamp(20px, 2.5vw, 30px);
+      margin-bottom: clamp(12px, 1.5vw, 16px);
+    }
+    .qa-block__q {
+      font-size: clamp(16px, 1.2vw, 19px);
+      font-weight: 500;
+      letter-spacing: -0.2px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .qa-block__a {
+      font-size: clamp(15px, 1.05vw, 17px);
+      color: var(--text-2);
+      line-height: 1.75;
+    }
+    .qa-block__a strong { color: var(--text); font-weight: 600; }
+
+    /* ═══ CTA ═══ */
+    .cta {
+      background: #08070b;
+      color: #f0ece4;
+      padding: clamp(80px, 10vh, 120px) clamp(24px, 5vw, 80px);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(160, 112, 64, 0.08), transparent);
+      pointer-events: none;
+    }
+    .cta-title {
+      font-size: clamp(24px, 3vw, 44px);
+      font-weight: 500;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .cta-sub {
+      font-size: clamp(15px, 1.1vw, 18px);
+      color: rgba(240, 236, 228, 0.5);
+      max-width: 520px;
+      line-height: 1.75;
+      margin-bottom: 36px;
+      position: relative;
+    }
+    .cta-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; position: relative; }
+    .cta-btn {
+      padding: 14px 28px;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.3s var(--ease);
+    }
+    .cta-btn--primary {
+      background: #f0ece4; color: #08070b;
+      border: 1px solid #f0ece4;
+    }
+    .cta-btn--primary:hover { background: #fff; transform: translateY(-2px); }
+    .cta-btn--ghost {
+      background: transparent;
+      color: rgba(240, 236, 228, 0.6);
+      border: 1px solid rgba(240, 236, 228, 0.12);
+    }
+    .cta-btn--ghost:hover { color: #f0ece4; border-color: rgba(240, 236, 228, 0.3); }
+  </style>
+</head>
+
+<body data-dark-nav class="nav-has-subnav">
+
+  <!-- nav.js injects navigation here -->
+
+  <!-- ═══ HERO ═══ -->
+  <div class="hero hero--split">
+    <div class="hero-split-text">
+      <p class="hero-label">Context Grammar — Floor 1</p>
+      <h1 class="hero-title">Intent</h1>
+      <p class="hero-sub">Before AI reads the room, it must read what the user <em>wants</em>. Sometimes it's spoken. Often it isn't. Intent is the signal that starts every interaction — and the one today's AI almost always misses.</p>
+      <div class="hero-scroll-hint"><span></span></div>
+    </div>
+    <div class="hero-illu">
+      <div data-ga-slot="cg-intent" aria-label="Intent — four channels of human signal: explicit, active, passive, ambient"></div>
+    </div>
+  </div>
+
+  <!-- ═══ INTRO ═══ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner cg-prose">
+      <div class="why-matters">
+        <p class="why-matters-text">Intent is Floor 1 of Context Grammar. It's what the user wants <strong>in the moment</strong> — not a permanent goal, not a demographic. Two kinds: one spoken, one inferred. Get Intent wrong and every floor above it fails.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ A · RESTAURANT INTRO ASIDE ═══ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">A · The Metaphor</p>
+      <h2 class="sec-title reveal d1">Two kinds of restaurant — and two kinds of AI</h2>
+      <p class="sec-desc reveal d2" style="max-width: 700px;">One restaurant waits for you to ask. The other knows before you do. The difference is not magic — it's memory combined with situational awareness.</p>
+
+      <aside class="cg-restaurant-aside reveal d2">
+        <div class="cg-restaurant-aside__icon" aria-hidden="true">
+          <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
+        </div>
+        <div class="cg-restaurant-aside__content">
+          <p class="cg-restaurant-aside__label">In restaurant terms</p>
+          <div class="cg-restaurant-aside__body">
+            <p>At an ordinary restaurant, the server brings water when you ask. That is <strong>Explicit Intent</strong> — you stated a need, they filled it. Clean, simple, but entirely reactive.</p>
+            <p>At the restaurant you've been going to for years, the server notices the spicy dish arriving and quietly refills your glass before your mouth even opens. They read your situation (spicy food) against their memory of you (you can't handle heat). That is <strong>Implicit Intent</strong> — the want that never had to be spoken.</p>
+            <p>Today's AI is the ordinary restaurant. Context Grammar is the design language that makes the regular's restaurant possible at scale.</p>
+          </div>
+        </div>
+      </aside>
+
+      <div class="callout callout--intent reveal d3">
+        <strong>The key question for every AI interaction:</strong> are you designing a restaurant that waits to be asked — or one that already knows?
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ B · EXPLICIT VS IMPLICIT ═══ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">B · The Foundation</p>
+      <h2 class="sec-title reveal d1">Intent has two forms — spoken and unspoken</h2>
+      <p class="sec-desc reveal d2" style="max-width: 700px;">Most people think Intent means "what the user said." That's half right. Intent comes in two kinds — and in real life, the unspoken one is far more common.</p>
+
+      <div class="vs-grid reveal d2">
+        <div class="vs-card vs-card--explicit">
+          <span class="vs-card__badge">Explicit Intent</span>
+          <h3 class="vs-card__title">Spoken clearly</h3>
+          <p class="vs-card__role">The user declares what they want — by voice, tap, or type. AI executes. No inference needed.</p>
+          <ul class="vs-card__list">
+            <li>"Set a timer for 20 minutes"</li>
+            <li>"Call Mom"</li>
+            <li>"Buy Sota soccer shoes"</li>
+            <li>Imperative, direct, no ambiguity</li>
+          </ul>
+        </div>
+
+        <span class="vs-divider" aria-hidden="true">vs</span>
+
+        <div class="vs-card vs-card--implicit">
+          <span class="vs-card__badge">Implicit Intent</span>
+          <h3 class="vs-card__title">Understood without words</h3>
+          <p class="vs-card__role">Nothing is said. But the intersection of <strong>situation (Token) × memory (Brain)</strong> lets AI infer what's probably wanted.</p>
+          <ul class="vs-card__list">
+            <li>Tuesday morning, uniform by the door → "soccer day"</li>
+            <li>Friday 7pm, fridge empty → "probably pizza?"</li>
+            <li>11pm, reading in bed → "keep everything quiet"</li>
+            <li>Far more common than Explicit</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout callout--intent reveal d3">
+        <strong>The key distinction:</strong> Explicit is a command. Implicit is an atmosphere.<br>
+        Today's AI (Siri, Alexa, ChatGPT) hears only Explicit. Context Grammar is the design language that makes Implicit readable too.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ C · HOW IMPLICIT INTENT EMERGES ═══ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">C · How It Emerges</p>
+      <h2 class="sec-title reveal d1">Implicit Intent is not a guess — it's a function</h2>
+      <p class="sec-desc reveal d2" style="max-width: 700px;">Implicit Intent does not appear by chance. It emerges from a specific intersection: current situation signals (Tokens) read against stored memory (Brain), mediated by Coordinator. Remove any one of the three and the inference collapses.</p>
+
+      <div class="emergence reveal d2">
+        <div class="emergence__block emergence__block--token">
+          <span class="emergence__block-label">Floor 2</span>
+          <span class="emergence__block-title">8 Context Tokens</span>
+          <span class="emergence__block-sub">What is true right now — physical state, cognitive load, time, form factor.</span>
+        </div>
+        <span class="emergence__op" aria-hidden="true">×</span>
+        <div class="emergence__block emergence__block--brain">
+          <span class="emergence__block-label">Floor 3</span>
+          <span class="emergence__block-title">Multiple Brains</span>
+          <span class="emergence__block-sub">Who this person is and what the household has learned — stored across 3 memory layers.</span>
+        </div>
+        <span class="emergence__op" aria-hidden="true">→</span>
+        <div class="emergence__block emergence__block--result">
+          <span class="emergence__block-label">Floor 1</span>
+          <span class="emergence__block-title">Implicit Intent</span>
+          <span class="emergence__block-sub">An unspoken want — expressed as a proposition + confidence score.</span>
+        </div>
+      </div>
+
+      <div class="callout reveal d3">
+        <strong>Intent = what is wanted.</strong> Token = what is happening right now. Brain = who this person is.<br>
+        They are three separate things — but Implicit Intent can only emerge from the <strong>intersection of Token × Brain</strong>, with Coordinator doing the cross-reading.
+      </div>
+
+      <aside class="cg-restaurant-aside cg-restaurant-aside--inline reveal d3">
+        <div class="cg-restaurant-aside__icon" aria-hidden="true">
+          <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
+        </div>
+        <div class="cg-restaurant-aside__content">
+          <p class="cg-restaurant-aside__label">In restaurant terms</p>
+          <div class="cg-restaurant-aside__body">
+            <p>The experienced server reads "spicy dish arriving" (Token) against "this person can't handle spice" (Brain). Neither alone produces the water refill — only the intersection does. Coordinator is the server's trained instinct that performs the crossing.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ═══ D · SOTA'S SHOES WALKTHROUGH ═══ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">D · A Real Scenario</p>
+      <h2 class="sec-title reveal d1">Tuesday morning in the Yamashiro house — Intent arrives before Sota speaks</h2>
+      <p class="sec-desc reveal d2" style="max-width: 680px;">Sota (11) winces while trying to put on his soccer shoes one morning. He says nothing. And yet, the home's AI already knows his Intent at 92% confidence. Here's how it gets there.</p>
+
+      <div class="scenario-intro reveal d2">
+        <p class="scenario-intro__quote">(Sota frowns at the door, struggling to get his soccer shoes on)</p>
+        <p class="scenario-intro__source">— Tuesday 7:42 · Yamashiro House · Zero words spoken</p>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="step-card step-card--token reveal">
+        <div class="step-card__head">
+          <span class="step-card__num">1</span>
+          <span class="step-card__title">Context Tokens shift — the environment's sensors register a signal</span>
+          <span class="step-card__chip">Token</span>
+        </div>
+        <div class="step-card__body">
+          Sota hasn't said a word. But the home's <strong>Context Tokens</strong> are already moving. Tokens are 8 instruments that read "what is the world like right now." This morning's readings:
+          <div class="signal-reads signal-reads--token" style="margin-top: 14px;">
+            <div class="signal-reads__head">Token readings — current values</div>
+            <ul>
+              <li><strong>① Physical State</strong><span>Stride + posture sensor detects "foot discomfort" for Sota</span></li>
+              <li><strong>② Cognitive Load</strong><span>7:42am · 10 min to school departure · estimated LOAD = HIGH (low-bandwidth mode)</span></li>
+              <li><strong>③ Social Exposure</strong><span>Family only (private) · speakers OK</span></li>
+              <li><strong>⑤ Form Factor</strong><span>Indoors · refrigerator display directly in line of sight</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-card step-card--brain reveal d1">
+        <div class="step-card__head">
+          <span class="step-card__num">2</span>
+          <span class="step-card__title">Multiple Brains corroborate the signal</span>
+          <span class="step-card__chip">Brain</span>
+        </div>
+        <div class="step-card__body">
+          Tokens alone only get you to "a boy with foot discomfort." This is where <strong>Brain (memory)</strong> enters. In Context Grammar, a home doesn't run on one Brain — <strong>multiple Brains operate in parallel</strong>, each remembering from a different angle.
+          <div class="signal-reads">
+            <div class="signal-reads__head">Brains consulted in parallel</div>
+            <ul>
+              <li><strong>Person Brain (Sota)</strong><span>Age 11 · soccer club · feet have grown 5mm recently · peak growth phase</span></li>
+              <li><strong>Household Brain</strong><span>Past 3 months: 2 mentions of "shoes feel tight" · previous delay caused shoes to not arrive before match</span></li>
+              <li><strong>Calendar Brain</strong><span>Today is Tuesday → soccer practice · match next Saturday</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-card step-card--inferred reveal d2">
+        <div class="step-card__head">
+          <span class="step-card__num">3</span>
+          <span class="step-card__title">Coordinator crosses Token × multiple Brains — Implicit Intent emerges</span>
+          <span class="step-card__chip">Inferred</span>
+        </div>
+        <div class="step-card__body">
+          <strong>Coordinator</strong> is the layer that reads Tokens and Brains together. It intersects Token (foot discomfort + Tuesday morning) × Person Brain (Sota in growth phase) × Household Brain (previous failure pattern) × Calendar Brain (match in 5 days). An <strong>unspoken Intent</strong> surfaces.
+          <div class="signal-reads">
+            <div class="signal-reads__head" style="color: var(--color-brain);">Inferred Implicit Intent</div>
+            <ul>
+              <li><strong>Surface reading</strong><span>"Shoes feel tight and hard to put on"</span></li>
+              <li><strong>True desire</strong><span>"New soccer shoes needed before Saturday's match"</span></li>
+              <li><strong>Confidence</strong><span>92% — corroborated by all three Brains: Person × Household × Calendar</span></li>
+            </ul>
+          </div>
+          <div class="verdict">→ Conclusion: put Mai one tap away from "Sota's shoes may need replacing?"</div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step-card step-card--explicit reveal d3">
+        <div class="step-card__head">
+          <span class="step-card__num">4</span>
+          <span class="step-card__title">Sota says one thing — Explicit Intent confirms what's already known</span>
+          <span class="step-card__chip">Explicit</span>
+        </div>
+        <div class="step-card__body">
+          Sota turns to his mother and says:<br>
+          <em>"Mom, my soccer shoes are too tight!"</em><br><br>
+          Only now does <strong>Explicit Intent</strong> appear. But here is the interesting part — Coordinator had already reached the same conclusion through Implicit inference <strong>before Sota said a word</strong>.<br>
+          His statement is a <strong>confirming override</strong>, not a first discovery.
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="step-card step-card--result reveal d4">
+        <div class="step-card__head">
+          <span class="step-card__num">5</span>
+          <span class="step-card__title">A notification arrives on Mai's iPhone — zero cognitive overhead</span>
+          <span class="step-card__chip">Result</span>
+        </div>
+        <div class="step-card__body">
+          While Mai is cleaning up breakfast, one line appears on her iPhone:<br>
+          <em>"Sota's soccer shoes — outgrown. Match Saturday. Tap to auto-order ($48, EU 37)."</em><br><br>
+          Mai does not <strong>decide</strong>, <strong>research</strong>, or <strong>ask about the size again</strong>. One tap and it's done.<br>
+          That is what a home with readable Implicit Intent looks like.
+        </div>
+      </div>
+
+      <div class="callout callout--intent reveal" style="margin-top: 28px;">
+        <strong>Key takeaway:</strong> Before Sota said "my shoes are tight," Tokens and multiple Brains had already established 92% confidence in his Intent. Today's AI waits for the words. Context Grammar's AI is ready before the words arrive.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ E · MULTI-BRAIN MODEL ═══ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-brain);">E · Architecture</p>
+      <h2 class="sec-title reveal d1">Intent and the Brain — one signal, multiple memories</h2>
+      <p class="sec-desc reveal d2" style="max-width: 680px;">"Intent without memory is just a guess." But that memory is not one big database. In Context Grammar, a home runs multiple Brains in parallel — each with a distinct role. Implicit Intent only emerges when <strong>Coordinator reads them together</strong>.</p>
+
+      <div class="interplay reveal d2">
+        <div class="interplay__block interplay__block--intent">
+          <span class="interplay__block-label">Floor 1</span>
+          <span class="interplay__block-title">Intent</span>
+          <span class="interplay__block-sub">Current moment signal — what the user wants right now.</span>
+        </div>
+        <span class="interplay__op" aria-hidden="true">×</span>
+        <div class="interplay__block interplay__block--brain">
+          <span class="interplay__block-label">Floor 3</span>
+          <span class="interplay__block-title">Multiple Brains</span>
+          <span class="interplay__block-sub">Person · Household · Calendar, each with 3 memory layers.</span>
+        </div>
+        <span class="interplay__op" aria-hidden="true">=</span>
+        <div class="interplay__block interplay__block--result">
+          <span class="interplay__block-label">Meaning</span>
+          <span class="interplay__block-title">Actionable Intent</span>
+          <span class="interplay__block-sub">An intent that knows <em>who</em> it belongs to and <em>when</em> it's urgent.</span>
+        </div>
+      </div>
+
+      <div class="brain-cards reveal d3">
+        <div class="brain-card">
+          <span class="brain-card__name">Person Brain</span>
+          <span class="brain-card__role">The brain that remembers "who this person is"</span>
+          <p class="brain-card__body">One per family member. 3-layer structure — <strong>Identity Layer</strong> (Sota is 11, soccer club), <strong>Learning Layer</strong> (shoe size changes every 3–4 months), <strong>Now Layer</strong> (unusual gait this morning). Determines the subject of Implicit Intent.</p>
+        </div>
+        <div class="brain-card">
+          <span class="brain-card__name">Household Brain</span>
+          <span class="brain-card__role">The brain that remembers "the family's shared history"</span>
+          <p class="brain-card__body">Purchase history, unresolved household tasks, budget priorities, past failure patterns ("the shoes weren't replaced in time last season"). Provides the <strong>family-level context</strong> invisible to any single person's brain.</p>
+        </div>
+        <div class="brain-card">
+          <span class="brain-card__name">Calendar Brain</span>
+          <span class="brain-card__role">The brain that remembers "when things happen"</span>
+          <p class="brain-card__body">Family calendar, school schedules, work travel, match dates. Determines the <strong>urgency</strong> of an Implicit Intent. No Saturday match means the shoes can wait. A match in 5 days makes it "buy now."</p>
+        </div>
+        <div class="brain-card">
+          <span class="brain-card__name">Coordinator</span>
+          <span class="brain-card__role">The layer that reads all Brains together</span>
+          <p class="brain-card__body">Not a Brain itself — a <strong>cross-Brain reasoning layer</strong>. Reads Tokens alongside Person, Household, and Calendar simultaneously, resolves conflicts, and reduces everything to a single Intent proposition. Disclosure Dial and Autonomy Dial settings are read here too.</p>
+        </div>
+      </div>
+
+      <div class="callout callout--brain reveal d4">
+        <strong>Why separate Brains, not one?</strong><br>
+        Separating Brains by role means <strong>Disclosure Dial can control "which Brain can share what with which Brain."</strong> Sota's health data stays in his Person Brain. Household finances stay in the Household Brain. One giant merged Brain can't draw those lines.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ F · 4-CHANNEL TAXONOMY ═══ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">F · Four Channels</p>
+      <h2 class="sec-title reveal d1">Four channels of Intent — from command to atmosphere</h2>
+      <p class="sec-desc reveal d2" style="max-width: 680px;">Explicit / Implicit is the right entry point. But when implementing, breaking Implicit into three sub-types keeps design decisions sharp. Floor 1 covers four channels total.</p>
+
+      <figure class="illust-panel reveal d2">
+        <img src="../images/ISO-GREEN/IF-03-Intent-4layers.png" alt="Four channels of Intent — Explicit, Active, Passive, Ambient — stacked from most deliberate to most ambient" loading="lazy">
+      </figure>
+
+      <div class="intent-types">
+
+        <article class="intent-card reveal">
+          <span class="intent-card__num">Type 1</span>
+          <h3 class="intent-card__title">Explicit Intent</h3>
+          <p class="intent-card__def">The user states what they want by voice, tap, or type. Zero inference needed.</p>
+          <div class="intent-card__example">
+            <span class="intent-card__example-label">Example</span>
+            <strong>"Call Mom."</strong> &nbsp;/&nbsp; <strong>"Set a timer for 20 minutes."</strong><br>
+            AI just executes.
+          </div>
+        </article>
+
+        <article class="intent-card reveal d1">
+          <span class="intent-card__num">Type 2</span>
+          <h3 class="intent-card__title">Active Intent</h3>
+          <p class="intent-card__def">The user says nothing, but their current action reveals what they want.</p>
+          <div class="intent-card__example">
+            <span class="intent-card__example-label">Example</span>
+            Mai picks up her phone at 6:42am in running gear with earphones in.<br>
+            <strong>Intent: "About to run — weather, route, playlist."</strong>
+          </div>
+        </article>
+
+        <article class="intent-card reveal d2">
+          <span class="intent-card__num">Type 3</span>
+          <h3 class="intent-card__title">Passive Intent</h3>
+          <p class="intent-card__def">The user has a pattern. This moment matches it — so AI knows what usually follows.</p>
+          <div class="intent-card__example">
+            <span class="intent-card__example-label">Example</span>
+            Friday 7pm. The Yamashiro family has ordered pizza every Friday for 3 months.<br>
+            <strong>Intent: "Probably pizza. Ask before acting."</strong>
+          </div>
+        </article>
+
+        <article class="intent-card reveal d3">
+          <span class="intent-card__num">Type 4</span>
+          <h3 class="intent-card__title">Ambient Intent</h3>
+          <p class="intent-card__def">A continuous background signal. No specific request — just a <em>state</em> the environment should respect.</p>
+          <div class="intent-card__example">
+            <span class="intent-card__example-label">Example</span>
+            Mai reading in bed at 11pm.<br>
+            <strong>Intent: "Stay calm. Keep it warm. No notifications. Dim everything but the book."</strong>
+          </div>
+        </article>
+
+      </div>
+
+      <p class="reveal" style="margin-top: clamp(22px, 3vw, 36px); max-width: 720px; font-size: clamp(15px, 1.1vw, 17px); color: var(--text-2); line-height: 1.75;">
+        Types 2–4 are all sub-types of Implicit Intent. Today's AI handles only Type 1. The other three are the "moments you wish your phone would handle but it never does." Context Grammar makes all four structurally addressable.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ G · INTENT VS JTBD ═══ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">G · Intent vs JTBD</p>
+      <h2 class="sec-title reveal d1">Intent and Jobs-to-be-Done — similar terms, different timescales</h2>
+      <p class="sec-desc reveal d2" style="max-width: 700px;">Designers with a product background often conflate Intent with JTBD. Both are necessary — but they operate at <strong>completely different time horizons</strong>.</p>
+
+      <div class="compare-table reveal d2">
+        <div class="compare-col compare-col--jtbd">
+          <span class="compare-col__label">Framework</span>
+          <h4 class="compare-col__title">Jobs-to-be-Done</h4>
+          <p class="compare-col__body">A <strong>durable</strong> goal the user "hires" a product to accomplish. Defined once, valid for months or years.</p>
+          <ul class="compare-col__list">
+            <li>"Help me stay organized as a parent."</li>
+            <li>"Help me stay fit without scheduling workouts."</li>
+            <li>Drives product <strong>strategy</strong> — which problems to serve.</li>
+            <li>Lives in roadmaps, research decks, annual planning.</li>
+          </ul>
+        </div>
+        <div class="compare-col compare-col--intent">
+          <span class="compare-col__label">Context Grammar</span>
+          <h4 class="compare-col__title">Intent</h4>
+          <p class="compare-col__body">A <strong>momentary</strong> signal of what the user wants right now. Updated every minute, every tap, every room change.</p>
+          <ul class="compare-col__list">
+            <li>"Pizza, probably. Ask me."</li>
+            <li>"Running in 5. Don't interrupt with email."</li>
+            <li>Drives interaction <strong>execution</strong> — what AI should do this second.</li>
+            <li>Lives in the runtime, between the user and the Rule Engine.</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="reveal d3" style="margin-top: clamp(20px, 2.5vw, 32px); max-width: 720px; font-size: clamp(15px, 1.05vw, 17px); color: var(--text-2); line-height: 1.75;">
+        JTBD tells you <em>what product to build</em>. Intent tells you <em>what the product should do in the next 200 milliseconds</em>. You need both. One without the other gives you either a well-researched product that is constantly annoying, or a responsive AI that is solving the wrong problem.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ H · FORMAL FORMULA ═══ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">H · The Formula</p>
+      <h2 class="sec-title reveal d1">Implicit Intent — in one line</h2>
+      <p class="sec-desc reveal d2" style="max-width: 700px;">Implicit Intent is produced by a specific function. Coordinator executes it. The output is always a proposition paired with a confidence score — never a bare assertion.</p>
+
+      <div class="formula-box reveal d2">
+Implicit Intent (t)<br>
+&nbsp;&nbsp;= <strong>Coordinator</strong> (<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<em>Tokens (t)</em>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<em>Person Brain (subject)</em>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<em>Household Brain</em>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<em>Calendar Brain</em>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<em>Disclosure Dial (per-domain)</em><br>
+&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;→ <strong>{ proposition, confidence }</strong>
+        <p class="formula-note">Output is always a proposition + confidence pair. Confidence becomes an input to Autonomy Dial stage selection.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ I · INTENT → 8 TOKENS DIAGRAM ═══ -->
+  <section class="content-section content-section--alt">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">I · How It Connects</p>
+      <h2 class="sec-title reveal d1">Intent and the 8 Context Tokens — subject and modifiers</h2>
+      <p class="sec-desc reveal d2" style="max-width: 680px;">A common question: "Isn't Intent just one of the Tokens?" No. Intent and Tokens are separate layers. Intent is <strong>what is wanted</strong>. Tokens are <strong>the situational facts</strong> that shape how that want gets fulfilled.</p>
+
+      <div class="flow-panel reveal d2">
+        <p class="flow-panel__title">Intent → 8 Tokens → Execution flow</p>
+        <div class="flow-panel__svg-wrap">
+          <svg class="flow-svg" viewBox="0 0 760 380" width="100%">
+
+            <!-- Intent (left) -->
+            <text x="100" y="20" class="arrow-label" text-anchor="middle">Floor 1 · INTENT</text>
+            <rect class="pill pill--intent" x="20" y="140" width="160" height="60" rx="4"/>
+            <text x="100" y="165" text-anchor="middle" class="pill-label--intent" style="font-size:12px;">Implicit Intent</text>
+            <text x="100" y="183" text-anchor="middle" class="pill-label--intent" style="font-size:10px;">"new soccer shoes"</text>
+
+            <!-- Tokens (center) -->
+            <text x="380" y="20" class="arrow-label" text-anchor="middle">8 CONTEXT TOKENS (Floor 2)</text>
+
+            <rect class="pill pill--token" x="290" y="40"  width="180" height="28" rx="4"/>
+            <text x="380" y="59" text-anchor="middle" class="pill-label--token">① Physical State</text>
+
+            <rect class="pill pill--token" x="290" y="76"  width="180" height="28" rx="4"/>
+            <text x="380" y="95" text-anchor="middle" class="pill-label--token">② Cognitive Load</text>
+
+            <rect class="pill pill--token" x="290" y="112" width="180" height="28" rx="4"/>
+            <text x="380" y="131" text-anchor="middle" class="pill-label--token">③ Social Exposure</text>
+
+            <rect class="pill pill--token" x="290" y="148" width="180" height="28" rx="4"/>
+            <text x="380" y="167" text-anchor="middle" class="pill-label--token">④ Priority Weight</text>
+
+            <rect class="pill pill--token" x="290" y="184" width="180" height="28" rx="4"/>
+            <text x="380" y="203" text-anchor="middle" class="pill-label--token">⑤ Form Factor</text>
+
+            <rect class="pill pill--token" x="290" y="220" width="180" height="28" rx="4"/>
+            <text x="380" y="239" text-anchor="middle" class="pill-label--token">⑥ Feasibility</text>
+
+            <rect class="pill pill--token" x="290" y="256" width="180" height="28" rx="4"/>
+            <text x="380" y="275" text-anchor="middle" class="pill-label--token">⑦ Autonomy Dial</text>
+
+            <rect class="pill pill--token" x="290" y="292" width="180" height="28" rx="4"/>
+            <text x="380" y="311" text-anchor="middle" class="pill-label--token">⑧ Disclosure Dial</text>
+
+            <!-- Arrows Intent → Tokens -->
+            <path class="arrow" d="M 180 170 Q 235 100 290 54" />
+            <path class="arrow" d="M 180 170 Q 235 130 290 90" />
+            <path class="arrow" d="M 180 170 Q 235 150 290 126" />
+            <path class="arrow" d="M 180 170 Q 235 165 290 162" />
+            <path class="arrow" d="M 180 170 Q 235 180 290 198" />
+            <path class="arrow" d="M 180 170 Q 235 200 290 234" />
+            <path class="arrow" d="M 180 170 Q 235 230 290 270" />
+            <path class="arrow" d="M 180 170 Q 235 260 290 306" />
+            <text x="237" y="115" class="arrow-label" text-anchor="middle">reads</text>
+
+            <!-- Action (right) -->
+            <text x="640" y="20" class="arrow-label" text-anchor="middle">Floor 4–5 · EXECUTION</text>
+            <rect class="pill pill--intent" x="540" y="140" width="200" height="60" rx="4"/>
+            <text x="640" y="165" text-anchor="middle" class="pill-label--intent" style="font-size:12px;">1-tap notification</text>
+            <text x="640" y="183" text-anchor="middle" class="pill-label--intent" style="font-size:10px;">"$48 · EU 37 · auto?"</text>
+
+            <!-- Arrows Tokens → Action -->
+            <path class="arrow" d="M 470 170 L 540 170" />
+            <text x="503" y="160" class="arrow-label" text-anchor="middle">applies</text>
+
+          </svg>
+        </div>
+      </div>
+
+      <div class="callout callout--intent reveal d3">
+        <strong>How to read this:</strong><br>
+        ① Intent = <strong>what is wanted</strong> (new shoes)<br>
+        ② 8 Tokens = <strong>what is happening right now</strong> (morning rush · high Cognitive Load · fridge display in view · budget OK · Autonomy = confirm)<br>
+        ③ Execution = deliver Intent <strong>through the constraints the Tokens define</strong><br><br>
+        Same Intent, different Tokens → different execution. If Mai checks her phone at <strong>11pm after lights out</strong>, the notification doesn't appear at all (Cognitive Load low · Ambient Intent = quiet mode). The 7am timing is what makes it a one-tap notification.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ J · Q&A ═══ -->
+  <section class="content-section content-section--light">
+    <div class="content-inner cg-card-w">
+      <p class="sec-label reveal" style="color: var(--color-intent);">J · Common questions</p>
+      <h2 class="sec-title reveal d1">Common questions answered</h2>
+
+      <div class="qa-block reveal d1">
+        <p class="qa-block__q">Q1. Is Intent the same as a "Goal"?</p>
+        <p class="qa-block__a"><strong>No.</strong> A Goal (Jobs-to-be-Done) is a long-term target: "lose weight this year." Intent is a moment-level signal: "what do I want in the next minute?" Goals are annual; Intent is per-minute. Goals go in roadmaps; Intent runs at runtime. Both matter — they're just different things.</p>
+      </div>
+
+      <div class="qa-block reveal d1">
+        <p class="qa-block__q">Q2. Isn't Implicit Intent creepy — being guessed at?</p>
+        <p class="qa-block__a"><strong>That's exactly why Disclosure Dial and Autonomy Dial exist.</strong> Users can set "this far is fine to infer, beyond that ask me" — per domain, per person, per Brain. Sota's shoe situation crosses three Brains (Person × Household × Calendar) because permission exists. Aoi's health data stays inside her Person Brain only. <strong>Inference happens only where permission is granted.</strong></p>
+      </div>
+
+      <div class="qa-block reveal d2">
+        <p class="qa-block__q">Q3. What happens when Implicit Intent is wrong?</p>
+        <p class="qa-block__a"><strong>Design for being wrong — keep the cost low.</strong> Confidence drives Autonomy Dial stage. At 92%, it's still a one-tap confirm, not a silent auto-buy. At 50%, no notification — just a note in the Person Brain's Learning Layer. <strong>Low-cost failures by design.</strong> Silent wrong purchases are never acceptable.</p>
+      </div>
+
+      <div class="qa-block reveal d2">
+        <p class="qa-block__q">Q4. How is this different from ChatGPT / Siri / Samsung Family Hub?</p>
+        <p class="qa-block__a">ChatGPT and Siri respond to <strong>Explicit Intent only</strong> — they wait for you to type or speak. Apple Intelligence and Samsung Family Hub have <em>some</em> Implicit capability (household profiles, habit learning, up to 6 member profiles, Voice ID, AI Vision) — but without a <strong>structured Intent model</strong>. Context Grammar proposes structuring Implicit Intent as Token × multiple Brain intersections, with Coordinator mediating — making "the experienced server's water refill" reproducible by design.</p>
+      </div>
+
+      <div class="qa-block reveal d3">
+        <p class="qa-block__q">Q5. Where is Intent stored?</p>
+        <p class="qa-block__a"><strong>Intent itself is not stored.</strong> It's a moment-level signal, not persistent memory. Sota's "needs soccer shoes" Intent belongs to this morning — tomorrow's morning has its own Intent.<br><br>
+        However, <strong>patterns learned from Intent are stored</strong> in the appropriate Brain's Learning Layer:<br>
+        · "Sota's shoe size changes every 3–4 months" → <strong>Person Brain (Sota)</strong><br>
+        · "The Yamashiro family misses the window 5 days before a match" → <strong>Household Brain</strong><br>
+        · "Tuesday mornings have HIGH Cognitive Load 10 min before school" → <strong>Calendar Brain</strong><br>
+        Intent flows through; patterns persist — and they persist in different Brains.</p>
+      </div>
+
+      <div class="qa-block reveal d3">
+        <p class="qa-block__q">Q6. Why not just merge all Brains into one?</p>
+        <p class="qa-block__a"><strong>Because merging collapses privacy and ownership boundaries.</strong> Aoi's menstrual cycle belongs inside her Person Brain — it should never flow to the Household Brain or Calendar Brain. Household finances belong in the Household Brain — not the children's Person Brains. Separate Brains mean <strong>Disclosure Dial can control "which Brain shows what to which Brain" one relationship at a time</strong>. One giant merged Brain can't draw those lines.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="cta">
+    <h2 class="cta-title reveal">You have the signal.<br>Now: the vocabulary.</h2>
+    <p class="cta-sub reveal d1">Intent tells AI <em>what</em> the user wants. The 8 Context Tokens tell AI <em>what is true about the moment</em> that wanting is happening in. Together they turn a one-word request into a full sentence.</p>
+    <div class="cta-buttons reveal d2">
+      <a href="../tokens/index.html" class="cta-btn cta-btn--primary">Next: Context Tokens &rarr;</a>
+      <a href="../index.html" class="cta-btn cta-btn--ghost">Back to Overview &rarr;</a>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <div class="chapter-nav" data-current="intent" data-base="../"></div>
+  <script src="../../assets/js/chapter-nav.js"></script>
+
+  <footer class="footer">
+    <p><a href="../index.html">&larr; Back to Context Grammar</a></p>
+    <p style="margin-top: 8px;">intentfirst.ai &middot; Takao Umehara &middot; 2026</p>
+  </footer>
+
+  <script>
+    (function () {
+      var els = document.querySelectorAll('.reveal');
+      if (!els.length) return;
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      els.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+  <script src="../../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../../', activePage: 'intent', lang: 'en', showLang: false });</script>
+  <script src="../../assets/js/ga-slots.js"></script>
+  <script src="../../assets/js/green-animation.js" defer></script>
+</body>
+</html>

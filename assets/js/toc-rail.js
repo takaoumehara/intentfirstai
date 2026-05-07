@@ -49,12 +49,18 @@
   panel.className = 'tocr__panel';
   panel.setAttribute('aria-label', 'Chapter navigation panel');
 
+  // Scrollable content area (chapters + projects). Font control sits
+  // outside this so it stays pinned at the bottom of the 100vh panel.
+  const panelScroll = document.createElement('div');
+  panelScroll.className = 'tocr__panel-scroll';
+  panel.appendChild(panelScroll);
+
   // Panel title
   if (cfg.panelTitle) {
     const t = document.createElement('div');
     t.className = 'tocr__panel-title';
     t.textContent = cfg.panelTitle;
-    panel.appendChild(t);
+    panelScroll.appendChild(t);
   }
 
   // Map of sectionId -> tick element (for active state)
@@ -140,7 +146,7 @@
       linkMap.set(sec.id, a);
     });
     block.appendChild(list);
-    panel.appendChild(block);
+    panelScroll.appendChild(block);
   });
 
   // ─── Projects section (jump between scroll narratives) ──
@@ -184,7 +190,138 @@
     projectsList.appendChild(li);
   });
   projectsBlock.appendChild(projectsList);
-  panel.appendChild(projectsBlock);
+  panelScroll.appendChild(projectsBlock);
+
+  // ─── Font size control (global, JS-driven, incremental) ─────
+  // Scales body text by reading each element's natural computed
+  // font-size and applying an inline override (works with any
+  // px / clamp / vw declaration). +/− buttons step through a
+  // continuous scale; preference persists per-origin.
+  const FSCALE_KEY  = 'tocr_text_scale_v2';
+  const FSCALE_MIN  = 0.85;
+  const FSCALE_MAX  = 1.6;
+  const FSCALE_STEP = 0.1;
+
+  // Body / reading text selectors. Headings, eyebrows, labels, and
+  // structural mono text are deliberately excluded.
+  const FTEXT_SELECTORS = [
+    // Generic body text
+    'p.lede', '.lede',
+    '.ui-caption',
+    '.body-text', '.dark-text',
+    '.prose p', '.content-body p',
+    '.section-lede',
+    // P3-specific reading text
+    '.meet-hook', '.meet-foot', '.pronoun-line',
+    '.tl-mid-title', '.tl-mid-desc',
+    '.trust-card p', '.trust-card__date',
+    '.trust-alt__name', '.trust-alt__why',
+    '.ch02-voice-quote',
+    // Generic card / callout body
+    '.callout p', '.callout-body',
+    '.card p', '.note p',
+    // PRD-specific
+    '.brain-card-body', '.brain-card-title',
+    '.arch-layer-title', '.arch-layer-desc',
+    '.anatomy-layer-title', '.anatomy-layer-desc',
+    '.install-step-title', '.install-step-desc',
+    '.scope-item', '.roadmap-items li', '.roadmap-title',
+    '.compare-table td',
+    '.scenario-result p', '.metric-label',
+    '.code-block', '.prd-quote p'
+  ].join(', ');
+
+  let currentScale = 1;
+  let resizeRaf = null;
+
+  function clampScale(s) {
+    return Math.max(FSCALE_MIN, Math.min(FSCALE_MAX, Math.round(s * 100) / 100));
+  }
+
+  function applyTextScale(scale) {
+    currentScale = clampScale(scale);
+    document.documentElement.style.setProperty('--fscale', String(currentScale));
+    const els = document.querySelectorAll(FTEXT_SELECTORS);
+    els.forEach((el) => {
+      el.style.removeProperty('font-size');
+      if (currentScale === 1) return;
+      const natural = parseFloat(getComputedStyle(el).fontSize);
+      if (!natural) return;
+      el.style.setProperty('font-size', (natural * currentScale).toFixed(2) + 'px', 'important');
+    });
+    if (typeof updateFontCtrlUI === 'function') updateFontCtrlUI();
+  }
+
+  // Re-apply on resize so clamp/vw values stay correct
+  window.addEventListener('resize', () => {
+    if (currentScale === 1) return;
+    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => applyTextScale(currentScale));
+  });
+
+  let savedScale = 1;
+  try {
+    const raw = localStorage.getItem(FSCALE_KEY);
+    if (raw) savedScale = parseFloat(raw) || 1;
+  } catch (e) {}
+  savedScale = clampScale(savedScale);
+  // Apply on next frame so page CSS has fully resolved
+  requestAnimationFrame(() => applyTextScale(savedScale));
+
+  const fctrl = document.createElement('div');
+  fctrl.className = 'tocr__font-ctrl';
+
+  const frow = document.createElement('div');
+  frow.className = 'tocr__font-ctrl-row';
+
+  const flbl = document.createElement('span');
+  flbl.className = 'tocr__font-ctrl-label';
+  flbl.textContent = 'Text size';
+  frow.appendChild(flbl);
+
+  const fpct = document.createElement('span');
+  fpct.className = 'tocr__font-pct';
+  frow.appendChild(fpct);
+
+  const btnMinus = document.createElement('button');
+  btnMinus.type = 'button';
+  btnMinus.className = 'tocr__font-btn';
+  btnMinus.textContent = '−';
+  btnMinus.setAttribute('aria-label', 'Decrease text size');
+  frow.appendChild(btnMinus);
+
+  const btnPlus = document.createElement('button');
+  btnPlus.type = 'button';
+  btnPlus.className = 'tocr__font-btn';
+  btnPlus.textContent = '+';
+  btnPlus.setAttribute('aria-label', 'Increase text size');
+  frow.appendChild(btnPlus);
+
+  fctrl.appendChild(frow);
+  panel.appendChild(fctrl);
+
+  function updateFontCtrlUI() {
+    fpct.textContent = Math.round(currentScale * 100) + '%';
+    btnMinus.disabled = currentScale <= FSCALE_MIN + 0.001;
+    btnPlus.disabled  = currentScale >= FSCALE_MAX - 0.001;
+  }
+
+  function setScale(s) {
+    const next = clampScale(s);
+    if (next === currentScale) return;
+    try { localStorage.setItem(FSCALE_KEY, String(next)); } catch (e) {}
+    applyTextScale(next);
+  }
+
+  btnMinus.addEventListener('click', () => setScale(currentScale - FSCALE_STEP));
+  btnPlus.addEventListener('click',  () => setScale(currentScale + FSCALE_STEP));
+  // Double-click the percentage to reset
+  fpct.style.cursor = 'pointer';
+  fpct.title = 'Click to reset to 100%';
+  fpct.addEventListener('click', () => setScale(1));
+
+  // Initial UI sync (in case applyTextScale ran before button refs existed)
+  updateFontCtrlUI();
 
   // T-key hint element at the bottom of the rail
   const hint = document.createElement('div');
