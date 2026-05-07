@@ -686,13 +686,111 @@
   white-space: nowrap;
 }
 
+/* ── Pattern spec <details> ── */
+.pattern-spec > summary {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-grammar);
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 0 2px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.pattern-spec > summary::-webkit-details-marker { display: none; }
+.pattern-spec > summary::before {
+  content: '›';
+  font-size: 15px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+  display: inline-block;
+}
+.pattern-spec[open] > summary::before { transform: rotate(90deg); }
+.pattern-spec__body {
+  border-top: 1px solid var(--border);
+  border-left: 2px solid var(--color-grammar);
+  margin-top: 8px;
+  padding: 14px 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pattern-spec__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 680px) { .pattern-spec__grid { grid-template-columns: 1fr; } }
+.pattern-spec__h4 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-3);
+  margin: 0 0 6px;
+}
+.pattern-spec__list {
+  margin: 0;
+  padding-left: 14px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.65;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pattern-spec__list--contra li::marker { color: #dc2626; }
+.pattern-spec__criteria {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.6;
+  background: var(--bg-3);
+  padding: 8px 12px;
+  border-left: 2px solid var(--color-success, #30c969);
+  margin: 0;
+}
+.pattern-spec__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pattern-spec__chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  color: var(--color-grammar);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.pattern-spec__chip:hover { border-color: var(--color-grammar); }
+.pattern-spec__copy {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  align-self: flex-start;
+  letter-spacing: 0.3px;
+  transition: color 0.15s ease;
+}
+.pattern-spec__copy:hover { color: var(--text); }
+
 </style>
 </head>
 
 <body data-dark-nav>
 
 <!-- ═══ HERO ═══ -->
-<section class="hero hero--split">
+<div class="hero hero--split">
   <div class="hero-split-text">
     <p class="hero-label">Context Grammar — Floor 5</p>
     <h1 class="hero-title">AX Patterns</h1>
@@ -702,7 +800,7 @@
   <div class="hero-illu">
     <div data-ga-slot="cg-ax-patterns" aria-label="AX Patterns — 23 response patterns organized by Delivery, Escalation, Autonomy, and Cross-cutting categories"></div>
   </div>
-</section>
+</div>
 
 
 <!-- ═══ A · RESTAURANT INTRO ═══ -->
@@ -1300,6 +1398,8 @@
 </section>
 
 
+<div class="chapter-nav" data-current="axpatterns" data-base="../"></div>
+
 <!-- ═══ NAV + CHAPTER NAV + SCROLL REVEAL ═══ -->
 <script src="../../assets/js/ga-slots.js"></script>
 <script src="../../assets/js/green-animation.js" defer></script>
@@ -1307,7 +1407,7 @@
 <script src="../../assets/js/chapter-nav.js" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  initNav({ basePath: '../../', activePage: 'ax-patterns', lang: 'en' });
+  initNav({ basePath: '../../', activePage: 'axpatterns', lang: 'en' });
 
   var reveals = document.querySelectorAll('.reveal');
   var observer = new IntersectionObserver(function(entries) {
@@ -1443,6 +1543,250 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
+
+  /* ── Pattern spec expansion ── */
+  var PATTERN_SPEC = {
+    'D1': {
+      name: 'Approval Gate',
+      when: ['Autonomy Dial is set to Confirm — the AI proposes, the user decides', 'Priority Weight is HIGH or CRITICAL — the action has real consequences', 'The AI has a concrete proposal ready, not just a vague suggestion'],
+      dont: ['Autonomy Dial is Notify or Auto — gate is bypassed by design', 'The action is trivial and easily reversible', 'Cognitive Load is OVERLOADED — delay the gate, do not force a decision now'],
+      criteria: 'User reviews the proposal and acts (approve, edit, or skip) without confusion. Time-to-decision is short because the proposal is specific.',
+      composes: ['D6','E5','X1','X2']
+    },
+    'D2': {
+      name: 'Progressive Trust',
+      when: ['Brain Level 2 — Learning Layer has ≥ 3 confirmed successes in this domain', 'Same action type has been proposed and accepted repeatedly without rejection', 'No recent trust breach (E5 has not fired in the last session)'],
+      dont: ['New domain — no trust data yet', 'Recent rejection or undo by the user', 'Autonomy Dial was manually set to a lower stage — respect user intent'],
+      criteria: 'Autonomy Dial advances one stage automatically. User does not manually override it back within the next two sessions.',
+      composes: ['E5','D4','D1']
+    },
+    'D3': {
+      name: 'Proactive Nudge',
+      when: ['Cognitive Load is LOW — the user has bandwidth to consider a suggestion', 'Priority Weight is MEDIUM — useful but not urgent', 'Feasibility is Fully Feasible — the AI can actually act on this'],
+      dont: ['Cognitive Load is HIGH or OVERLOADED — the nudge becomes noise', 'Priority Weight is CRITICAL — use D1 Approval Gate instead', 'User has explicitly dismissed this topic in the same session'],
+      criteria: 'User acts on the nudge, or reads it and dismisses without frustration. Does not feel like spam.',
+      composes: ['A2','D1']
+    },
+    'D4': {
+      name: 'Omakase Mode',
+      when: ['Autonomy Dial is Auto — the user has explicitly delegated this domain', 'Disclosure Dial is Full — no information is withheld from the AI', 'Brain Level 2 — Learning Layer trust for this domain has been confirmed over ≥ 3 sessions'],
+      dont: ['Priority Weight is CRITICAL — always use Approval Gate for high-stakes irreversible actions', 'First session in a domain — trust has not been established yet', 'Brain Level 2 has a recent rejection — trust has been breached'],
+      criteria: 'AI completes the action without interruption. User does not undo or modify the result at the next review session.',
+      composes: ['D6','E5','A2']
+    },
+    'D5': {
+      name: 'Substitution Modes',
+      when: ['A planned item is unavailable (Feasibility is Partially or Externally Blocked)', 'Brain Level 2 — Learning Layer has the user\'s substitution preference for this category', 'The substitution is within a known domain (grocery, travel, restaurants)'],
+      dont: ['Allergy or medical constraint is on record — always use Exact mode regardless of preference', 'No prior substitution preference — ask before substituting', 'Priority Weight is CRITICAL — do not substitute silently'],
+      criteria: 'Substitute item is accepted by the user. Correct mode (Exact / Flexible / Exploring / Surprise) was applied per item type and trust level.',
+      composes: ['D1','D4','A7']
+    },
+    'D6': {
+      name: 'Dynamic Friction',
+      when: ['The action is irreversible or has significant downstream consequences', 'Feasibility × consequence risk exceeds the threshold regardless of Autonomy setting', 'A safety-critical condition is detected (driving, medical, financial above threshold)'],
+      dont: ['Low-cost, low-risk actions that are easily undone', 'User is in OVERLOADED cognitive state — delay or simplify the friction, do not add complexity', 'Friction has already fired for this exact action in the same session'],
+      criteria: 'Confirmation is required and received regardless of Autonomy Dial level. User does not feel the friction was unnecessary.',
+      composes: ['D4','D1','E5']
+    },
+    'E1': {
+      name: 'Confidence Signal',
+      when: ['AI confidence for this specific output is ≤ 80%', 'Social Exposure is MEDIUM or PUBLIC — embarrassment risk is real', 'The user would make a materially different decision if they knew the confidence level'],
+      dont: ['Confidence is above 80% — signal becomes noise if shown constantly', 'Private context with no social consequence — calibration can be shown internally only', 'The domain is well-established and confidence is always high'],
+      criteria: 'User understands the uncertainty and makes a choice that reflects correct calibration. Does not express surprise about accuracy later.',
+      composes: ['E4','D1','X1']
+    },
+    'E2': {
+      name: 'Limitation Disclosure',
+      when: ['The request is outside the AI\'s current capability or data coverage', 'Priority Weight is HIGH — the user needs to know to go elsewhere', 'A better resource exists and the AI can name it'],
+      dont: ['Low-priority request where a silent best-effort attempt is acceptable', 'Known-good domain where the AI can deliver reliably', 'The limitation is temporary and will resolve within the same session'],
+      criteria: 'User is redirected to the correct resource without frustration. Does not waste time waiting for an output that will not come.',
+      composes: ['E1','D1']
+    },
+    'E3': {
+      name: 'Rollback',
+      when: ['An AI-initiated action was executed and external feasibility changed after the fact', 'The consequence of the changed feasibility is meaningful to the user', 'A rollback or alternative path is technically available'],
+      dont: ['The action was explicitly user-initiated — they accepted the risk', 'The change is trivial and does not affect the outcome the user cares about', 'User is mid-execution — do not disrupt until the current step completes'],
+      criteria: 'Rollback option is shown clearly and promptly. Alternative path is offered. User does not feel abandoned or confused.',
+      composes: ['D6','A7']
+    },
+    'E4': {
+      name: 'Ambiguity Escalation',
+      when: ['AI confidence is in the 40–79% range — neither certain nor completely lost', 'The decision has meaningful stakes for the user', 'Resolving the ambiguity requires information only the user has'],
+      dont: ['Stakes are very low — just pick the most likely interpretation and proceed', 'Confidence is above 79% — proceed with E1 confidence signal instead', 'User has already answered this clarifying question in the same session'],
+      criteria: 'User makes the call with the information the AI surfaces. AI does not attempt to resolve the ambiguity silently.',
+      composes: ['E1','D1']
+    },
+    'E5': {
+      name: 'Trust Breach Recovery',
+      when: ['User rejects, undoes, or manually overrides an AI decision', 'Prior Autonomy Dial was at a higher stage than the user\'s action implied they wanted', 'The breach occurred in a domain where trust was previously established'],
+      dont: ['User corrects a minor detail (typo, formatting) — not a trust signal', 'First use — no trust has been established yet, nothing to breach', 'User explicitly confirms they still want the same autonomy level after reviewing'],
+      criteria: 'Autonomy Dial is demoted one stage. Subsequent decisions in this domain are more conservative. No repeat breach within the next three sessions.',
+      composes: ['D2','D4']
+    },
+    'A1': {
+      name: 'Form Factor Transform',
+      when: ['Form Factor token has changed — the user is on a different device', 'The same content needs to be presented in the new form factor\'s idiom', 'The content is device-agnostic at the semantic level'],
+      dont: ['Content is device-exclusive by nature (watch notifications ≠ TV ambient display)', 'The user has explicitly customized the layout for this device', 'The content cannot be meaningfully represented on the target form factor'],
+      criteria: 'User recognizes the same information in the new form without confusion. Does not need to re-learn navigation.',
+      composes: ['A2','A3']
+    },
+    'A2': {
+      name: 'Cognitive Scaling',
+      when: ['Cognitive Load is HIGH or OVERLOADED', 'The interface would otherwise present more than 4 choices or a long list', 'A reduced, prioritized view is semantically equivalent to the full view'],
+      dont: ['Cognitive Load is LOW — show everything, trust the user', 'User has explicitly requested the full list', 'The task requires seeing all options to make a valid decision (comparison shopping)'],
+      criteria: 'User sees fewer, better choices. Time-to-decision decreases. No choice the user would have wanted is hidden without a clear path to expand.',
+      composes: ['D3','A1','A3']
+    },
+    'A3': {
+      name: 'Social-Aware Filtering',
+      when: ['Social Exposure is MEDIUM (semi-public) or PUBLIC', 'Disclosure Dial is not set to Full for this session', 'Sensitive personal data (prices, health, relationship data) is present in the view'],
+      dont: ['Private context — no one else can see the screen', 'User has explicitly shared this content with the person present', 'Social Exposure is PRIVATE'],
+      criteria: 'Sensitive information is hidden or anonymized. User is not embarrassed by unintended disclosure. Experience remains coherent without the filtered data.',
+      composes: ['A4','A2']
+    },
+    'A4': {
+      name: 'Disclosure Cascade',
+      when: ['Disclosure Dial setting changes (user adjusts privacy level)', 'Social context changes within a session (new person arrives)', 'A per-person or per-domain disclosure rule is triggered'],
+      dont: ['Full public disclosure was set intentionally and the context has not changed', 'No sensitive data is present in the current view', 'The disclosure change is a system default, not a user or context signal'],
+      criteria: 'Correct visibility level is applied per domain and per person present. No information leaks across disclosure boundaries.',
+      composes: ['A3','D5']
+    },
+    'A5': {
+      name: 'Disposable Surface',
+      when: ['User intent is time-bound — a trip, an event, a single goal', 'A Disposable Brain instance has been created for this intent', 'The interface elements are only meaningful within the goal\'s lifecycle'],
+      dont: ['Recurring or permanent need — use the persistent Home Brain instead', 'User has indicated they want to keep this data after the goal ends', 'The "disposable" framing would confuse or concern the user'],
+      criteria: 'UI appears at goal start and dissolves cleanly at goal end. Learnings are transferred to Home Brain (A8). User does not miss any data they expected to keep.',
+      composes: ['A8','A7']
+    },
+    'A6': {
+      name: 'Care Architecture',
+      when: ['Brain Level 2 — Learning Layer has relational data for this person or relationship', 'An emotionally relevant context has been detected (anniversary, health event, family milestone)', 'The timing is appropriate — not interrupting a high-focus or high-stress moment'],
+      dont: ['No relational data exists — do not fabricate emotional relevance', 'User has opted out of relational context or care features', 'Cognitive Load is HIGH or OVERLOADED — care moments require bandwidth'],
+      criteria: 'Care opportunity is surfaced at the right moment. User responds positively (acts on it, or acknowledges without frustration). Does not feel intrusive.',
+      composes: ['A2','D3']
+    },
+    'A7': {
+      name: 'Live Recomposition',
+      when: ['External Feasibility changed after a plan was already composed', 'The existing plan is present and can be adapted rather than rebuilt from scratch', 'The change affects one or more plan steps but not the overall goal'],
+      dont: ['No plan exists yet — compose fresh', 'User is mid-execution of the current step — wait for a natural break', 'The change is minor enough to note in context without recomposing'],
+      criteria: 'Plan updates silently and the user sees the new version without confusion. The reason for the change is surfaced if the user asks.',
+      composes: ['E3','A5']
+    },
+    'A8': {
+      name: 'Temporal Handoff',
+      when: ['A Disposable Brain lifecycle is ending (trip complete, goal achieved)', 'Learnings worth preserving have accumulated in the Disposable Brain', 'The integration window to Home Brain is open'],
+      dont: ['No learnings worth preserving — let the Disposable Brain dissolve cleanly', 'User has opted for privacy mode — no learning transfer', 'Home Brain already contains equivalent data'],
+      criteria: 'Key learnings are transferred to Home Brain. Disposable Brain is cleanly dissolved. User can access the learnings from Home Brain in subsequent sessions.',
+      composes: ['A5','A7']
+    },
+    'X1': {
+      name: 'Reasoning Trace',
+      when: ['Priority Weight is HIGH or CRITICAL — the stakes justify explanation', 'An audit trail is required (compliance, medical, financial)', 'User has explicitly tapped "Why?" or requested rationale'],
+      dont: ['Low-stakes automatic action where explanation adds friction without value', 'User has not requested detail and stakes are low', 'The reasoning is obvious from context'],
+      criteria: 'Rationale is visible and sufficient. User trusts the recommendation more, or makes a better-informed override. Does not feel overwhelming.',
+      composes: ['X4','D1','E1']
+    },
+    'X2': {
+      name: 'Inline Edit',
+      when: ['User selects "Edit" at an Approval Gate (D1)', 'An AI draft is present and the user wants to modify rather than replace it', 'The edit scope is bounded — field-level or section-level'],
+      dont: ['User approves without edit — do not open edit mode unnecessarily', 'User has a fundamental disagreement with the approach — use Reject and start fresh', 'Edit mode would require re-running the full AI generation'],
+      criteria: 'Edit cycles complete faster than starting from scratch. The revised version is accepted and the user does not undo the edits.',
+      composes: ['X1','D1']
+    },
+    'X3': {
+      name: 'Autonomy Dial UI',
+      when: ['User explicitly wants to adjust their control level for a domain', 'Onboarding or first-time setup for a new agent or service', 'Per-agent or per-domain autonomy settings are being configured'],
+      dont: ['AI-driven automatic adjustment (3-force model) — the dial moves without UI', 'Casual mid-task context — don\'t interrupt flow for autonomy settings', 'User has already set the dial and context has not changed'],
+      criteria: 'User understands what each dial position means. Sets it correctly for their intent. Does not accidentally create a Disclosure × Autonomy conflict.',
+      composes: ['X1','A4']
+    },
+    'X4': {
+      name: 'Source Attribution',
+      when: ['A compliance or audit rule requires traceable claims', 'User taps a source chip to verify a specific claim', 'The output will be shared externally or used in a decision with accountability'],
+      dont: ['Internal drafts that will not be shared externally', 'Sources are not traceable to a single item (synthesized reasoning)', 'Low-stakes creative content where attribution adds friction'],
+      criteria: 'All claims are traceable to their source. Audit trail is valid. No hallucinated citations appear.',
+      composes: ['X1','X2']
+    }
+  };
+
+  /* inject <details> spec blocks + anchor IDs */
+  document.querySelectorAll('.pattern-row').forEach(function(row) {
+    var idEl = row.querySelector('.pattern-id');
+    if (!idEl) return;
+    var pid = idEl.textContent.trim();
+    var spec = PATTERN_SPEC[pid];
+    if (!spec) return;
+
+    /* anchor ID for deep-linking from simulator (matches simulator.js href="#D4" format) */
+    row.id = pid;
+
+    var body = row.querySelector('.pattern-body');
+    var simLink = body ? body.querySelector('.sim-link') : null;
+    if (!body || !spec) return;
+
+    var whenItems = spec.when.map(function(w){ return '<li>' + w + '</li>'; }).join('');
+    var dontItems = spec.dont.map(function(d){ return '<li>' + d + '</li>'; }).join('');
+    var composeChips = spec.composes.map(function(c){
+      return '<a class="pattern-spec__chip" href="#' + c + '">' + c + ' ' + (PATTERN_SPEC[c] ? PATTERN_SPEC[c].name : c) + '</a>';
+    }).join('');
+
+    var detailsEl = document.createElement('details');
+    detailsEl.className = 'pattern-spec';
+    detailsEl.innerHTML =
+      '<summary>Full spec</summary>' +
+      '<div class="pattern-spec__body">' +
+        '<div class="pattern-spec__grid">' +
+          '<div>' +
+            '<p class="pattern-spec__h4">When to use</p>' +
+            '<ul class="pattern-spec__list">' + whenItems + '</ul>' +
+          '</div>' +
+          '<div>' +
+            '<p class="pattern-spec__h4">Do not use when</p>' +
+            '<ul class="pattern-spec__list pattern-spec__list--contra">' + dontItems + '</ul>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<p class="pattern-spec__h4">Success criteria</p>' +
+          '<p class="pattern-spec__criteria">' + spec.criteria + '</p>' +
+        '</div>' +
+        (composeChips ? '<div><p class="pattern-spec__h4">Composes with</p><div class="pattern-spec__chips">' + composeChips + '</div></div>' : '') +
+        '<button class="pattern-spec__copy" data-pid="' + pid + '" type="button">Copy JSON spec ⎘</button>' +
+      '</div>';
+
+    if (simLink) {
+      body.insertBefore(detailsEl, simLink);
+    } else {
+      body.appendChild(detailsEl);
+    }
+  });
+
+  /* Copy JSON spec handler */
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.pattern-spec__copy');
+    if (!btn) return;
+    var pid = btn.getAttribute('data-pid');
+    var spec = PATTERN_SPEC[pid];
+    if (!spec) return;
+    var obj = { id: pid, name: spec.name, when_to_use: spec.when, do_not_use_when: spec.dont, success_criteria: spec.criteria, composes_with: spec.composes };
+    var json = JSON.stringify(obj, null, 2);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(function() {
+        btn.textContent = 'Copied ✓';
+        setTimeout(function(){ btn.textContent = 'Copy JSON spec ⎘'; }, 2000);
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = json;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'Copied ✓';
+      setTimeout(function(){ btn.textContent = 'Copy JSON spec ⎘'; }, 2000);
+    }
+  });
+
 });
 </script>
 

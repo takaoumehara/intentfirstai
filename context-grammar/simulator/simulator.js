@@ -1013,6 +1013,59 @@ async function copyStateToClipboard() {
   }
 }
 
+async function copyDesignBrief() {
+  const result = evaluateContextGrammar(state);
+  const tokenLabels = {
+    physical_state: 'Physical State',
+    cognitive_load: 'Cognitive Load',
+    social_exposure: 'Social Exposure',
+    priority_weight: 'Priority Weight',
+    form_factor: 'Form Factor',
+    feasibility: 'Feasibility',
+    autonomy_dial: 'Autonomy Dial',
+    disclosure_dial: 'Disclosure Dial',
+  };
+  const tokenLines = Object.entries(state)
+    .map(([k, v]) => `- ${tokenLabels[k] || k}: ${v.replace(/_/g, ' ')}`)
+    .join('\n');
+  const patternLines = result.triggered
+    .map(p => `- ${p.id} ${p.name} — ${p.essence}`)
+    .join('\n');
+  const rules = result.designRules;
+  const ruleLines = Object.entries(rules)
+    .filter(([, v]) => v != null)
+    .map(([k, v]) => `- ${k.replace(/_/g, ' ')}: ${v}`)
+    .join('\n');
+  const autonomyLine = result.autonomyValid
+    ? `Valid — ${state.autonomy_dial.replace(/_/g, ' ')} allowed with ${state.disclosure_dial.replace(/_/g, ' ')} disclosure`
+    : `Invalid — ${state.autonomy_dial.replace(/_/g, ' ')} exceeds the ceiling for ${state.disclosure_dial.replace(/_/g, ' ')} disclosure`;
+
+  const brief = [
+    '## Context Grammar — Design Brief',
+    '',
+    '**Token State:**',
+    tokenLines,
+    '',
+    `**Fired Patterns (${result.triggered.length}):**`,
+    patternLines || '- None',
+    '',
+    '**Design Rules:**',
+    ruleLines || '- (none derived)',
+    '',
+    `**Autonomy:** ${autonomyLine}`,
+    '',
+    `**Share URL:** ${buildShareUrl()}`,
+  ].join('\n');
+
+  try {
+    await navigator.clipboard.writeText(brief);
+    showToast('Design brief copied as Markdown');
+  } catch (e) {
+    showToast('Clipboard blocked — see console', 3000);
+    console.info('[Context Grammar Simulator] Design brief:\n' + brief);
+  }
+}
+
 function showFocusBanner(focus) {
   if (!focus) return;
   const banner = document.getElementById('focus-banner');
@@ -1044,7 +1097,11 @@ function init() {
     if (banner) banner.hidden = true;
   });
 
-  // Copy state — clipboard
+  // Copy design brief — Markdown for designers
+  const briefBtn = document.getElementById('copy-brief-btn');
+  if (briefBtn) briefBtn.addEventListener('click', copyDesignBrief);
+
+  // Copy state — JSON + URL for engineers
   const copyBtn = document.getElementById('copy-state-btn');
   if (copyBtn) copyBtn.addEventListener('click', copyStateToClipboard);
 
@@ -1086,9 +1143,30 @@ function init() {
     if (!pop.contains(e.target) && !btn.contains(e.target)) closeScenarios();
   });
 
-  // If a focus banner was shown (URL preset or pattern), open scenarios for context — not auto.
-  // Just make sure flash fires once on initial load if a state was set.
-  if (focus) flashDevice();
+  // Onboarding hero "01 Pick a scenario" card opens the scenarios popover.
+  const onboardStep1 = document.getElementById('onboard-step-1');
+  if (onboardStep1) {
+    onboardStep1.addEventListener('click', (e) => {
+      e.preventDefault();
+      openScenarios();
+    });
+  }
+
+  // First-load attract pulses — invite the cold visitor to act.
+  if (focus) {
+    flashDevice();
+  } else {
+    // No URL state → cold visitor. Pulse the Scenarios button + the first dropdown
+    // so the eye lands on something tappable.
+    setTimeout(() => {
+      const btn = document.getElementById('scenarios-toggle');
+      if (btn) pulseClass(btn, 'is-attracting');
+    }, 600);
+    setTimeout(() => {
+      const firstRow = document.querySelector('.token-row');
+      if (firstRow) pulseClass(firstRow, 'is-attracting');
+    }, 1400);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
