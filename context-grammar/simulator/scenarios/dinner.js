@@ -26,42 +26,42 @@ window.SCENARIO_DINNER = (() => {
 
     tokens: {
       physical_state: {
-        number: '02',
+        number: '01',
         name: 'Physical State',
         value: 'Stationary · sofa',
         signal: 'home Wi-Fi · low motion',
         firing: true,
       },
       cognitive_load: {
-        number: '03',
+        number: '02',
         name: 'Cognitive Load',
         value: 'Moderate',
         signal: 'no Focus Mode · normal calendar',
         firing: false,
       },
       social_exposure: {
-        number: '04',
+        number: '03',
         name: 'Social Exposure',
         value: 'Family with children',
         signal: '3 known voices · child profile present',
         firing: true,
       },
       priority_weight: {
-        number: '05',
+        number: '04',
         name: 'Priority Weight',
         value: 'Standard',
         signal: 'no deadline · routine',
         firing: false,
       },
       form_factor: {
-        number: '07',
+        number: '05',
         name: 'Form Factor',
         value: 'TV available + Phone',
         signal: 'cast active · phone in hand',
         firing: true,
       },
       feasibility: {
-        number: '08',
+        number: '06',
         name: 'Feasibility',
         value: 'Pantry-aware · 22 min slot',
         signal: 'fridge inventory + calendar window',
@@ -136,39 +136,97 @@ window.SCENARIO_DINNER = (() => {
     {
       id: 'health',
       label: 'Health goal · −3kg',
-      sub: '580 kcal left today',
-      mutate: (s) => ({
-        ...s,
-        tokens: {
-          ...s.tokens,
-          priority_weight: { ...s.tokens.priority_weight, value: 'Health-weighted', firing: true, signal: '6-month -3kg goal · 580 kcal budget left today' },
-        },
-        brain: {
-          ...s.brain,
-          L1: [
-            { entry: 'Hana is on a -3kg / 6-month goal.', highlight: true, weight: 'goal' },
-            ...s.brain.L1,
+      sub: '620 kcal left for tonight',
+      category: 'goals',
+      mutate: (s) => {
+        // Compute kcal fit per card
+        const tonightAllowance = 620;
+        const macros = {
+          'salmon':     { p: 38, f: 18, c: 44 },
+          'tonkatsu':   { p: 28, f: 42, c: 30 },
+          'soba':       { p: 22, f: 12, c: 66 },
+          'oyakodon':   { p: 36, f: 28, c: 36 },
+          'fried-rice': { p: 24, f: 22, c: 54 },
+          'bbq':        { p: 42, f: 36, c: 22 },
+          'picnic':     { p: 14, f: 10, c: 76 },
+          'delivery':   { p: 22, f: 32, c: 46 },
+        };
+        const fitOf = (kcal) => {
+          if (kcal <= tonightAllowance) return 'under';
+          if (kcal <= tonightAllowance + 100) return 'close';
+          return 'over';
+        };
+        const cardHealthMeta = {};
+        s.ui.cards.forEach((c) => {
+          cardHealthMeta[c.id] = {
+            kcal: c.kcal,
+            fit: fitOf(c.kcal),
+            macros: macros[c.id] || { p: 25, f: 25, c: 50 },
+          };
+        });
+        // Sort: under-budget asc, then over-budget asc
+        const sortedCards = [...s.ui.cards].sort((a, b) => {
+          const aOver = a.kcal > tonightAllowance ? 1 : 0;
+          const bOver = b.kcal > tonightAllowance ? 1 : 0;
+          if (aOver !== bOver) return aOver - bOver;
+          return a.kcal - b.kcal;
+        });
+        return {
+          ...s,
+          tokens: {
+            ...s.tokens,
+            priority_weight: { ...s.tokens.priority_weight, value: 'Health-weighted', firing: true, signal: '6-month −3kg goal · 620 kcal budget tonight' },
+          },
+          brain: {
+            ...s.brain,
+            L1: [
+              { entry: 'Hana on a −3kg / 6-month goal. Currently 64.5 → target 61.5.', highlight: true, weight: 'goal' },
+              ...s.brain.L1,
+            ],
+          },
+          rules: [
+            { name: 'priority:health > price', drivers: ['L1.goal', 'priority_weight'], output: 'sort by kcal fit' },
+            { name: 'render:nutrition-glance', drivers: ['L1.goal'], output: 'kcal badge + macro bars on every card' },
+            ...s.rules,
           ],
-        },
-        rules: [
-          { name: 'priority:health > price', drivers: ['L1.goal', 'priority_weight'], output: 'sort by calorie fit' },
-          ...s.rules,
-        ],
-        axPatterns: [
-          { id: 'A2', name: 'Cognitive Scaling', essence: 'add nutrition glance', driver: 'priority_weight' },
-          ...s.axPatterns,
-        ],
-        ui: {
-          ...s.ui,
-          showKcal: true,
-          weightTrend: { goal: -3, kgRemaining: 1.8, monthsLeft: 4 },
-          // re-sort cards: lowest kcal first
-          cards: [...s.ui.cards].sort((a, b) => a.kcal - b.kcal),
-        },
-      }),
+          axPatterns: [
+            { id: 'A2', name: 'Cognitive Scaling', essence: 'nutrition glance surfaces', driver: 'priority_weight' },
+            ...s.axPatterns,
+          ],
+          ui: {
+            ...s.ui,
+            showKcal: true,
+            healthDeep: true,
+            weightTracker: {
+              currentKg: 64.5,
+              targetKg: 61.5,
+              goalDeltaKg: -3,
+              kgRemaining: 1.8,
+              monthsLeft: 4,
+              velocityKgPerMonth: -0.45,
+              sparkline: [64.9, 65.1, 64.8, 64.6, 64.7, 64.4, 64.5],
+            },
+            mealBudget: {
+              dailyAllowanceKcal: 1800,
+              mealsLoggedToday: [
+                { label: 'Breakfast', kcal: 420 },
+                { label: 'Lunch', kcal: 580 },
+              ],
+              usedKcal: 1000,
+              remainingKcal: 800,
+              tonightAllowanceKcal: tonightAllowance,
+            },
+            cardHealthMeta,
+            healthFootnote: '2 of these 3 keep you on track tonight',
+            title: 'Tonight — health-sorted picks',
+            cards: sortedCards,
+          },
+        };
+      },
     },
     {
       id: 'budget',
+      category: 'goals',
       label: 'Budget tight',
       sub: '¥30,000 left · day 22',
       mutate: (s) => ({
@@ -191,6 +249,7 @@ window.SCENARIO_DINNER = (() => {
     },
     {
       id: 'singleparent',
+      category: 'social',
       label: 'Single-parent night',
       sub: 'one adult · picky kids',
       mutate: (s) => ({
@@ -213,6 +272,7 @@ window.SCENARIO_DINNER = (() => {
     },
     {
       id: 'guests',
+      category: 'social',
       label: 'Guests coming',
       sub: '+2 adults at 19:30',
       mutate: (s) => ({
@@ -235,6 +295,7 @@ window.SCENARIO_DINNER = (() => {
     },
     {
       id: 'leftovers',
+      category: 'constraint',
       label: 'Leftover priority',
       sub: 'chicken expires tomorrow',
       mutate: (s) => ({
@@ -267,6 +328,7 @@ window.SCENARIO_DINNER = (() => {
     },
     {
       id: 'latenight',
+      category: 'constraint',
       label: 'Late night',
       sub: 'after 21:00',
       mutate: (s) => ({
@@ -292,6 +354,7 @@ window.SCENARIO_DINNER = (() => {
     },
     {
       id: 'allergy',
+      category: 'constraint',
       label: 'Allergy flagged',
       sub: 'peanut: Yui',
       mutate: (s) => ({
@@ -315,7 +378,100 @@ window.SCENARIO_DINNER = (() => {
       }),
     },
     {
+      id: 'one_thumb',
+      category: 'physical',
+      label: 'One thumb only',
+      sub: 'on a packed train · standing · grip on rail',
+      mutate: (s) => ({
+        ...s,
+        tokens: {
+          ...s.tokens,
+          physical_state: { ...s.tokens.physical_state, value: 'Standing · one thumb', firing: true, signal: 'BLE = train · grip on rail · single hand' },
+          form_factor: { ...s.tokens.form_factor, value: 'Phone (one-thumb mode)', firing: true, signal: 'screen → bottom-anchored, large targets' },
+        },
+        rules: [
+          { name: 'reach:thumb-arc · targets:large', drivers: ['physical_state', 'form_factor'], output: 'controls in bottom 60% · ≥48dp' },
+          ...s.rules,
+        ],
+        axPatterns: [
+          { id: 'A1', name: 'Form Factor Transform', essence: 'thumb-zone collapse', driver: 'physical_state' },
+          ...s.axPatterns,
+        ],
+        ui: {
+          ...s.ui,
+          phoneMode: 'one-thumb',
+        },
+      }),
+    },
+    {
+      id: 'earphones_only',
+      category: 'physical',
+      label: 'Earphones · ring control',
+      sub: 'phone in pocket · cannot tap',
+      mutate: (s) => ({
+        ...s,
+        tokens: {
+          ...s.tokens,
+          physical_state: { ...s.tokens.physical_state, value: 'In pocket · earphones', firing: true, signal: 'phone face-down · headset connected · ring paired' },
+          form_factor: { ...s.tokens.form_factor, value: 'Audio + ring controller', firing: true, signal: 'no screen surface · audio + haptic' },
+          autonomy_dial: { ...s.tokens.autonomy_dial, value: 'Notify (audio)', firing: true },
+        },
+        rules: [
+          { name: 'output:audio-only · input:ring-tap', drivers: ['physical_state', 'form_factor'], output: 'screen off · ring controls · audio summary' },
+          ...s.rules,
+        ],
+        axPatterns: [
+          { id: 'A1', name: 'Form Factor Transform', essence: 'phone → earphones + ring', driver: 'physical_state' },
+          ...s.axPatterns,
+        ],
+        ui: {
+          ...s.ui,
+          phoneMode: 'earphones',
+        },
+      }),
+    },
+    {
+      id: 'voice_only',
+      category: 'physical',
+      label: 'Voice only · in bed',
+      sub: 'lying down · sick · dim',
+      mutate: (s) => ({
+        ...s,
+        intent: { ...s.intent, meta: 'Hana · in bed · 21:14 · feeling unwell' },
+        tokens: {
+          ...s.tokens,
+          physical_state: { ...s.tokens.physical_state, value: 'Lying down · unwell', firing: true, signal: 'horizontal sustained · low motion · late hour' },
+          cognitive_load: { ...s.tokens.cognitive_load, value: 'Low (rest)', firing: true, signal: 'minimal demands · do not interrupt' },
+          form_factor: { ...s.tokens.form_factor, value: 'Voice (smart speaker / AirPods)', firing: true, signal: 'no visual · audio first' },
+          autonomy_dial: { ...s.tokens.autonomy_dial, value: 'Notify · gentle', firing: true },
+        },
+        brain: {
+          ...s.brain,
+          L3: [
+            { entry: 'Hana feels unwell · 38°C earlier · resting since 19:00.', highlight: true, weight: 'now' },
+            ...s.brain.L3,
+          ],
+        },
+        rules: [
+          { name: 'output:voice-only · tone:gentle', drivers: ['physical_state', 'cognitive_load'], output: 'no screen · soft voice · short' },
+          { name: 'recipe:no-cook · partner-prepared', drivers: ['L3.now'], output: 'porridge / soup options · partner notified' },
+          ...s.rules,
+        ],
+        axPatterns: [
+          { id: 'E2', name: 'Limitation Disclosure', essence: 'voice-only mode', driver: 'physical_state' },
+          { id: 'A1', name: 'Form Factor Transform', essence: 'screen → smart speaker', driver: 'form_factor' },
+          ...s.axPatterns,
+        ],
+        ui: {
+          ...s.ui,
+          phoneMode: 'voice-only',
+          dim: true,
+        },
+      }),
+    },
+    {
       id: 'weekend',
+      category: 'constraint',
       label: 'Weekend · clear weather',
       sub: 'Sat 17:30 · sunny',
       mutate: (s) => ({
@@ -373,6 +529,16 @@ window.SCENARIO_DINNER = (() => {
       control: 'touch · stylus',
       anchorHint: 'Compare side-by-side',
       drops: ['voice-only', 'ambient'],
+    },
+    {
+      id: 'phone',
+      label: 'iPhone · personal',
+      sub: 'pocket → hand → earphones',
+      density: 'compact',
+      maxCards: 3,
+      control: 'thumb · voice · ring',
+      anchorHint: 'Quick confirm · audio fallback',
+      drops: ['family vote', 'inventory editor'],
     },
   ];
 
