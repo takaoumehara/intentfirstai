@@ -10,7 +10,7 @@
 
    Options:
      basePath   — relative path to site root ('', '../', '../../')
-     activePage — 'home'|'intent'|'tokens'|'brain'|'ruleengine'|'trust'|'specs'|'axpatterns'|'projects'|'about'
+     activePage — 'home'|'simulator'|'intent'|'tokens'|'brain'|'ruleengine'|'trust'|'specs'|'axpatterns'|'projects'|'about'
      lang       — 'en' or 'ja'
    ============================================================= */
 
@@ -35,14 +35,16 @@ function initSiteNavCompat(opts) {
   opts = opts || {};
   var bp = opts.basePath || '';
   var rootPrefix = bp.replace(/\/$/, '');
+  var navLang = opts.lang || 'en';
+  var langDir = (navLang === 'ja') ? 'ja/' : '';
   var prefix = function (href) {
     if (/^(https?:|mailto:|tel:|#)/.test(href)) return href;
-    return (rootPrefix ? rootPrefix + '/' : '') + href;
+    return (rootPrefix ? rootPrefix + '/' : '') + langDir + href;
   };
   var homeHref = prefix('index.html');
   var logoBase = rootPrefix ? rootPrefix + '/' : '';
   var active = opts.activePage || '';
-  var cgKeys = ['context-grammar', 'intent', 'tokens', 'brain', 'ruleengine', 'specs', 'axpatterns', 'trust'];
+  var cgKeys = ['context-grammar', 'simulator', 'intent', 'tokens', 'brain', 'ruleengine', 'specs', 'axpatterns', 'trust'];
 
   var items = [
     {
@@ -52,6 +54,7 @@ function initSiteNavCompat(opts) {
       keys: cgKeys,
       children: [
         { label: 'Overview', href: 'context-grammar/index.html', key: 'context-grammar' },
+        { label: 'Simulator', href: 'context-grammar/simulator/index.html', key: 'simulator' },
         { label: 'Intent', href: 'context-grammar/intent/index.html', key: 'intent' },
         { label: 'Tokens', href: 'context-grammar/tokens/index.html', key: 'tokens' },
         { label: 'Brain', href: 'context-grammar/brain/index.html', key: 'brain' },
@@ -230,6 +233,7 @@ function initSiteNavCompat(opts) {
     sectionNav.innerHTML = ''
       + '<div class="cg-section-nav-indicator"></div>'
       + '<a href="' + prefix('context-grammar/index.html') + '"' + (active === 'context-grammar' ? ' aria-current="page"' : '') + '>Overview</a>'
+      + '<a href="' + prefix('context-grammar/simulator/index.html') + '"' + (active === 'simulator' ? ' aria-current="page"' : '') + '>Simulator</a>'
       + '<a href="' + prefix('context-grammar/intent/index.html') + '"' + (active === 'intent' ? ' aria-current="page"' : '') + '>Intent</a>'
       + '<a href="' + prefix('context-grammar/tokens/index.html') + '"' + (active === 'tokens' ? ' aria-current="page"' : '') + '>Tokens</a>'
       + '<a href="' + prefix('context-grammar/brain/index.html') + '"' + (active === 'brain' ? ' aria-current="page"' : '') + '>Brain</a>'
@@ -499,29 +503,31 @@ function initNav(opts) {
   // ── Build paths ──
   var logoBlack = bp + 'assets/logo/IF-lockup-black.svg';
   var logoWhite = bp + 'assets/logo/IF-lockup-white.svg';
+  var pageRoot = bp + (lang === 'ja' ? 'ja/' : '');
 
   // Language switch paths — toggles between /[page] and /ja/[page].
   var currentPath = window.location.pathname;
 
   // Page paths (relative to basePath)
   var pages = {
-    home: bp + 'index.html',
-    overview: bp + 'context-grammar/index.html',
-    intent: bp + 'context-grammar/intent/index.html',
-    tokens: bp + 'context-grammar/tokens/index.html',
-    brain: bp + 'context-grammar/brain/index.html',
-    ruleengine: bp + 'context-grammar/rule-engine/index.html',
-    trust: bp + 'context-grammar/trust-design/index.html',
-    specs: bp + 'context-grammar/specs/index.html',
-    axpatterns: bp + 'context-grammar/ax-patterns/index.html',
-    projects: bp + 'applied/index.html',
-    industry: bp + 'industry/index.html',
-    about: bp + 'about/index.html',
-    contact: bp + 'contact/index.html'
+    home: pageRoot + 'index.html',
+    overview: pageRoot + 'context-grammar/index.html',
+    simulator: pageRoot + 'context-grammar/simulator/index.html',
+    intent: pageRoot + 'context-grammar/intent/index.html',
+    tokens: pageRoot + 'context-grammar/tokens/index.html',
+    brain: pageRoot + 'context-grammar/brain/index.html',
+    ruleengine: pageRoot + 'context-grammar/rule-engine/index.html',
+    trust: pageRoot + 'context-grammar/trust-design/index.html',
+    specs: pageRoot + 'context-grammar/specs/index.html',
+    axpatterns: pageRoot + 'context-grammar/ax-patterns/index.html',
+    projects: pageRoot + 'applied/index.html',
+    industry: pageRoot + 'industry/index.html',
+    about: pageRoot + 'about/index.html',
+    contact: pageRoot + 'contact/index.html'
   };
 
   // CG sub-pages for dropdown trigger active state + subnav
-  var cgPages = ['context-grammar', 'intent', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns'];
+  var cgPages = ['context-grammar', 'simulator', 'intent', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns'];
   var isCGActive = cgPages.indexOf(active) !== -1;
 
   // ── Helper: active class ──
@@ -559,6 +565,7 @@ function initNav(opts) {
     + '        </a>'
     + '        <div class="nav-dropdown-menu" id="nav-dropdown-menu" role="menu">'
     + '          <a href="' + pages.overview + '" role="menuitem" class="' + ac('context-grammar') + '">Overview</a>'
+    + '          <a href="' + pages.simulator + '" role="menuitem" class="' + ac('simulator') + '">Simulator</a>'
     + '          <a href="' + pages.intent + '" role="menuitem" class="' + ac('intent') + '">Intent</a>'
     + '          <a href="' + pages.tokens + '" role="menuitem" class="' + ac('tokens') + '">Tokens</a>'
     + '          <a href="' + pages.brain + '" role="menuitem" class="' + ac('brain') + '">Brain</a>'
@@ -586,6 +593,7 @@ function initNav(opts) {
       + '    <span class="nav-subnav-prefix">Context Grammar</span>'
       + '    <span class="nav-subnav-sep"></span>'
       + '    <a href="' + pages.overview + '"' + (active === 'context-grammar' ? ' class="nav-subnav-active"' : '') + '>Overview</a>'
+      + '    <a href="' + pages.simulator + '"' + (active === 'simulator' ? ' class="nav-subnav-active"' : '') + '>Simulator</a>'
       + '    <a href="' + pages.intent + '"' + (active === 'intent' ? ' class="nav-subnav-active"' : '') + '>Intent</a>'
       + '    <a href="' + pages.tokens + '"' + (active === 'tokens' ? ' class="nav-subnav-active"' : '') + '>Tokens</a>'
       + '    <a href="' + pages.brain + '"' + (active === 'brain' ? ' class="nav-subnav-active"' : '') + '>Brain</a>'
@@ -603,6 +611,7 @@ function initNav(opts) {
     + '  <a href="' + pages.home + '" class="' + ac('home') + '">Home</a>'
     + '  <div class="mobile-section-label">Context Grammar</div>'
     + '  <a href="' + pages.overview + '" class="mobile-sub-link' + ac('context-grammar') + '">Overview</a>'
+    + '  <a href="' + pages.simulator + '" class="mobile-sub-link' + ac('simulator') + '">Simulator</a>'
     + '  <a href="' + pages.intent + '" class="mobile-sub-link' + ac('intent') + '">Intent</a>'
     + '  <a href="' + pages.tokens + '" class="mobile-sub-link' + ac('tokens') + '">Tokens</a>'
     + '  <a href="' + pages.brain + '" class="mobile-sub-link' + ac('brain') + '">Brain</a>'
