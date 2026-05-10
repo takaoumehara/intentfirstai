@@ -1,0 +1,98 @@
+/* ═══════════════════════════════════════════════════════════
+   Mobile overflow protection — project scroll pages
+   ═══════════════════════════════════════════════════════════
+
+   Why this exists:
+   - .section uses `display: grid; grid-template-columns: 38% 62%` on desktop
+     and collapses to `1fr` at ≤960px via each project's inline @media.
+   - HOWEVER, grid items have `min-width: auto` by default. That forces them
+     to be at least as wide as their min-content (the longest unbreakable
+     word, or any child with explicit width).
+   - Combined with inline `style="max-width: 880px; margin: 0 auto"` on many
+     .section__text and .d3 divs in P1–P6, the section grows past the
+     viewport and iOS Safari auto-shrinks the whole page to fit.
+
+   Fix: at ≤768px, force every grid child to `min-width: 0` so 1fr can
+   actually become 1fr, and override the inline max-width/margin/align
+   coming from desktop styling.
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Make grid items shrinkable. min-width: 0 is the canonical CSS Grid
+     mobile fix — without it, 1fr columns refuse to shrink below content
+     min-content size. */
+  .section,
+  .section > *,
+  .section__inner,
+  .section__inner > *,
+  .section__text,
+  .section__visual,
+  .section--two-col .section__inner > * {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Override inline `style="max-width:880px; margin:0 auto; text-align:center"`
+     that desktop content uses for centered narrative blocks. */
+  .section .section__text[style*="max-width"],
+  .section .lede[style*="max-width"],
+  .section .title[style*="max-width"] {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  .section .section__text[style*="text-align:center"],
+  .section .section__text[style*="text-align: center"],
+  .section .lede[style*="text-align:center"],
+  .section .lede[style*="text-align: center"],
+  .section .title[style*="text-align:center"],
+  .section .title[style*="text-align: center"] {
+    text-align: left !important;
+  }
+
+  /* Long titles like "Read. Write. Subscribe." have min-content widths that
+     push grid items wider than viewport. Allow mid-token wrap as a fallback. */
+  .section .title,
+  .section h1,
+  .section h2,
+  .section h3 {
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+  }
+
+  /* Inline `style="grid-template-columns: 1fr 1fr 1fr"` (e.g. P4 5-Brain row,
+     P4 three-flows, etc.) needs to collapse on mobile. */
+  .section [style*="grid-template-columns"]:not(.bts-frame):not(.iphone15pro):not(.ipad11):not(.samfh) {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Any embedded media inside .section content stays inside the viewport. */
+  .section svg,
+  .section img:not(.hero-photo__img):not(.iphone15pro__chrome):not(.ipad11__chrome):not(.samfh__chrome),
+  .section iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* The 38%/62% .section grid on P1/P3/P5 — force 1col here too, in case the
+     page's own @media block uses a different breakpoint. Some pages use 960px
+     which is fine, but adding a 768 override gives a uniform mobile fallback. */
+  .section {
+    grid-template-columns: 1fr !important;
+    padding-left: clamp(16px, 4vw, 24px) !important;
+    padding-right: clamp(16px, 4vw, 24px) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Prevent the "pinch to extreme tiny" symptom: when content
+   forces horizontal overflow, iOS Safari lets the user pinch
+   the whole page down. Body overflow-x: hidden alone isn't
+   enough if children claim huge layout widths. The rules
+   above eliminate the underlying overflow; this is a guard.
+   ═══════════════════════════════════════════════════════════ */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
