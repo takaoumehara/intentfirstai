@@ -327,6 +327,51 @@ The file **`context-grammar/_my-understanding.md`** is Claude's structured under
 
 The file has a "13. このドキュメントの使い方" section that restates this contract. Keep it in sync.
 
+## Mobile Responsiveness (MANDATORY)
+
+**Breakpoints — only these two are allowed for new code:**
+
+- `@media (max-width: 768px)` — primary mobile/desktop pivot. Switches multi-column layouts to stacked, drops decorative chrome (TOC rail, scroll hints), tightens hero typography.
+- `@media (max-width: 480px)` — small-phone fine-tuning (iPhone SE, Galaxy S22). Used only when the 768px rule doesn't fully fit a 375px viewport (e.g. 2x2 grids that need to drop to 1col, oversized titles).
+
+**Above 768px**: do NOT add discrete breakpoints. Use `clamp()` for fluid type/padding and the global `--max-w: 1280px` content cap. The portfolio scales smoothly to 4K monitors via fluid sizing — extra breakpoints fragment the cascade.
+
+**FORBIDDEN — do not introduce these values:**
+
+- `@media (max-width: 720px)` — migrate to 768
+- `@media (max-width: 760px)` — migrate to 768
+- `@media (max-width: 820px)` — migrate to 768
+
+(Component-specific breakpoints like 600/640/680/900 may stay if they serve a structural purpose at that exact width — e.g. a 4-col grid that needs to drop to 2-col before reaching the mobile pivot. Don't add new ones.)
+
+### Hero pattern contract
+
+- `.hero--split` (the shared CG subpage hero, defined in `assets/css/context-grammar.css`) MUST stack vertically at ≤768px. The shared rule already does this — pages should not redefine `flex-direction` on `.hero--split` in their inline `<style>`.
+- Hero titles use `clamp()` with min ≥28px, max ≤76px. On mobile (≤768px) the min should drop to ~28-32px to keep text inside the viewport without `letter-spacing: -3px` looking harsh.
+- Hero horizontal padding bottoms out at 16-20px on mobile (not 32+ px from desktop clamps).
+
+### Per-page audit checklist
+
+Before merging any new portfolio page, verify at 375px (Chrome DevTools → iPhone SE):
+
+- No horizontal scroll
+- All multi-column grids collapse to 1 col at ≤768px (or 2 col with 480px → 1 col fallback)
+- Body text ≥15px, labels ≥12px, captions ≥13px
+- Device frames don't overflow viewport (canonical frames in `assets/css/device-frame-*.css` already auto-cap to `calc(100vw - 32px)` on mobile — do not handroll size overrides)
+- TOC rail hidden at ≤768px (automatic via `assets/css/toc-rail.css`)
+- Hamburger nav appears at ≤768px (automatic via `assets/css/nav.css`)
+
+### Verification command
+
+To confirm no breakpoint regressions:
+
+```bash
+grep -rn "@media (max-width: \(720\|760\|820\)px)" \
+  context-grammar/ projects/ ja/ assets/css/ \
+  index.html *.html journal/ about/ applied/ industry/ contact/
+# Should return zero hits.
+```
+
 ## File Structure
 
 ```
