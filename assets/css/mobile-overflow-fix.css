@@ -86,27 +86,60 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Device-frame mobile caps — override inline style overrides
+   Device-frame ZOOM approach (replaces the previous width-cap)
    ═══════════════════════════════════════════════════════════
 
-   Some pages set inline `style="--ipad-w: 100%"` or
-   `style="--samfh-w: min(1400px, 180%)"` to fill wide desktop slots.
-   Inline styles beat the canonical mobile @media caps in
-   device-frame-*.css, so device frames overflow the viewport on
-   phones. Re-assert the mobile cap with !important here — only
-   active at ≤480px, so desktop sizing is untouched.
+   Previous approach capped device-frame widths to viewport width.
+   Problem: iframe content (UI screens designed at desktop widths
+   e.g. 700px for iPad, 600px for Samsung) then rendered at ~343px
+   viewport, causing internal text overlap / illegible content.
+
+   New approach: render each device frame at its DESIGN width so
+   the iframe inside sees a desktop-scale viewport (and draws
+   correctly). Then CSS zoom() scales the whole component — frame
+   + inner iframe + all its content — down proportionally to fit
+   the phone screen.
+
+   Result: UI files are NOT modified. They keep their perfect
+   desktop layout. The outer page just makes them "smaller".
+
+   Only active at ≤480px — desktop is completely unaffected.
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
-  .iphone15pro {
-    --iphone-w: calc(100vw - 32px) !important;
+  /* iPad landscape (design width 700px) */
+  .ipad11.ipad11--landscape {
+    --ipad-w: 700px !important;
+    zoom: calc((100vw - 32px) / 700);
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
-  .ipad11 {
-    --ipad-w: calc(100vw - 32px) !important;
+  /* iPad portrait (design width 500px) */
+  .ipad11:not(.ipad11--landscape) {
+    --ipad-w: 500px !important;
+    zoom: calc((100vw - 32px) / 500);
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
+  /* Samsung Family Hub (design width 600px) */
   .samfh {
-    --samfh-w: calc(100vw - 32px) !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    --samfh-w: 600px !important;
+    zoom: calc((100vw - 32px) / 600);
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  /* Google Nest Hub (design width 700px) */
+  .nest-hub {
+    --nest-w: 700px !important;
+    zoom: calc((100vw - 32px) / 700);
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  /* iPhone 15 Pro — design width 320px fits in 343px (375-32).
+     Just cap to viewport in case inline style sets it larger. */
+  .iphone15pro {
+    --iphone-w: min(340px, calc(100vw - 32px)) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 }
 
