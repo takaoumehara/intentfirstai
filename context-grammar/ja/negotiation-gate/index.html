@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Negotiation Gate（交渉ゲート）— Stage 5 | Context Grammar</title>
+  <meta name="description"
+    content="Negotiation Gate は Context Grammar Decision Pipeline の Stage 5。Confidence × Risk × Reversibility × Sensitivity を評価し、行動前に進行・確認・保留・停止を判断する。">
+  <meta property="og:title" content="Negotiation Gate（交渉ゲート）— Stage 5 | Context Grammar">
+  <meta property="og:description"
+    content="Negotiation Gate は Context Grammar Decision Pipeline の Stage 5。Confidence × Risk × Reversibility × Sensitivity を評価し、行動前に進行・確認・保留・停止を判断する。">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://intentfirst.ai/context-grammar/ja/negotiation-gate/">
+  <link rel="canonical" href="https://intentfirst.ai/context-grammar/ja/negotiation-gate/">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../../assets/css/components.css">
+  <link rel="stylesheet" href="../../../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../../../assets/css/nav.css">
+  <link rel="stylesheet" href="../../../assets/css/green-animation.css">
+  <link rel="stylesheet" href="../../../assets/css/cg-restaurant-aside.css">
+  <link rel="stylesheet" href="../../../assets/css/cg3-layout.css">
+</head>
+
+<body data-dark-nav class="nav-has-subnav">
+  <main>
+    <header class="cg3-hero" data-theme="dark">
+      <div class="cg3-shell cg3-hero-grid">
+        <div>
+          <p class="cg3-kicker">Context Grammar — Stage 5</p>
+          <h1 class="cg3-title">Negotiation Gate</h1>
+          <p class="cg3-lead">AIが行動する前に、進むか・確認するか・すり合わせるか・止めるかを判断する。能力と信頼の間にある安全契約が Negotiation Gate です。</p>
+          <div class="cg3-hero-proof" aria-label="Negotiation Gate の要点">
+            <div>
+              <b>01</b>
+              <span>評価軸: Confidence × Risk × Reversibility × Sensitivity</span>
+            </div>
+            <div>
+              <b>02</b>
+              <span>出力: Gate Decision + Autonomy Ceiling</span>
+            </div>
+            <div>
+              <b>03</b>
+              <span>Stage 6: Final Autonomy = min(User Setting, Gate Ceiling)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="cg3-section" aria-label="Four evaluation variables">
+      <div class="cg3-shell">
+        <h2 class="cg3-h2">Gateは4つの変数を評価する。</h2>
+        <p>エージェントが実行に入る前に、Negotiation Gate は状況を4軸で採点する。この組み合わせで、静かに進むか、透明化UIを出すか、確認を要求するか、完全停止するかが決まる。</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+          <div style="padding: 1.2rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Confidence</h3>
+            <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">解釈がどれだけ確からしいか。Range: 0.0–1.0。</p>
+          </div>
+          <div style="padding: 1.2rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Risk</h3>
+            <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">間違えたときの損害はどれくらいか。Low / Medium / High。</p>
+          </div>
+          <div style="padding: 1.2rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Reversibility</h3>
+            <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">その行動は取り消し可能か。High / Medium / Low。</p>
+          </div>
+          <div style="padding: 1.2rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Sensitivity</h3>
+            <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">扱う領域の慎重さはどれくらい必要か。領域ごとに異なる。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" style="background: var(--gray-50); padding: 3rem 0;" aria-label="Gate outputs">
+      <div class="cg3-shell">
+        <h2 class="cg3-h2">2つの出力: Risk Profile + Gate Decision</h2>
+        <p>Gateは2種類のレコードを返す。Risk Profileは現状評価、Gate Decisionは「実行前に何をするか」のシステム命令です。</p>
+        <pre style="background: white; border: 1px solid var(--gray-200); border-radius: 6px; padding: 1.4rem; overflow-x: auto; font-size: 0.85rem; font-family: var(--font-mono); margin: 1.5rem 0; line-height: 1.6;"><code>risk_profile:
+  confidence: 0.0&#x2013;1.0
+  risk: low | medium | high
+  reversibility: high | medium | low
+  sensitivity: low | medium | medium_high | high
+  domain: health | finance | family_relationship | work | schedule | entertainment | information
+  rationale: string
+
+gate_decision:
+  proceed: boolean
+  ui_primitive: silent | confidence_signal | interpretation_preview
+               | assumption_cards | escalate | block
+  autonomy_ceiling: suggest | confirm | notify | auto
+  rationale: string</code></pre>
+      </div>
+    </section>
+
+    <section class="cg3-section" id="autonomy-resolution" aria-label="Autonomy Resolution — Stage 6">
+      <div class="cg3-shell">
+        <h2 class="cg3-h2">Stage 6: Autonomy Resolution</h2>
+        <p>Gate評価のあと、Stage 6でこの行動に対する最終自律度を計算する。フレームワーク全体の安全契約は次の1式です。</p>
+        <div style="background: var(--gray-50); border: 2px solid var(--gray-200); border-radius: 10px; padding: 2rem; margin: 1.5rem 0; text-align: center;">
+          <code style="font-size: clamp(1rem, 2.5vw, 1.4rem); font-family: var(--font-mono); font-weight: 600; letter-spacing: -0.01em;">Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling)</code>
+        </div>
+        <p>ユーザー設定が「Auto」でも、対象行動が高リスクなら Gate Ceiling により「Confirm」へ下がる。この式によって「行動ごとに慎重さを再計算する」が明示可能になる。</p>
+      </div>
+    </section>
+
+    <section class="cg3-section" style="background: var(--gray-50); padding: 3rem 0;" aria-label="Gate firing rules R34-R41">
+      <div class="cg3-shell">
+        <h2 class="cg3-h2">Firing rules — R34 から R41</h2>
+        <p>この8ルールが、GateでどのUI primitiveを発火させるかを決める。Rule Engineへ R34–R41 として追加され、Stage 4 が Proposed Action を出した後に評価される。</p>
+        <div style="overflow-x: auto; margin: 1.5rem 0;">
+          <table style="border-collapse: collapse; width: 100%; font-size: 0.875rem;">
+            <thead>
+              <tr style="background: var(--gray-200);">
+                <th style="padding: 0.6rem 0.8rem; text-align: left; border: 1px solid var(--gray-300);">Rule</th>
+                <th style="padding: 0.6rem 0.8rem; text-align: left; border: 1px solid var(--gray-300);">Condition</th>
+                <th style="padding: 0.6rem 0.8rem; text-align: left; border: 1px solid var(--gray-300);">Gate action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R34</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">awareness = Latent</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">常に仮説として交渉し、直接実行しない</td>
+              </tr>
+              <tr style="background: var(--gray-50);">
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R35</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">sensitivity = HIGH</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">少なくとも軽量確認を要求する</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R36</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">risk = HIGH AND reversibility = LOW</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">明示確認またはエスカレーションを要求する</td>
+              </tr>
+              <tr style="background: var(--gray-50);">
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R37</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">confidence &lt; 0.4</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">Assumption Cards または明確化質問を出す</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R38</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">0.4 ≤ confidence &lt; 0.8</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">Interpretation Preview を表示する</td>
+              </tr>
+              <tr style="background: var(--gray-50);">
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R39</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">confidence ≥ 0.8 AND risk = LOW AND reversibility = HIGH</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">UIを出さず静かに進む</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R40</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">confidence ≥ 0.8 AND risk ≥ MEDIUM</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">Confidence Signal を出し、Autonomy設定に応じて確認する</td>
+              </tr>
+              <tr style="background: var(--gray-50);">
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200); font-family: var(--font-mono); font-size: 0.8rem;">R41</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">user has previously corrected this pattern</td>
+                <td style="padding: 0.5rem 0.8rem; border: 1px solid var(--gray-200);">confidence を0.2下げ、交渉を早めに開始する</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" aria-label="Sensitivity defaults by domain">
+      <div class="cg3-shell">
+        <h2 class="cg3-h2">領域ごとの Sensitivity 既定値</h2>
+        <p>Gate は domain ごとに既定の慎重度を持つ。ユーザーごとの補正は Disclosure Dial、Social Exposure、Priority Weight から加算される。</p>
+        <div style="overflow-x: auto; margin: 1.5rem 0;">
+          <table style="border-collapse: collapse; width: 100%; font-size: 0.9rem; max-width: 600px;">
+            <thead>
+              <tr style="background: var(--gray-100);">
+                <th style="padding: 0.6rem 1rem; text-align: left; border: 1px solid var(--gray-200);">Domain</th>
+                <th style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Default</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Health</td>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200); color: #991b1b; font-weight: 600;">HIGH</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Finance</td>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200); color: #991b1b; font-weight: 600;">HIGH</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Family Relationship</td>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200); color: #92400e; font-weight: 600;">MEDIUM–HIGH</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Work</td>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200); color: #92400e; font-weight: 600;">MEDIUM</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Schedule</td>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200); color: #92400e; font-weight: 600;">MEDIUM</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Entertainment</td>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200); color: #166534; font-weight: 600;">LOW</td>
+              </tr>
+              <tr>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200);">Information</td>
+                <td style="padding: 0.6rem 1rem; border: 1px solid var(--gray-200); color: #166534; font-weight: 600;">LOW</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" style="background: var(--gray-50); padding: 3rem 0;" aria-label="Anti-pattern over-firing">
+      <div class="cg3-shell">
+        <h2 class="cg3-h2">アンチパターン: 毎回Gateを発火させること</h2>
+        <p>すべての行動でGateを発火させる設計は、エージェント体験を壊す。R39が示す通り、高信頼・低リスク・高可逆の行動は静かに進行すべきです。</p>
+        <p>Gate は確認ダイアログではない。判断装置です。大半の判断は <em>proceed</em>。しきい値と発火ルールがあることで、過剰な中断を防ぐ。Negotiation Layer は「静かに進んではいけない」場面でだけ表面化する。</p>
+        <p><a href="/context-grammar/ja/negotiation-layer/" style="color: inherit; text-decoration: underline;">Negotiation Layer プロトタイプ</a> で、発火タイミングとUIの違いを体験できます。</p>
+      </div>
+    </section>
+
+    <section class="cg3-cta">
+      <div class="cg3-shell cg3-cta-inner">
+        <h2>Gateが「実行可否」を決め、AX Patternsが「ふるまい方」を決める。</h2>
+        <div class="cg3-actions">
+          <a class="cg3-button cg3-button--primary" href="../ax-patterns/index.html">次へ：AX Patterns</a>
+          <a class="cg3-button" href="../rule-engine/index.html">Rule Engineへ戻る</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="chapter-nav" data-current="negotiation-gate" data-base="../"></div>
+  <script src="../../../assets/js/chapter-nav.js"></script>
+  <script src="../../../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../../../', activePage: 'negotiation-gate', lang: 'ja', showLang: true, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });</script>
+  <script src="../../../assets/js/ga-slots.js"></script>
+  <script src="../../../assets/js/green-animation.js" defer></script>
+</body>
+
+</html>

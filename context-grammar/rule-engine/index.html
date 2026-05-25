@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rule Engine — Tokens IN, ui.command OUT | Context Grammar</title>
-<meta name="description" content="How 8 context tokens combine with memory to emit a single ui.command. The deterministic translation layer between Brain state and surface rendering.">
+<title>Rule Engine — How context becomes UI | Context Grammar</title>
+<meta name="description" content="How the Rule Engine turns 6 Situation Signals, 2 Relationship Dials, and Brain memory into one testable ui.command that any surface can render.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
 <link rel="stylesheet" href="../../assets/css/tokens.css">
@@ -12,1238 +12,284 @@
 <link rel="stylesheet" href="../../assets/css/context-grammar.css">
 <link rel="stylesheet" href="../../assets/css/nav.css">
 <link rel="stylesheet" href="../../assets/css/green-animation.css">
-<link rel="stylesheet" href="../../assets/css/cg-restaurant-aside.css">
-<style>
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
-
-/* ── HERO ── */
-.hero-label {
-  font-family: var(--font-sans);
-  font-size: clamp(18px, 1.8vw, 26px);
-  font-weight: 400;
-  letter-spacing: -0.2px;
-  color: rgba(240, 236, 228, 0.62);
-  margin-bottom: 28px;
-  opacity: 0;
-  animation: fadeUp 0.8s 0.2s forwards;
-}
-
-/* Page-specific: wider text panel */
-.hero-split-text { max-width: 440px; }
-.hero-formula-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 20px;
-  padding: 10px 18px;
-  background: rgba(240,236,228,0.05);
-  border: 1px solid rgba(240,236,228,0.12);
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(240,236,228,0.55);
-  opacity: 0;
-  animation: fadeUp 0.8s 0.7s forwards;
-}
-.hero-formula-pill .f-token  { color: var(--color-grammar); }
-.hero-formula-pill .f-engine { color: var(--color-intent); }
-.hero-formula-pill .f-emit   { color: var(--color-brain); }
-.hero-formula-pill .f-arrow  { color: rgba(240,236,228,0.25); }
-/* Page-specific hero-illu img override */
-.hero-illu img {
-  object-position: center;
-  transform: scale(1.4);
-}
-@media (max-width: 768px) {
-  .hero-illu { width: 90%; max-width: 380px; height: auto; }
-  .hero-illu img { height: auto; transform: scale(1.2); }
-}
-
-/* ── SECTION SHELLS ── */
-/* .sec-inner uses --read-w-card (wider than global --max-w) */
-.sec-inner {
-  max-width: var(--read-w-card);
-  margin: 0 auto;
-}
-.sec-warm { background: var(--bg-feature, #f0e8d8); }
-
-.sec-label {
-  font-family: var(--font-mono);
-  font-size: clamp(11px, 0.9vw, 13px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-}
-.sec-title {
-  font-weight: 500;
-  font-size: clamp(28px, 3.2vw, 44px);
-  line-height: 1.15;
-  letter-spacing: -1.5px;
-  margin-bottom: 20px;
-}
-.sec-desc {
-  font-size: clamp(16px, 1.15vw, 19px);
-  font-weight: 400;
-  color: var(--text-2);
-  line-height: 1.85;
-  max-width: 680px;
-  margin-bottom: 40px;
-}
-
-/* ── PIPELINE ── */
-.pipeline {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin: clamp(28px, 3.5vw, 48px) 0;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-.pipeline-step {
-  flex: 1;
-  padding: clamp(16px, 2vw, 24px) clamp(12px, 1.5vw, 20px);
-  text-align: center;
-  position: relative;
-}
-.pipeline-step + .pipeline-step { border-left: 1px solid var(--border); }
-.pipeline-step--active { background: rgba(106, 74, 144, 0.06); }
-.pipeline-step-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 6px;
-}
-.pipeline-step-name {
-  font-weight: 500;
-  font-size: clamp(14px, 1.1vw, 16px);
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-.pipeline-step--active .pipeline-step-label { color: var(--color-brain); }
-.pipeline-step--active .pipeline-step-name  { color: var(--color-brain); }
-@media (max-width: 640px) {
-  .pipeline { flex-direction: column; }
-  .pipeline-step + .pipeline-step { border-left: none; border-top: 1px solid var(--border); }
-}
-
-/* ── IO CARDS (Tokens IN / Engine / Command OUT) ── */
-.io-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr;
-  gap: 16px;
-  align-items: stretch;
-  margin: 32px 0;
-}
-@media (max-width: 768px) {
-  .io-grid { grid-template-columns: 1fr; }
-  .io-divider { display: none; }
-}
-.io-card {
-  border: 1px solid var(--border);
-  padding: 28px 24px;
-  background: var(--bg);
-}
-.io-card--in     { border-top: 3px solid var(--color-grammar); }
-.io-card--engine { border-top: 3px solid var(--color-intent);  }
-.io-card--out    { border-top: 3px solid var(--color-brain);   }
-.io-divider {
-  align-self: center;
-  font-family: var(--font-mono);
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-3);
-}
-.io-icon { font-size: 32px; margin-bottom: 12px; line-height: 1; }
-.io-tag {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.io-card--in     .io-tag { color: var(--color-grammar); }
-.io-card--engine .io-tag { color: var(--color-intent); }
-.io-card--out    .io-tag { color: var(--color-brain); }
-.io-name {
-  font-weight: 500;
-  font-size: clamp(18px, 1.4vw, 22px);
-  letter-spacing: -0.4px;
-  margin-bottom: 10px;
-  color: var(--text);
-}
-.io-role {
-  font-size: clamp(14px, 1vw, 16px);
-  color: var(--text-2);
-  margin-bottom: 14px;
-  line-height: 1.65;
-}
-.io-list { list-style: none; padding: 0; }
-.io-list li {
-  padding: 7px 0;
-  border-top: 1px solid var(--border);
-  font-size: 14px;
-  font-family: var(--font-mono);
-  color: var(--text);
-  display: flex;
-  gap: 8px;
-}
-.io-list li::before { content: "→"; color: var(--text-3); flex-shrink: 0; }
-
-/* ── MULTI-BRAIN NOTE ── */
-.multi-brain {
-  background: rgba(106,74,144,0.05);
-  border: 1px solid rgba(106,74,144,0.20);
-  padding: 24px 28px;
-  margin: 28px 0;
-}
-.multi-brain__head {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--color-brain);
-  margin-bottom: 10px;
-}
-.multi-brain p {
-  font-size: clamp(14px, 1vw, 16px);
-  color: var(--text-2);
-  line-height: 1.75;
-}
-.multi-brain p + p { margin-top: 10px; }
-.multi-brain ul {
-  list-style: none;
-  padding: 0;
-  margin-top: 10px;
-}
-.multi-brain ul li {
-  padding: 5px 0 5px 18px;
-  font-size: 14px;
-  position: relative;
-  color: var(--text-2);
-}
-.multi-brain ul li::before {
-  content: "▸";
-  position: absolute;
-  left: 0;
-  color: var(--color-brain);
-}
-
-/* ── ANATOMY 3-STEP ── */
-.anatomy-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  margin: 32px 0;
-}
-@media (max-width: 700px) { .anatomy-grid { grid-template-columns: 1fr; } }
-.anatomy-card {
-  border: 1px solid var(--border);
-  padding: 28px 24px;
-  background: var(--bg);
-}
-.anatomy-card--read   { border-top: 3px solid var(--color-grammar); }
-.anatomy-card--match  { border-top: 3px solid var(--color-intent); }
-.anatomy-card--emit   { border-top: 3px solid var(--color-brain); }
-.anatomy-num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.anatomy-card--read  .anatomy-num { color: var(--color-grammar); }
-.anatomy-card--match .anatomy-num { color: var(--color-intent); }
-.anatomy-card--emit  .anatomy-num { color: var(--color-brain); }
-.anatomy-name {
-  font-weight: 500;
-  font-size: clamp(18px, 1.4vw, 22px);
-  letter-spacing: -0.4px;
-  margin-bottom: 10px;
-  color: var(--text);
-}
-.anatomy-desc {
-  font-size: clamp(14px, 1vw, 16px);
-  color: var(--text-2);
-  line-height: 1.7;
-}
-
-/* ── WALKTHROUGH STEPS ── */
-.scenario-intro {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 28px 32px;
-  margin-bottom: 24px;
-}
-.scenario-intro__quote {
-  font-size: clamp(18px, 1.4vw, 22px);
-  font-weight: 500;
-  line-height: 1.4;
-  margin-bottom: 10px;
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-.scenario-intro__source {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-3);
-}
-
-.step-card {
-  border: 1px solid var(--border);
-  padding: 28px 28px 28px 36px;
-  margin-bottom: 14px;
-  position: relative;
-  background: var(--bg);
-}
-.step-card::before {
-  content: "";
-  position: absolute;
-  top: 0; bottom: 0; left: 0;
-  width: 4px;
-}
-.step-card--token::before  { background: var(--color-grammar); }
-.step-card--engine::before { background: var(--color-intent); }
-.step-card--emit::before   { background: var(--color-brain); }
-.step-card--result::before { background: var(--color-success); }
-
-.step-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.step-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  color: #fff;
-  flex-shrink: 0;
-}
-.step-card--token  .step-num { background: var(--color-grammar); }
-.step-card--engine .step-num { background: var(--color-intent); }
-.step-card--emit   .step-num { background: var(--color-brain); }
-.step-card--result .step-num { background: var(--color-success); }
-
-.step-title {
-  font-weight: 500;
-  font-size: clamp(16px, 1.2vw, 20px);
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-.step-chip {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 999px;
-  margin-left: auto;
-}
-.step-card--token  .step-chip { color: var(--color-grammar); background: rgba(74,106,144,0.08); }
-.step-card--engine .step-chip { color: var(--color-intent);  background: rgba(122,85,32,0.08); }
-.step-card--emit   .step-chip { color: var(--color-brain);   background: rgba(106,74,144,0.08); }
-.step-card--result .step-chip { color: var(--color-success); background: rgba(58,106,58,0.08); }
-
-.step-body {
-  font-size: clamp(15px, 1.05vw, 17px);
-  color: var(--text-2);
-  line-height: 1.75;
-}
-
-.token-state {
-  background: rgba(74,106,144,0.05);
-  border: 1px solid rgba(74,106,144,0.15);
-  padding: 18px 22px;
-  margin-top: 16px;
-}
-.token-state__head {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--color-grammar);
-  margin-bottom: 10px;
-}
-.token-state ul { list-style: none; padding: 0; }
-.token-state li {
-  display: grid;
-  grid-template-columns: 210px 1fr;
-  gap: 12px;
-  padding: 8px 0;
-  font-size: 14px;
-  border-top: 1px solid rgba(74,106,144,0.12);
-}
-.token-state li:first-child { border-top: none; padding-top: 0; }
-.token-state li strong {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-  color: var(--color-grammar);
-}
-.token-state li span { color: var(--text-2); }
-
-.rules-fire {
-  background: rgba(122,85,32,0.05);
-  border: 1px solid rgba(122,85,32,0.15);
-  padding: 18px 22px;
-  margin-top: 16px;
-}
-.rules-fire__head {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--color-intent);
-  margin-bottom: 10px;
-}
-.rules-fire ul { list-style: none; padding: 0; }
-.rules-fire li {
-  padding: 9px 0;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text);
-  border-top: 1px solid rgba(122,85,32,0.12);
-  line-height: 1.6;
-}
-.rules-fire li:first-child { border-top: none; padding-top: 0; }
-.rule-when  { color: var(--color-grammar); font-weight: 500; }
-.rule-arrow { color: var(--color-intent);  padding: 0 6px; }
-.rule-then  { color: var(--color-brain);   font-weight: 500; }
-
-.emit-block {
-  background: rgba(106,74,144,0.05);
-  border: 1px solid rgba(106,74,144,0.15);
-  padding: 18px 22px;
-  margin-top: 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text);
-  line-height: 1.75;
-  white-space: pre;
-  overflow-x: auto;
-}
-.emit-block__head {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--color-brain);
-  margin-bottom: 10px;
-  white-space: normal;
-}
-.verdict {
-  margin-top: 16px;
-  padding: 12px 16px;
-  background: rgba(58,106,58,0.06);
-  border-left: 3px solid var(--color-success);
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--color-success);
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
-/* ── SURFACES (3-up render) ── */
-.surfaces {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin: 24px 0 8px;
-}
-@media (max-width: 768px) { .surfaces { grid-template-columns: 1fr; } }
-.surface {
-  border: 1px solid var(--border);
-  padding: 22px 20px;
-  background: var(--bg);
-}
-.surface__icon { font-size: 28px; margin-bottom: 10px; line-height: 1; }
-.surface__name {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 8px;
-}
-.surface__render {
-  font-size: clamp(14px, 1vw, 16px);
-  line-height: 1.55;
-  color: var(--text);
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-.surface__why {
-  font-size: 13px;
-  color: var(--text-2);
-  line-height: 1.5;
-}
-
-/* ── CALLOUT ── */
-.callout {
-  border-left: 3px solid var(--border);
-  padding: 14px 20px;
-  margin: 24px 0;
-  color: var(--text-2);
-  font-size: clamp(15px, 1.05vw, 17px);
-  line-height: 1.75;
-  background: var(--bg-2);
-}
-.callout strong { color: var(--text); font-weight: 600; }
-.callout code {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  background: rgba(74,106,144,0.08);
-  color: var(--color-grammar);
-  padding: 2px 6px;
-}
-
-/* ── YAML BLOCKS ── */
-.tech-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 24px 0;
-}
-@media (max-width: 768px) { .tech-grid { grid-template-columns: 1fr; } }
-.tech-card {
-  border: 1px solid var(--border);
-  padding: 24px 26px;
-  background: var(--bg);
-}
-.tech-card__head {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--color-intent);
-  margin-bottom: 10px;
-}
-.tech-card__title {
-  font-weight: 500;
-  font-size: clamp(16px, 1.2vw, 18px);
-  margin-bottom: 10px;
-  letter-spacing: -0.3px;
-  color: var(--text);
-}
-.tech-card__body {
-  font-size: clamp(14px, 1vw, 16px);
-  color: var(--text-2);
-  line-height: 1.65;
-}
-.tech-card__body code {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: rgba(74,106,144,0.08);
-  color: var(--color-grammar);
-  padding: 2px 6px;
-}
-
-.yaml-block {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 20px 24px;
-  margin-top: 16px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text);
-  line-height: 1.75;
-  white-space: pre;
-  overflow-x: auto;
-}
-.yaml-block__head {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--color-intent);
-  margin-bottom: 10px;
-  white-space: normal;
-}
-
-/* ── CONFLICT TABLE ── */
-.conflict-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  font-size: clamp(13px, 1vw, 15px);
-}
-.conflict-table th,
-.conflict-table td {
-  text-align: left;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-.conflict-table th {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  background: var(--bg-2);
-}
-.conflict-table td { color: var(--text-2); }
-.conflict-table td code {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: rgba(74,106,144,0.08);
-  color: var(--color-grammar);
-  padding: 2px 6px;
-}
-
-/* ── BRIDGE DIAGRAM ── */
-.bridge {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 32px;
-  margin: 32px 0;
-}
-.bridge__title {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 20px;
-}
-.bridge__svg-wrap { width: 100%; overflow-x: auto; }
-.bridge-svg text {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.bridge-svg .pill { fill: var(--bg); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.bridge-svg .pill--token  { stroke: var(--color-grammar); fill: rgba(74,106,144,0.08); }
-.bridge-svg .pill--engine { stroke: var(--color-intent);  fill: rgba(122,85,32,0.08); }
-.bridge-svg .pill--emit   { stroke: var(--color-brain);   fill: rgba(106,74,144,0.08); }
-.bridge-svg .pill--surface{ stroke: var(--border); fill: var(--bg); }
-.bridge-svg .pill-label--token  { fill: var(--color-grammar); }
-.bridge-svg .pill-label--engine { fill: var(--color-intent); }
-.bridge-svg .pill-label--emit   { fill: var(--color-brain); }
-.bridge-svg .pill-label--surface{ fill: var(--text-2); }
-.bridge-svg .arrow      { stroke: var(--text-3); stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
-.bridge-svg .arrow-label{ font-size: 9.5px; font-weight: 500; fill: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
-
-/* ── AX PATTERN GRID ── */
-.ax-count-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 20px;
-}
-@media (max-width: 640px) { .ax-count-grid { grid-template-columns: 1fr 1fr; } }
-.ax-count-card {
-  border: 1px solid var(--border);
-  padding: 20px 16px;
-  text-align: center;
-  background: var(--bg);
-}
-.ax-count-card__cat {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.ax-count-card--D .ax-count-card__cat { color: var(--color-grammar); }
-.ax-count-card--E .ax-count-card__cat { color: var(--color-intent); }
-.ax-count-card--A .ax-count-card__cat { color: var(--color-brain); }
-.ax-count-card--X .ax-count-card__cat { color: var(--color-success); }
-.ax-count-card__num {
-  font-size: clamp(28px, 3vw, 36px);
-  font-weight: 500;
-  letter-spacing: -1px;
-  margin-bottom: 4px;
-  color: var(--text);
-}
-.ax-count-card__name {
-  font-size: clamp(13px, 0.95vw, 15px);
-  color: var(--text-2);
-  line-height: 1.5;
-}
-
-.ax-compose {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 28px;
-  margin-top: 28px;
-}
-.ax-compose__head {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 12px;
-}
-.ax-compose__title {
-  font-weight: 500;
-  font-size: clamp(16px, 1.2vw, 19px);
-  margin-bottom: 14px;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-.ax-compose__desc {
-  font-size: clamp(14px, 1vw, 16px);
-  color: var(--text-2);
-  line-height: 1.7;
-  margin-top: 12px;
-}
-.ax-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0;
-}
-.ax-pill {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 6px 12px;
-  border-radius: 999px;
-}
-.ax-pill--D { background: rgba(74,106,144,0.10);  color: var(--color-grammar); }
-.ax-pill--E { background: rgba(122,85,32,0.10);   color: var(--color-intent); }
-.ax-pill--A { background: rgba(106,74,144,0.10);  color: var(--color-brain); }
-.ax-pill--X { background: rgba(58,106,58,0.10);   color: var(--color-success); }
-
-/* ── Q&A STEPS ── */
-.qa-card {
-  border: 1px solid var(--border);
-  padding: 24px 28px;
-  margin-bottom: 12px;
-  background: var(--bg);
-}
-.qa-q {
-  font-weight: 500;
-  font-size: clamp(15px, 1.1vw, 18px);
-  color: var(--text);
-  margin-bottom: 12px;
-  letter-spacing: -0.2px;
-}
-.qa-a {
-  font-size: clamp(14px, 1vw, 16px);
-  color: var(--text-2);
-  line-height: 1.75;
-}
-.qa-a strong { color: var(--text); font-weight: 600; }
-.qa-a code {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: rgba(74,106,144,0.08);
-  color: var(--color-grammar);
-  padding: 2px 6px;
-}
-
-/* ── CTA BRANCH ── */
-.cta-branch-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  max-width: 720px;
-  margin: 40px auto 0;
-}
-@media (max-width: 640px) { .cta-branch-grid { grid-template-columns: 1fr; } }
-.cta-branch {
-  display: block;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  padding: 28px;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.2s, border-color 0.2s;
-}
-.cta-branch:hover { transform: translateY(-2px); }
-.cta-branch--primary   { border-left: 3px solid var(--color-brain); }
-.cta-branch--secondary { border-left: 3px solid var(--color-success); }
-.cta-branch-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 8px;
-}
-.cta-branch-title {
-  font-size: clamp(20px, 1.6vw, 24px);
-  font-weight: 500;
-  margin-bottom: 4px;
-  color: var(--text);
-}
-.cta-branch-desc {
-  font-size: clamp(13px, 1vw, 15px);
-  color: var(--text-2);
-}
-
-</style>
+<link rel="stylesheet" href="../../assets/css/cg3-layout.css">
 </head>
 
 <body data-dark-nav class="nav-has-subnav">
-
-<!-- nav.js injects navigation here -->
-
-<!-- ═══════════════════════════════════════
-     HERO
-═══════════════════════════════════════ -->
-<div class="hero hero--split">
-  <div class="hero-split-text">
-    <p class="hero-label">Context Grammar — Floor 4</p>
-    <h1 class="hero-title">Rule Engine</h1>
-    <p class="hero-sub">Tokens go in. A single ui.command comes out. The deterministic translation layer between context state and surface rendering.</p>
-    <div class="hero-formula-pill">
-      <span class="f-token">Tokens IN</span>
-      <span class="f-arrow">→</span>
-      <span class="f-engine">Rule Engine</span>
-      <span class="f-arrow">→</span>
-      <span class="f-emit">ui.command OUT</span>
-    </div>
-  </div>
-  <div class="hero-illu">
-    <div data-ga-slot="cg-rule-engine" data-orientation="horizontal" aria-label="Rule Engine — Tokens IN to ui.command OUT"></div>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════
-     WHERE IT SITS
-═══════════════════════════════════════ -->
-<section class="sec">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-brain);">Position in the Stack</p>
-    <h2 class="sec-title reveal">Eight tokens in. One command out.</h2>
-    <p class="sec-desc reveal d1">The Rule Engine is the bridge between vocabulary and behavior. It takes the 8 context tokens plus memory from the Brain, runs if/then logic, and emits a single ui.command for every interaction.</p>
-
-    <div class="pipeline reveal d2">
-      <div class="pipeline-step">
-        <div class="pipeline-step-label">Floor 1</div>
-        <div class="pipeline-step-name">Intent</div>
-      </div>
-      <div class="pipeline-step">
-        <div class="pipeline-step-label">Floor 2</div>
-        <div class="pipeline-step-name">8 Tokens</div>
-      </div>
-      <div class="pipeline-step">
-        <div class="pipeline-step-label">Floor 3</div>
-        <div class="pipeline-step-name">Context Brain</div>
-      </div>
-      <div class="pipeline-step pipeline-step--active">
-        <div class="pipeline-step-label">Floor 4 — you are here</div>
-        <div class="pipeline-step-name">Rule Engine</div>
-      </div>
-      <div class="pipeline-step">
-        <div class="pipeline-step-label">Floor 5</div>
-        <div class="pipeline-step-name">AX Patterns</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     A · RESTAURANT INTRO ASIDE
-═══════════════════════════════════════ -->
-<section class="sec sec-alt">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-intent);">The Short Version</p>
-    <h2 class="sec-title reveal">An order-ticket system for your home</h2>
-    <p class="sec-desc reveal d1">Before diving into the mechanics, here is the single image that makes everything click.</p>
-
-    <aside class="cg-restaurant-aside reveal d2">
-      <div class="cg-restaurant-aside__icon" aria-hidden="true">
-        <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
-      </div>
-      <div class="cg-restaurant-aside__content">
-        <p class="cg-restaurant-aside__label">In restaurant terms</p>
-        <div class="cg-restaurant-aside__body">
-          <p>When a waiter takes your order, they write down facts — "Table 4, peanut allergy, kids, in a hurry." They don't shout those facts directly into the kitchen. Instead, a ticket system translates them into a standardized kitchen instruction: <em>sauce: hold · portion: 70% · priority: rush.</em></p>
-          <p>The chef reads the ticket. The kitchen station plates accordingly — Japanese, Western, or kids' menu — each in its own style. One ticket, many expressions.</p>
-          <p>Rule Engine is that ticket system. Tokens are the waiter's notes. The ui.command is the kitchen ticket. Each surface (fridge, phone, car) is a different station.</p>
-        </div>
-      </div>
-    </aside>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     B · TOKENS IN → ui.command OUT
-═══════════════════════════════════════ -->
-<div class="part-banner" style="background:var(--color-brain);">
-  <div class="part-banner-inner">
-    <div class="part-banner-tag" style="color:rgba(255,255,255,0.6);">I/O</div>
-    <div class="part-banner-title" style="color:#fff;">Tokens IN → ui.command OUT</div>
-  </div>
-</div>
-
-<section class="sec">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-brain);">The Core Translation</p>
-    <h2 class="sec-title reveal">Rule Engine is a compiler</h2>
-    <p class="sec-desc reveal d1">Brain memory and Token state cannot reach the UI directly. The human facts "tired," "on the train," "one hand" don't tell the screen what to draw. Rule Engine translates those facts into a concrete drawing instruction — a ui.command.</p>
-
-    <div class="io-grid reveal d2">
-      <div class="io-card io-card--in">
-        <div class="io-icon">📥</div>
-        <div class="io-tag">Tokens IN</div>
-        <div class="io-name">Current state</div>
-        <p class="io-role">Current values of 8 Context Tokens, plus facts read from Brain — allergies, budget, schedules.</p>
-        <ul class="io-list">
-          <li>Cognitive Load = high</li>
-          <li>Form Factor = phone</li>
-          <li>Social Exposure = public</li>
-          <li>Autonomy Dial = Confirm</li>
-        </ul>
-      </div>
-
-      <div class="io-divider">→</div>
-
-      <div class="io-card io-card--engine">
-        <div class="io-icon">⚙️</div>
-        <div class="io-tag">Rule Engine</div>
-        <div class="io-name">Translator</div>
-        <p class="io-role">Fires matching rules. Same input always produces the same output — no mood swings.</p>
-        <ul class="io-list">
-          <li>if Cognitive Load = high → density: minimal</li>
-          <li>if Form Factor = phone → layout: vertical</li>
-          <li>if Social Exposure = public → hide: prices</li>
-          <li>Composes from 23 AX Patterns</li>
-        </ul>
-      </div>
-
-      <div class="io-divider">→</div>
-
-      <div class="io-card io-card--out">
-        <div class="io-icon">📤</div>
-        <div class="io-tag">ui.command OUT</div>
-        <div class="io-name">Screen instruction</div>
-        <p class="io-role">An abstract command any surface can read and render — device-agnostic drawing instructions.</p>
-        <ul class="io-list">
-          <li>density: minimal</li>
-          <li>items: 1</li>
-          <li>tone: gentle</li>
-          <li>hide: [price, calorie]</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="callout reveal d3">
-      <strong>Deterministic:</strong> Rule Engine always returns the same ui.command for the same Token state — regardless of when, who, or which device calls it. <strong>Same conditions, same answer every time. It does not have moods.</strong> Consistency is the foundation of family trust.
-    </div>
-
-    <figure class="token-illust reveal d4" style="background:transparent;border:none;max-width:100%;margin:clamp(24px,3vw,40px) 0 0;padding:0;">
-      <img src="../images/ISO-GREEN/IF-RuleEngine-IfThen.png" alt="Rule Engine if/then — tokens and brain state mapped to concrete design rules" loading="lazy" style="width:100%;height:auto;">
-    </figure>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     C · INTERNAL ANATOMY
-═══════════════════════════════════════ -->
-<section class="sec sec-alt">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-intent);">Internal Anatomy</p>
-    <h2 class="sec-title reveal">Read → Match → Emit</h2>
-    <p class="sec-desc reveal d1">Three stages inside every Rule Engine cycle. Once you see them, nothing gets confusing.</p>
-
-    <div class="anatomy-grid reveal d2">
-      <div class="anatomy-card anatomy-card--read">
-        <div class="anatomy-num">① Read</div>
-        <div class="anatomy-name">Collect Tokens</div>
-        <p class="anatomy-desc">Aggregate current values of all 8 Tokens. Pull relevant facts from Brain — a single Brain at home, up to five in enterprise. Allergies, budget, Brand constraints, Research signals — all arrive here.</p>
-      </div>
-      <div class="anatomy-card anatomy-card--match">
-        <div class="anatomy-num">② Match</div>
-        <div class="anatomy-name">Fire rules</div>
-        <p class="anatomy-desc">Check every if/then condition against the current Token state. Fire every match. When multiple rules fire, overlay them by <strong>priority</strong>. Conflicts go to the Priority Weight Token first.</p>
-      </div>
-      <div class="anatomy-card anatomy-card--emit">
-        <div class="anatomy-num">③ Emit</div>
-        <div class="anatomy-name">Assemble command</div>
-        <p class="anatomy-desc">Merge all fired results into one <strong>ui.command</strong> object and emit it. The device is not known yet — that is the surface's problem, not the Engine's.</p>
-      </div>
-    </div>
-
-    <div class="callout reveal d3">
-      <strong>Key point:</strong> Rule Engine does not know the device. "Large screen because it's a fridge" or "vertical because it's a phone" — those are Token facts (Form Factor), not Engine decisions. The Engine fires a rule: <code>if Form Factor = phone → layout: vertical</code>. That is all.
-    </div>
-    <div class="callout reveal d3">
-      <strong>Same for Brain:</strong> The Engine doesn't distinguish "fact from Org Brain" vs "fact from Brand Brain." Each Brain is responsible for its own contribution to the Token set. The Engine reads the synthesized result. That is why one Engine works for both a household and an enterprise.
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     D · YAMASHIRO 7:02 AM WALKTHROUGH
-═══════════════════════════════════════ -->
-<div class="part-banner" style="background:var(--color-grammar);">
-  <div class="part-banner-inner">
-    <div class="part-banner-tag" style="color:rgba(255,255,255,0.6);">Walkthrough</div>
-    <div class="part-banner-title" style="color:#fff;">Yamashiro household · 7:02 AM — one command, three surfaces</div>
-  </div>
-</div>
-
-<section class="sec">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-grammar);">Live example</p>
-    <h2 class="sec-title reveal">How a morning becomes a ui.command</h2>
-    <p class="sec-desc reveal d1">Mai is in the kitchen with the kids. She steps in front of the fridge. Here is what happens inside the Rule Engine.</p>
-
-    <div class="scenario-intro reveal d1">
-      <p class="scenario-intro__quote">"What should I put in Sota's lunch box… I'm running out of time."</p>
-      <p class="scenario-intro__source">— Mai (38) · Tuesday 7:02 AM, kitchen</p>
-    </div>
-
-    <!-- Step 1 -->
-    <div class="step-card step-card--token reveal d2">
-      <div class="step-head">
-        <span class="step-num">1</span>
-        <span class="step-title">7:02 AM — Token state</span>
-        <span class="step-chip">Tokens IN</span>
-      </div>
-      <div class="step-body">
-        The moment Mai stands in front of the fridge, the system collects the <strong>current values of all 8 Context Tokens</strong>.
-        <div class="token-state">
-          <div class="token-state__head">8 Context Tokens · 7:02 AM</div>
-          <ul>
-            <li><strong>① Physical State</strong>     <span>Standing · kitchen · both hands occupied with lunch boxes</span></li>
-            <li><strong>② Cognitive Load</strong>     <span>HIGH — morning rush, dense calendar, 3 task switches in past 5 min</span></li>
-            <li><strong>③ Social Exposure</strong>    <span>family — low public exposure</span></li>
-            <li><strong>④ Priority Weight</strong>    <span>"finish lunch box in time" is the single top priority</span></li>
-            <li><strong>⑤ Form Factor</strong>        <span>fridge — Samsung Family Hub</span></li>
-            <li><strong>⑥ Feasibility</strong>        <span>13 min to departure · max 8 min cooking time</span></li>
-            <li><strong>⑦ Autonomy Dial</strong>      <span>Suggest — proposes only, decision stays with Mai</span></li>
-            <li><strong>⑧ Disclosure Dial</strong>    <span>Family meal history + fridge inventory disclosed to AI</span></li>
-          </ul>
-        </div>
-        <div style="margin-top:14px;font-size:15px;color:var(--text-2);">
-          Brain also provides: <em style="color:var(--text-3);font-family:var(--font-mono);font-size:13px;">Sota has peanut allergy · yesterday was salmon · fridge has 6 eggs, broccoli, ham</em>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 2 -->
-    <div class="step-card step-card--engine reveal d2">
-      <div class="step-head">
-        <span class="step-num">2</span>
-        <span class="step-title">Rule Engine fires matching rules</span>
-        <span class="step-chip">Engine</span>
-      </div>
-      <div class="step-body">
-        The Engine scans all 23 AX Pattern rule sets against the current Token state and fires every match.
-        <div class="rules-fire">
-          <div class="rules-fire__head">Fired rules (excerpt)</div>
-          <ul>
-            <li><span class="rule-when">if Cognitive Load = high</span><span class="rule-arrow">→</span><span class="rule-then">density: minimal, items: 1</span></li>
-            <li><span class="rule-when">if Feasibility &lt; 10min</span><span class="rule-arrow">→</span><span class="rule-then">filter: only ready-fast recipes</span></li>
-            <li><span class="rule-when">if Brain.allergy(Sota) = peanut</span><span class="rule-arrow">→</span><span class="rule-then">exclude: peanut, sesame-cross</span></li>
-            <li><span class="rule-when">if Brain.history.yesterday = salmon</span><span class="rule-arrow">→</span><span class="rule-then">deprioritize: salmon</span></li>
-            <li><span class="rule-when">if Autonomy Dial = Suggest</span><span class="rule-arrow">→</span><span class="rule-then">action: propose only, no auto-cook</span></li>
-            <li><span class="rule-when">if Physical State = hands-busy</span><span class="rule-arrow">→</span><span class="rule-then">input: voice-first, tap fallback</span></li>
-          </ul>
-        </div>
-        <div class="verdict">→ 6 rules fired · merging into a single command</div>
-
-        <aside class="cg-restaurant-aside cg-restaurant-aside--inline" style="margin-top:20px;">
-          <div class="cg-restaurant-aside__icon" aria-hidden="true">
-            <img src="../../assets/img/cg-icons/restaurant.svg" alt="">
-          </div>
-          <div class="cg-restaurant-aside__content">
-            <p class="cg-restaurant-aside__label">In restaurant terms</p>
-            <div class="cg-restaurant-aside__body">
-              <p>The waiter collected: peanut allergy, kids, in a hurry. The ticket system matched its rules and wrote: <em>sauce: hold · portion: 70% · priority: rush.</em> The chef never heard the raw facts — only the standardized ticket.</p>
+  <main>
+    <header class="cg3-hero" data-theme="dark">
+      <div class="cg3-shell cg3-hero-grid">
+        <div>
+          <p class="cg3-kicker">Context Grammar — Stage 4</p>
+          <h1 class="cg3-title">Rule Engine</h1>
+          <p class="cg3-lead">The Rule Engine turns context into UI instructions. It reads the 6 Situation Signals, 2 Relationship Dials, and Brain memory, then emits one predictable command every surface can render in its own way.</p>
+          <div class="cg3-hero-proof" aria-label="Rule Engine essentials">
+            <div>
+              <b>01</b>
+              <span>Signals &amp; Dials and Brain facts become one structured state.</span>
+            </div>
+            <div>
+              <b>02</b>
+              <span>Rules fire deterministically, so behavior can be tested.</span>
+            </div>
+            <div>
+              <b>03</b>
+              <span>The output is a device-neutral ui.command.</span>
             </div>
           </div>
-        </aside>
+        </div>
+        <div class="cg3-hero-visual" aria-hidden="true">
+          <div data-ga-slot="cg-rule-engine" data-orientation="horizontal"></div>
+        </div>
       </div>
-    </div>
+    </header>
 
-    <!-- Step 3 -->
-    <div class="step-card step-card--emit reveal d2">
-      <div class="step-head">
-        <span class="step-num">3</span>
-        <span class="step-title">Emit the ui.command</span>
-        <span class="step-chip">Emit</span>
+    <section class="cg3-section" id="overview">
+      <div class="cg3-shell">
+        <p class="cg3-label">Read this first</p>
+        <h2 class="cg3-h2">The Engine is the decision layer between memory and screens.</h2>
+        <div class="cg3-quick cg3-media">
+          <article>
+            <span class="cg3-eyebrow">Input</span>
+            <h3>6 Situation Signals &amp; 2 Relationship Dials + Brain facts</h3>
+            <p>Current context, personal memory, domain constraints, and live session facts arrive as structured state.</p>
+          </article>
+          <article>
+            <span class="cg3-eyebrow">Logic</span>
+            <h3>Rules fire</h3>
+            <p>The same state produces the same output, which makes the behavior explainable and testable.</p>
+          </article>
+          <article>
+            <span class="cg3-eyebrow">Output</span>
+            <h3>One ui.command</h3>
+            <p>The command says what should happen, not where pixels should go on a particular device.</p>
+          </article>
+          <article>
+            <span class="cg3-eyebrow">Scale</span>
+            <h3>Many Brains, one state</h3>
+            <p>A household Brain and a five-Brain enterprise stack both resolve into one context state.</p>
+          </article>
+        </div>
+        <div class="cg3-copy cg3-media">
+          <p><a class="cg3-inline-link" href="#engine-flow">Input to output</a> / <a class="cg3-inline-link" href="#walkthrough">Morning example</a> / <a class="cg3-inline-link" href="#rule-specs">Rule syntax</a> / <a class="cg3-inline-link" href="#pattern-bridge">AX relationship</a></p>
+        </div>
       </div>
-      <div class="step-body">
-        The fired rules merge into <strong>one abstract command object</strong>. At this point, "which pixel on which screen" is still undecided.
-        <div class="emit-block">
-<div class="emit-block__head">ui.command</div>intent:        suggest_lunchbox
-density:       minimal
-items:         1
-tone:          gentle
-input:         voice-first
-candidates:    [egg-ham-broccoli, omelet-rice]
-exclude:       [peanut, sesame-cross, salmon]
-time-budget:   8min
-decision-by:   user (Suggest mode)</div>
-      </div>
-    </div>
+    </section>
 
-    <!-- Step 4 -->
-    <div class="step-card step-card--result reveal d2">
-      <div class="step-head">
-        <span class="step-num">4</span>
-        <span class="step-title">Three surfaces render the same command differently</span>
-        <span class="step-chip">Render</span>
+    <section class="cg3-section" id="position">
+      <div class="cg3-shell cg3-grid">
+        <div>
+          <p class="cg3-label">Position in the stack</p>
+          <h2 class="cg3-h2">6 Signals &amp; 2 Dials in. One command out.</h2>
+        </div>
+        <div class="cg3-copy">
+          <p><strong>Context Grammar needs a place where state becomes behavior.</strong></p>
+          <p>Brain remembers facts. Situation Signals describe the observed situation, while Relationship Dials define relationship boundaries. The Rule Engine decides what the interface should do next: reduce detail, ask for approval, hide sensitive data, switch to voice, or show one clear recommendation.</p>
+          <p>In restaurant terms, Situation Signals and Relationship Dials are the waiter's notes: table, allergy, kids, hurry. The Rule Engine is the ticket system that translates those notes into a kitchen instruction: hold the sauce, rush the order, reduce the portion. The ui.command is that standardized ticket.</p>
+        </div>
       </div>
-      <div class="step-body">
-        The key insight: <strong>one ui.command</strong>, rendered by each surface in its own grammar. The Rule Engine wrote nothing device-specific.
-        <div class="surfaces">
-          <div class="surface">
-            <div class="surface__icon">🧊</div>
-            <div class="surface__name">Samsung Family Hub</div>
-            <div class="surface__render">"Egg &amp; ham lunch box? Ready in 8 min."<br><span style="color:var(--text-3);font-size:13px;">Large photo + voice "yes" button</span></div>
-            <div class="surface__why">density:minimal + items:1 = one photo + one sentence on a large screen. Hands are full so voice input.</div>
+      <div class="cg3-shell">
+        <div class="cg3-table-wrap">
+          <table class="cg3-table">
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th>Layer</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Inflow</strong></td>
+                <td>Human expression</td>
+                <td>Natural language, emotion, and context before formal interpretation.</td>
+              </tr>
+              <tr>
+                <td><strong>1</strong></td>
+                <td>Intent</td>
+                <td>The user's goal or need.</td>
+              </tr>
+              <tr>
+                <td><strong>2-3</strong></td>
+                <td>6 Signals &amp; 2 Dials</td>
+                <td>The current situation context and relationship boundary settings.</td>
+              </tr>
+              <tr>
+                <td><strong>Cross-cut</strong></td>
+                <td>Context Brain</td>
+                <td>Identity, Learning, and Now memory.</td>
+              </tr>
+              <tr>
+                <td><strong>4</strong></td>
+                <td>Rule Engine</td>
+                <td>The translation layer: read, match, emit.</td>
+              </tr>
+              <tr>
+                <td><strong>5</strong></td>
+                <td>Negotiation Gate</td>
+                <td>Checks confidence, risk, reversibility, and sensitivity before action.</td>
+              </tr>
+              <tr>
+                <td><strong>6</strong></td>
+                <td>Autonomy Resolution</td>
+                <td>Computes final autonomy as the minimum of user setting and gate ceiling.</td>
+              </tr>
+              <tr>
+                <td><strong>7</strong></td>
+                <td>AX Patterns</td>
+                <td>Reusable behavior blueprints the Engine composes.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" id="engine-flow">
+      <div class="cg3-shell">
+        <p class="cg3-label">The core translation</p>
+        <h2 class="cg3-h2">The Rule Engine compiles context.</h2>
+        <div class="cg3-role-grid">
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">Signals &amp; Dials IN</span>
+            <h3>Current state</h3>
+            <p>Cognitive Load = high. Form Factor = phone. Social Exposure = public. Autonomy Dial = Confirm. Brain adds allergies, budgets, schedules, and history.</p>
+          </article>
+          <article class="cg3-card cg3-card--green">
+            <span class="cg3-eyebrow">Rule Engine</span>
+            <h3>Translator</h3>
+            <p>Runs every matching if/then rule. Non-conflicting rules compose. Conflicts go through a clear priority order.</p>
+          </article>
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">ui.command OUT</span>
+            <h3>Screen instruction</h3>
+            <p>density: minimal. items: 1. tone: gentle. hide: price and calories. input: voice-first.</p>
+          </article>
+        </div>
+        <div class="cg3-media cg3-media-grid">
+          <figure class="cg3-figure cg3-figure--panel">
+            <img src="../images/ISO-GREEN/IF-RuleEngine-IfThen.png" alt="Rule Engine if/then mapping from signals and Brain state to design rules" loading="lazy">
+            <figcaption class="cg3-caption">If/then rules map state to behavior</figcaption>
+          </figure>
+          <div class="cg3-copy">
+            <p><strong>Raw facts do not tell a screen what to draw.</strong> "Tired," "on the train," and "one hand free" have to become interface behavior.</p>
+            <p>The Engine translates those facts into a concrete instruction. The surface renderer still decides whether that instruction becomes a fridge card, a phone notification, a car voice response, or a dashboard row.</p>
+            <p class="cg3-note"><strong>Deterministic:</strong> the same context state always returns the same ui.command, no matter who calls it or which device asks.</p>
           </div>
-          <div class="surface">
-            <div class="surface__icon">📱</div>
-            <div class="surface__name">Mai's iPhone</div>
-            <div class="surface__render">Notification: "🥚 Egg &amp; ham · 8 min"<br><span style="color:var(--text-3);font-size:13px;">Tap for details · swipe to dismiss</span></div>
-            <div class="surface__why">Same items:1, compressed to a single notification line. tone:gentle means no red badge.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" id="anatomy">
+      <div class="cg3-shell">
+        <p class="cg3-label">Internal anatomy</p>
+        <h2 class="cg3-h2">Read, match, emit.</h2>
+        <div class="cg3-role-grid">
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">01</span>
+            <h3>Read</h3>
+            <p>Collect all 6 Situation Signal values, 2 Relationship Dial settings, and relevant Brain facts: allergies, budget, brand constraints, research signals, and live session context.</p>
+          </article>
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">02</span>
+            <h3>Match</h3>
+            <p>Check each if/then condition against the current state. Fire every match. Resolve contradictions by priority.</p>
+          </article>
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">03</span>
+            <h3>Emit</h3>
+            <p>Merge all fired results into one ui.command. Device-specific rendering still happens later, inside each surface.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" id="walkthrough">
+      <div class="cg3-shell cg3-walk">
+        <div class="cg3-sticky">
+          <p class="cg3-label">Live example</p>
+          <h2 class="cg3-h2">Yamashiro household, 7:02 AM.</h2>
+          <p class="cg3-speech">"What should I put in Sota's lunch box? I'm running out of time."</p>
+        </div>
+        <div class="cg3-flow">
+          <article class="cg3-step">
+            <h3>Context state is collected</h3>
+            <p>Mai is standing in the kitchen, both hands occupied with lunch boxes. Cognitive Load is high. The top priority is finishing lunch on time. Form Factor is a Samsung Family Hub fridge. Feasibility says 13 minutes to departure and an 8 minute cooking limit.</p>
+            <p class="cg3-token-line"><strong>Brain reference:</strong> Sota has a peanut allergy. Yesterday was salmon. The fridge has eggs, broccoli, and ham.</p>
+          </article>
+          <article class="cg3-step">
+            <h3>Matching rules fire</h3>
+            <p>if Cognitive Load = high &rarr; density: minimal, items: 1. if Feasibility &lt; 10min &rarr; only ready-fast recipes. if Brain.allergy(Sota) = peanut &rarr; exclude peanut and sesame-cross. if Physical State = hands-busy &rarr; voice-first input.</p>
+            <p class="cg3-token-line"><strong>Restaurant model:</strong> the ticket system converts "peanut allergy, kids, hurry" into "hold sauce, rush, safe station."</p>
+          </article>
+          <article class="cg3-step">
+            <h3>The Engine emits one command</h3>
+            <p>intent: suggest_lunchbox. density: minimal. items: 1. tone: gentle. input: voice-first. candidates: egg-ham-broccoli and omelet-rice. exclude: peanut, sesame-cross, salmon. decision-by: user, because Autonomy Dial is Suggest.</p>
+          </article>
+          <article class="cg3-step">
+            <h3>Three surfaces render it differently</h3>
+            <p>Fridge: "Egg and ham lunch box? Ready in 8 min." Phone: "Egg and ham, 8 min." CarPlay later: "Made the egg and ham box this morning." One command, three renderers.</p>
+          </article>
+          <article class="cg3-step">
+            <h3>Signals change, command changes</h3>
+            <p>At 7:35 AM, Mai is driving. Physical State becomes driving, Form Factor becomes car, and input is disabled. The same ruleset now emits an audio-only summary instead of an interactive fridge suggestion.</p>
+          </article>
+        </div>
+      </div>
+      <div class="cg3-shell">
+        <div class="cg3-media cg3-media-grid">
+          <figure class="cg3-figure cg3-figure--dark">
+            <img src="../images/ISO-GREEN/IF-RuleEngine-Examples.png" alt="Rule Engine examples showing different signal combinations producing different design outputs" loading="lazy">
+            <figcaption class="cg3-caption">Different Signals, different command, same Engine</figcaption>
+          </figure>
+          <div class="cg3-copy">
+            <p><strong>The Rule Engine did not change.</strong> Only the signal values changed, so the output changed.</p>
+            <p>This is how deterministic rules and adaptive UI can coexist: the human situation lives in the Signals &amp; Dials; the Engine quietly runs the same job every time.</p>
           </div>
-          <div class="surface">
-            <div class="surface__icon">🚗</div>
-            <div class="surface__name">CarPlay (later)</div>
-            <div class="surface__render">Voice only: "Made the egg &amp; ham box this morning."<br><span style="color:var(--text-3);font-size:13px;">Driving · summary only · no controls</span></div>
-            <div class="surface__why">Same candidates, converted to a past-tense report. Form Factor=car means tap input is impossible.</div>
-          </div>
-        </div>
-        <div class="callout" style="margin-top:20px;">
-          <strong>All three share one Rule Engine output.</strong> The differences are absorbed by the rendering layer on each surface. Brain doesn't need a "fridge version" and an "iPhone version." <strong>One Brain, infinite surfaces.</strong>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Step 5 -->
-    <div class="step-card step-card--token reveal d2">
-      <div class="step-head">
-        <span class="step-num">5</span>
-        <span class="step-title">7:35 AM — Tokens change, command changes</span>
-        <span class="step-chip">Token update</span>
-      </div>
-      <div class="step-body">
-        Thirty minutes later, Mai is driving. The Tokens shift.
-        <div class="token-state">
-          <ul>
-            <li><strong>① Physical State</strong>  <span>Driving · both hands on wheel</span></li>
-            <li><strong>② Cognitive Load</strong>  <span>MEDIUM · no new tasks permitted while driving</span></li>
-            <li><strong>⑤ Form Factor</strong>     <span>car / CarPlay</span></li>
-            <li><strong>⑥ Feasibility</strong>     <span>25 min to meeting</span></li>
-          </ul>
+    <section class="cg3-section" id="scale">
+      <div class="cg3-shell cg3-grid">
+        <div>
+          <p class="cg3-label">Scale</p>
+          <h2 class="cg3-h2">One Engine for one Brain or five.</h2>
         </div>
-        <div style="margin-top:14px;font-size:15px;color:var(--text-2);">
-          The Engine runs the <strong>same ruleset</strong> against the new Token values. The output is entirely different.
+        <div class="cg3-copy">
+          <p><strong>The Rule Engine is scale-agnostic.</strong> A household Brain and an enterprise stack of Brains both resolve into one synthesized context state, and the Engine runs the same rules either way.</p>
+          <p>P1 may use a single Context Brain. P4 may use Org Brain, Brand Brains, Research Brain, Project Master Brain, and Project Brains. Each contributes facts from Identity, Learning, and Now to a context bus.</p>
+          <p>The Engine never counts Brains. It translates the final context state. Same Engine, different Brain configuration, different output only when the Signals differ.</p>
         </div>
-        <div class="emit-block" style="margin-top:14px;">
-<div class="emit-block__head">ui.command · 7:35 AM</div>intent:        report_lunchbox_done
-density:       audio-only
-items:         1-line summary
-input:         disabled (driving)
-tone:          neutral</div>
-        <div class="verdict">→ Same Rule Engine · different Tokens · different command</div>
       </div>
-    </div>
+    </section>
 
-    <figure class="token-illust reveal d3" style="background:transparent;border:none;max-width:100%;margin:clamp(20px,3vw,36px) 0;padding:0;">
-      <img src="../images/ISO-GREEN/IF-RuleEngine-Examples.png" alt="Rule Engine examples — real-world scenarios showing token combinations producing different design outputs" loading="lazy" style="width:100%;height:auto;">
-    </figure>
+    <section class="cg3-section" id="rule-specs">
+      <div class="cg3-shell">
+        <p class="cg3-label">Technical depth</p>
+        <h2 class="cg3-h2">Rule syntax, schemas, and conflict resolution.</h2>
+        <div class="cg3-role-grid">
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">context.yml</span>
+            <h3>Signals + Brain schema</h3>
+            <p>Defines types, valid values, and defaults for all 6 Situation Signals and 2 Relationship Dials, plus Brain references such as brain.allergy and brain.history.yesterday.</p>
+          </article>
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">rules.yml</span>
+            <h3>33 Behavior Rules</h3>
+            <p>Maps conditions to outputs. Each rule has a priority from 0 to 999 and tags that connect it to AX Patterns.</p>
+          </article>
+          <article class="cg3-card">
+            <span class="cg3-eyebrow">ui.command</span>
+            <h3>Output vocabulary</h3>
+            <p>intent, density, items, tone, candidates, exclude, input, time-budget, and decision-by become the shared dictionary every surface reads.</p>
+          </article>
+        </div>
 
-    <div class="callout reveal d4">
-      <strong>Notice:</strong> The Rule Engine changed <strong>nothing</strong>. Only the Token values changed — and the output followed. This is how "deterministic = same input → same output" and "context-adaptive UI" coexist. The human mood lives in the Token values (Cognitive Load, Physical State). The Engine quietly runs the same job every time.
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     E · MULTI-BRAIN NOTE
-═══════════════════════════════════════ -->
-<section class="sec sec-alt">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-brain);">Scale</p>
-    <h2 class="sec-title reveal">One Engine — P1 single Brain or P4 five Brains</h2>
-    <p class="sec-desc reveal d1">The Rule Engine is scale-agnostic. Whether it's a household Brain or an enterprise stack of five, the Engine always receives one synthesized Token set and runs the same rules.</p>
-
-    <div class="multi-brain reveal d2">
-      <div class="multi-brain__head">⌬ Multi-Brain consistency</div>
-      <p>Rule Engine reads <strong>Token current values</strong> — but those values don't have to come from a single Brain. Whether it's P1's single Context Brain or P4's five-Brain enterprise stack, the Engine always receives <strong>one synthesized Token set</strong>.</p>
-      <ul>
-        <li><strong>Org Brain</strong> — persistent foundation: org chart, policies, glossary</li>
-        <li><strong>Brand Brain × N</strong> — judgment DNA (B2C / B2B running in parallel)</li>
-        <li><strong>Research Brain</strong> — user understanding + live CRM/sales signals</li>
-        <li><strong>Project Master Brain</strong> — the strategist: orchestrates all projects</li>
-        <li><strong>Project Brain × N</strong> — time-bounded, per-project execution</li>
-      </ul>
-      <p>These Brains each contribute facts from their Identity Layer, Learning Layer, and Now Layer to a Token Bus. The Rule Engine never counts Brains — it runs the same translation every time. <strong>Same Engine, different Brain configuration — output changes with the Tokens.</strong></p>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     F · TECHNICAL DEPTH
-═══════════════════════════════════════ -->
-<section class="sec sec-dark">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-grammar);">Technical Depth</p>
-    <h2 class="sec-title reveal" style="color:#f0ece4;">Rule syntax · schema · conflict resolution</h2>
-    <p class="sec-desc reveal d1" style="color:rgba(240,236,228,0.6);">Rule Engine is not theory. Three YAML files and 33 Behavior Rules — actually writable.</p>
-
-    <div class="tech-grid reveal d2">
-      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
-        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">context.yml</div>
-        <div class="tech-card__title" style="color:#f0ece4;">Token + Brain schema</div>
-        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);">Declares types, valid values, and defaults for all 8 Context Tokens. Also defines Brain reference types — <code style="background:rgba(255,255,255,0.06);color:#7a9bc4;">brain.allergy</code>, <code style="background:rgba(255,255,255,0.06);color:#7a9bc4;">brain.history.yesterday</code>, etc.</div>
-      </div>
-      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
-        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">rules.yml</div>
-        <div class="tech-card__title" style="color:#f0ece4;">33 Behavior Rules</div>
-        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);">If/then condition-to-output mappings. Each rule carries a <strong style="color:#f0ece4;">priority</strong> (0–999) and <strong style="color:#f0ece4;">tags</strong> declaring which AX Pattern(s) it belongs to.</div>
-      </div>
-      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
-        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">patterns.yml</div>
-        <div class="tech-card__title" style="color:#f0ece4;">23 AX Pattern recipes</div>
-        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);">Delegation / Escalation / Adaptation / Enterprise — 4 categories. Defines which rule groups constitute one "Pattern fire."</div>
-      </div>
-      <div class="tech-card" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);">
-        <div class="tech-card__head" style="color:rgba(240,236,228,0.5);">ui.command schema</div>
-        <div class="tech-card__title" style="color:#f0ece4;">Output structure vocabulary</div>
-        <div class="tech-card__body" style="color:rgba(240,236,228,0.55);"><code style="background:rgba(255,255,255,0.06);color:#7a9bc4;">intent / density / items / tone / candidates / exclude / input / time-budget / decision-by</code> — the shared dictionary every surface reads. Implementation may be JSON or protobuf.</div>
-      </div>
-    </div>
-
-    <div class="yaml-block reveal d3" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.08);color:#f0ece4;">
-<div class="yaml-block__head" style="color:rgba(240,236,228,0.45);">rules.yml — excerpt</div>- id: cog_load_minimal
+        <details class="cg3-details cg3-media" open>
+          <summary>rules.yml excerpt</summary>
+          <div class="cg3-details-content">
+<pre><code>- id: cog_load_minimal
   when: { cognitive_load: high }
   then:
     density: minimal
@@ -1259,16 +305,6 @@ tone:          neutral</div>
   priority: 70
   tags: [A4-input-mode-switch]
 
-- id: dyn_friction_high_value
-  when:
-    autonomy: Auto
-    price: { gt: 15000 }
-  then:
-    require_confirm: true
-    reason: "high-value purchase"
-  priority: 100
-  tags: [D6-dynamic-friction]
-
 - id: disclosure_guard
   when:
     disclosure: hidden
@@ -1277,273 +313,157 @@ tone:          neutral</div>
     constraint_violation: true
     reset_to: Confirm
   priority: 999
-  tags: [E5-trust-breach-recovery]</div>
+  tags: [E5-trust-breach-recovery]</code></pre>
+          </div>
+        </details>
 
-    <h3 class="reveal d3" style="font-size:clamp(20px,1.8vw,26px);font-weight:500;margin:40px 0 12px;letter-spacing:-0.5px;color:#f0ece4;">Conflict resolution — what happens when rules contradict?</h3>
-    <p class="reveal d3" style="font-size:clamp(15px,1.05vw,17px);color:rgba(240,236,228,0.55);margin-bottom:12px;max-width:640px;">Multiple rules firing simultaneously is normal. Non-conflicting rules all apply. Conflicting rules go through a three-stage arbitration.</p>
-
-    <div class="reveal d3" style="overflow-x:auto;">
-      <table class="conflict-table" style="background:transparent;">
-        <thead>
-          <tr>
-            <th style="color:rgba(240,236,228,0.35);">Stage</th>
-            <th style="color:rgba(240,236,228,0.35);">Arbiter</th>
-            <th style="color:rgba(240,236,228,0.35);">Criterion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="color:#f0ece4;">1</td>
-            <td style="color:#f0ece4;">Priority Weight Token</td>
-            <td style="color:rgba(240,236,228,0.55);">The user's declared current priority — "finish the lunch box" — applied first.</td>
-          </tr>
-          <tr>
-            <td style="color:#f0ece4;">2</td>
-            <td style="color:#f0ece4;">Rule <code>priority</code> value</td>
-            <td style="color:rgba(240,236,228,0.55);">Static numeric weight (0–999). Trust-related rules such as Disclosure Guard are set to 999.</td>
-          </tr>
-          <tr>
-            <td style="color:#f0ece4;">3</td>
-            <td style="color:#f0ece4;">Brain Learning Layer</td>
-            <td style="color:rgba(240,236,228,0.55);">Past user decision patterns for this exact conflict type — whichever path the user has historically chosen more often.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="callout reveal d4" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.12);color:rgba(240,236,228,0.7);">
-      <strong style="color:#f0ece4;">Non-negotiable constraint:</strong> <code>Disclosure = hidden</code> and <code>Autonomy &gt; Confirm</code> cannot coexist. "No disclosure × full delegation" is logically impossible — the Engine always resets Autonomy to Confirm. This is enforced by the priority-999 Trust Breach Recovery rule.
-    </div>
-
-    <div class="callout reveal d4" style="background:rgba(240,236,228,0.03);border-color:rgba(240,236,228,0.12);color:rgba(240,236,228,0.7);">
-      <strong style="color:#f0ece4;">Deterministic = testable:</strong> Rule Engine always returns the same ui.command for the same Token state, so unit tests are straightforward. <code>given: { cognitive_load: high, form_factor: phone } → expect: { density: minimal, layout: vertical }</code>. Validation that an LLM can never provide.
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     G · AX PATTERN LIBRARY RELATIONSHIP
-═══════════════════════════════════════ -->
-<section class="sec">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-grammar);">Parts + Assembly</p>
-    <h2 class="sec-title reveal">AX Pattern Library — 23 pieces the Engine assembles</h2>
-    <p class="sec-desc reveal d1">AX Patterns are small UI blueprints. The Rule Engine decides which blueprints to select and how to compose them based on Token state. Patterns are words; Rule Engine is grammar — that is why this system is called "Context Grammar."</p>
-
-    <div class="ax-count-grid reveal d2">
-      <div class="ax-count-card ax-count-card--D">
-        <div class="ax-count-card__cat">Delegation</div>
-        <div class="ax-count-card__num">D1–D6</div>
-        <div class="ax-count-card__name">AI handles it<br>(6 patterns)</div>
+        <details class="cg3-details">
+          <summary>Conflict arbitration</summary>
+          <div class="cg3-details-content">
+            <div class="cg3-table-wrap">
+              <table class="cg3-table">
+                <thead>
+                  <tr>
+                    <th>Stage</th>
+                    <th>Arbiter</th>
+                    <th>Criterion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>1</strong></td>
+                    <td>Priority Weight Signal</td>
+                    <td>The user's current priority, such as "finish the lunch box," wins first.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>2</strong></td>
+                    <td>Rule priority value</td>
+                    <td>Static numeric weight from 0 to 999. Trust-related guardrails use the highest priority.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>3</strong></td>
+                    <td>Brain Learning Layer</td>
+                    <td>Past decisions for this conflict type break the tie when the first two stages are not enough.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="cg3-note"><strong>Non-negotiable constraint:</strong> Disclosure = hidden and Autonomy &gt; Confirm cannot coexist. Full delegation without disclosure is logically impossible, so the Engine resets Autonomy to Confirm.</p>
+            <p class="cg3-note"><strong>Deterministic = testable:</strong> given cognitive_load: high and form_factor: phone, expect density: minimal and layout: vertical.</p>
+          </div>
+        </details>
       </div>
-      <div class="ax-count-card ax-count-card--E">
-        <div class="ax-count-card__cat">Escalation</div>
-        <div class="ax-count-card__num">E1–E5</div>
-        <div class="ax-count-card__name">AI asks first<br>(5 patterns)</div>
+    </section>
+
+    <section class="cg3-section" id="negotiation-gate-rules">
+      <div class="cg3-shell">
+        <p class="cg3-label">Stage 5 handoff</p>
+        <h2 class="cg3-h2">Negotiation Gate Rules (R34-R41)</h2>
+        <div class="cg3-copy cg3-media">
+          <p>After Stage 4 emits a proposed action, the Negotiation Gate evaluates whether to proceed silently, open negotiation UI, require confirmation, or block. Full Stage 5 context and rationale live on the <a class="cg3-inline-link" href="/context-grammar/negotiation-gate/">Negotiation Gate page</a>.</p>
+        </div>
+        <div class="cg3-table-wrap">
+          <table class="cg3-table">
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>Condition</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>R34</strong></td><td>awareness = Latent</td><td>Negotiate as hypothesis; never act directly.</td></tr>
+              <tr><td><strong>R35</strong></td><td>sensitivity = HIGH</td><td>Require at least lightweight confirmation.</td></tr>
+              <tr><td><strong>R36</strong></td><td>risk = HIGH and reversibility = LOW</td><td>Require explicit confirmation or escalate.</td></tr>
+              <tr><td><strong>R37</strong></td><td>confidence &lt; 0.4</td><td>Show Assumption Cards or ask for clarification.</td></tr>
+              <tr><td><strong>R38</strong></td><td>0.4 &lt;= confidence &lt; 0.8</td><td>Show Interpretation Preview.</td></tr>
+              <tr><td><strong>R39</strong></td><td>confidence &gt;= 0.8 and risk = LOW and reversibility = HIGH</td><td>Proceed silently.</td></tr>
+              <tr><td><strong>R40</strong></td><td>confidence &gt;= 0.8 and risk &gt;= MEDIUM</td><td>Show Confidence Signal and confirm per autonomy setting.</td></tr>
+              <tr><td><strong>R41</strong></td><td>user has previously corrected this pattern</td><td>Lower confidence by 0.2 and trigger negotiation earlier.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="ax-count-card ax-count-card--A">
-        <div class="ax-count-card__cat">Adaptation</div>
-        <div class="ax-count-card__num">A1–A8</div>
-        <div class="ax-count-card__name">AI adjusts presentation<br>(8 patterns)</div>
+    </section>
+
+    <section class="cg3-section" id="pattern-bridge">
+      <div class="cg3-shell">
+        <p class="cg3-label">Parts + assembly</p>
+        <h2 class="cg3-h2">AX Patterns are the pieces the Engine assembles.</h2>
+        <div class="cg3-quick cg3-media">
+          <article>
+            <span class="cg3-eyebrow">D1-D6</span>
+            <h3>Delegation</h3>
+            <p>AI handles more of the work as trust and disclosure allow.</p>
+          </article>
+          <article>
+            <span class="cg3-eyebrow">E1-E5</span>
+            <h3>Escalation</h3>
+            <p>AI gives control back when confidence, capability, or trust breaks down.</p>
+          </article>
+          <article>
+            <span class="cg3-eyebrow">A1-A8</span>
+            <h3>Adaptation</h3>
+            <p>Presentation changes as context, device, or disclosure changes.</p>
+          </article>
+          <article>
+            <span class="cg3-eyebrow">X1-X4</span>
+            <h3>Enterprise</h3>
+            <p>High-stakes systems add audit, source, edit, and autonomy controls.</p>
+          </article>
+        </div>
+        <div class="cg3-copy cg3-media">
+          <p>Total: <strong>23 patterns</strong>. The Engine does not call a pattern by name; it fires matching rules. The resulting ui.command may contain one pattern or a composition of several.</p>
+          <p>Example: Silent Resolution combines D4 Omakase Mode, D6 Dynamic Friction, E5 Trust Breach Recovery, and A2 Cognitive Scaling. The user experiences one smooth morning. The Engine assembled four behavioral parts.</p>
+        </div>
       </div>
-      <div class="ax-count-card ax-count-card--X">
-        <div class="ax-count-card__cat">Enterprise</div>
-        <div class="ax-count-card__num">X1–X4</div>
-        <div class="ax-count-card__name">Organizational behavior<br>(4 patterns)</div>
+    </section>
+
+    <section class="cg3-section" id="questions">
+      <div class="cg3-shell">
+        <p class="cg3-label">Q&amp;A</p>
+        <h2 class="cg3-h2">Common questions.</h2>
+        <div class="cg3-stack cg3-media">
+          <details class="cg3-details">
+            <summary>Is Rule Engine an AI model?</summary>
+            <div class="cg3-details-content">
+              <p class="cg3-details-text"><strong>No.</strong> The Rule Engine is deterministic. An LLM may write final wording, but the decision skeleton comes from rules.</p>
+            </div>
+          </details>
+          <details class="cg3-details">
+            <summary>Will deterministic rules make the UI repetitive?</summary>
+            <div class="cg3-details-content">
+              <p class="cg3-details-text"><strong>The command is consistent, but Signals change.</strong> Cognitive Load, Form Factor, Social Exposure, and Feasibility shift as the user moves through the day.</p>
+            </div>
+          </details>
+          <details class="cg3-details">
+            <summary>What exactly is a ui.command?</summary>
+            <div class="cg3-details-content">
+              <p class="cg3-details-text"><strong>A structured instruction.</strong> It can be JSON, protobuf, or another format. What matters is the shared vocabulary every surface can render.</p>
+            </div>
+          </details>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <p class="reveal d3" style="margin-top:24px;font-size:clamp(15px,1.05vw,17px);color:var(--text-2);max-width:680px;">
-      Total: <strong style="color:var(--text);">23 patterns</strong>. The Engine doesn't call them directly — it fires matching rules, and the result is a composed ui.command that corresponds to one or more pattern activations.
-    </p>
-
-    <div class="ax-compose reveal d3">
-      <div class="ax-compose__head">Composition example — "Silent Resolution"</div>
-      <div class="ax-compose__title">The moment in the Yamashiro kitchen where a suggestion surfaces without Mai saying a word. Not a single pattern — a composition of four.</div>
-      <div class="ax-pills">
-        <span class="ax-pill ax-pill--D">D4 · Omakase Mode</span>
-        <span class="ax-pill ax-pill--D">D6 · Dynamic Friction</span>
-        <span class="ax-pill ax-pill--E">E5 · Trust Breach Recovery</span>
-        <span class="ax-pill ax-pill--A">A2 · Cognitive Scaling</span>
+    <section class="cg3-cta">
+      <div class="cg3-shell cg3-cta-inner">
+        <h2>Rules become useful when memory and patterns stay separate.</h2>
+        <nav class="cg3-actions" aria-label="Related pages">
+          <a class="cg3-button cg3-button--primary" href="../ax-patterns/index.html">AX Patterns</a>
+          <a class="cg3-button" href="../brain/index.html">Brain</a>
+          <a class="cg3-button" href="../specs/index.html">Specs</a>
+          <a class="cg3-button" href="../simulator/">Simulator</a>
+        </nav>
       </div>
-      <p class="ax-compose__desc">
-        <strong>D4</strong> provides the "leave it to AI" skeleton. <strong>D6</strong> adds friction for high-stakes moments — if the price exceeds the threshold, confirmation fires. <strong>E5</strong> monitors whether Disclosure and Autonomy are logically consistent. <strong>A2</strong> compresses density to minimal because Cognitive Load is high. The Engine folds all four into one ui.command.
-      </p>
-    </div>
+    </section>
+  </main>
 
-    <div class="callout reveal d4">
-      <strong>In short:</strong> AX Pattern Library = parts catalog. Rule Engine = assembly factory. ui.command = the finished instruction. Add a new Pattern to the Library and the Engine picks it up automatically whenever a rule tagged with it fires — no changes to the Engine itself.
-    </div>
-
-    <p class="reveal d4" style="margin-top:28px;">
-      <a href="../ax-patterns/index.html" style="color:var(--color-grammar);font-size:clamp(14px,1vw,16px);font-weight:500;">Explore all 23 AX Patterns →</a>
-    </p>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     H · BRIDGE DIAGRAM
-═══════════════════════════════════════ -->
-<section class="sec sec-alt">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-brain);">Architecture</p>
-    <h2 class="sec-title reveal">Why Rule Engine is the bridge</h2>
-    <p class="sec-desc reveal d1">Brain holds memory. UI renders pixels. Without Rule Engine between them, both sides become tightly coupled — a maintenance nightmare every time a device changes.</p>
-
-    <div class="bridge reveal d2">
-      <div class="bridge__title">Brain ↔ Rule Engine ↔ UI Surfaces</div>
-      <div class="bridge__svg-wrap">
-        <svg class="bridge-svg" viewBox="0 0 760 300" width="100%">
-          <!-- Left: State -->
-          <text x="100" y="20" class="arrow-label" text-anchor="middle">STATE (Memory + Now)</text>
-          <rect class="pill pill--token" x="20" y="38" width="160" height="34" rx="17"/>
-          <text x="100" y="60" text-anchor="middle" class="pill-label--token">8 Context Tokens</text>
-          <rect class="pill pill--token" x="20" y="83" width="160" height="34" rx="17"/>
-          <text x="100" y="105" text-anchor="middle" class="pill-label--token">Brain (Memory)</text>
-
-          <!-- Center: Engine -->
-          <text x="380" y="20" class="arrow-label" text-anchor="middle">RULE ENGINE (Translator)</text>
-          <rect class="pill pill--engine" x="290" y="55" width="180" height="50" rx="25"/>
-          <text x="380" y="76" text-anchor="middle" class="pill-label--engine" style="font-size:12px;">Rule Engine</text>
-          <text x="380" y="92" text-anchor="middle" class="pill-label--engine" style="font-size:11px;">23 AX Patterns</text>
-
-          <!-- Emit -->
-          <rect class="pill pill--emit" x="310" y="142" width="140" height="34" rx="17"/>
-          <text x="380" y="164" text-anchor="middle" class="pill-label--emit">ui.command</text>
-
-          <!-- Arrows: tokens → engine -->
-          <path class="arrow" d="M 180 55 Q 235 58 290 75"/>
-          <path class="arrow" d="M 180 100 Q 235 98 290 90"/>
-          <text x="237" y="74" class="arrow-label" text-anchor="middle">read</text>
-
-          <!-- Arrow: engine → emit -->
-          <path class="arrow" d="M 380 105 L 380 142"/>
-          <text x="395" y="127" class="arrow-label" text-anchor="start">emit</text>
-
-          <!-- Right: Surfaces -->
-          <text x="640" y="20" class="arrow-label" text-anchor="middle">SURFACES (Renderers)</text>
-          <rect class="pill pill--surface" x="540" y="38" width="200" height="34" rx="17"/>
-          <text x="640" y="60" text-anchor="middle" class="pill-label--surface">Fridge / Family Hub</text>
-          <rect class="pill pill--surface" x="540" y="83" width="200" height="34" rx="17"/>
-          <text x="640" y="105" text-anchor="middle" class="pill-label--surface">iPhone / Watch</text>
-          <rect class="pill pill--surface" x="540" y="128" width="200" height="34" rx="17"/>
-          <text x="640" y="150" text-anchor="middle" class="pill-label--surface">CarPlay / TV</text>
-          <rect class="pill pill--surface" x="540" y="173" width="200" height="34" rx="17"/>
-          <text x="640" y="195" text-anchor="middle" class="pill-label--surface">Voice (Bixby)</text>
-
-          <!-- Arrows: emit → surfaces -->
-          <path class="arrow" d="M 450 157 Q 495 100 540 55"/>
-          <path class="arrow" d="M 450 162 Q 495 125 540 100"/>
-          <path class="arrow" d="M 450 164 L 540 145"/>
-          <path class="arrow" d="M 450 168 Q 495 180 540 190"/>
-          <text x="495" y="218" class="arrow-label" text-anchor="middle">render (surface's job)</text>
-
-          <!-- Write-back -->
-          <path class="arrow" d="M 640 210 Q 640 275 100 270 L 100 125" stroke-dasharray="4 4"/>
-          <text x="380" y="285" class="arrow-label" text-anchor="middle">user feedback · writes back to Brain</text>
-        </svg>
-      </div>
-    </div>
-
-    <div class="callout reveal d3">
-      <strong>Imagine the world without Rule Engine:</strong> Brain would have to instruct the fridge directly — "put the egg photo at 240 px top right." Every new Samsung model, every screen-size change means rewriting the Brain. The Rule Engine absorbs all of that. Brain just says "suggest the lunch box" — and stays <strong>portable across every device that ever ships</strong>.
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     I · Q&A
-═══════════════════════════════════════ -->
-<section class="sec">
-  <div class="sec-inner">
-    <p class="sec-label reveal" style="color:var(--color-brain);">Q&amp;A</p>
-    <h2 class="sec-title reveal">Common questions answered</h2>
-
-    <div class="qa-card reveal d1">
-      <div class="qa-q">Q1. Is Rule Engine an AI (LLM)?</div>
-      <div class="qa-a"><strong>No.</strong> Rule Engine is a deterministic rule bundle — same input always produces the same output. An LLM produces different words for the same input every time (generative). In Context Grammar, <strong>the decision skeleton is Rule Engine; natural-language surface is LLM</strong>. "Suggest the egg &amp; ham box" is the rule. "Oh, running short on time? Egg &amp; ham?" is the LLM layer.</div>
-    </div>
-
-    <div class="qa-card reveal d1">
-      <div class="qa-q">Q2. If same tokens always produce the same UI, won't it get repetitive?</div>
-      <div class="qa-a"><strong>The command is consistent — but Tokens change every second.</strong> Cognitive Load fluctuates with the clock and recent task volume. Form Factor shifts when you pick up your phone. The UI follows naturally. Repetitiveness is a sign that <strong>not enough Tokens are being read</strong> — if the person standing there is different, the time is different, those facts should already be in the Tokens.</div>
-    </div>
-
-    <div class="qa-card reveal d1">
-      <div class="qa-q">Q3. What happens when multiple rules fire at the same time?</div>
-      <div class="qa-a"><strong>Non-conflicting rules all apply.</strong> "Cognitive Load=high → density:minimal" and "Social Exposure=public → hide:price" fire together — both are applied since they don't contradict. Conflicts go to the three-stage arbitration: Priority Weight Token first, then rule <code>priority</code> value, then Brain Learning Layer history. See Section F for the full conflict table.</div>
-    </div>
-
-    <div class="qa-card reveal d1">
-      <div class="qa-q">Q4. What exactly is a ui.command — is it JSON?</div>
-      <div class="qa-a"><strong>An abstract structure.</strong> Implementation can be JSON, protobuf, or anything else. The important thing is that a shared vocabulary — <code>intent / density / tone / candidates / constraints</code> — is readable by every surface. Any new device (wall display, AR glasses, robot) can join without touching the Brain or Engine.</div>
-    </div>
-
-    <div class="qa-card reveal d1">
-      <div class="qa-q">Q5. What is the difference between Rule Engine and the AX Pattern Library?</div>
-      <div class="qa-a"><strong>AX Patterns = blueprints. Rule Engine = assembly factory.</strong> The Library holds 23 blueprints — D1–D6 Delegation, E1–E5 Escalation, A1–A8 Adaptation, X1–X4 Enterprise. The Rule Engine decides which blueprints to select and how to compose them for the current Token state. Patterns are words; Rule Engine is grammar; the emitted ui.command is a sentence.</div>
-    </div>
-
-    <div class="qa-card reveal d1">
-      <div class="qa-q">Q6. Does Rule Engine change between P1's single Brain and P4's five Brains?</div>
-      <div class="qa-a"><strong>No.</strong> The Engine only reads the synthesized Token set. In P1, one Context Brain assembles all 8 Tokens. In P4, five Brain types — Org, Brand × N, Research, Project Master, Project — each contribute facts to a Token Bus, which synthesizes the final Token set. The Engine sees "8 Token values are here" either way, and runs the same rules. That reuse is the point.</div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════
-     CTA
-═══════════════════════════════════════ -->
-<section class="cta">
-  <h2 class="cta-title reveal">Now you know the logic layer.</h2>
-  <p class="cta-sub reveal d1">Rules are only as good as the memory behind them — and the specs that pin them down. Pick your next floor.</p>
-  <div class="cta-branch-grid reveal d2">
-    <a href="../brain/index.html" class="cta-branch cta-branch--primary">
-      <div class="cta-branch-label">NEXT</div>
-      <div class="cta-branch-title">Brain →</div>
-      <div class="cta-branch-desc">how AI remembers</div>
-    </a>
-    <a href="../specs/index.html" class="cta-branch cta-branch--secondary">
-      <div class="cta-branch-label">DEEP DIVE</div>
-      <div class="cta-branch-title">Specs →</div>
-      <div class="cta-branch-desc">33 Behavior Rules</div>
-    </a>
-  </div>
-</section>
-
-
-<!-- ═══ FOOTER ═══ -->
-<div class="chapter-nav" data-current="ruleengine" data-base="../"></div>
-<script src="../../assets/js/chapter-nav.js"></script>
-
-<footer class="footer">
-  <p><a href="../index.html">&larr; Back to Context Grammar</a></p>
-  <p style="margin-top:8px;">intentfirst.ai · Takao Umehara · 2026</p>
-</footer>
-
-
-<script>
-(function () {
-  var els = document.querySelectorAll('.reveal');
-  if (!els.length) return;
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-  els.forEach(function (el) { observer.observe(el); });
-})();
-</script>
-<script src="../../assets/js/nav.js"></script>
-<script>initNav({ basePath: '../../', activePage: 'ruleengine', lang: 'en', showLang: true });</script>
-<script src="../../assets/js/ga-slots.js"></script>
-<script src="../../assets/js/green-animation.js" defer></script>
+  <div class="chapter-nav" data-current="ruleengine" data-base="../"></div>
+  <script src="../../assets/js/chapter-nav.js"></script>
+  <script src="../../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../../', activePage: 'ruleengine', lang: 'en', showLang: true, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });</script>
+  <script src="../../assets/js/ga-slots.js"></script>
+  <script src="../../assets/js/green-animation.js" defer></script>
 </body>
 </html>
