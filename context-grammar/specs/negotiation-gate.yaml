@@ -1,0 +1,81 @@
+# Negotiation Gate Specification
+# Context Grammar Decision Pipeline — Stage 5
+# Version: 2026-05-25
+
+negotiation_gate:
+  stage: 5
+  purpose: >
+    Evaluate whether an AI agent should proceed, ask, align, or block before taking an action.
+    Produces an Autonomy Ceiling that Stage 6 (Autonomy Resolution) uses to compute Final Autonomy.
+
+  inputs:
+    intent:
+      type: IntentV2Object
+      fields: [detection_channel, awareness_depth, proposition, raw_confidence]
+    signals:
+      type: SignalRecord[]
+      count: 6
+      schema: decision_schema
+    dials:
+      type: DialRecord[]
+      count: 2
+      schema: decision_schema
+    brain:
+      type: BrainSnapshot
+      layers: [identity, learning, now]
+    proposed_action:
+      type: ActionRecord
+      fields: [verb, description, external_effect, reversibility]
+      verb_enum: [Inform, Recommend, Plan, Prepare, Act, Monitor, Adapt]
+    domain:
+      type: DomainEnum
+      values: [health, finance, family_relationship, work, schedule, entertainment, information]
+    current_autonomy:
+      type: AutomonyStageEnum
+      values: [Suggest, Confirm, Notify, Auto]
+
+  evaluation_variables:
+    confidence:
+      source: intent.raw_confidence
+      range: 0.0-1.0
+    risk:
+      values: [low, medium, high]
+      derived_from: [domain, proposed_action.external_effect]
+    reversibility:
+      values: [high, medium, low]
+      source: proposed_action.reversibility
+    sensitivity:
+      values: [low, medium, medium_high, high]
+      default_by_domain:
+        health: high
+        finance: high
+        family_relationship: medium_high
+        work: medium
+        schedule: medium
+        entertainment: low
+        information: low
+
+  firing_rules:
+    R34: {condition: "awareness = Latent", action: "negotiate_as_hypothesis"}
+    R35: {condition: "sensitivity = HIGH", action: "require_confirmation"}
+    R36: {condition: "risk = HIGH AND reversibility = LOW", action: "explicit_confirm_or_escalate"}
+    R37: {condition: "confidence < 0.4", action: "show_assumption_cards"}
+    R38: {condition: "0.4 <= confidence < 0.8", action: "show_interpretation_preview"}
+    R39: {condition: "confidence >= 0.8 AND risk = LOW AND reversibility = HIGH", action: "silent"}
+    R40: {condition: "confidence >= 0.8 AND risk >= MEDIUM", action: "confidence_signal_plus_confirm"}
+    R41: {condition: "user_previously_corrected", action: "reduce_confidence_0.2_negotiate_earlier"}
+
+  outputs:
+    risk_profile:
+      fields: [confidence, risk, reversibility, sensitivity, domain, rationale]
+    gate_decision:
+      fields: [proceed, ui_primitive, autonomy_ceiling, rationale]
+      ui_primitive_enum: [silent, confidence_signal, interpretation_preview, assumption_cards, escalate, block]
+      autonomy_ceiling_enum: [suggest, confirm, notify, auto]
+
+autonomy_resolution:
+  stage: 6
+  formula: "Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling)"
+  note: >
+    A user who has set Autonomy to Auto may still get Confirm for a specific
+    high-risk action if the Gate Ceiling requires it.
