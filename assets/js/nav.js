@@ -363,6 +363,7 @@ function initGlossaryAndCommandK(opts) {
     var resultsEl = modal.querySelector('.if-cmdk-results');
     var previewEl = modal.querySelector('.if-cmdk-preview');
     var items = [];
+    var glossaryById = {};
     var lastFocusedBeforeCmdk = null;
     var activeResults = [];
 
@@ -396,9 +397,11 @@ function initGlossaryAndCommandK(opts) {
         out.push({
           type: 'glossary',
           id: entry.id,
+          category: entry.category || 'term',
           title: title,
           subtitle: subtitle,
           metaphor: (entry.metaphor && entry.metaphor[lang]) || '',
+          seeAlso: Array.isArray(entry.seeAlso) ? entry.seeAlso.slice() : [],
           href: href,
           tags: (entry.tags || []).concat([entry.id, entry.category || '']).map(function (t) { return String(t).toLowerCase(); })
         });
@@ -424,17 +427,51 @@ function initGlossaryAndCommandK(opts) {
         return;
       }
       if (item.type === 'glossary') {
+        var related = (item.seeAlso || []).map(function (sid) {
+          var target = glossaryById[sid];
+          if (!target) return '';
+          return '<button type="button" class="if-cmdk-rel-pill" data-related-id="' + sid + '">' + target.title + '</button>';
+        }).filter(Boolean).join('');
         previewEl.innerHTML = ''
-          + '<p class="if-cmdk-type">Glossary</p>'
+          + '<p class="if-cmdk-type">Glossary · ' + String(item.category || 'term').toUpperCase() + '</p>'
           + '<h4>' + item.title + '</h4>'
           + '<p>' + item.subtitle + '</p>'
-          + '<p class="if-cmdk-metaphor">' + item.metaphor + '</p>';
+          + '<p class="if-cmdk-metaphor">' + item.metaphor + '</p>'
+          + (related ? '<div class="if-cmdk-related"><p class="if-cmdk-related-label">' + (lang === 'ja' ? '関連語' : 'Related terms') + '</p><div class="if-cmdk-related-pills">' + related + '</div></div>' : '');
       } else {
         previewEl.innerHTML = ''
           + '<p class="if-cmdk-type">Page</p>'
           + '<h4>' + item.title + '</h4>'
           + '<p>' + item.subtitle + '</p>';
       }
+    }
+
+    function setActiveByIndex(idx) {
+      var list = Array.prototype.slice.call(resultsEl.querySelectorAll('.if-cmdk-item'));
+      if (!list.length || idx < 0 || idx >= list.length) return;
+      list.forEach(function (el) {
+        el.classList.remove('is-active');
+        el.setAttribute('aria-selected', 'false');
+      });
+      list[idx].classList.add('is-active');
+      list[idx].setAttribute('aria-selected', 'true');
+      input.setAttribute('aria-activedescendant', list[idx].id);
+      renderPreview(activeResults[idx]);
+      list[idx].scrollIntoView({ block: 'nearest' });
+    }
+
+    function activateRelatedTerm(termId) {
+      var idx = activeResults.findIndex(function (it) { return it.type === 'glossary' && it.id === termId; });
+      if (idx >= 0) {
+        setActiveByIndex(idx);
+        return;
+      }
+      var target = glossaryById[termId];
+      if (!target) return;
+      input.value = target.title;
+      renderResults(target.title);
+      var firstGlossaryIdx = activeResults.findIndex(function (it) { return it.type === 'glossary' && it.id === termId; });
+      if (firstGlossaryIdx >= 0) setActiveByIndex(firstGlossaryIdx);
     }
 
     function renderResults(q) {
@@ -497,6 +534,12 @@ function initGlossaryAndCommandK(opts) {
     }
 
     modal.querySelector('.if-cmdk-backdrop').addEventListener('click', closeModal);
+    previewEl.addEventListener('click', function (e) {
+      var pill = e.target.closest('.if-cmdk-rel-pill');
+      if (!pill) return;
+      e.preventDefault();
+      activateRelatedTerm(pill.getAttribute('data-related-id'));
+    });
     document.addEventListener('keydown', function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -523,13 +566,8 @@ function initGlossaryAndCommandK(opts) {
         if (!list.length) return;
         var idx = list.findIndex(function (el) { return el.classList.contains('is-active'); });
         if (idx < 0) idx = 0;
-        list[idx].classList.remove('is-active');
-        list[idx].setAttribute('aria-selected', 'false');
         idx = e.key === 'ArrowDown' ? (idx + 1) % list.length : (idx - 1 + list.length) % list.length;
-        list[idx].classList.add('is-active');
-        list[idx].setAttribute('aria-selected', 'true');
-        input.setAttribute('aria-activedescendant', list[idx].id);
-        renderPreview(activeResults[idx]);
+        setActiveByIndex(idx);
       }
       if (e.key === 'Enter') {
         var active = resultsEl.querySelector('.if-cmdk-item.is-active');
@@ -539,6 +577,9 @@ function initGlossaryAndCommandK(opts) {
     input.addEventListener('input', function () { renderResults(input.value); });
 
     items = buildPageItems().concat(buildGlossaryItems());
+    items.forEach(function (item) {
+      if (item.type === 'glossary' && item.id) glossaryById[item.id] = item;
+    });
     renderResults('');
 
     var cmdkButtons = document.querySelectorAll('.if-cmdk-toggle');
