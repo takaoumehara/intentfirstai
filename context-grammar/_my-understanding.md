@@ -416,7 +416,7 @@ Autonomy Dial(信頼軸)と直交する7動詞(行動軸):
 > 「6 Situation Signals & 2 Relationship Dials + Brain → 具体的なデザインルール。If/then logic at scale。推奨ではなくルール。」
 
 ### 5.2 ポジション
-Floor 1 (Intent) → Floor 2 (Tokens) → Floor 3 (Brain) → **Floor 4 (Rule Engine)** → Floor 5 (Response)
+Inflow → Stage 1 (Intent v2) → Stage 2 (6 Signals) → Stage 3 (2 Dials) → **Stage 4 (Rule Engine)** → Stage 5 (Negotiation Gate) → Stage 6 (Autonomy Resolution) → Stage 7 (AX × Lifecycle) → Stage 8 (Agentic Response). Brain is a Cross-cut, referenced by all Stages.
 
 ### 5.3 ルールの例(plain English)
 - **Rule 1:** IF cognitive load = high AND social exposure = public → simplify notification, delay non-urgent
