@@ -133,6 +133,7 @@ function initGlossaryAndCommandK(opts) {
     if (!node || !node.parentElement) return true;
     var el = node.parentElement;
     if (el.closest('.site-nav, .cg-popover, .glossary-popover, .if-cmdk-modal, .if-cmdk-toggle')) return true;
+    if (el.closest('a')) return true;
     var tag = el.tagName;
     if (!tag) return true;
     if (/^(SCRIPT|STYLE|NOSCRIPT|CODE|PRE|KBD|SAMP|TEXTAREA|INPUT|SELECT|OPTION|BUTTON|A)$/i.test(tag)) return true;
@@ -150,6 +151,7 @@ function initGlossaryAndCommandK(opts) {
         if (shouldSkipNode(node)) return NodeFilter.FILTER_REJECT;
         var txt = node.nodeValue || '';
         if (txt.trim().length < 3) return NodeFilter.FILTER_REJECT;
+        pattern.lastIndex = 0;
         if (!pattern.test(txt)) return NodeFilter.FILTER_REJECT;
         pattern.lastIndex = 0;
         return NodeFilter.FILTER_ACCEPT;
