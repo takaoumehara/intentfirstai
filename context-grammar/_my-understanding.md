@@ -19,59 +19,160 @@
 ## 0. 30秒サマリ(エレベーターピッチ)
 
 > 「今のAIはあなたが言ったことを完璧に処理する。でも、あなたが今どんな状態かは何も読んでいない。
-> Context Grammarは、AIに『状況を読む語彙』を与える設計言語。8つのトークンで人間の状態を表し、3層のメモリで人格を持ち、33のルールで具体的な振る舞いに変換する。
-> メモリ自体は他のAIにもある。Context Grammarが提案するのは、その上のデザイン言語の層 — 文法、ダイアル、信頼設計、Disposable Brain、Multi-Person Orchestration。」
+> Context Grammarは、AIに『状況を読む語彙』を与える設計言語。6つの状況シグナルと2つの関係性ダイヤルで人間の状態を表し、3層のメモリで人格を持ち、33のルールで具体的な振る舞いに変換する。
+> メモリ自体は他のAIにもある。Context Grammarが提案するのは、その上のデザイン言語の層 — 文法、ダイヤル、信頼設計、Disposable Brain、Multi-Person Orchestration。」
 
 **ターゲット読者:** Samsung/Googleのagentic AI/OS デザイン責任者(採用ベース)。ただしページ自体は「中学生でも分かる」初見読者にも理解可能なレベルで書かれることを目指す。
 
 ---
 
-## 1. 中核アーキテクチャ — Context Tower(5階構造)
+## 1. 中核アーキテクチャ — 8-Stage Decision Pipeline
+
+```
+Inflow:  Human Raw Expression (ナンバリングなし)
+         例: 「最近太った。何かしなきゃ」— クリーンなコマンドではない
+
+Stage 1: Intent v2
+         Detection Channel × Awareness Depth (2軸直交)
+         Detection: Explicit / Active Implicit / Passive Implicit / Ambient Implicit
+         Awareness: Stated / Inferred / Latent
+         Output: structured Intent {channel, depth, proposition, raw_confidence}
+
+Stage 2: 6 Situation Signals
+         Physical State / Cognitive Load / Social Exposure /
+         Priority Weight / Form Factor / Feasibility
+         各シグナルはDecision Schema record (§Decision Schema参照)
+
+Stage 3: 2 Relationship Dials
+         Autonomy Dial / Disclosure Dial
+         ユーザーが設定するプリファレンス。Signalは読む、Dialは設定する。
+
+Stage 4: Rule Engine
+         既存33ルール + Negotiation Gate発火ルール R34–R41
+         → Proposed Action(Lifecycle Verb付き)を出力
+
+Stage 5: Negotiation Gate  ← [NEW]
+         評価: Confidence × Risk × Reversibility × Sensitivity
+         入力: Intent v2, Signals, Dials, Brain snapshot, Proposed Action, Domain
+         出力: Risk Profile + Gate Decision {autonomy_ceiling, required_ui_primitive}
+
+Stage 6: Autonomy Resolution  ← [NEW]
+         Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling)
+         ← このフレームワーク全体のコア公式
+
+Stage 7: AX Patterns × Agent Action Lifecycle
+         23の既存パターン、各パターンにLifecycle Verbタグ付き
+         Lifecycle Verbs: Inform / Recommend / Plan / Prepare / Act / Monitor / Adapt
+
+Stage 8: Agentic Response
+         実際のUI出力、通知、外部APIコール、サイドエフェクト
+```
+
+**3つのCross-cut(全Stageを横断 — ナンバリングなし):**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Floor 5: Response                                          │
-│           (23 AX Patterns × 3 Directions)                   │
-│           Delegate / Escalate / Adapt                       │
+│ Brain (Memory & Learning State)                             │
+│   全Stageから参照される。Monitor/Adaptで更新される。         │
+│   3層: Identity Layer / Learning Layer / Now Layer          │
+│   → Stageではない。常にそこにある状態。                      │
 ├─────────────────────────────────────────────────────────────┤
-│  Floor 4: Rule Engine                                       │
-│           (33 if/then design rules)                         │
+│ Trust Design                                                │
+│   長期・関係性の信頼。Disclosure × Autonomy, Temporal Arc   │
 ├─────────────────────────────────────────────────────────────┤
-│  Floor 3: Brain                                             │
-│           (3 layers × Domain × Person)                      │
-│           Identity / Accumulated Learning / Right Now       │
-├─────────────────────────────────────────────────────────────┤
-│  Floor 2: Grammar — 8 Context Tokens                        │
-│           6 Situation Tokens + 2 Relationship Dials         │
-├─────────────────────────────────────────────────────────────┤
-│  Floor 1: Intent                                            │
-│           (4 types: Explicit / Active / Passive / Ambient)  │
+│ Negotiation Design  ← [NEW Cross-cut]                       │
+│   瞬間ごとの意味のすり合わせ。                               │
+│   UI primitives: Interpretation Preview / Assumption Cards  │
+│                   / Priority Toggle (Phase 2)               │
 └─────────────────────────────────────────────────────────────┘
-
-Cross-cutting (側面) — Trust Design
-   全フロアを横断する温度計。Disclosure Dial × Autonomy Dial の結合。
-   Temporal Arc(5フェーズ) / Dynamic Friction / Trust Breach Recovery
 ```
 
-**フロー:** Intent(なにを欲しているか) → 8 Tokens(状況を読む) → Brain(あなたを覚えている) → Rule Engine(変換ロジック) → Response(具体的なAI挙動)
-
-**比喩(全体を貫く):** 優秀なレストランのウェイター。Intent = 客が何を欲しているかを察する / Tokens = 客と店内を読む / Brain = 予約台帳と通い記憶 / Rule Engine = サービスを決める判断 / Response = 実際の振る舞い。
+**比喩(全体を貫く):** 優秀なレストランのウェイター。Intent = 客が何を欲しているかを察する / Signals = 客と店内を読む / Brain = 予約台帳と通い記憶 / Negotiation Gate = 料理を出す前に「アレルギーはありますか?」と確認する判断 / Rule Engine = サービスを決める判断 / Response = 実際の振る舞い。
 
 ---
 
-## 2. Floor 1: Intent(意図)
+## 1.5 Decision Schema(全Signal・Dial共通)
+
+Context GrammarはSensor Specではなく、**Decision Schema**。すべてのSignalとDialは以下の形を持つ:
+
+```yaml
+signal_name:
+  value: ...
+  source: explicit_user_input | system_state | behavioral_inference
+          | sensor_signal | organizational_data | memory_learned
+  confidence: 0.0–1.0
+  user_confirmed: boolean
+  fallback_behavior: "このシグナルなしに何をするか"
+  implementation_readiness: high | mid | low
+```
+
+**公式フレーミング(逸脱禁止):** Context Grammar is not a sensor spec. It is a decision schema for making contextual AI judgments explicit, inspectable, and adjustable.
+
+---
+
+## 1.6 Negotiation Gate(Stage 5詳細)
+
+**4変数評価:**
+- Confidence: 解釈の確信度 (0.0–1.0)
+- Risk: 間違えた時のダメージ (low / medium / high)
+- Reversibility: アクションの取り消し可能性 (high / medium / low)
+- Sensitivity: ドメインの繊細さ (low / medium / medium_high / high)
+
+**発火ルール R34–R41:**
+```
+R34: awareness = Latent → 仮説として交渉必須
+R35: sensitivity = HIGH → 最低限の確認が必要
+R36: risk = HIGH AND reversibility = LOW → 明示的確認またはescalate
+R37: confidence < 0.4 → Assumption Cards表示
+R38: 0.4 ≤ confidence < 0.8 → Interpretation Preview表示
+R39: confidence ≥ 0.8 AND risk = LOW AND reversibility = HIGH → サイレント実行
+R40: confidence ≥ 0.8 AND risk ≥ MEDIUM → Confidence Signal + 自律度に応じた確認
+R41: ユーザーが以前同パターンを修正済み → confidence -0.2、早めに交渉
+```
+
+**Autonomy Resolution(Stage 6):** `Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling)`
+
+---
+
+## 1.7 Agent Action Lifecycle(Stage 7のサブ分類)
+
+Autonomy Dial(信頼軸)と直交する7動詞(行動軸):
+
+| Verb | 意味 |
+|---|---|
+| Inform | 情報を提示する |
+| Recommend | 選択肢を提案する(旧"Suggest" — Autonomy Dialの"Suggest"と衝突するため改名) |
+| Plan | 複数ステップのアプローチを合成する |
+| Prepare | セットアップ(コミットしない) |
+| Act | 実行する ← reversibility境界 |
+| Monitor | 結果を観察する |
+| Adapt | フィードバックに基づいて調整する |
+
+---
+
+---
+
+## 2. Stage 1: Intent v2(意図)
 
 ### 2.1 何か
-> 「ユーザーが今、瞬間的に欲しているもの」(NOT 永続的なゴール、NOT デモグラ)。**4つのチャネルから入ってくる。1つは語られる。3つは推論される。**
+> 「ユーザーが今、瞬間的に欲しているもの」(NOT 永続的なゴール、NOT デモグラ)。**Intent v2は2軸で表現される: Detection Channel(どう検出されたか) × Awareness Depth(どれだけ自覚されているか)。**
 
-### 2.2 4種類のIntent
+### 2.2 Detection Channel(Axis 1) — 従来の「4種類のIntent」に対応
 
-| # | 種類 | 定義 | 例 |
+| # | Channel | 定義 | 例 |
 |---|------|------|------|
 | 1 | **Explicit Intent** | ユーザーが直接述べる。コマンドや質問の形 | 「ママに電話」「20分タイマー」 |
-| 2 | **Active Intent** | ユーザーは言わないが、現在の行動が示す | 6:42amにランニングウェアでヘッドホン装着→「これから走る、天気・ルート・プレイリストを」 |
-| 3 | **Passive Intent** | 過去パターンと現在の瞬間が一致 | 金曜19時、3ヶ月毎週ピザ注文→「たぶんピザ。確認して」 |
-| 4 | **Ambient Intent** | 連続的なバックグラウンド信号。特定の要求はないが、状態がある | 23時にベッドで読書→「静かに、暖かく、通知ゼロ、本以外を暗く」 |
+| 2 | **Active Implicit** | ユーザーは言わないが、現在の行動が示す | 6:42amにランニングウェアでヘッドホン装着→「これから走る」 |
+| 3 | **Passive Implicit** | 過去パターンと現在の瞬間が一致 | 金曜19時、3ヶ月毎週ピザ注文→「たぶんピザ」 |
+| 4 | **Ambient Implicit** | 連続的なバックグラウンド信号。特定の要求はないが、状態がある | 23時にベッドで読書→「静かに、通知ゼロ」 |
+
+### 2.2b Awareness Depth(Axis 2) — [NEW]
+
+| Depth | 意味 | 備考 |
+|---|---|---|
+| **Stated** | ユーザーが明確に自覚・表明している | |
+| **Inferred** | 文脈から読み取れる | |
+| **Latent** | まだユーザー自身が自覚していない意図 | ← **必ずNegotiation Layerを経由。直接アクション禁止。** |
 
 ### 2.3 Intent × Brain = Actionable Intent
 
@@ -95,12 +196,12 @@ Cross-cutting (側面) — Trust Design
 
 ---
 
-## 3. Floor 2: Grammar — 8 Context Tokens
+## 3. Stage 2–3: 6 Situation Signals & 2 Relationship Dials
 
-### 3.1 全体構造:8 = 6 + 2
+### 3.1 全体構造: 6つの状況シグナル(Stage 2) + 2つの関係性ダイヤル(Stage 3)
 
 ```
-6 Situation Tokens(入力 — AIが読む信号)
+6 Situation Signals(入力 — AIが読む信号)
   ① Physical State        — あなたが今どう動いているか
   ② Cognitive Load        — どれだけの認知帯域が残っているか
   ③ Social Exposure       — 誰が見ているか
@@ -113,7 +214,7 @@ Cross-cutting (側面) — Trust Design
   ⑧ Disclosure Dial       — AIに何をどこまで知らせるか(4レベル × 2方向)
 ```
 
-### 3.2 6 Situation Tokens(詳細)
+### 3.2 6 Situation Signals(詳細)
 
 #### ① Physical State
 - **質問:** "Are they rushing or relaxed?"
@@ -227,7 +328,7 @@ Cross-cutting (側面) — Trust Design
 
 ### 4.4 L3 Right Now
 - **何を持つ:** 現在のToken値(全8つ)、アクティブIntent、デバイス状態
-- **重要インサイト:** **L3は「8 Context Tokensが住んでいる場所」**。すべてのToken値はリアルタイムでこの層に流れ込む
+- **重要インサイト:** **L3は「6つの状況シグナルと2つの関係性ダイヤルが住んでいる場所」**。すべての値はリアルタイムでこの層に流れ込む
 - **公式:** 知識(L1+L2)は凍っている。L3の「今」がそれを溶かす
 
 ### 4.5 3層の協働(Oxygen)
@@ -312,7 +413,7 @@ Cross-cutting (側面) — Trust Design
 ## 5. Floor 4: Rule Engine
 
 ### 5.1 何か
-> 「8 Tokens + Brain → 具体的なデザインルール。If/then logic at scale。推奨ではなくルール。」
+> 「6 Situation Signals & 2 Relationship Dials + Brain → 具体的なデザインルール。If/then logic at scale。推奨ではなくルール。」
 
 ### 5.2 ポジション
 Floor 1 (Intent) → Floor 2 (Tokens) → Floor 3 (Brain) → **Floor 4 (Rule Engine)** → Floor 5 (Response)
@@ -333,7 +434,7 @@ if Disclosure = hidden AND Autonomy > Confirm → constraint violation → reset
 ```
 
 ### 5.5 コアフォーミュラ
-**6 Situation Tokens + 2 Relationship Dials + Brain = Design Rules**
+**6 Situation Signals + 2 Relationship Dials + Brain = Design Rules**
 
 「No single token works alone」— トークンの組み合わせに力が宿る。
 
@@ -614,7 +715,7 @@ CLAUDE.md からの重要な事実確認ルール:
 |------------|--------|
 | Autonomy Dial | Synchro Rate(古い名前) |
 | Disclosure Dial | (新しい、古い名前なし) |
-| 8 Context Tokens | 7 Context Tokens(古い構成) |
+| 6 Situation Signals & 2 Relationship Dials | 8 Context Tokens / 7 Context Tokens(古い構成) |
 | Week 1 → Month 6(P1 timeline) | Month 1 → Year 1 |
 
 ---
