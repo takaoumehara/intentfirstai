@@ -37,43 +37,56 @@ function initSiteNavCompat(opts) {
   var rootPrefix = bp.replace(/\/$/, '');
   var navLang = opts.lang || 'en';
   var langDir = (navLang === 'ja') ? 'ja/' : '';
+  var cgRoot = (opts.contextGrammarRoot || 'context-grammar').replace(/^\/+|\/+$/g, '');
+  var cgLangInside = !!opts.contextGrammarLangInside;
   var prefix = function (href) {
     if (/^(https?:|mailto:|tel:|#)/.test(href)) return href;
     return (rootPrefix ? rootPrefix + '/' : '') + langDir + href;
   };
+  var prefixCg = function (href) {
+    if (/^(https?:|mailto:|tel:|#)/.test(href)) return href;
+    var cleanHref = href.replace(/^\/+/, '');
+    if (cgLangInside) {
+      var cgLangDir = (navLang === 'ja') ? 'ja/' : '';
+      return (rootPrefix ? rootPrefix + '/' : '') + cgRoot + '/' + cgLangDir + cleanHref;
+    }
+    return (rootPrefix ? rootPrefix + '/' : '') + langDir + cgRoot + '/' + cleanHref;
+  };
   var homeHref = prefix('index.html');
   var logoBase = rootPrefix ? rootPrefix + '/' : '';
   var active = opts.activePage || '';
-  var cgKeys = ['context-grammar', 'simulator', 'intent', 'tokens', 'brain', 'ruleengine', 'specs', 'axpatterns', 'trust'];
+  var cgKeys = ['context-grammar', 'simulator', 'intent', 'tokens', 'trust', 'brain', 'ruleengine', 'negotiation-gate', 'negotiation-layer', 'axpatterns', 'specs'];
 
   var items = [
     {
       num: '01',
       label: 'Context Grammar',
-      href: 'context-grammar/index.html',
+      href: '__cg__/index.html',
       keys: cgKeys,
       children: [
-        { label: 'Overview', href: 'context-grammar/index.html', key: 'context-grammar' },
-        { label: 'Simulator', href: 'context-grammar/simulator/index.html', key: 'simulator' },
-        { label: 'Intent', href: 'context-grammar/intent/index.html', key: 'intent' },
-        { label: 'Tokens', href: 'context-grammar/tokens/index.html', key: 'tokens' },
-        { label: 'Brain', href: 'context-grammar/brain/index.html', key: 'brain' },
-        { label: 'Rule Engine', href: 'context-grammar/rule-engine/index.html', key: 'ruleengine' },
-        { label: 'Specs', href: 'context-grammar/specs/index.html', key: 'specs' },
-        { label: 'AX Patterns', href: 'context-grammar/ax-patterns/index.html', key: 'axpatterns' },
-        { label: 'Trust Design', href: 'context-grammar/trust-design/index.html', key: 'trust' }
+        { label: 'Overview', href: '__cg__/index.html', key: 'context-grammar' },
+        { label: 'Simulator', href: '__cg__/simulator/index.html', key: 'simulator' },
+        { label: 'Intent', href: '__cg__/intent/index.html', key: 'intent' },
+        { label: (navLang === 'ja' ? '状況シグナル' : 'Situation Signals'), href: '__cg__/tokens/index.html', key: 'tokens' },
+        { label: (navLang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials'), href: '__cg__/trust-design/index.html', key: 'trust' },
+        { label: 'Brain', href: '__cg__/brain/index.html', key: 'brain' },
+        { label: 'Rule Engine', href: '__cg__/rule-engine/index.html', key: 'ruleengine' },
+        { label: 'Negotiation Gate', href: '__cg__/negotiation-gate/index.html', key: 'negotiation-gate' },
+        { label: 'Negotiation Layer', href: '__cg__/negotiation-layer/index.html', key: 'negotiation-layer' },
+        { label: 'AX Patterns', href: '__cg__/ax-patterns/index.html', key: 'axpatterns' },
+        { label: 'Specs', href: '__cg__/specs/index.html', key: 'specs' }
       ]
     },
     {
       num: '02',
       label: 'Projects',
-      href: 'applied/index.html',
+      href: 'projects/index.html',
       keys: ['projects'],
       children: [
-        { label: 'P1', href: 'projects/project-01/p1-scroll.html' },
+        { label: 'P1', href: 'projects/project-01/index.html' },
         { label: 'P2', href: 'projects/project-02/p2-scroll-v2.html', hidden: true }, // HIDDEN — restore by removing hidden:true
-        { label: 'P3', href: 'projects/project-03/p3-scroll.html' },
-        { label: 'P4', href: 'projects/project-04/p4-scroll-v4.html' },
+        { label: 'P3', href: 'projects/project-03/index.html' },
+        { label: 'P4', href: 'projects/project-04/index.html' },
         { label: 'P5', href: 'projects/project-05/p5-scroll-v2.html', hidden: true }, // HIDDEN — restore by removing hidden:true
         { label: 'P6', href: 'projects/project-06/p6-life-brain-v2.html', hidden: true } // HIDDEN — restore by removing hidden:true
       ]
@@ -90,7 +103,8 @@ function initSiteNavCompat(opts) {
 
   function isCurrentPath(href) {
     if (/^(https?:|mailto:|tel:)/.test(href)) return false;
-    var target = new URL(prefix(href), window.location.href).pathname;
+    var targetHref = href.indexOf('__cg__/') === 0 ? prefixCg(href.replace('__cg__/', '')) : prefix(href);
+    var target = new URL(targetHref, window.location.href).pathname;
     return window.location.pathname === target ||
       (target.slice(-11) === '/index.html' && window.location.pathname === target.replace('index.html', ''));
   }
@@ -123,15 +137,17 @@ function initSiteNavCompat(opts) {
       subsHtml = '<ul class="site-nav__subs">' + item.children.filter(function(c){ return !c.hidden; }).map(function (child) {
         var childExt = child.external ? ' target="_blank" rel="noopener"' : '';
         var childCurrent = isCurrentChild(child);
-        return '<li><a class="site-nav__sub' + (childCurrent ? ' is-current-sub' : '') + '" href="' + prefix(child.href) + '"' + childExt + (childCurrent ? ' aria-current="page"' : '') + '>' + escapeHtml(child.label) + '</a></li>';
+        var childHref = child.href.indexOf('__cg__/') === 0 ? prefixCg(child.href.replace('__cg__/', '')) : prefix(child.href);
+        return '<li><a class="site-nav__sub' + (childCurrent ? ' is-current-sub' : '') + '" href="' + childHref + '"' + childExt + (childCurrent ? ' aria-current="page"' : '') + '>' + escapeHtml(child.label) + '</a></li>';
       }).join('') + '</ul>';
     }
     var ext = item.external ? ' target="_blank" rel="noopener"' : '';
     var mainCurrent = isCurrentMain(item);
+    var itemHref = item.href.indexOf('__cg__/') === 0 ? prefixCg(item.href.replace('__cg__/', '')) : prefix(item.href);
     return ''
       + '<li class="site-nav__row' + (isCurrent(item) ? ' is-current' : '') + '">'
       + '  <div class="site-nav__row-inner">'
-      + '    <a class="site-nav__main" href="' + prefix(item.href) + '"' + ext + (mainCurrent ? ' aria-current="page"' : '') + '>'
+      + '    <a class="site-nav__main" href="' + itemHref + '"' + ext + (mainCurrent ? ' aria-current="page"' : '') + '>'
       + '      <span class="site-nav__num">' + item.num + '</span>'
       + '      <span class="site-nav__lbl">' + escapeHtml(item.label) + '</span>'
       + '    </a>'
@@ -201,8 +217,8 @@ function initSiteNavCompat(opts) {
         }
         break;
       }
-      // Fallback: use page data-theme
-      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      // Fallback: use body data-dark-nav or page data-theme
+      var dark = document.body.hasAttribute('data-dark-nav') || document.documentElement.getAttribute('data-theme') === 'dark';
       root.classList.toggle('site-nav--on-dark',  dark);
       root.classList.toggle('site-nav--on-light', !dark);
     }
@@ -232,15 +248,16 @@ function initSiteNavCompat(opts) {
     sectionNav.setAttribute('aria-label', 'Context Grammar sections');
     sectionNav.innerHTML = ''
       + '<div class="cg-section-nav-indicator"></div>'
-      + '<a href="' + prefix('context-grammar/index.html') + '"' + (active === 'context-grammar' ? ' aria-current="page"' : '') + '>Overview</a>'
-      + '<a href="' + prefix('context-grammar/simulator/index.html') + '"' + (active === 'simulator' ? ' aria-current="page"' : '') + '>Simulator</a>'
-      + '<a href="' + prefix('context-grammar/intent/index.html') + '"' + (active === 'intent' ? ' aria-current="page"' : '') + '>Intent</a>'
-      + '<a href="' + prefix('context-grammar/tokens/index.html') + '"' + (active === 'tokens' ? ' aria-current="page"' : '') + '>Tokens</a>'
-      + '<a href="' + prefix('context-grammar/brain/index.html') + '"' + (active === 'brain' ? ' aria-current="page"' : '') + '>Brain</a>'
-      + '<a href="' + prefix('context-grammar/rule-engine/index.html') + '"' + (active === 'ruleengine' ? ' aria-current="page"' : '') + '>Rules</a>'
-      + '<a href="' + prefix('context-grammar/specs/index.html') + '"' + (active === 'specs' ? ' aria-current="page"' : '') + '>Specs</a>'
-      + '<a href="' + prefix('context-grammar/ax-patterns/index.html') + '"' + (active === 'axpatterns' ? ' aria-current="page"' : '') + '>AX</a>'
-      + '<a href="' + prefix('context-grammar/trust-design/index.html') + '"' + (active === 'trust' ? ' aria-current="page"' : '') + '>Trust</a>';
+      + '<a href="' + prefixCg('index.html') + '"' + (active === 'context-grammar' ? ' aria-current="page"' : '') + '>Overview</a>'
+      + '<a href="' + prefixCg('simulator/index.html') + '"' + (active === 'simulator' ? ' aria-current="page"' : '') + '>Simulator</a>'
+      + '<a href="' + prefixCg('intent/index.html') + '"' + (active === 'intent' ? ' aria-current="page"' : '') + '>Intent</a>'
+      + '<a href="' + prefixCg('tokens/index.html') + '"' + (active === 'tokens' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
+      + '<a href="' + prefixCg('trust-design/index.html') + '"' + (active === 'trust' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
+      + '<a href="' + prefixCg('brain/index.html') + '"' + (active === 'brain' ? ' aria-current="page"' : '') + '>Brain</a>'
+      + '<a href="' + prefixCg('rule-engine/index.html') + '"' + (active === 'ruleengine' ? ' aria-current="page"' : '') + '>Rules</a>'
+      + '<a href="' + prefixCg('negotiation-layer/index.html') + '"' + (active === 'negotiation-layer' ? ' aria-current="page"' : '') + '>Negotiate</a>'
+      + '<a href="' + prefixCg('ax-patterns/index.html') + '"' + (active === 'axpatterns' ? ' aria-current="page"' : '') + '>AX</a>'
+      + '<a href="' + prefixCg('specs/index.html') + '"' + (active === 'specs' ? ' aria-current="page"' : '') + '>Specs</a>';
     root.appendChild(sectionNav);
 
     // Sliding Pill Logic
@@ -520,7 +537,7 @@ function initNav(opts) {
     trust: pageRoot + 'context-grammar/trust-design/index.html',
     specs: pageRoot + 'context-grammar/specs/index.html',
     axpatterns: pageRoot + 'context-grammar/ax-patterns/index.html',
-    projects: pageRoot + 'applied/index.html',
+    projects: pageRoot + 'projects/index.html',
     industry: pageRoot + 'industry/index.html',
     about: pageRoot + 'about/index.html',
     contact: pageRoot + 'contact/index.html'
@@ -567,12 +584,12 @@ function initNav(opts) {
     + '          <a href="' + pages.overview + '" role="menuitem" class="' + ac('context-grammar') + '">Overview</a>'
     + '          <a href="' + pages.simulator + '" role="menuitem" class="' + ac('simulator') + '">Simulator</a>'
     + '          <a href="' + pages.intent + '" role="menuitem" class="' + ac('intent') + '">Intent</a>'
-    + '          <a href="' + pages.tokens + '" role="menuitem" class="' + ac('tokens') + '">Tokens</a>'
+    + '          <a href="' + pages.tokens + '" role="menuitem" class="' + ac('tokens') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
+    + '          <a href="' + pages.trust + '" role="menuitem" class="' + ac('trust') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
     + '          <a href="' + pages.brain + '" role="menuitem" class="' + ac('brain') + '">Brain</a>'
     + '          <a href="' + pages.ruleengine + '" role="menuitem" class="' + ac('ruleengine') + '">Rule Engine</a>'
-    + '          <a href="' + pages.specs + '" role="menuitem" class="nav-dropdown-child' + ac('specs') + '">↳ Specs</a>'
     + '          <a href="' + pages.axpatterns + '" role="menuitem" class="' + ac('axpatterns') + '">AX Patterns</a>'
-    + '          <a href="' + pages.trust + '" role="menuitem" class="' + ac('trust') + '">Trust Design</a>'
+    + '          <a href="' + pages.specs + '" role="menuitem" class="nav-dropdown-child' + ac('specs') + '">↳ Specs</a>'
     + '        </div>'
     + '      </div>'
     + '      <a href="' + pages.projects + '" class="' + ac('projects') + '">Projects</a>'
@@ -584,44 +601,44 @@ function initNav(opts) {
     + '    </button>'
     + '  </div>'
     + '</nav>';
-
-  // ── Secondary subnav (Context Grammar pages only) ──
-  if (isCGActive) {
-    html += ''
-      + '<nav class="nav-subnav" id="nav-subnav" aria-label="Context Grammar">'
-      + '  <div class="nav-subnav-inner">'
-      + '    <span class="nav-subnav-prefix">Context Grammar</span>'
-      + '    <span class="nav-subnav-sep"></span>'
-      + '    <a href="' + pages.overview + '"' + (active === 'context-grammar' ? ' class="nav-subnav-active"' : '') + '>Overview</a>'
-      + '    <a href="' + pages.simulator + '"' + (active === 'simulator' ? ' class="nav-subnav-active"' : '') + '>Simulator</a>'
-      + '    <a href="' + pages.intent + '"' + (active === 'intent' ? ' class="nav-subnav-active"' : '') + '>Intent</a>'
-      + '    <a href="' + pages.tokens + '"' + (active === 'tokens' ? ' class="nav-subnav-active"' : '') + '>Tokens</a>'
-      + '    <a href="' + pages.brain + '"' + (active === 'brain' ? ' class="nav-subnav-active"' : '') + '>Brain</a>'
-      + '    <a href="' + pages.ruleengine + '"' + (active === 'ruleengine' ? ' class="nav-subnav-active"' : '') + '>Rule Engine</a>'
-      + '    <a href="' + pages.specs + '" class="nav-subnav-child' + (active === 'specs' ? ' nav-subnav-active' : '') + '">↳ Specs</a>'
-      + '    <a href="' + pages.axpatterns + '"' + (active === 'axpatterns' ? ' class="nav-subnav-active"' : '') + '>AX Patterns</a>'
-      + '    <a href="' + pages.trust + '"' + (active === 'trust' ? ' class="nav-subnav-active"' : '') + '>Trust Design</a>'
-      + '  </div>'
-      + '</nav>';
-  }
-
-  // ── Mobile overlay ──
-  html += ''
-    + '<nav class="nav-mobile-overlay" id="nav-mobile-overlay" aria-label="Mobile navigation" aria-hidden="true">'
-    + '  <a href="' + pages.home + '" class="' + ac('home') + '">Home</a>'
-    + '  <div class="mobile-section-label">Context Grammar</div>'
-    + '  <a href="' + pages.overview + '" class="mobile-sub-link' + ac('context-grammar') + '">Overview</a>'
-    + '  <a href="' + pages.simulator + '" class="mobile-sub-link' + ac('simulator') + '">Simulator</a>'
-    + '  <a href="' + pages.intent + '" class="mobile-sub-link' + ac('intent') + '">Intent</a>'
-    + '  <a href="' + pages.tokens + '" class="mobile-sub-link' + ac('tokens') + '">Tokens</a>'
-    + '  <a href="' + pages.brain + '" class="mobile-sub-link' + ac('brain') + '">Brain</a>'
-    + '  <a href="' + pages.ruleengine + '" class="mobile-sub-link' + ac('ruleengine') + '">Rule Engine</a>'
-    + '  <a href="' + pages.specs + '" class="mobile-sub-link mobile-sub-link--child' + ac('specs') + '">↳ Specs</a>'
-    + '  <a href="' + pages.axpatterns + '" class="mobile-sub-link' + ac('axpatterns') + '">AX Patterns</a>'
-    + '  <a href="' + pages.trust + '" class="mobile-sub-link' + ac('trust') + '">Trust Design</a>'
-    + '  <a href="' + pages.projects + '" class="' + ac('projects') + '">Projects</a>'
-    + '  <a href="' + pages.about + '" class="' + ac('about') + '">About</a>'
-    + '  <a href="' + pages.contact + '" class="nav-cta">Contact</a>'
+ 
+   // ── Secondary subnav (Context Grammar pages only) ──
+   if (isCGActive) {
+     html += ''
+       + '<nav class="nav-subnav" id="nav-subnav" aria-label="Context Grammar">'
+       + '  <div class="nav-subnav-inner">'
+       + '    <span class="nav-subnav-prefix">Context Grammar</span>'
+       + '    <span class="nav-subnav-sep"></span>'
+       + '    <a href="' + pages.overview + '"' + (active === 'context-grammar' ? ' class="nav-subnav-active"' : '') + '>Overview</a>'
+       + '    <a href="' + pages.simulator + '"' + (active === 'simulator' ? ' class="nav-subnav-active"' : '') + '>Simulator</a>'
+       + '    <a href="' + pages.intent + '"' + (active === 'intent' ? ' class="nav-subnav-active"' : '') + '>Intent</a>'
+       + '    <a href="' + pages.tokens + '"' + (active === 'tokens' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
+       + '    <a href="' + pages.trust + '"' + (active === 'trust' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
+       + '    <a href="' + pages.brain + '"' + (active === 'brain' ? ' class="nav-subnav-active"' : '') + '>Brain</a>'
+       + '    <a href="' + pages.ruleengine + '"' + (active === 'ruleengine' ? ' class="nav-subnav-active"' : '') + '>Rule Engine</a>'
+       + '    <a href="' + pages.axpatterns + '"' + (active === 'axpatterns' ? ' class="nav-subnav-active"' : '') + '>AX Patterns</a>'
+       + '    <a href="' + pages.specs + '" class="nav-subnav-child' + (active === 'specs' ? ' nav-subnav-active' : '') + '">↳ Specs</a>'
+       + '  </div>'
+       + '</nav>';
+   }
+ 
+   // ── Mobile overlay ──
+   html += ''
+     + '<nav class="nav-mobile-overlay" id="nav-mobile-overlay" aria-label="Mobile navigation" aria-hidden="true">'
+     + '  <a href="' + pages.home + '" class="' + ac('home') + '">Home</a>'
+     + '  <div class="mobile-section-label">Context Grammar</div>'
+     + '  <a href="' + pages.overview + '" class="mobile-sub-link' + ac('context-grammar') + '">Overview</a>'
+     + '  <a href="' + pages.simulator + '" class="mobile-sub-link' + ac('simulator') + '">Simulator</a>'
+     + '  <a href="' + pages.intent + '" class="mobile-sub-link' + ac('intent') + '">Intent</a>'
+     + '  <a href="' + pages.tokens + '" class="mobile-sub-link' + ac('tokens') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
+     + '  <a href="' + pages.trust + '" class="mobile-sub-link' + ac('trust') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
+     + '  <a href="' + pages.brain + '" class="mobile-sub-link' + ac('brain') + '">Brain</a>'
+     + '  <a href="' + pages.ruleengine + '" class="mobile-sub-link' + ac('ruleengine') + '">Rule Engine</a>'
+     + '  <a href="' + pages.axpatterns + '" class="mobile-sub-link' + ac('axpatterns') + '">AX Patterns</a>'
+     + '  <a href="' + pages.specs + '" class="mobile-sub-link mobile-sub-link--child' + ac('specs') + '">↳ Specs</a>'
+     + '  <a href="' + pages.projects + '" class="' + ac('projects') + '">Projects</a>'
+     + '  <a href="' + pages.about + '" class="' + ac('about') + '">About</a>'
+     + '  <a href="' + pages.contact + '" class="nav-cta">Contact</a>'
     + (showLang
       ? '  <div class="nav-mobile-lang">'
       + '    <a href="' + enUrl + '" class="' + (lang === 'en' ? 'active' : '') + '" aria-label="Switch to English">EN</a>'

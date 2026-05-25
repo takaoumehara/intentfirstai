@@ -1,791 +1,296 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Context Grammar — Design Language for the Post-App Era | intentfirst.ai</title>
-<meta name="description" content="Context Grammar gives AI the vocabulary to understand your intent and translate it into the right action at the right moment. 8 Context Tokens, 3-Layer Brain, 23 AX Patterns.">
-<link rel="canonical" href="https://intentfirst.ai/context-grammar/">
-
-<script>
-  (function(){
-    var t = localStorage.getItem('cg-theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', t);
-  })();
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
-<link rel="stylesheet" href="../assets/css/tokens.css">
-<link rel="stylesheet" href="../assets/css/components.css">
-<link rel="stylesheet" href="../assets/css/context-grammar.css">
-<link rel="stylesheet" href="../assets/css/nav.css">
-<link rel="stylesheet" href="../assets/css/green-animation.css">
-<link rel="stylesheet" href="../assets/css/toc-rail.css">
-
-<style>
-/* ── Variables & Base ── */
-:root { --max-w: 1280px; }
-body { background: var(--bg); color: var(--text); }
-
-/* ── Reveal ── */
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
-}
-.reveal.visible { opacity: 1; transform: none; }
-.d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; }
-.d3 { transition-delay: 0.3s; } .d4 { transition-delay: 0.4s; }
-
-/* ── HERO ── */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: calc(56px + clamp(48px, 8vw, 100px)) clamp(24px, 4vw, 60px) clamp(60px, 8vw, 100px);
-  background: #08070b;
-  color: #f0ece4;
-  position: relative;
-  overflow: hidden;
-}
-/* Override the global .nav-has-subnav rule from context-grammar.css —
-   this page's hero already has the right padding for nav+subnav. */
-body[data-dark-nav].nav-has-subnav .hero {
-  padding-top: calc(96px + clamp(48px, 8vw, 100px));
-}
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 70% 60% at 30% 50%, rgba(48, 201, 105, 0.04), transparent 65%),
-    radial-gradient(ellipse 50% 50% at 75% 40%, rgba(74, 106, 144, 0.07), transparent 65%);
-  pointer-events: none;
-}
-.hero-inner {
-  max-width: 980px;
-  position: relative;
-  z-index: 1;
-}
-.hero-eyebrow {
-  font-family: var(--font-mono);
-  font-size: clamp(10px, 0.75vw, 11px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(240, 236, 228, 0.55);
-  margin-bottom: 28px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  opacity: 0;
-  animation: heroFadeUp 0.8s var(--ease) 0.15s forwards;
-}
-.hero-eyebrow::before {
-  content: '';
-  width: 6px; height: 6px;
-  background: #30c969;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.hero-title {
-  font-weight: 600;
-  font-size: clamp(34px, 5.2vw, 76px);
-  line-height: 1.06;
-  letter-spacing: -3px;
-  margin-bottom: 44px;
-  text-wrap: balance;
-  max-width: 14em;
-  opacity: 0;
-  animation: heroFadeUp 0.8s var(--ease) 0.35s forwards;
-}
-.hero-title em {
-  font-style: normal;
-  color: #30c969;
-}
-@keyframes heroFadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: none; }
-}
-
-@media (max-width: 768px) {
-  .hero {
-    padding: calc(56px + clamp(32px, 8vh, 64px)) 20px clamp(40px, 6vh, 64px);
-  }
-  body[data-dark-nav].nav-has-subnav .hero {
-    padding-top: calc(96px + clamp(32px, 8vh, 64px));
-  }
-  .hero-inner { max-width: 100%; }
-  .hero-eyebrow {
-    font-size: 11px;
-    letter-spacing: 2px;
-    margin-bottom: 20px;
-  }
-  .hero-title {
-    font-size: clamp(28px, 8vw, 40px);
-    letter-spacing: -1px;
-    line-height: 1.12;
-    margin-bottom: 28px;
-    max-width: 100%;
-  }
-  .hero-sub {
-    font-size: clamp(15px, 4.2vw, 17px) !important;
-    line-height: 1.6 !important;
-    max-width: 100% !important;
-  }
-}
-@media (max-width: 480px) {
-  .hero { padding-left: 16px; padding-right: 16px; }
-  .hero-title { font-size: clamp(26px, 8.5vw, 32px); letter-spacing: -0.5px; }
-}
-
-/* ── PIPELINE SECTION ── */
-.pipeline-section {
-  background: #08070b;
-  padding: 0 0 clamp(72px, 9vw, 112px);
-  overflow: hidden;
-}
-.pipeline-header {
-  max-width: var(--max-w);
-  margin: 0 auto clamp(8px, 1.2vw, 16px);
-  padding: 0 clamp(24px, 4vw, 60px) 0;
-}
-.pipeline-label {
-  font-family: var(--font-sans);
-  font-size: clamp(20px, 2vw, 28px);
-  font-weight: 500;
-  letter-spacing: -0.5px;
-  color: rgba(240, 236, 228, 0.95);
-}
-.pipeline-anim-wrap {
-  width: 100%;
-  padding: 0 clamp(20px, 3vw, 48px);
-  box-sizing: border-box;
-  overflow: hidden;
-}
-.pipeline-anim-wrap .ga { width: 100% !important; }
-.pipeline-anim-wrap .ga svg {
-  width: 100% !important;
-  height: auto !important;
-  max-height: clamp(180px, 25vh, 280px);
-  display: block;
-}
-.pipeline-steps {
-  max-width: var(--max-w);
-  margin: clamp(28px, 3.5vw, 48px) auto 0;
-  padding: 0 clamp(24px, 4vw, 60px);
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0;
-}
-@media (max-width: 860px) { .pipeline-steps { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 540px) { .pipeline-steps { grid-template-columns: repeat(2, 1fr); } }
-.pipeline-step {
-  border-top: 1px solid rgba(240, 236, 228, 0.08);
-  padding: 18px 20px 18px 0;
-}
-.pipeline-step__num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: rgba(240, 236, 228, 0.7);
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-.pipeline-step__name {
-  font-size: clamp(15px, 1.2vw, 18px);
-  font-weight: 600;
-  color: rgba(240, 236, 228, 0.98);
-  margin-bottom: 8px;
-  letter-spacing: -0.2px;
-}
-.pipeline-step__desc {
-  font-size: clamp(14px, 0.95vw, 15px);
-  color: rgba(240, 236, 228, 0.78);
-  line-height: 1.65;
-}
-.pipeline-step--green .pipeline-step__name { color: #30c969; }
-
-/* ── SECTION BASE ── */
-.sec {
-  padding: clamp(80px, 10vw, 130px) clamp(24px, 4vw, 60px);
-}
-.sec-label {
-  font-family: var(--font-mono);
-  font-size: clamp(10px, 0.75vw, 11px);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-}
-.sec-title {
-  font-weight: 500;
-  font-size: clamp(28px, 3.5vw, 48px);
-  letter-spacing: -1.5px;
-  line-height: 1.1;
-  margin-bottom: 12px;
-  color: var(--text);
-}
-.sec-sub {
-  font-size: clamp(15px, 1.1vw, 18px);
-  color: var(--text-2);
-  line-height: 1.65;
-  max-width: 580px;
-}
-
-/* ── 7 FLOORS GRID ── */
-.floors-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  margin-top: clamp(36px, 4.5vw, 56px);
-}
-@media (max-width: 900px) { .floors-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 540px) { .floors-grid { grid-template-columns: 1fr; } }
-
-.floor-cell {
-  background: var(--bg);
-  padding: clamp(24px, 3vw, 36px);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  text-decoration: none;
-  color: inherit;
-  min-height: 290px;
-  transition: background 0.3s var(--ease);
-}
-.floor-cell:hover { background: var(--bg-2); }
-
-.floor-cell__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-.floor-cell__num {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  font-weight: 500;
-}
-.floor-cell__tag {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  color: var(--text-3);
-  text-transform: uppercase;
-}
-.floor-cell__canvas {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 110px;
-  max-height: 155px;
-}
-.floor-cell__canvas .ga {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.floor-cell__canvas .ga svg {
-  max-width: 100%;
-  max-height: 150px;
-}
-.floor-cell__name {
-  font-size: clamp(17px, 1.4vw, 21px);
-  font-weight: 500;
-  letter-spacing: -0.4px;
-  color: var(--text);
-}
-.floor-cell__desc {
-  font-size: clamp(14px, 0.95vw, 15px);
-  color: var(--text);
-  line-height: 1.65;
-}
-.floor-cell__link {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: var(--text-3);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: auto;
-  padding-top: 4px;
-  transition: color 0.2s, gap 0.2s;
-}
-.floor-cell:hover .floor-cell__link { color: var(--text); gap: 10px; }
-.floor-cell__link::after { content: "→"; }
-
-/* Floor accent colors */
-.floor-cell--intent .floor-cell__num { color: var(--color-intent); }
-.floor-cell--tokens .floor-cell__num { color: var(--color-grammar); }
-.floor-cell--brain  .floor-cell__num { color: var(--color-brain); }
-.floor-cell--trust  .floor-cell__num { color: var(--color-intent); }
-.floor-cell--engine .floor-cell__num { color: var(--color-grammar); }
-.floor-cell--ax     .floor-cell__num { color: var(--color-success); }
-.floor-cell--specs  .floor-cell__num { color: var(--text-3); }
-
-/* ── CTA SECTION ── */
-.sec-cta {
-  background: #08070b;
-  color: #f0ece4;
-  text-align: center;
-  padding: clamp(80px, 10vw, 130px) clamp(24px, 4vw, 60px);
-  position: relative;
-  overflow: hidden;
-}
-.sec-cta::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(48, 201, 105, 0.04), transparent 65%);
-  pointer-events: none;
-}
-.cta-inner { max-width: 640px; margin: 0 auto; position: relative; }
-.cta-title {
-  font-weight: 500;
-  font-size: clamp(28px, 3.2vw, 44px);
-  line-height: 1.1;
-  letter-spacing: -1.5px;
-  margin-bottom: 14px;
-}
-.cta-sub {
-  font-size: clamp(15px, 1.1vw, 17px);
-  color: rgba(240, 236, 228, 0.65);
-  max-width: 480px;
-  margin: 0 auto 40px;
-  line-height: 1.7;
-}
-.cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-.cta-btn {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  padding: 13px 26px;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: all 0.25s var(--ease);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.cta-btn--primary { background: #f0ece4; color: #08070b; }
-.cta-btn--primary:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(240, 236, 228, 0.1); }
-.cta-btn--ghost { background: transparent; color: rgba(240, 236, 228, 0.5); border: 1px solid rgba(240, 236, 228, 0.1); }
-.cta-btn--ghost:hover { color: #f0ece4; border-color: rgba(240, 236, 228, 0.25); }
-
-/* ── FOOTER ── */
-.page-footer {
-  background: #08070b;
-  color: rgba(240, 236, 228, 0.5);
-  padding: clamp(28px, 4vw, 44px) clamp(24px, 4vw, 60px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 1px;
-  border-top: 1px solid rgba(240, 236, 228, 0.04);
-}
-.page-footer a {
-  color: rgba(240, 236, 228, 0.5);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.page-footer a:hover { color: #30c969; }
-.footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; }
-  .reveal { opacity: 1; transform: none; transition: none; }
-}
-
-/* Text selection fix for anchor-wrapped cells */
-.floor-cell__name,
-.floor-cell__desc { user-select: text; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Grammar | intentfirst.ai</title>
+  <meta name="description"
+    content="Context Grammar is a design language for agentic interfaces: Intent, Situation Signals, Relationship Dials, Brain, Rule Engine, AX Patterns, and Specs.">
+  <meta property="og:title" content="Context Grammar | intentfirst.ai">
+  <meta property="og:description"
+    content="A portfolio framework for designing AI that understands intent, reads context, remembers safely, and chooses the right action.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://intentfirst.ai/context-grammar/">
+  <link rel="canonical" href="https://intentfirst.ai/context-grammar/">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../assets/css/nav.css">
+  <link rel="stylesheet" href="../assets/css/green-animation.css">
+  <link rel="stylesheet" href="../assets/css/cg3-layout.css">
 </head>
+
 <body data-dark-nav>
-
-<!-- ═══════════════════════════════
-     HERO
-     ═══════════════════════════════ -->
-<div class="hero" data-theme="dark" id="sec-intro">
-  <div class="hero-inner">
-    <p class="hero-eyebrow">Design Language for the Post-App Era</p>
-    <h1 class="hero-title">Context Grammar gives AI the vocabulary to understand your <em>intent</em> — and translate it into the right action, at the right moment.</h1>
-    <p class="hero-sub" style="max-width:600px; margin-top:20px; color:var(--text-2); font-size:17px; line-height:1.7;">Human life is not a task queue. The same AI action can be helpful, rude, or dignity-preserving depending on the moment. Context Grammar asks what AI needs to understand about a human situation before it earns the right to act.</p>
-  </div>
-</div>
-
-
-<!-- ═══════════════════════════════
-     PIPELINE
-     ═══════════════════════════════ -->
-<section class="pipeline-section" data-theme="dark" id="sec-pipeline">
-  <div class="pipeline-header reveal">
-    <p class="pipeline-label">Context Grammar Flow: How intent becomes action</p>
-  </div>
-
-  <div class="pipeline-anim-wrap reveal d1">
-    <div data-ga-slot="cg-pipeline" data-dials="true"
-         aria-label="Context Grammar pipeline: Human → Intent → 8 Context Tokens → 3-Layer Brain → Rule Engine → AX Patterns"></div>
-  </div>
-
-  <div class="pipeline-steps">
-    <div class="pipeline-step reveal">
-      <div class="pipeline-step__num">01 · Human</div>
-      <div class="pipeline-step__name">A person with intent</div>
-      <p class="pipeline-step__desc">A real person in a real moment — with history, context, and a goal.</p>
-    </div>
-    <div class="pipeline-step reveal d1">
-      <div class="pipeline-step__num">02 · Intent</div>
-      <div class="pipeline-step__name pipeline-step__name">The goal behind the request</div>
-      <p class="pipeline-step__desc">Explicit or inferred. Not a text string — a structured goal object.</p>
-    </div>
-    <div class="pipeline-step reveal d2">
-      <div class="pipeline-step__num">03 · 8 Tokens</div>
-      <div class="pipeline-step__name">The situation right now</div>
-      <p class="pipeline-step__desc">6 context signals + 2 trust dials — describing where you are and what the system can do.</p>
-    </div>
-    <div class="pipeline-step reveal d3">
-      <div class="pipeline-step__num">04 · Brain</div>
-      <div class="pipeline-step__name">Structured memory</div>
-      <p class="pipeline-step__desc">Three layers: Identity (months), Learning (weeks), Now (seconds). Five Brain types.</p>
-    </div>
-    <div class="pipeline-step pipeline-step--green reveal d4">
-      <div class="pipeline-step__num">05 · Rule Engine → Output</div>
-      <div class="pipeline-step__name">The right action</div>
-      <p class="pipeline-step__desc">Tokens × Brain → design rules → 23 AX Patterns. Delegate, escalate, or adapt.</p>
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════
-     7 FLOORS
-     ═══════════════════════════════ -->
-<section class="sec dark" id="floors" data-theme="dark">
-  <div class="sec-inner">
-    <h2 class="sec-title reveal">Seven entries. One framework.</h2>
-    <p class="sec-sub reveal d1">A five-floor pipeline from Intent to AX Patterns, plus Trust Design and Specs. Read in any order — each stands alone.</p>
-
-    <div class="floors-grid reveal d3">
-
-      <a href="intent/index.html" class="floor-cell floor-cell--intent" data-cg-key="intent">
-        <div class="floor-cell__head">
-          <span class="floor-cell__num">01</span>
-          <span class="floor-cell__tag">Intent</span>
+  <main>
+    <header class="cg3-hero cg3-hero--stacked-left" data-theme="dark">
+      <div class="cg3-shell">
+        <div class="cg3-hero-header">
+          <p class="cg3-kicker">Design language for the post-app era</p>
+          <h1 class="cg3-title">Context Grammar</h1>
         </div>
-        <div class="floor-cell__canvas">
-          <div data-ga-slot="cg-intent" data-feedback="false"
-               aria-label="Intent — four channels: explicit, active, passive, ambient"></div>
+        <div class="cg3-hero-visual" aria-hidden="true">
+          <div data-ga-slot="cg-pipeline"></div>
         </div>
-        <div class="floor-cell__name">Intent</div>
-        <p class="floor-cell__desc">Four channels of human signal — explicit, active, passive, ambient. Intent is a structured goal, not a text string.</p>
-        <span class="floor-cell__link">Read</span>
-      </a>
-
-      <a href="tokens/index.html" class="floor-cell floor-cell--tokens" data-cg-key="tokens">
-        <div class="floor-cell__head">
-          <span class="floor-cell__num">02</span>
-          <span class="floor-cell__tag">Context Tokens</span>
+        <div class="cg3-hero-footer">
+          <p class="cg3-lead">A framework for AI that understands human intent, reads the situation, uses memory
+            responsibly, and translates context into the right action at the right moment.</p>
+          <div class="cg3-hero-proof" aria-label="Context Grammar essentials">
+            <div>
+              <b>01</b>
+              <span>Intent is the want, not just the text of a request.</span>
+            </div>
+            <div>
+              <b>02</b>
+              <span>Tokens and Brain make context inspectable before action.</span>
+            </div>
+            <div>
+              <b>03</b>
+              <span>Rules, patterns, and relationship dials govern what AI may do.</span>
+            </div>
+          </div>
         </div>
-        <div class="floor-cell__canvas">
-          <div data-ga-slot="cg-tokens"
-               aria-label="8 Context Tokens — 6 situation signals + 2 trust dials"></div>
-        </div>
-        <div class="floor-cell__name">8 Context Tokens</div>
-        <p class="floor-cell__desc">Six situation signals and two trust dials — the variables that describe where you are and what the system can responsibly do.</p>
-        <span class="floor-cell__link">Read</span>
-      </a>
-
-      <a href="brain/index.html" class="floor-cell floor-cell--brain" data-cg-key="brain">
-        <div class="floor-cell__head">
-          <span class="floor-cell__num">03</span>
-          <span class="floor-cell__tag">Brain</span>
-        </div>
-        <div class="floor-cell__canvas">
-          <div data-ga-slot="cg-brain"
-               aria-label="Context Brain — three layers: Identity, Learning, Now"></div>
-        </div>
-        <div class="floor-cell__name">Brain</div>
-        <p class="floor-cell__desc">Three layers of memory — Identity, Accumulated Learning, Right Now. Five Brain types for a home. Every Brain has the same anatomy.</p>
-        <span class="floor-cell__link">Read</span>
-      </a>
-
-      <a href="trust-design/index.html" class="floor-cell floor-cell--trust" data-cg-key="trust">
-        <div class="floor-cell__head">
-          <span class="floor-cell__num">06</span>
-          <span class="floor-cell__tag">Side Stream</span>
-        </div>
-        <div class="floor-cell__canvas">
-          <div data-ga-slot="cg-trust-coupling"
-               aria-label="Trust coupling — Autonomy Dial and Disclosure Dial"></div>
-        </div>
-        <div class="floor-cell__name">2 Dials — Trust Design</div>
-        <p class="floor-cell__desc">Autonomy Dial: how much the system acts without asking. Disclosure Dial: how much personal context you share. Per-domain. User-owned.</p>
-        <span class="floor-cell__link">Read</span>
-      </a>
-
-      <a href="rule-engine/index.html" class="floor-cell floor-cell--engine" data-cg-key="rule-engine">
-        <div class="floor-cell__head">
-          <span class="floor-cell__num">04</span>
-          <span class="floor-cell__tag">Rule Engine</span>
-        </div>
-        <div class="floor-cell__canvas">
-          <div data-ga-slot="cg-rule-engine"
-               aria-label="Rule Engine — context tokens × brain memory → design rules"></div>
-        </div>
-        <div class="floor-cell__name">Rule Engine</div>
-        <p class="floor-cell__desc">Tokens × Brain → design rules. Resolves collisions when Priority Weight conflicts arise. Three exits: Delegate, Escalate, Adapt.</p>
-        <span class="floor-cell__link">Read</span>
-      </a>
-
-      <a href="ax-patterns/index.html" class="floor-cell floor-cell--ax" data-cg-key="ax-patterns">
-        <div class="floor-cell__head">
-          <span class="floor-cell__num">05</span>
-          <span class="floor-cell__tag">AX Patterns</span>
-        </div>
-        <div class="floor-cell__canvas">
-          <div data-ga-slot="cg-ax-patterns"
-               aria-label="23 AX Patterns across four groups"></div>
-        </div>
-        <div class="floor-cell__name">AX Patterns</div>
-        <p class="floor-cell__desc">23 named patterns — Delivery, Escalation, Autonomy, Cross-cutting — describing how UI should behave when the Rule Engine fires.</p>
-        <span class="floor-cell__link">Read</span>
-      </a>
-
-      <a href="specs/index.html" class="floor-cell floor-cell--specs" data-cg-key="specs">
-        <div class="floor-cell__head">
-          <span class="floor-cell__num">07</span>
-          <span class="floor-cell__tag">Schema</span>
-        </div>
-        <div class="floor-cell__canvas">
-          <div data-ga-slot="cg-specs"
-               aria-label="Specs — YAML and JSON schema definitions"></div>
-        </div>
-        <div class="floor-cell__name">Specs &amp; Schema</div>
-        <p class="floor-cell__desc">YAML schema definitions for Context Tokens, Brain layers, and AX Pattern triggers — making the framework portable across teams and platforms.</p>
-        <span class="floor-cell__link">Read</span>
-      </a>
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════
-     SIMULATOR BANNER — Try it live
-     ═══════════════════════════════ -->
-<section class="sec-simulator">
-  <div class="sim-banner reveal">
-    <div class="sim-banner__left">
-      <span class="sim-banner__eyebrow">Live · runs in your browser</span>
-      <h2 class="sim-banner__title">Try Context Grammar.<br/>See the patterns fire.</h2>
-      <p class="sim-banner__desc">
-        Set 8 context tokens, watch which of the 23 AX Patterns trigger, and see how
-        Autonomy × Disclosure constrain each other. The rule engine — running live, no backend.
-      </p>
-      <a href="simulator/index.html" class="sim-banner__cta">Open Simulator →</a>
-    </div>
-    <div class="sim-banner__right">
-      <div class="sim-banner__stat-grid">
-        <div class="sim-banner__stat"><span class="sim-banner__stat-num">8</span><span class="sim-banner__stat-label">Tokens</span></div>
-        <div class="sim-banner__stat"><span class="sim-banner__stat-num">23</span><span class="sim-banner__stat-label">Patterns</span></div>
-        <div class="sim-banner__stat"><span class="sim-banner__stat-num">6</span><span class="sim-banner__stat-label">Scenarios</span></div>
-        <div class="sim-banner__stat"><span class="sim-banner__stat-num">0</span><span class="sim-banner__stat-label">Backend</span></div>
       </div>
-    </div>
-  </div>
-</section>
+    </header>
 
-<style>
-.sec-simulator {
-  padding: clamp(60px, 8vw, 120px) clamp(24px, 4vw, 48px) clamp(40px, 5vw, 80px);
-  max-width: 1280px;
-  margin: 0 auto;
-}
-.sim-banner {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: clamp(28px, 4vw, 64px);
-  align-items: center;
-  padding: clamp(36px, 5vw, 72px) clamp(28px, 4vw, 56px);
-  background: #08070b;
-  color: #f0ece4;
-  position: relative;
-  overflow: hidden;
-}
-.sim-banner::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 50% 60% at 80% 50%, rgba(104, 137, 180, 0.18), transparent 70%);
-  pointer-events: none;
-}
-@media (max-width: 768px) {
-  .sim-banner {
-    grid-template-columns: 1fr;
-    padding: clamp(28px, 6vw, 48px) 20px;
-  }
-  .sim-banner__title { font-size: clamp(24px, 6.5vw, 32px); letter-spacing: -1px; }
-  .sim-banner__desc  { font-size: 15px; line-height: 1.6; }
-}
-@media (max-width: 480px) {
-  .sim-banner { padding-left: 16px; padding-right: 16px; }
-  .sim-banner__stat-num { font-size: 28px; }
-}
-.sim-banner__left { position: relative; z-index: 1; }
-.sim-banner__eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: rgba(240, 236, 228, 0.55);
-  display: block;
-  margin-bottom: 18px;
-}
-.sim-banner__title {
-  font-weight: 500;
-  font-size: clamp(28px, 3.4vw, 44px);
-  line-height: 1.18;
-  letter-spacing: -1.5px;
-  margin: 0 0 18px;
-}
-.sim-banner__desc {
-  font-size: clamp(15px, 1.05vw, 17px);
-  font-weight: 400;
-  color: rgba(240, 236, 228, 0.7);
-  line-height: 1.7;
-  margin: 0 0 28px;
-  max-width: 540px;
-}
-.sim-banner__cta {
-  display: inline-flex;
-  align-items: center;
-  padding: 14px 26px;
-  background: #f0ece4;
-  color: #08070b;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  letter-spacing: -0.2px;
-  transition: transform 0.18s var(--ease-hover), background 0.18s var(--ease-hover);
-}
-.sim-banner__cta:hover {
-  background: #fff;
-  transform: translateX(4px);
-}
-.sim-banner__right {
-  position: relative;
-  z-index: 1;
-}
-.sim-banner__stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: rgba(240, 236, 228, 0.1);
-  border: 1px solid rgba(240, 236, 228, 0.1);
-}
-.sim-banner__stat {
-  background: #08070b;
-  padding: clamp(20px, 2.5vw, 32px) clamp(16px, 2vw, 24px);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-}
-.sim-banner__stat-num {
-  font-family: var(--font-mono);
-  font-size: clamp(32px, 4vw, 48px);
-  font-weight: 500;
-  color: #f0ece4;
-  line-height: 1;
-  letter-spacing: -1px;
-}
-.sim-banner__stat-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(240, 236, 228, 0.5);
-}
-</style>
+    <section class="cg3-section" id="why">
+      <div class="cg3-shell cg3-grid">
+        <div>
+          <p class="cg3-label">Why it matters</p>
+          <h2 class="cg3-h2">Human life is not a task queue.</h2>
+        </div>
+        <div class="cg3-copy">
+          <p><strong>The same AI action can be helpful, rude, risky, or dignity-preserving depending on the
+              moment.</strong></p>
+          <p>A reminder at 7am may be useful. The same reminder at 11pm after lights out may be invasive. A purchase
+            under one household rule may be safe; under another, it should ask first. A family member may share schedule
+            context but not health context.</p>
+          <p>Context Grammar asks what AI needs to understand about a human situation before it earns the right to act.
+            It turns that question into a readable pipeline for product, design, and engineering decisions.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" id="overview">
+      <div class="cg3-shell">
+        <p class="cg3-label">Pipeline overview</p>
+        <h2 class="cg3-h2">Read the whole framework as one pipeline.</h2>
+        <div class="cg3-pipeline" aria-label="Context Grammar pipeline">
+          <article class="cg3-pipe-item" id="human">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-human"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">00 · Human</span>
+              <h3>The system starts before the prompt.</h3>
+              <p>Context Grammar begins with a person in a situation: walking, tired, watched by others, holding
+                something, under time pressure, or managing a relationship.</p>
+              <p>In a restaurant, the first design object is not the order. It is the guest in context. The same pasta
+                order means something different for a rushed commuter, a parent with a child, or a couple celebrating an
+                anniversary.</p>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="intent-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-intent"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">01 · Intent</span>
+              <h3>Intent is what the human is trying to accomplish.</h3>
+              <p>Intent is not just the sentence a user says. It is the aim behind the moment. It may be explicit,
+                active, passive, or ambient.</p>
+              <p>In a restaurant, Intent is the reason behind the order. "Pasta" is the literal request, but the real
+                intent may be to eat quickly, avoid an allergy, keep the conversation private, or make the meal feel
+                special.</p>
+              <a class="cg3-pipe-link" href="intent/index.html">Read Intent</a>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="tokens-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-tokens" data-dials="false"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">02 · Situation Signals (6)</span>
+              <h3>Situation signals turn the situation into readable variables.</h3>
+              <p>Six situation signals describe what is true right now: Physical State, Cognitive Load, Social Exposure,
+                Priority Weight, Form Factor, and Feasibility.</p>
+              <p>In a restaurant, Situation signals are what a skilled waiter notices: date, business meal, birthday, first visit,
+                rushed lunch, quiet table, wine preference, or non-alcoholic request.</p>
+              <a class="cg3-pipe-link" href="tokens/index.html">Read Situation Signals</a>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="trust-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-trust-coupling"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">03 · Relationship Dials (2)</span>
+              <h3>Relationship dials set what AI may know and do.</h3>
+              <p>Disclosure controls what the AI may know. Autonomy controls how far it may act. These two relationship dials set
+                guardrails before memory and decision logic run.</p>
+              <p>In a restaurant, a regular can ask for recommendations only because the restaurant knows allergies,
+                preferences, budget, and boundaries. Trust is earned permission, not convenience.</p>
+              <a class="cg3-pipe-link" href="trust-design/index.html">Read Relationship Dials</a>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="brain-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-brain"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">04 · Brain</span>
+              <h3>Brain keeps memory separated by speed.</h3>
+              <p>Context Brain separates Identity, Learning, and Now. Stable facts, learned patterns, and live context
+                should not be stored as the same kind of memory.</p>
+              <p>In a restaurant, Brain is the reservation book, the staff's memory of regular visits, and the waiter’s
+                observation of this table right now.</p>
+              <a class="cg3-pipe-link" href="brain/index.html">Read Brain</a>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="rule-engine-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-rule-engine"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">05 · Rule Engine</span>
+              <h3>Rules turn state into a UI command.</h3>
+              <p>Situation signals, relationship dials, and Brain references are observations. The Rule Engine turns them into decisions a
+                surface can render: reduce detail, ask first, hide sensitive data, switch to voice, or act.</p>
+              <p>In a restaurant, the Rule Engine is service judgment made explicit: confirm expensive choices,
+                prioritize allergies, shorten the path for rushed guests, and escalate risk.</p>
+              <a class="cg3-pipe-link" href="rule-engine/index.html">Read Rule Engine</a>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="negotiation-gate-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-negotiation-gate"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">05b · Negotiation Gate</span>
+              <h3>The Gate evaluates before every action.</h3>
+              <p>Before any agentic action is taken, the Negotiation Gate scores Confidence × Risk × Reversibility × Sensitivity. The result is either a silent proceed or a specific UI primitive — Assumption Cards, Interpretation Preview, or a block.</p>
+              <p>In a restaurant, the Gate is the waiter's judgment before bringing an expensive bottle: is the guest certain, is the risk real, and can it be returned? Only then does service proceed.</p>
+              <a class="cg3-pipe-link" href="negotiation-gate/index.html">Read Negotiation Gate</a>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="negotiation-layer-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-negotiation-gate"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">Cross-cut &middot; Negotiation Design</span>
+              <h3>Negotiation Layer — Phase 1 prototype.</h3>
+              <p>An interactive client-side demo showing how the Negotiation Gate surfaces its reasoning before acting. Type any sentence in Japanese or English and see Interpretation Preview and Assumption Cards appear in real time. Edit or dismiss premises, then confirm or correct.</p>
+              <a class="cg3-pipe-link" href="negotiation-layer/index.html">Try the prototype</a>
+            </div>
+          </article>
+
+          <article class="cg3-pipe-item" id="ax-pipe">
+            <figure class="cg3-pipe-visual">
+              <div data-ga-slot="cg-ax-patterns"></div>
+            </figure>
+            <div class="cg3-pipe-copy">
+              <span class="cg3-eyebrow">06 · AX Patterns</span>
+              <h3>Patterns make AI behavior reusable.</h3>
+              <p>The command becomes a pattern: delegate, escalate, adapt, delay, confirm, hide, recombine, or hand
+                control back. These are the reusable moves of an agentic interface.</p>
+              <p>In a restaurant, AX Patterns are the repeated service moves: refill quietly, ask before changing spice,
+                simplify the explanation, or bring a manager in.</p>
+              <a class="cg3-pipe-link" href="ax-patterns/index.html">Read AX Patterns</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cg3-section" id="restaurant">
+      <div class="cg3-shell cg3-media-grid">
+        <figure class="cg3-figure cg3-figure--panel">
+          <img src="images/ISO-GREEN/IF-MultiAgent-Orchestration.png"
+            alt="Diagram of Brain, Coordinator, and Agent orchestration" loading="lazy">
+          <figcaption class="cg3-caption">Restaurant model for agentic service</figcaption>
+        </figure>
+        <div>
+          <p class="cg3-label">Service metaphor</p>
+          <h2 class="cg3-h2">The restaurant is the easiest way to read the system.</h2>
+          <div class="cg3-copy cg3-media">
+            <p>In a restaurant, the first design object is not the order. It is the guest in context. The same pasta
+              order means something different for a rushed commuter, a parent with a child, or a couple celebrating an
+              anniversary.</p>
+            <p>Intent is the reason behind the order. Situation signals are what the waiter notices now. Relationship dials set what can
+              be known and done. Brain is the reservation book and regular-guest memory. Rule Engine is service
+              judgment made explicit. AX Patterns are reusable
+              moves like quietly refill, ask before changing spice, simplify the menu explanation, or bring a manager
+              in.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
 
-<!-- ═══════════════════════════════
-     CTA
-     ═══════════════════════════════ -->
-<section class="sec-cta">
-  <div class="cta-inner">
-    <h2 class="cta-title reveal">Start with the Brain</h2>
-    <p class="cta-sub reveal d1">Memory is the hardest part of agentic design to get right. The three-layer structure is the foundation everything else builds on.</p>
-    <div class="cta-buttons reveal d2">
-      <a href="brain/index.html" class="cta-btn cta-btn--primary">Read Brain &amp; Agents →</a>
-      <a href="../index.html" class="cta-btn cta-btn--ghost">← Back to portfolio</a>
-    </div>
-  </div>
-</section>
 
+    <section class="cg3-section" id="simulator">
+      <div class="cg3-shell">
+        <div class="cg3-grid" style="margin-bottom: 48px;">
+          <div>
+            <p class="cg3-label">Live simulator</p>
+            <h2 class="cg3-h2">Try the grammar in the browser.</h2>
+          </div>
+          <div class="cg3-copy">
+            <p>Test the rule engine live in your browser. Toggle different situation signals and relationship dials to watch how the system dynamically re-evaluates the human-AI relationship and adapts the user interface across devices.</p>
+          </div>
+        </div>
 
-<!-- ═══════════════════════════════
-     FOOTER
-     ═══════════════════════════════ -->
-<footer class="page-footer">
-  <span>intentfirst.ai · Context Grammar · 2026</span>
-  <div class="footer-links">
-    <a href="../index.html">Home</a>
-    <a href="../about/index.html">About</a>
-    <a href="../applied/index.html">Applied</a>
-    <a href="../projects/project-01/index.html">Project 01</a>
-  </div>
-</footer>
+        <div class="cg3-card-grid--2col">
+          <a class="cg3-card" href="simulator/morph.html" style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--cg3-accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500;">Interactive Scenarios</div>
+            <h3 style="margin: 0 0 12px; font-size: clamp(20px, 1.8vw, 26px); font-weight: 560; letter-spacing: -0.03em;">Morph Theater</h3>
+            <p style="margin: 0; color: var(--cg3-muted); font-size: 15px; line-height: 1.6; flex-grow: 1;">
+              Step into 8 animated daily life scenarios—from home kitchen to highway driving. Experience context morphing first-hand, featuring the high-fidelity P1 CarOS CarPlay composite UI responding dynamically to real-time driving signals.
+            </p>
+            <div style="margin-top: 24px; font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--cg3-ink); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              Launch Morph Theater <span style="font-size: 14px;">→</span>
+            </div>
+          </a>
 
+          <a class="cg3-card" href="simulator/index.html" style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--cg3-accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500;">Granular Engine</div>
+            <h3 style="margin: 0 0 12px; font-size: clamp(20px, 1.8vw, 26px); font-weight: 560; letter-spacing: -0.03em;">Pipeline Console</h3>
+            <p style="margin: 0; color: var(--cg3-muted); font-size: 15px; line-height: 1.6; flex-grow: 1;">
+              Inspect the exact logical steps of the framework. Toggle granular situation signals and relationship dials to trace memory evaluation, rule engine decisions, and the resulting AX patterns that shape the final UI layout.
+            </p>
+            <div style="margin-top: 24px; font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--cg3-ink); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              Open Pipeline Console <span style="font-size: 14px;">→</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
 
-<!-- ── TOC Rail ── -->
-<script>
-  window.TOC_RAIL = {
-    panelTitle: 'Context Grammar',
-    chapters: [
-      {
-        num: '01', title: 'Overview',
-        sections: [
-          { id: 'sec-intro',    num: '01', label: 'Introduction', dark: true },
-          { id: 'sec-pipeline', num: '02', label: 'How it flows', dark: true },
-          { id: 'floors',       num: '03', label: 'Seven entries', dark: true }
-        ]
-      }
-    ]
-  };
-</script>
-<script src="../assets/js/toc-rail.js" defer></script>
+    <section class="cg3-cta">
+      <div class="cg3-shell cg3-cta-inner">
+        <h2>Start with Intent, then follow the pipeline to action.</h2>
+        <div class="cg3-actions">
+          <a class="cg3-button cg3-button--primary" href="intent/index.html">Read Intent</a>
+          <a class="cg3-button" href="../index.html">Back to portfolio</a>
+        </div>
+      </div>
+    </section>
+  </main>
 
-<!-- ── Scripts ── -->
-<script src="../assets/js/cg-floors-data.js"></script>
-<script src="../assets/js/ga-slots.js"></script>
-<script src="../assets/js/green-animation.js" defer></script>
-<script src="../assets/js/nav.js" defer></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    initNav({ basePath: '../', activePage: 'context-grammar', lang: 'en', showLang: false });
-  });
-
-  /* Scroll reveal */
-  var obs = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach(function (el) { obs.observe(el); });
-</script>
-
+  <script src="../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../', activePage: 'context-grammar', lang: 'en', showLang: false, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });</script>
+  <script src="../assets/js/ga-slots.js"></script>
+  <script src="../assets/js/green-animation.js" defer></script>
 </body>
+
 </html>
