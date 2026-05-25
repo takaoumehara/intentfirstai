@@ -16,7 +16,7 @@
       num: '01', label: 'Context Grammar', href: 'index.html#context-grammar',
       children: [
         { label: 'Intent',       href: 'context-grammar/intent/index.html' },
-        { label: 'Tokens',       href: 'context-grammar/tokens/index.html' },
+        { label: 'Signals & Dials', href: 'context-grammar/signals-and-dials/index.html' },
         { label: 'Brain',        href: 'context-grammar/brain/index.html' },
         { label: 'Rule Engine',  href: 'context-grammar/rule-engine/index.html' },
         { label: 'Specs',        href: 'context-grammar/specs/index.html' },
@@ -25,12 +25,12 @@
       ]
     },
     {
-      num: '02', label: 'Projects', href: 'applied/index.html',
+      num: '02', label: 'Projects', href: 'projects/index.html',
       children: [
-        { label: 'P1', href: 'projects/project-01/p1-scroll-v2.html' },
+        { label: 'P1', href: 'projects/project-01/index.html' },
         { label: 'P2', href: 'projects/project-02/p2-scroll-v2.html' },
-        { label: 'P3', href: 'projects/project-03/p3-scroll.html' },
-        { label: 'P4', href: 'projects/project-04/p4-scroll-v2.html' },
+        { label: 'P3', href: 'projects/project-03/index.html' },
+        { label: 'P4', href: 'projects/project-04/index.html' },
         { label: 'P5', href: 'projects/project-05/p5-scroll-v2.html' },
         { label: 'P6', href: 'projects/project-06/p6-life-brain-v2.html' }
       ]

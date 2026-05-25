@@ -59,6 +59,14 @@
     .nl-system-badge { font-size: 0.65rem; color: var(--gray-400); font-family: var(--font-mono, monospace); white-space: nowrap; margin-top: 0.1rem; }
     .nl-dismiss-btn { background: none; border: none; font-size: 1.1rem; color: var(--gray-300); cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
     .nl-dismiss-btn:hover { color: var(--gray-600); }
+    .nl-priority { display: none; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1rem 1.1rem; margin-top: 1rem; }
+    .nl-priority.active { display: block; }
+    .nl-priority-head { margin: 0 0 0.5rem; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); }
+    .nl-priority-copy { margin: 0 0 0.75rem; font-size: 0.88rem; color: var(--gray-700); line-height: 1.55; }
+    .nl-priority-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .nl-priority-opt { border: 1.5px solid var(--gray-300); border-radius: 8px; padding: 0.65rem 0.75rem; background: white; color: var(--gray-700); font-size: 0.84rem; text-align: left; cursor: pointer; }
+    .nl-priority-opt.active { border-color: var(--gray-900); color: var(--gray-900); }
+    .nl-priority-note { margin: 0.65rem 0 0; font-size: 0.8rem; color: var(--gray-500); font-family: var(--font-mono, monospace); }
 
     .nl-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; flex-wrap: wrap; }
     .nl-btn-confirm { padding: 0.65rem 1.4rem; background: var(--gray-900); color: white; border: none; border-radius: 6px; font-size: 0.875rem; font-family: var(--font-sans, sans-serif); cursor: pointer; }
@@ -112,6 +120,15 @@
 
         <p class="nl-assumptions-header">Assumption Cards &mdash; edit or dismiss any premise</p>
         <div id="nl-assumptions"></div>
+        <div class="nl-priority" id="nl-priority">
+          <p class="nl-priority-head">Priority Toggle (Phase 2)</p>
+          <p class="nl-priority-copy" id="nl-priority-copy"></p>
+          <div class="nl-priority-toggle">
+            <button class="nl-priority-opt" id="nl-priority-left" onclick="selectPriority('left')"></button>
+            <button class="nl-priority-opt" id="nl-priority-right" onclick="selectPriority('right')"></button>
+          </div>
+          <p class="nl-priority-note" id="nl-priority-note">No priority selected yet.</p>
+        </div>
 
         <div class="nl-actions">
           <button class="nl-btn-confirm" onclick="doConfirm()">Confirm &mdash; proceed with this interpretation</button>
@@ -137,8 +154,8 @@
         <li><code>R39</code> — confidence &ge; 0.8 + low risk + reversible &rarr; silent (no UI)</li>
       </ul>
 
-      <h2>Phase 1 scope</h2>
-      <p>This demo implements Interpretation Preview and Assumption Cards. <strong>Priority Toggle</strong> — when two user values conflict, re-rank in the moment — is Phase 2.</p>
+      <h2>Phase 1 + 2 scope</h2>
+      <p>This demo implements Interpretation Preview, Assumption Cards, and <strong>Priority Toggle</strong>. When two user values conflict, the system asks which value should lead for this moment.</p>
       <p>The prototype is rule-based. The Decision Schema makes the AI's reasoning explicit and inspectable regardless of whether the underlying model is LLM, heuristic, or scripted.</p>
 
       <h2>See also</h2>
@@ -150,7 +167,7 @@
   <div class="chapter-nav" data-current="" data-base="../"></div>
   <script src="../../assets/js/chapter-nav.js"></script>
   <script src="../../assets/js/nav.js"></script>
-  <script>initNav({ basePath: '../../', activePage: 'context-grammar', lang: 'en', showLang: true, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });</script>
+  <script>initNav({ basePath: '../../', activePage: 'negotiation-layer', lang: 'en', showLang: true, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });</script>
   <script src="../../assets/js/ga-slots.js"></script>
   <script src="../../assets/js/green-animation.js" defer></script>
 
@@ -168,6 +185,9 @@
         { id: 'a2', text: 'You want suggestions, not a diagnosis', editable: true },
         { id: 'a3', text: 'Domain: Health — system sensitivity set to HIGH', editable: false }
       ],
+      conflicts: [
+        { id: 'a-conf-1', left: 'Prioritize long-term health gains', right: 'Minimize disruption to today\\'s routine' }
+      ],
       confidence: 0.72,
       domain: 'health',
       awareness: 'Latent'
@@ -179,6 +199,9 @@
       assumptions: [
         { id: 'b1', text: 'The situation is time-sensitive', editable: true },
         { id: 'b2', text: 'You want help prioritizing, not just venting', editable: true }
+      ],
+      conflicts: [
+        { id: 'b-conf-1', left: 'Move fast and reduce cognitive load now', right: 'Preserve quality and avoid risky shortcuts' }
       ],
       confidence: 0.81,
       domain: 'work',
@@ -253,12 +276,14 @@
   //  GATE LOGIC
   // -------------------------------------------------
   var currentPattern = null;
+  var selectedPriority = null;
 
   function runGate() {
     var input = document.getElementById('nl-input').value.trim();
     if (!input) return;
 
     currentPattern = matchPattern(input);
+    selectedPriority = null;
     var jp = isJapanese(input);
     var conf = currentPattern.confidence;
 
@@ -294,6 +319,8 @@
       list.appendChild(div);
     });
 
+    renderPriorityToggle(currentPattern);
+
     // Reset and show result
     var outcome = document.getElementById('nl-outcome');
     outcome.className = 'nl-outcome';
@@ -306,9 +333,45 @@
     if (el) el.classList.toggle('dismissed');
   }
 
+  function renderPriorityToggle(pattern) {
+    var wrap = document.getElementById('nl-priority');
+    var copy = document.getElementById('nl-priority-copy');
+    var leftBtn = document.getElementById('nl-priority-left');
+    var rightBtn = document.getElementById('nl-priority-right');
+    var note = document.getElementById('nl-priority-note');
+    var hasConflict = pattern && pattern.conflicts && pattern.conflicts.length > 0;
+    if (!hasConflict) {
+      wrap.className = 'nl-priority';
+      copy.textContent = '';
+      leftBtn.textContent = '';
+      rightBtn.textContent = '';
+      note.textContent = 'No conflict detected.';
+      return;
+    }
+    var c = pattern.conflicts[0];
+    wrap.className = 'nl-priority active';
+    copy.textContent = 'Two assumptions are in tension. Choose which value takes precedence right now.';
+    leftBtn.textContent = c.left;
+    rightBtn.textContent = c.right;
+    leftBtn.className = 'nl-priority-opt';
+    rightBtn.className = 'nl-priority-opt';
+    note.textContent = 'No priority selected yet.';
+  }
+
+  function selectPriority(side) {
+    var leftBtn = document.getElementById('nl-priority-left');
+    var rightBtn = document.getElementById('nl-priority-right');
+    var note = document.getElementById('nl-priority-note');
+    selectedPriority = side;
+    leftBtn.className = 'nl-priority-opt' + (side === 'left' ? ' active' : '');
+    rightBtn.className = 'nl-priority-opt' + (side === 'right' ? ' active' : '');
+    note.textContent = 'Priority selected: ' + (side === 'left' ? leftBtn.textContent : rightBtn.textContent);
+  }
+
   function doConfirm() {
     var outcome = document.getElementById('nl-outcome');
-    outcome.textContent = 'Interpretation confirmed. Gate decision: proceed. In a live system, this routes through Stage 6 (Autonomy Resolution) and triggers the appropriate AX Pattern response.';
+    var prefix = selectedPriority ? 'Priority locked. ' : '';
+    outcome.textContent = prefix + 'Interpretation confirmed. Gate decision: proceed. In a live system, this routes through Stage 6 (Autonomy Resolution) and triggers the appropriate AX Pattern response.';
     outcome.className = 'nl-outcome active';
   }
 

@@ -67,7 +67,7 @@ function initSiteNavCompat(opts) {
         { label: 'Overview', href: '__cg__/index.html', key: 'context-grammar' },
         { label: 'Simulator', href: '__cg__/simulator/index.html', key: 'simulator' },
         { label: 'Intent', href: '__cg__/intent/index.html', key: 'intent' },
-        { label: (navLang === 'ja' ? '状況シグナル' : 'Situation Signals'), href: '__cg__/tokens/index.html', key: 'tokens' },
+        { label: (navLang === 'ja' ? '状況シグナル' : 'Situation Signals'), href: '__cg__/signals-and-dials/index.html', key: 'tokens' },
         { label: (navLang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials'), href: '__cg__/trust-design/index.html', key: 'trust' },
         { label: 'Brain', href: '__cg__/brain/index.html', key: 'brain' },
         { label: 'Rule Engine', href: '__cg__/rule-engine/index.html', key: 'ruleengine' },
@@ -251,7 +251,7 @@ function initSiteNavCompat(opts) {
       + '<a href="' + prefixCg('index.html') + '"' + (active === 'context-grammar' ? ' aria-current="page"' : '') + '>Overview</a>'
       + '<a href="' + prefixCg('simulator/index.html') + '"' + (active === 'simulator' ? ' aria-current="page"' : '') + '>Simulator</a>'
       + '<a href="' + prefixCg('intent/index.html') + '"' + (active === 'intent' ? ' aria-current="page"' : '') + '>Intent</a>'
-      + '<a href="' + prefixCg('tokens/index.html') + '"' + (active === 'tokens' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
+      + '<a href="' + prefixCg('signals-and-dials/index.html') + '"' + (active === 'tokens' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
       + '<a href="' + prefixCg('trust-design/index.html') + '"' + (active === 'trust' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
       + '<a href="' + prefixCg('brain/index.html') + '"' + (active === 'brain' ? ' aria-current="page"' : '') + '>Brain</a>'
       + '<a href="' + prefixCg('rule-engine/index.html') + '"' + (active === 'ruleengine' ? ' aria-current="page"' : '') + '>Rules</a>'
@@ -531,7 +531,7 @@ function initNav(opts) {
     overview: pageRoot + 'context-grammar/index.html',
     simulator: pageRoot + 'context-grammar/simulator/index.html',
     intent: pageRoot + 'context-grammar/intent/index.html',
-    tokens: pageRoot + 'context-grammar/tokens/index.html',
+    tokens: pageRoot + 'context-grammar/signals-and-dials/index.html',
     brain: pageRoot + 'context-grammar/brain/index.html',
     ruleengine: pageRoot + 'context-grammar/rule-engine/index.html',
     trust: pageRoot + 'context-grammar/trust-design/index.html',
