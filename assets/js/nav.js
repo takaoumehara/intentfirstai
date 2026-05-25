@@ -107,6 +107,8 @@ function initGlossaryAndCommandK(opts) {
       variants.forEach(function (v) {
         var n = normalizeText(v);
         if (!n || n.length < 3) return;
+        // Avoid noisy inline wrapping for generic short words like "Exact".
+        if (looksLatin(n) && /^[a-z0-9]+$/.test(n) && n.length < 7) return;
         if (!termToId[n]) termToId[n] = entry.id;
       });
     });
@@ -132,8 +134,8 @@ function initGlossaryAndCommandK(opts) {
   function shouldSkipNode(node) {
     if (!node || !node.parentElement) return true;
     var el = node.parentElement;
-    if (el.closest('.site-nav, .cg-popover, .glossary-popover, .if-cmdk-modal, .if-cmdk-toggle')) return true;
-    if (el.closest('a')) return true;
+    if (el.closest('.site-nav, .cg-popover, .glossary-popover, .glossary-term, .if-cmdk-modal, .if-cmdk-toggle, [data-term]')) return true;
+    if (el.closest('a, button, code, pre, kbd, samp, textarea, input, select, option, [contenteditable="true"]')) return true;
     var tag = el.tagName;
     if (!tag) return true;
     if (/^(SCRIPT|STYLE|NOSCRIPT|CODE|PRE|KBD|SAMP|TEXTAREA|INPUT|SELECT|OPTION|BUTTON|A)$/i.test(tag)) return true;
@@ -361,6 +363,16 @@ function initGlossaryAndCommandK(opts) {
     var resultsEl = modal.querySelector('.if-cmdk-results');
     var previewEl = modal.querySelector('.if-cmdk-preview');
     var items = [];
+    var lastFocusedBeforeCmdk = null;
+    var activeResults = [];
+
+    input.setAttribute('aria-label', lang === 'ja' ? 'ページと用語を検索' : 'Search pages and terms');
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-expanded', 'false');
+    input.setAttribute('aria-controls', 'if-cmdk-results');
+    input.setAttribute('aria-autocomplete', 'list');
+    resultsEl.id = 'if-cmdk-results';
+    resultsEl.setAttribute('role', 'listbox');
 
     function buildPageItems() {
       var out = [];
@@ -434,14 +446,24 @@ function initGlossaryAndCommandK(opts) {
         .slice(0, 18)
         .map(function (x) { return x.item; });
       resultsEl.innerHTML = '';
+      activeResults = ranked;
       ranked.forEach(function (item, idx) {
         var li = document.createElement('li');
+        var optionId = 'if-cmdk-option-' + idx;
         li.className = 'if-cmdk-item' + (idx === 0 ? ' is-active' : '');
+        li.id = optionId;
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
         li.setAttribute('data-href', item.href);
         li.innerHTML = '<strong>' + item.title + '</strong><span>' + item.subtitle + '</span>';
         li.addEventListener('mouseenter', function () {
-          resultsEl.querySelectorAll('.if-cmdk-item').forEach(function (el) { el.classList.remove('is-active'); });
+          resultsEl.querySelectorAll('.if-cmdk-item').forEach(function (el) {
+            el.classList.remove('is-active');
+            el.setAttribute('aria-selected', 'false');
+          });
           li.classList.add('is-active');
+          li.setAttribute('aria-selected', 'true');
+          input.setAttribute('aria-activedescendant', optionId);
           renderPreview(item);
         });
         li.addEventListener('click', function () {
@@ -449,17 +471,26 @@ function initGlossaryAndCommandK(opts) {
         });
         resultsEl.appendChild(li);
       });
+      if (ranked[0]) input.setAttribute('aria-activedescendant', 'if-cmdk-option-0');
+      else input.removeAttribute('aria-activedescendant');
       renderPreview(ranked[0] || null);
     }
 
     function closeModal() {
       modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      if (lastFocusedBeforeCmdk && typeof lastFocusedBeforeCmdk.focus === 'function') {
+        lastFocusedBeforeCmdk.focus();
+      }
     }
 
     function openModal() {
+      lastFocusedBeforeCmdk = document.activeElement;
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
+      input.setAttribute('aria-expanded', 'true');
       input.value = '';
       renderResults('');
       setTimeout(function () { input.focus(); }, 0);
@@ -482,6 +513,10 @@ function initGlossaryAndCommandK(opts) {
       }
       if (!modal.classList.contains('is-open')) return;
       if (e.key === 'Escape') closeModal();
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        input.focus();
+      }
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         var list = Array.prototype.slice.call(resultsEl.querySelectorAll('.if-cmdk-item'));
@@ -489,9 +524,12 @@ function initGlossaryAndCommandK(opts) {
         var idx = list.findIndex(function (el) { return el.classList.contains('is-active'); });
         if (idx < 0) idx = 0;
         list[idx].classList.remove('is-active');
+        list[idx].setAttribute('aria-selected', 'false');
         idx = e.key === 'ArrowDown' ? (idx + 1) % list.length : (idx - 1 + list.length) % list.length;
         list[idx].classList.add('is-active');
-        list[idx].dispatchEvent(new Event('mouseenter'));
+        list[idx].setAttribute('aria-selected', 'true');
+        input.setAttribute('aria-activedescendant', list[idx].id);
+        renderPreview(activeResults[idx]);
       }
       if (e.key === 'Enter') {
         var active = resultsEl.querySelector('.if-cmdk-item.is-active');

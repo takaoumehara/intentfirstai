@@ -27,7 +27,7 @@
         ja: "レストランのご予約台帳。「梅原様：ナッツアレルギー、子供2人、3月に結婚記念日」。一度書かれたら滅多に更新されず、毎回の来店時に参照されます。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "identity-layer",
+      anchor: "layers",
       seeAlso: ["learning-layer", "now-layer", "home-brain"]
     },
     {
@@ -51,7 +51,7 @@
         ja: "ベテラン給仕の頭の中の記憶。書き留められてはいないが、反復によって形成。「先週はサーモンが好評だった」「金曜は皆様お疲れだから、軽めの提案をしよう」。たまに外れるが、徐々に精度が上がる。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "learning-layer",
+      anchor: "layers",
       seeAlso: ["identity-layer", "now-layer", "ambient-absorption"]
     },
     {
@@ -75,7 +75,7 @@
         ja: "給仕の瞬間的な観察。「今日は急いでいらっしゃるようだ」「お子様を連れてこられた」「お疲れのようだ」。歴史は不要、ただその瞬間の状況を目を開いて捉えること。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "now-layer",
+      anchor: "now",
       seeAlso: ["identity-layer", "learning-layer", "context-tokens"]
     },
 
@@ -125,7 +125,7 @@
         ja: "お客様が立ち飲みバーで立っているか、それとも両手が自由な状態で深いラウンジチェアに座っているか。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "physical-state",
+      anchor: "dd-physical-state",
       seeAlso: ["context-tokens", "form-factor"]
     },
     {
@@ -149,7 +149,7 @@
         ja: "お客様の頭の忙しさ。ノートPCで契約書をレビューしている客は認知負荷が極めて高く、窓の外をぼーっと眺めている客は認知負荷が低い。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "cognitive-load",
+      anchor: "dd-cognitive-load",
       seeAlso: ["context-tokens", "silent-resolution"]
     },
     {
@@ -173,7 +173,7 @@
         ja: "個室にいるか（露出度：低）、それともレストラン中央の混雑した共同テーブルに座っているか（露出度：高）。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "social-exposure",
+      anchor: "dd-social-exposure",
       seeAlso: ["context-tokens", "preview-redaction"]
     },
     {
@@ -197,7 +197,7 @@
         ja: "用事の差し迫り度。自宅での緊急事態は「火事（即座の介入）」であり、スポーツのスコア確認は「日常の休憩（後回し可）」。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "priority-weight",
+      anchor: "dd-priority-weight",
       seeAlso: ["context-tokens", "care-architecture"]
     },
     {
@@ -221,7 +221,7 @@
         ja: "料理を盛り付ける「お皿」。平たいお皿に熱々のスープを並々注いだり、エスプレッソカップに巨大なステーキを詰め込んだりはしない。器が表現形式を決める。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "form-factor",
+      anchor: "dd-form-factor",
       seeAlso: ["context-tokens", "surface-vocabulary"]
     },
     {
@@ -245,7 +245,7 @@
         ja: "キッチンに新鮮な食材の在庫が本当にあるか、そして客の電車の出発時間までに調理が間に合う時間が残されているか。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "feasibility",
+      anchor: "dd-feasibility",
       seeAlso: ["context-tokens", "live-recomposition"]
     },
     {
@@ -269,7 +269,7 @@
         ja: "給仕に与える「権限」。【Suggest】ワインを勧めてもらう。【Confirm】「お注ぎしてよろしいですか」と聞いて注いでもらう。【Notify】栓を開けて「開けました」と報告。【Auto】何も言わずに一晩中グラスを満たし続ける。"
       },
       targetPath: "context-grammar/dials/index.html",
-      anchor: "autonomy-dial",
+      anchor: "autonomy",
       seeAlso: ["disclosure-dial", "trust-timeline", "approval-gate"]
     },
     {
@@ -293,7 +293,7 @@
         ja: "情報の境界線ルール。厨房には自分のアレルギーや健康状態を伝えるが、給仕がそれを他のテーブルに聞こえるように大声で話すことは明確に禁止する。"
       },
       targetPath: "context-grammar/dials/index.html",
-      anchor: "disclosure-dial",
+      anchor: "disclosure",
       seeAlso: ["intake-disclosure", "share-disclosure", "autonomy-dial"]
     },
     {
@@ -317,7 +317,7 @@
         ja: "給仕が常連客用の「顧客台帳」に書き留めることを許されている内容（恒久記憶）と、その場限りで忘れるべき内容の境界。"
       },
       targetPath: "context-grammar/dials/index.html",
-      anchor: "intake-disclosure",
+      anchor: "disclosure",
       seeAlso: ["disclosure-dial", "share-disclosure"]
     },
     {
@@ -341,7 +341,7 @@
         ja: "給仕は客が静かな席を好むことを知っているが（インテイク）、同席するビジネスパートナーに対して「あなたを避けるために角の席を指定されました」とは言わない（シェア制御）。"
       },
       targetPath: "context-grammar/dials/index.html",
-      anchor: "share-disclosure",
+      anchor: "disclosure",
       seeAlso: ["disclosure-dial", "intake-disclosure", "disclosure-matrix"]
     },
 
@@ -367,7 +367,7 @@
         ja: "「コカ・コーラ クラシック」の注文。ペプシも、ダイエットコークも、プライベートブランドのコーラも不可。まさにこれ。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "substitution-modes",
+      anchor: "dd-feasibility",
       seeAlso: ["flexible-mode", "exploring-mode", "surprise-mode"]
     },
     {
@@ -391,7 +391,7 @@
         ja: "「ギリシャヨーグルト」の注文。砂糖不使用で高タンパクであれば、特定のメーカーでなくても構わない。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "substitution-modes",
+      anchor: "dd-feasibility",
       seeAlso: ["exact-mode", "exploring-mode", "surprise-mode"]
     },
     {
@@ -415,7 +415,7 @@
         ja: "「タップにある、飲んだことのないクラフトビールを何かおすすめしてください」と給仕に頼むこと。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "substitution-modes",
+      anchor: "dd-feasibility",
       seeAlso: ["exact-mode", "flexible-mode", "surprise-mode"]
     },
     {
@@ -439,7 +439,7 @@
         ja: "寿司屋の「おまかせ」。どんなネタが出てくるかは分からないが、大将の目利きと自分の好みを信じてすべてを委ねること。"
       },
       targetPath: "context-grammar/signals/index.html",
-      anchor: "substitution-modes",
+      anchor: "dd-feasibility",
       seeAlso: ["exact-mode", "flexible-mode", "exploring-mode"]
     },
 
@@ -465,7 +465,7 @@
         ja: "ある一晩のための「誕生日会の特設プラン」。特別メニュー、追加スタッフ、装飾。その夜が終われば片付けられますが、「梅原様が素晴らしいパーティーを催した」という記憶の核心は、レストランの永久顧客情報に還流されます。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "disposable-brain",
+      anchor: "disposable",
       seeAlso: ["home-brain", "temporal-handoff"]
     },
     {
@@ -489,7 +489,7 @@
         ja: "臨時ポップアップレストランのシェフに渡される「引き継ぎシート」。「4名様、アレルギーあり、子供は15時過ぎに疲れる」。事前に別の人が書いたもの。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "disposable-inherited",
+      anchor: "disposable",
       seeAlso: ["disposable-brain", "identity-layer"]
     },
     {
@@ -513,7 +513,7 @@
         ja: "今夜のこのテーブル専属の給仕のメモ。「お味噌汁がしょっぱくてお戻しされた」「お子様が天ぷらで笑顔になった」。今夜の次の料理の出し方に活かすためのリアルタイム学習。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "disposable-trip-learning",
+      anchor: "disposable",
       seeAlso: ["disposable-brain", "learning-layer", "temporal-handoff"]
     },
     {
@@ -537,7 +537,7 @@
         ja: "今この瞬間のテーブルへの給仕の目配せ。「席に着いたばかり」「外は土砂降り」「お子様が眠たそう」。お客様が帰れば消去される極めて短期的なシグナル。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "disposable-today",
+      anchor: "disposable",
       seeAlso: ["disposable-brain", "now-layer"]
     },
 
@@ -563,7 +563,7 @@
         ja: "レストラン本部の金庫に大切に保管されている、門外不出の「マスター秘伝レシピ集」と「全常連客の歴史カルテ」。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "home-brain",
+      anchor: "home-system",
       seeAlso: ["disposable-brain", "identity-layer"]
     },
     {
@@ -587,7 +587,7 @@
         ja: "個人店主の頭の中ではなく、グループ全体で共有されている「オペレーションマニュアル、仕入れ先リスト、土曜の混雑への対応ノウハウ」。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "org-brain",
+      anchor: "scale",
       seeAlso: ["brand-brain", "project-brain"]
     },
     {
@@ -611,7 +611,7 @@
         ja: "厨房の壁に貼られた「これが我々の盛り付けだ」という写真付きバインダー。新人のシェフが入った初日から、お店の味と見た目を守らせるための暗黙の規律。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "brand-brain",
+      anchor: "scale",
       seeAlso: ["org-brain", "intent-shared-workflow"]
     },
     {
@@ -635,7 +635,7 @@
         ja: "給仕長が書き溜めている「顧客反応ノート」。「4番テーブルのお客様は塩分控えめを望む」「6名以上のパーティーはチョコタルトを残しがち」。メニュー改定前に読み返されます。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "research-brain",
+      anchor: "scale",
       seeAlso: ["org-brain", "knowledge-at-query"]
     },
     {
@@ -659,7 +659,7 @@
         ja: "本店の片隅で6週間だけ営業する「特設ポップアップ店」。独自のメニューで営業し、そこで得た「この料理が非常にウケた」という知見を営業終了後に本店へと引き継ぎます。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "project-brain",
+      anchor: "scale",
       seeAlso: ["org-brain", "temporal-handoff"]
     },
     {
@@ -683,7 +683,7 @@
         ja: "朝礼の立ち話が、終わった後も部屋の空気に溶けて残っている状態。「ねえ、なんでスープのメニュー替えたんだっけ？」と部屋に話しかけると、当時の熱量で理由を答えてくれる感覚。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "living-meeting-brain",
+      anchor: "scale",
       seeAlso: ["queryable-meeting-archive", "org-brain"]
     },
     {
@@ -707,7 +707,7 @@
         ja: "伝票との「味見対比」。料理長が調理の途中でソースを舐め、「これは本当にお客様が求めた『シンプルで素朴な味わい』だろうか？ 自分が勝手に凝りすぎて台無しにしていないか？」と自問すること。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "intent-fidelity",
+      anchor: "scale",
       seeAlso: ["org-brain", "intent-shared-workflow"]
     },
     {
@@ -731,7 +731,7 @@
         ja: "誰からも説明を受けずとも、ただ毎日フロアに立って見ているだけで「あのお客様は奥の静かな席が好きだ」「あの方は今日お疲れのようだ」と自然に体得していく優秀な無口の給仕。"
       },
       targetPath: "context-grammar/brain/index.html",
-      anchor: "ambient-absorption",
+      anchor: "scale",
       seeAlso: ["learning-layer", "org-brain"]
     },
 
@@ -757,7 +757,7 @@
         ja: "阿吽の呼吸で動く一流キッチンの裏方。彼らは一切音を立てずに調理台を拭き、鍋を洗い、欠けた皿を引っ込める。客が見るのは美しい料理だけであり、皿洗いの騒音ではない。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "silent-resolution",
+      anchor: "pattern-catalog",
       seeAlso: ["autonomy-dial", "approval-gate", "cognitive-load"]
     },
     {
@@ -781,7 +781,7 @@
         ja: "料理がフロアに出る直前、副料理長が料理長に「これでよろしいですか」と皿を見せる瞬間。料理長はただ頷く（1タップで承認）か、「飾り付けをやり直せ」と一言指示する。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "approval-gate",
+      anchor: "pattern-catalog",
       seeAlso: ["autonomy-dial", "silent-resolution"]
     },
     {
@@ -805,7 +805,7 @@
         ja: "子供がコップの水をこぼした瞬間、給仕がテーブルのすべてを瞬時に脇に押しやって拭き取る行動。その最中にデザートメニューを勧めるような無粋はせず、まずは安全と快適さの回復に全神経を集中させる。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "care-architecture",
+      anchor: "pattern-catalog",
       seeAlso: ["priority-weight", "live-recomposition"]
     },
     {
@@ -829,7 +829,7 @@
         ja: "メインの食材が途中で切れてしまった時、客に「在庫エラーです」と冷たく告げるのではなく、シェフが「本日のおすすめ」を別の極上の品に差し替え、コースの全体の流れを一枚の美しい計画として完成させ続けること。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "live-recomposition",
+      anchor: "pattern-catalog",
       seeAlso: ["feasibility", "care-architecture"]
     },
     {
@@ -853,7 +853,7 @@
         ja: "3週間の特設出店が終わって片付けをする料理人。空き缶やゴミはすべて処分するが、彼が発見した「梅原様特製のバルサミコ酢ソースが極めて好評だった」という一文だけを本店のメイン台帳に書き加えること。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "temporal-handoff",
+      anchor: "pattern-catalog",
       seeAlso: ["disposable-brain", "home-brain"]
     },
     {
@@ -877,7 +877,7 @@
         ja: "毎年訪れるご夫婦の「過去の全メニューと開けたワインのコルク」が眠る金庫。普段は決して検索も閲覧もできないが、記念日の夜だけそっとテーブルの上に飾られる。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "graduated-archive",
+      anchor: "pattern-catalog",
       seeAlso: ["home-brain", "temporal-handoff"]
     },
     {
@@ -901,7 +901,7 @@
         ja: "レストランスタッフの機密規約。ソムリエはあなたのワインの好みを副料理長に伝えてよいが（連携可）、あなたの予算を花屋の配達員に話すことは固く禁じられている。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "disclosure-matrix",
+      anchor: "pattern-catalog",
       seeAlso: ["share-disclosure", "disclosure-dial"]
     },
     {
@@ -925,7 +925,7 @@
         ja: "キッチンの中心の台の上に置かれた、料理長の手書きの夜のテーマカード「暖かく、シンプルに、秋の収穫祭」。パティシエもソース係も給仕も、そのカードを見て自分の仕事の方向性を合わせる。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "intent-shared-workflow",
+      anchor: "pattern-catalog",
       seeAlso: ["intent-fidelity", "project-brain"]
     },
     {
@@ -949,7 +949,7 @@
         ja: "お店の規律。ソムリエは自分の判断でワインを仕入れてよいが（Auto）、新人料理人は肉の切り方を変える前に必ず料理長にお伺いを立てなければならない（Confirm）。同じ厨房でも、役割ごとにダイヤルの硬さが異なる。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "stakeholder-autonomy-matrix",
+      anchor: "pattern-catalog",
       seeAlso: ["autonomy-dial", "intent-shared-workflow"]
     },
     {
@@ -973,7 +973,7 @@
         ja: "料理人が塩のボトルに手を伸ばしたその瞬間、調理台の上に「このお客様は前回、塩分控えめを希望されました」という小さな付箋がスッと現れる感覚。アーカイブを漁る必要すらない。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "knowledge-at-query",
+      anchor: "pattern-catalog",
       seeAlso: ["research-brain", "org-brain"]
     },
     {
@@ -997,7 +997,7 @@
         ja: "昨日使った会議室のホワイトボードに歩み寄り、「ねえ、なんでPMはカレンダー機能の導入を却下したの？」と話しかけると、ホワイトボードが当時の音声と議論の様子を再生して答えてくれる感覚。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "queryable-meeting-archive",
+      anchor: "pattern-catalog",
       seeAlso: ["living-meeting-brain", "org-brain"]
     },
     {
@@ -1021,7 +1021,7 @@
         ja: "先週の火曜日の「仕込みボード」のタイムラプスを巻き戻して、「なぜ開店直前にソースを変更したのか」の経緯を目で見て思い出すこと。文字の記録ではなく、現場の状況そのものが巻き戻る。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "archive-replay",
+      anchor: "pattern-catalog",
       seeAlso: ["project-brain", "living-meeting-brain"]
     },
     {
@@ -1045,7 +1045,7 @@
         ja: "レストラン内の席ごとの作法。バーカウンターでは「ペアリング」を語り、ファミリー席では「料理のサイズ」を語り、シェフズテーブルでは「調理科学」を語る。一つの厨房から、3つの異なる会話様式が生まれる。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "surface-vocabulary",
+      anchor: "pattern-catalog",
       seeAlso: ["form-factor", "moment-composer"]
     },
     {
@@ -1069,7 +1069,7 @@
         ja: "注文伝票を読み、ホールの室温を感じ、お客様の表情を一瞥した瞬間に、3つの要素すべてに調和する「完璧な一皿」だけを盛り付けてテーブルに出す料理人の勘。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "moment-composer",
+      anchor: "pattern-catalog",
       seeAlso: ["surface-vocabulary", "feasibility"]
     },
     {
@@ -1093,7 +1093,7 @@
         ja: "テーブルの上にある「サプライズ婚約指輪の箱」に通りすがりに気づいた給仕が、何事もなかったかのようにその上にデザートメニューをスッと重ねて覆い隠し、パートナーから秘密を守り抜く機転。"
       },
       targetPath: "context-grammar/ax-patterns/index.html",
-      anchor: "preview-redaction",
+      anchor: "pattern-catalog",
       seeAlso: ["social-exposure", "disclosure-matrix"]
     },
 
@@ -1119,7 +1119,7 @@
         ja: "ベジタリアンのお客様に誤ってステーキを出してしまった給仕。言い訳せず即座に非を認め、お皿をキッチンに下げ、無償で完璧な料理と取り替えなければならない。"
       },
       targetPath: "context-grammar/trust/index.html",
-      anchor: "trust-breach",
+      anchor: "breach-recovery",
       seeAlso: ["reversibility-window", "trust-timeline"]
     },
     {
@@ -1143,7 +1143,7 @@
         ja: "「お祝いの主賓がお酒を飲まない方だと分かった」という場合、24時間以内であれば未開封のワインボトルを無償で全額返金・キャンセルしてくれるレストランの太っ腹な制度。"
       },
       targetPath: "context-grammar/trust/index.html",
-      anchor: "reversibility-window",
+      anchor: "breach-recovery",
       seeAlso: ["trust-breach", "autonomy-dial"]
     },
     {
@@ -1167,7 +1167,7 @@
         ja: "見習い皿洗いが、給仕へ、そしてソムリエへと段階的に昇格していくプロセス。初日にワインセラーの鍵を渡されることはなく、まずは小さな注文を完璧にこなすことで徐々に信頼を獲得します。"
       },
       targetPath: "context-grammar/trust/index.html",
-      anchor: "trust-timeline",
+      anchor: "temporal-arc",
       seeAlso: ["autonomy-dial", "trust-breach"]
     }
   ];
