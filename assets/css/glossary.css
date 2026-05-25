@@ -1,215 +1,230 @@
-/* ───────────────────────────────────────────────────────
-   Glossary popover — site-wide
-   Wraps any <span data-term="slug">...</span> with a
-   subtle dotted underline; click reveals a popover with
-   short definition + restaurant metaphor + optional link.
-   ─────────────────────────────────────────────────────── */
+/* =============================================================
+   intentfirst.ai — Premium Glossary Popover & Highlight Styles
+   ============================================================= */
 
-[data-term] {
-  cursor: help;
-  text-decoration: none;
-  border-bottom: 1px dotted currentColor;
-  border-bottom-color: var(--cg-term-line, rgba(0,0,0,.35));
-  padding-bottom: 1px;
-  transition: border-bottom-color .15s ease, background-color .15s ease;
+/* 1. Inline Glossary Trigger Term */
+.glossary-term {
   position: relative;
-}
-[data-term]:hover {
-  border-bottom-color: var(--cg-green, #30c969);
-  background-color: rgba(48,201,105,.06);
-}
-[data-term][data-term-active="true"] {
-  border-bottom-color: var(--cg-green, #30c969);
-  background-color: rgba(48,201,105,.1);
+  cursor: pointer;
+  border-bottom: 1.5px dotted var(--e-green, #10b981); /* Elegant Emerald dotted line */
+  padding-bottom: 1px;
+  font-weight: 500;
+  color: var(--text, #f3f4f6);
+  transition: text-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-/* Dark backgrounds */
-[data-theme="dark"] [data-term],
-.case--dark [data-term],
-.contact [data-term] {
-  border-bottom-color: rgba(255,255,255,.4);
-}
-[data-theme="dark"] [data-term]:hover,
-.case--dark [data-term]:hover,
-.contact [data-term]:hover {
-  border-bottom-color: var(--cg-green, #30c969);
-  background-color: rgba(48,201,105,.12);
+.glossary-term:hover {
+  border-bottom-color: var(--e-green-hover, #34d399);
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.25); /* Subtle emerald glow */
 }
 
-/* ─── Popover ─── */
-.cg-popover {
+/* Optional small visual affordance indicator (emerald bullet) */
+.glossary-term::after {
+  content: " ➔";
+  font-size: 0.75em;
+  opacity: 0;
+  display: inline-block;
+  transform: translateX(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  color: var(--e-green, #10b981);
+}
+
+.glossary-term:hover::after {
+  opacity: 0.8;
+  transform: translateX(0);
+}
+
+/* 2. Glassmorphic Popover Card Container */
+.glossary-popover {
   position: absolute;
   z-index: 1000;
-  width: min(380px, calc(100vw - 32px));
-  max-width: 380px;
-  background: #ffffff;
-  color: #0a0a0a;
-  border: 1px solid rgba(0,0,0,.12);
+  width: 320px;
+  max-width: 90vw;
+  background: rgba(10, 10, 10, 0.82); /* Sleek translucent dark base */
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  box-shadow:
-    0 4px 12px -4px rgba(0,0,0,.08),
-    0 24px 56px -12px rgba(0,0,0,.22);
-  padding: 20px 22px 18px;
-  font-family: 'Geist', 'Geist Sans', -apple-system, system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.55;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 
+              0 0 0 1px rgba(16, 185, 129, 0.1), /* Subtle outer green border ring */
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
   opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity .18s ease, transform .18s ease;
-  pointer-events: none;
+  visibility: hidden;
+  transform: translateY(8px) scale(0.98);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.25s;
 }
-.cg-popover[data-open="true"] {
+
+/* Active Hover State (Triggered by JS adding .is-active) */
+.glossary-popover.is-active {
   opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+  visibility: visible;
+  transform: translateY(0) scale(1);
 }
 
-.cg-popover__head {
+/* Smooth transition when reloading contents via term-to-term jump */
+.glossary-popover__content {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.glossary-popover__content.popover-transitioning {
+  opacity: 0;
+  transform: scale(0.97);
+}
+
+/* 3. Popover Internal Typography & Elements */
+
+/* Category Badge Row */
+.glossary-popover__meta {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0,0,0,.08);
-}
-.cg-popover__name {
-  font-size: 14.5px;
-  font-weight: 500;
-  letter-spacing: -.005em;
-  color: #0a0a0a;
-  margin: 0;
-}
-.cg-popover__close {
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  width: 24px; height: 24px;
-  display: flex;
   align-items: center;
-  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.glossary-popover__category {
+  font-family: var(--font-mono, "Geist Mono", monospace);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--e-green, #10b981);
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 6px;
   border-radius: 4px;
-  color: #888;
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 14px;
-  line-height: 1;
-  transition: background-color .15s, color .15s;
-  flex-shrink: 0;
-}
-.cg-popover__close:hover { background: rgba(0,0,0,.06); color: #0a0a0a; }
-.cg-popover__close::before { content: '×'; }
-
-.cg-popover__body {
-  font-size: 14px;
-  color: #1a1a1a;
-  margin: 0 0 14px;
 }
 
-.cg-popover__metaphor {
+.glossary-popover__stage {
+  font-family: var(--font-mono, "Geist Mono", monospace);
+  font-size: 10px;
+  color: var(--text-3, #9ca3af);
+  font-weight: 500;
+}
+
+/* Term Name */
+.glossary-popover__title {
+  font-family: var(--font-sans, "Geist Sans", sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text, #ffffff);
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+/* High-contrast Technical Definition */
+.glossary-popover__definition {
+  font-family: var(--font-sans, "Geist Sans", sans-serif);
   font-size: 13px;
   line-height: 1.5;
-  color: #4a4a4a;
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  background: rgba(48,201,105,.05);
-  border-left: 2px solid var(--cg-green, #30c969);
-  border-radius: 0 6px 6px 0;
-  font-style: italic;
-}
-.cg-popover__metaphor::before {
-  content: 'Like —';
-  display: inline-block;
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 9.5px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-style: normal;
-  color: var(--cg-green-dark, #239352);
-  margin-right: 8px;
-  font-weight: 500;
+  color: var(--text-2, #d1d5db);
+  margin-bottom: 12px;
 }
 
-.cg-popover__more {
-  display: inline-flex;
+/* Restaurant metaphor box */
+.glossary-popover__metaphor {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid rgba(16, 185, 129, 0.4);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.glossary-popover__metaphor-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, "Geist Mono", monospace);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(16, 185, 129, 0.85);
+  margin-bottom: 4px;
+}
+
+.glossary-popover__metaphor-text {
+  font-family: var(--font-sans, "Geist Sans", sans-serif);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-3, #9ca3af);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Divider Line */
+.glossary-popover__divider {
+  border: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 12px 0 10px 0;
+}
+
+/* 4. Action Area & Term-to-Term Jump Pills */
+.glossary-popover__actions {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 8px;
-  font-family: 'Geist Mono', ui-monospace, monospace;
+}
+
+/* Read specs button */
+.glossary-popover__read-link {
+  font-family: var(--font-sans, "Geist Sans", sans-serif);
   font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #0a0a0a;
+  font-weight: 600;
+  color: var(--e-green, #10b981);
   text-decoration: none;
-  padding-bottom: 3px;
-  border-bottom: 1px solid #0a0a0a;
-  transition: gap .2s ease;
-}
-.cg-popover__more::after { content: '→'; }
-.cg-popover__more:hover { gap: 12px; }
-
-/* Arrow pointer (CSS only, no JS positioning) */
-.cg-popover::before {
-  content: '';
-  position: absolute;
-  width: 12px; height: 12px;
-  background: #fff;
-  border: 1px solid rgba(0,0,0,.12);
-  border-right: 0;
-  border-bottom: 0;
-  transform: rotate(45deg);
-  top: -7px;
-  left: var(--arrow-x, 24px);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.cg-popover[data-placement="bottom"]::before {
-  top: auto;
-  bottom: -7px;
-  transform: rotate(225deg);
+.glossary-popover__read-link:hover {
+  color: var(--e-green-hover, #34d399);
+  transform: translateX(2px);
 }
 
-/* ─── Mobile: full-width sheet from bottom ─── */
-@media (max-width: 600px) {
-  .cg-popover {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    max-width: none;
-    top: auto !important;
-    transform: translateY(20px);
-    border-radius: 14px;
-    box-shadow: 0 -8px 32px -4px rgba(0,0,0,.18), 0 24px 56px -12px rgba(0,0,0,.3);
-  }
-  .cg-popover[data-open="true"] {
-    transform: translateY(0);
-  }
-  .cg-popover::before { display: none; }
+/* Related seeAlso section */
+.glossary-popover__see-also {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
 }
 
-/* Backdrop on mobile only */
-.cg-popover-backdrop {
-  display: none;
-}
-@media (max-width: 600px) {
-  .cg-popover-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.4);
-    z-index: 999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .18s ease;
-  }
-  .cg-popover-backdrop[data-open="true"] {
-    opacity: 1;
-    pointer-events: auto;
-  }
+.glossary-popover__see-also-label {
+  font-family: var(--font-mono, "Geist Mono", monospace);
+  font-size: 9px;
+  color: var(--text-4, #6b7280);
+  align-self: center;
 }
 
-/* Reduced motion */
+/* The Jump Pill Button */
+.glossary-jump-pill {
+  font-family: var(--font-sans, "Geist Sans", sans-serif);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-2, #d1d5db);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.glossary-jump-pill:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--e-green-hover, #34d399);
+}
+
+/* Prefers Reduced Motion override */
 @media (prefers-reduced-motion: reduce) {
-  .cg-popover, .cg-popover-backdrop, [data-term] {
+  .glossary-popover {
     transition: none;
   }
 }

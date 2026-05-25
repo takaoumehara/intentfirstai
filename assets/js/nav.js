@@ -10,7 +10,7 @@
 
    Options:
      basePath   — relative path to site root ('', '../', '../../')
-     activePage — 'home'|'simulator'|'intent'|'tokens'|'brain'|'ruleengine'|'trust'|'specs'|'axpatterns'|'projects'|'about'
+     activePage — 'home'|'simulator'|'intent'|'signals'|'dials'|'trust'|'tokens'(legacy alias for signals)|'brain'|'ruleengine'|'specs'|'axpatterns'|'projects'|'about'
      lang       — 'en' or 'ja'
    ============================================================= */
 
@@ -30,6 +30,493 @@
     }, 900);
   } catch (e) { /* sessionStorage may be blocked — ignore */ }
 })();
+
+function initGlossaryAndCommandK(opts) {
+  opts = opts || {};
+  if (window.__ifGlossaryAndCommandKReady) return;
+  window.__ifGlossaryAndCommandKReady = true;
+
+  var rootPrefix = (opts.rootPrefix || '').replace(/\/$/, '');
+  var lang = opts.lang === 'ja' ? 'ja' : 'en';
+  var cgLangInside = !!opts.cgLangInside;
+  var base = rootPrefix ? rootPrefix + '/' : '';
+
+  function ensureGlossaryCss() {
+    if (document.querySelector('link[href*="assets/css/glossary.css"]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = base + 'assets/css/glossary.css';
+    document.head.appendChild(link);
+  }
+
+  function ensureGlossaryDb(cb) {
+    if (window.GLOSSARY_DB && window.GLOSSARY_DB.length) {
+      cb();
+      return;
+    }
+    var existing = document.querySelector('script[src*="assets/js/glossary-db.js"]');
+    if (existing) {
+      existing.addEventListener('load', cb, { once: true });
+      existing.addEventListener('error', function () { /* ignore */ }, { once: true });
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = base + 'assets/js/glossary-db.js';
+    script.defer = true;
+    script.onload = cb;
+    script.onerror = function () { /* ignore */ };
+    document.head.appendChild(script);
+  }
+
+  function normalizeText(s) {
+    return String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  function escapeRegex(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function looksLatin(s) {
+    return /^[A-Za-z0-9 .·()&/+\-–—]+$/.test(s);
+  }
+
+  function localizeTargetPath(path) {
+    if (!path) return '';
+    var p = String(path).replace(/^\/+/, '');
+    if (lang !== 'ja') return p;
+    if (!cgLangInside) return p;
+    if (p.indexOf('context-grammar/ja/') === 0) return p;
+    if (p.indexOf('context-grammar/') === 0) return p.replace('context-grammar/', 'context-grammar/ja/');
+    return p;
+  }
+
+  function buildGlossaryMap() {
+    var db = Array.isArray(window.GLOSSARY_DB) ? window.GLOSSARY_DB : [];
+    var byId = {};
+    var termToId = {};
+    var terms = [];
+    db.forEach(function (entry) {
+      byId[entry.id] = entry;
+      var variants = [];
+      if (entry.name) {
+        variants.push(entry.name.en, entry.name.ja);
+      }
+      if (entry.shortName) {
+        variants.push(entry.shortName.en, entry.shortName.ja);
+      }
+      variants.forEach(function (v) {
+        var n = normalizeText(v);
+        if (!n || n.length < 3) return;
+        if (!termToId[n]) termToId[n] = entry.id;
+      });
+    });
+    Object.keys(termToId).forEach(function (k) { terms.push(k); });
+    terms.sort(function (a, b) { return b.length - a.length; });
+    return { byId: byId, termToId: termToId, terms: terms };
+  }
+
+  function buildPattern(terms) {
+    if (!terms.length) return null;
+    var alt = terms.map(escapeRegex).join('|');
+    return new RegExp('(' + alt + ')', 'gi');
+  }
+
+  function isBoundarySafe(text, idx, matched) {
+    if (!looksLatin(matched)) return true;
+    var before = idx > 0 ? text.charAt(idx - 1) : '';
+    var after = idx + matched.length < text.length ? text.charAt(idx + matched.length) : '';
+    var wb = /[A-Za-z0-9]/;
+    return !wb.test(before) && !wb.test(after);
+  }
+
+  function shouldSkipNode(node) {
+    if (!node || !node.parentElement) return true;
+    var el = node.parentElement;
+    if (el.closest('.site-nav, .cg-popover, .glossary-popover, .if-cmdk-modal, .if-cmdk-toggle')) return true;
+    var tag = el.tagName;
+    if (!tag) return true;
+    if (/^(SCRIPT|STYLE|NOSCRIPT|CODE|PRE|KBD|SAMP|TEXTAREA|INPUT|SELECT|OPTION|BUTTON|A)$/i.test(tag)) return true;
+    return false;
+  }
+
+  function wrapGlossaryTerms(state) {
+    if (document.body.hasAttribute('data-glossary-wrapped')) return;
+    var root = document.querySelector('main') || document.body;
+    var pattern = state.pattern;
+    if (!root || !pattern) return;
+
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        if (shouldSkipNode(node)) return NodeFilter.FILTER_REJECT;
+        var txt = node.nodeValue || '';
+        if (txt.trim().length < 3) return NodeFilter.FILTER_REJECT;
+        if (!pattern.test(txt)) return NodeFilter.FILTER_REJECT;
+        pattern.lastIndex = 0;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function (textNode) {
+      var text = textNode.nodeValue;
+      pattern.lastIndex = 0;
+      var match;
+      var last = 0;
+      var frag = null;
+      while ((match = pattern.exec(text)) !== null) {
+        var matched = match[0];
+        var idx = match.index;
+        if (!isBoundarySafe(text, idx, matched)) continue;
+        var id = state.termToId[normalizeText(matched)];
+        if (!id) continue;
+        if (!frag) frag = document.createDocumentFragment();
+        if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+        var span = document.createElement('span');
+        span.className = 'glossary-term';
+        span.setAttribute('data-term-id', id);
+        span.setAttribute('tabindex', '0');
+        span.setAttribute('role', 'button');
+        span.textContent = matched;
+        frag.appendChild(span);
+        last = idx + matched.length;
+      }
+      if (!frag) return;
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      textNode.parentNode.replaceChild(frag, textNode);
+    });
+
+    document.body.setAttribute('data-glossary-wrapped', 'true');
+  }
+
+  function ensurePopoverDom() {
+    var pop = document.querySelector('.glossary-popover');
+    if (pop) return pop;
+    pop = document.createElement('div');
+    pop.className = 'glossary-popover';
+    pop.innerHTML = ''
+      + '<div class="glossary-popover__content">'
+      + '  <div class="glossary-popover__meta"><span class="glossary-popover__category"></span><span class="glossary-popover__stage"></span></div>'
+      + '  <h4 class="glossary-popover__title"></h4>'
+      + '  <p class="glossary-popover__definition"></p>'
+      + '  <div class="glossary-popover__metaphor">'
+      + '    <div class="glossary-popover__metaphor-title">Restaurant Metaphor</div>'
+      + '    <p class="glossary-popover__metaphor-text"></p>'
+      + '  </div>'
+      + '  <hr class="glossary-popover__divider">'
+      + '  <div class="glossary-popover__actions">'
+      + '    <a class="glossary-popover__read-link" href="#">Read Spec →</a>'
+      + '    <div class="glossary-popover__see-also"></div>'
+      + '  </div>'
+      + '</div>';
+    document.body.appendChild(pop);
+    return pop;
+  }
+
+  function positionPopover(pop, target) {
+    var rect = target.getBoundingClientRect();
+    var pRect = pop.getBoundingClientRect();
+    var top = rect.bottom + window.scrollY + 10;
+    var left = rect.left + window.scrollX;
+    var maxLeft = window.scrollX + window.innerWidth - pRect.width - 16;
+    if (left > maxLeft) left = maxLeft;
+    if (left < window.scrollX + 8) left = window.scrollX + 8;
+    if (top + pRect.height > window.scrollY + window.innerHeight - 8) {
+      top = rect.top + window.scrollY - pRect.height - 12;
+    }
+    pop.style.top = Math.max(window.scrollY + 8, top) + 'px';
+    pop.style.left = left + 'px';
+  }
+
+  function bindGlossaryPopover(state) {
+    var pop = ensurePopoverDom();
+    var content = pop.querySelector('.glossary-popover__content');
+    var title = pop.querySelector('.glossary-popover__title');
+    var def = pop.querySelector('.glossary-popover__definition');
+    var metaCat = pop.querySelector('.glossary-popover__category');
+    var metaStage = pop.querySelector('.glossary-popover__stage');
+    var metaphor = pop.querySelector('.glossary-popover__metaphor-text');
+    var readLink = pop.querySelector('.glossary-popover__read-link');
+    var seeAlso = pop.querySelector('.glossary-popover__see-also');
+    var activeTerm = null;
+    var hideTimer = null;
+    var currentId = null;
+
+    function renderById(id) {
+      var entry = state.byId[id];
+      if (!entry) return;
+      currentId = id;
+      var name = (entry.name && entry.name[lang]) || (entry.shortName && entry.shortName[lang]) || id;
+      var category = entry.category || 'term';
+      var definition = (entry.definition && entry.definition[lang]) || '';
+      var metaphorText = (entry.metaphor && entry.metaphor[lang]) || '';
+      var anchor = entry.anchor ? ('#' + entry.anchor) : '';
+      var targetPath = localizeTargetPath(entry.targetPath);
+      title.textContent = name;
+      def.textContent = definition;
+      metaCat.textContent = String(category).toUpperCase();
+      metaStage.textContent = targetPath.indexOf('context-grammar/') === 0 ? 'Context Grammar' : '';
+      metaphor.textContent = metaphorText;
+      readLink.href = base + targetPath + anchor;
+      readLink.textContent = lang === 'ja' ? '詳しく読む →' : 'Read Spec →';
+      seeAlso.innerHTML = '';
+      (entry.seeAlso || []).forEach(function (sid) {
+        var se = state.byId[sid];
+        if (!se) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'glossary-jump-pill';
+        btn.setAttribute('data-target-id', sid);
+        btn.textContent = (se.shortName && se.shortName[lang]) || (se.name && se.name[lang]) || sid;
+        seeAlso.appendChild(btn);
+      });
+    }
+
+    function openForTerm(termEl) {
+      clearTimeout(hideTimer);
+      activeTerm = termEl;
+      renderById(termEl.getAttribute('data-term-id'));
+      pop.classList.add('is-active');
+      pop.style.visibility = 'hidden';
+      pop.style.display = 'block';
+      positionPopover(pop, termEl);
+      pop.style.visibility = '';
+    }
+
+    function closePopoverSoon() {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () {
+        pop.classList.remove('is-active');
+        activeTerm = null;
+      }, 120);
+    }
+
+    document.addEventListener('mouseover', function (e) {
+      var term = e.target.closest('.glossary-term');
+      if (!term) return;
+      openForTerm(term);
+    });
+    document.addEventListener('focusin', function (e) {
+      var term = e.target.closest('.glossary-term');
+      if (!term) return;
+      openForTerm(term);
+    });
+    document.addEventListener('mouseout', function (e) {
+      if (e.target.closest('.glossary-term')) closePopoverSoon();
+    });
+    pop.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+    pop.addEventListener('mouseleave', closePopoverSoon);
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('.glossary-term')) return;
+      if (e.target.closest('.glossary-popover')) return;
+      pop.classList.remove('is-active');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') pop.classList.remove('is-active');
+    });
+    window.addEventListener('scroll', function () {
+      if (activeTerm && pop.classList.contains('is-active')) positionPopover(pop, activeTerm);
+    }, { passive: true });
+    window.addEventListener('resize', function () {
+      if (activeTerm && pop.classList.contains('is-active')) positionPopover(pop, activeTerm);
+    });
+
+    pop.addEventListener('click', function (e) {
+      var jump = e.target.closest('.glossary-jump-pill');
+      if (!jump) return;
+      e.preventDefault();
+      var targetId = jump.getAttribute('data-target-id');
+      if (!targetId || !state.byId[targetId]) return;
+      content.classList.add('popover-transitioning');
+      setTimeout(function () {
+        renderById(targetId);
+        content.classList.remove('popover-transitioning');
+      }, 150);
+    });
+  }
+
+  function initCommandK(state) {
+    if (document.querySelector('.if-cmdk-modal')) return;
+    var modal = document.createElement('div');
+    modal.className = 'if-cmdk-modal';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = ''
+      + '<div class="if-cmdk-backdrop"></div>'
+      + '<div class="if-cmdk-panel" role="dialog" aria-modal="true" aria-label="Command K">'
+      + '  <div class="if-cmdk-head">'
+      + '    <span class="if-cmdk-kbd">' + (lang === 'ja' ? '検索' : 'Search') + '</span>'
+      + '    <input class="if-cmdk-input" type="text" autocomplete="off" placeholder="' + (lang === 'ja' ? 'ページ・用語を検索…' : 'Search pages and terms…') + '">'
+      + '  </div>'
+      + '  <div class="if-cmdk-body">'
+      + '    <ul class="if-cmdk-results"></ul>'
+      + '    <div class="if-cmdk-preview"></div>'
+      + '  </div>'
+      + '</div>';
+    document.body.appendChild(modal);
+
+    var input = modal.querySelector('.if-cmdk-input');
+    var resultsEl = modal.querySelector('.if-cmdk-results');
+    var previewEl = modal.querySelector('.if-cmdk-preview');
+    var items = [];
+
+    function buildPageItems() {
+      var out = [];
+      var rows = document.querySelectorAll('.site-nav__list .site-nav__main, .site-nav__list .site-nav__sub');
+      rows.forEach(function (a) {
+        var title = a.textContent.trim();
+        var href = a.getAttribute('href');
+        if (!title || !href) return;
+        out.push({ type: 'page', title: title, subtitle: href.replace(/^https?:\/\/[^/]+/, ''), href: href, tags: [title.toLowerCase()] });
+      });
+      return out;
+    }
+
+    function buildGlossaryItems() {
+      var out = [];
+      (window.GLOSSARY_DB || []).forEach(function (entry) {
+        var title = (entry.name && entry.name[lang]) || (entry.shortName && entry.shortName[lang]) || entry.id;
+        var subtitle = (entry.definition && entry.definition[lang]) || '';
+        var targetPath = localizeTargetPath(entry.targetPath);
+        var href = base + targetPath + (entry.anchor ? ('#' + entry.anchor) : '');
+        out.push({
+          type: 'glossary',
+          id: entry.id,
+          title: title,
+          subtitle: subtitle,
+          metaphor: (entry.metaphor && entry.metaphor[lang]) || '',
+          href: href,
+          tags: (entry.tags || []).concat([entry.id, entry.category || '']).map(function (t) { return String(t).toLowerCase(); })
+        });
+      });
+      return out;
+    }
+
+    function score(item, q) {
+      if (!q) return 1;
+      var t = item.title.toLowerCase();
+      var s = item.subtitle.toLowerCase();
+      if (t === q) return 100;
+      if (t.indexOf(q) === 0) return 80;
+      if (t.indexOf(q) !== -1) return 60;
+      if (s.indexOf(q) !== -1) return 40;
+      if ((item.tags || []).some(function (tag) { return tag.indexOf(q) !== -1; })) return 30;
+      return 0;
+    }
+
+    function renderPreview(item) {
+      if (!item) {
+        previewEl.innerHTML = '<p class="if-cmdk-empty">' + (lang === 'ja' ? '用語またはページを選択してください。' : 'Select a term or page.') + '</p>';
+        return;
+      }
+      if (item.type === 'glossary') {
+        previewEl.innerHTML = ''
+          + '<p class="if-cmdk-type">Glossary</p>'
+          + '<h4>' + item.title + '</h4>'
+          + '<p>' + item.subtitle + '</p>'
+          + '<p class="if-cmdk-metaphor">' + item.metaphor + '</p>';
+      } else {
+        previewEl.innerHTML = ''
+          + '<p class="if-cmdk-type">Page</p>'
+          + '<h4>' + item.title + '</h4>'
+          + '<p>' + item.subtitle + '</p>';
+      }
+    }
+
+    function renderResults(q) {
+      var query = normalizeText(q || '');
+      var ranked = items.map(function (item) {
+        return { item: item, score: score(item, query) };
+      }).filter(function (x) { return x.score > 0; })
+        .sort(function (a, b) { return b.score - a.score; })
+        .slice(0, 18)
+        .map(function (x) { return x.item; });
+      resultsEl.innerHTML = '';
+      ranked.forEach(function (item, idx) {
+        var li = document.createElement('li');
+        li.className = 'if-cmdk-item' + (idx === 0 ? ' is-active' : '');
+        li.setAttribute('data-href', item.href);
+        li.innerHTML = '<strong>' + item.title + '</strong><span>' + item.subtitle + '</span>';
+        li.addEventListener('mouseenter', function () {
+          resultsEl.querySelectorAll('.if-cmdk-item').forEach(function (el) { el.classList.remove('is-active'); });
+          li.classList.add('is-active');
+          renderPreview(item);
+        });
+        li.addEventListener('click', function () {
+          window.location.href = item.href;
+        });
+        resultsEl.appendChild(li);
+      });
+      renderPreview(ranked[0] || null);
+    }
+
+    function closeModal() {
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function openModal() {
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      input.value = '';
+      renderResults('');
+      setTimeout(function () { input.focus(); }, 0);
+    }
+
+    modal.querySelector('.if-cmdk-backdrop').addEventListener('click', closeModal);
+    document.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (modal.classList.contains('is-open')) closeModal(); else openModal();
+        return;
+      }
+      if (e.key === '/' && !modal.classList.contains('is-open')) {
+        var t = e.target;
+        var typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+        if (!typing) {
+          e.preventDefault();
+          openModal();
+        }
+      }
+      if (!modal.classList.contains('is-open')) return;
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        var list = Array.prototype.slice.call(resultsEl.querySelectorAll('.if-cmdk-item'));
+        if (!list.length) return;
+        var idx = list.findIndex(function (el) { return el.classList.contains('is-active'); });
+        if (idx < 0) idx = 0;
+        list[idx].classList.remove('is-active');
+        idx = e.key === 'ArrowDown' ? (idx + 1) % list.length : (idx - 1 + list.length) % list.length;
+        list[idx].classList.add('is-active');
+        list[idx].dispatchEvent(new Event('mouseenter'));
+      }
+      if (e.key === 'Enter') {
+        var active = resultsEl.querySelector('.if-cmdk-item.is-active');
+        if (active) window.location.href = active.getAttribute('data-href');
+      }
+    });
+    input.addEventListener('input', function () { renderResults(input.value); });
+
+    items = buildPageItems().concat(buildGlossaryItems());
+    renderResults('');
+
+    var cmdkButtons = document.querySelectorAll('.if-cmdk-toggle');
+    cmdkButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () { openModal(); });
+    });
+  }
+
+  ensureGlossaryCss();
+  ensureGlossaryDb(function () {
+    if (!window.GLOSSARY_DB || !window.GLOSSARY_DB.length) return;
+    var state = buildGlossaryMap();
+    state.pattern = buildPattern(state.terms);
+    wrapGlossaryTerms(state);
+    bindGlossaryPopover(state);
+    initCommandK(state);
+  });
+}
 
 function initSiteNavCompat(opts) {
   opts = opts || {};
@@ -54,8 +541,9 @@ function initSiteNavCompat(opts) {
   };
   var homeHref = prefix('index.html');
   var logoBase = rootPrefix ? rootPrefix + '/' : '';
-  var active = opts.activePage || '';
-  var cgKeys = ['context-grammar', 'simulator', 'intent', 'tokens', 'trust', 'brain', 'ruleengine', 'negotiation-gate', 'negotiation-layer', 'axpatterns', 'specs'];
+  var activeRaw = opts.activePage || '';
+  var active = activeRaw === 'tokens' ? 'signals' : activeRaw;
+  var cgKeys = ['context-grammar', 'simulator', 'intent', 'signals', 'dials', 'tokens', 'trust', 'brain', 'ruleengine', 'negotiation-gate', 'negotiation-layer', 'axpatterns', 'specs'];
 
   var items = [
     {
@@ -67,8 +555,9 @@ function initSiteNavCompat(opts) {
         { label: 'Overview', href: '__cg__/index.html', key: 'context-grammar' },
         { label: 'Simulator', href: '__cg__/simulator/index.html', key: 'simulator' },
         { label: 'Intent', href: '__cg__/intent/index.html', key: 'intent' },
-        { label: (navLang === 'ja' ? '状況シグナル' : 'Situation Signals'), href: '__cg__/signals-and-dials/index.html', key: 'tokens' },
-        { label: (navLang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials'), href: '__cg__/trust-design/index.html', key: 'trust' },
+        { label: (navLang === 'ja' ? '状況シグナル' : 'Situation Signals'), href: '__cg__/signals/index.html', key: 'signals' },
+        { label: (navLang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials'), href: '__cg__/dials/index.html', key: 'dials' },
+        { label: (navLang === 'ja' ? '信頼' : 'Trust'), href: '__cg__/trust/index.html', key: 'trust' },
         { label: 'Brain', href: '__cg__/brain/index.html', key: 'brain' },
         { label: 'Rule Engine', href: '__cg__/rule-engine/index.html', key: 'ruleengine' },
         { label: 'Negotiation Gate', href: '__cg__/negotiation-gate/index.html', key: 'negotiation-gate' },
@@ -168,6 +657,7 @@ function initSiteNavCompat(opts) {
     + '    <img class="logo-for-light" src="' + logoBase + 'assets/logo/IF-lockup-black.svg" alt="intentfirst" />'
     + '    <img class="logo-for-dark" src="' + logoBase + 'assets/logo/IF-lockup-white.svg" alt="" aria-hidden="true" />'
     + '  </a>'
+    + '  <button class="if-cmdk-toggle" type="button" aria-label="Open Command K">⌘K</button>'
     + '  <button class="' + triggerClass + '" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-haspopup="dialog">'
     + '    <span class="site-nav__dot-wrap">'
     + '      <span class="site-nav__dot" aria-hidden="true"></span>'
@@ -251,8 +741,9 @@ function initSiteNavCompat(opts) {
       + '<a href="' + prefixCg('index.html') + '"' + (active === 'context-grammar' ? ' aria-current="page"' : '') + '>Overview</a>'
       + '<a href="' + prefixCg('simulator/index.html') + '"' + (active === 'simulator' ? ' aria-current="page"' : '') + '>Simulator</a>'
       + '<a href="' + prefixCg('intent/index.html') + '"' + (active === 'intent' ? ' aria-current="page"' : '') + '>Intent</a>'
-      + '<a href="' + prefixCg('signals-and-dials/index.html') + '"' + (active === 'tokens' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
-      + '<a href="' + prefixCg('trust-design/index.html') + '"' + (active === 'trust' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
+      + '<a href="' + prefixCg('signals/index.html') + '"' + (active === 'signals' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
+      + '<a href="' + prefixCg('dials/index.html') + '"' + (active === 'dials' ? ' aria-current="page"' : '') + '>' + (navLang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
+      + '<a href="' + prefixCg('trust/index.html') + '"' + (active === 'trust' ? ' aria-current="page"' : '') + '>Trust</a>'
       + '<a href="' + prefixCg('brain/index.html') + '"' + (active === 'brain' ? ' aria-current="page"' : '') + '>Brain</a>'
       + '<a href="' + prefixCg('rule-engine/index.html') + '"' + (active === 'ruleengine' ? ' aria-current="page"' : '') + '>Rules</a>'
       + '<a href="' + prefixCg('negotiation-layer/index.html') + '"' + (active === 'negotiation-layer' ? ' aria-current="page"' : '') + '>Negotiate</a>'
@@ -511,7 +1002,8 @@ function initNav(opts) {
 
   opts = opts || {};
   var bp = opts.basePath || '';
-  var active = opts.activePage || '';
+  var activeRaw = opts.activePage || '';
+  var active = activeRaw === 'tokens' ? 'signals' : activeRaw;
   var lang = opts.lang || 'en';
   var showLang = opts.showLang !== false; // default true; pass false to hide
   var autoHide = opts.autoHide === true;  // default false; pass true to hide on scroll down
@@ -531,10 +1023,11 @@ function initNav(opts) {
     overview: pageRoot + 'context-grammar/index.html',
     simulator: pageRoot + 'context-grammar/simulator/index.html',
     intent: pageRoot + 'context-grammar/intent/index.html',
-    tokens: pageRoot + 'context-grammar/signals-and-dials/index.html',
+    signals: pageRoot + 'context-grammar/signals/index.html',
+    dials: pageRoot + 'context-grammar/dials/index.html',
     brain: pageRoot + 'context-grammar/brain/index.html',
     ruleengine: pageRoot + 'context-grammar/rule-engine/index.html',
-    trust: pageRoot + 'context-grammar/trust-design/index.html',
+    trust: pageRoot + 'context-grammar/trust/index.html',
     specs: pageRoot + 'context-grammar/specs/index.html',
     axpatterns: pageRoot + 'context-grammar/ax-patterns/index.html',
     projects: pageRoot + 'projects/index.html',
@@ -544,7 +1037,7 @@ function initNav(opts) {
   };
 
   // CG sub-pages for dropdown trigger active state + subnav
-  var cgPages = ['context-grammar', 'simulator', 'intent', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns'];
+  var cgPages = ['context-grammar', 'simulator', 'intent', 'signals', 'dials', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns'];
   var isCGActive = cgPages.indexOf(active) !== -1;
 
   // ── Helper: active class ──
@@ -584,8 +1077,9 @@ function initNav(opts) {
     + '          <a href="' + pages.overview + '" role="menuitem" class="' + ac('context-grammar') + '">Overview</a>'
     + '          <a href="' + pages.simulator + '" role="menuitem" class="' + ac('simulator') + '">Simulator</a>'
     + '          <a href="' + pages.intent + '" role="menuitem" class="' + ac('intent') + '">Intent</a>'
-    + '          <a href="' + pages.tokens + '" role="menuitem" class="' + ac('tokens') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
-    + '          <a href="' + pages.trust + '" role="menuitem" class="' + ac('trust') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
+    + '          <a href="' + pages.signals + '" role="menuitem" class="' + ac('signals') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
+    + '          <a href="' + pages.dials + '" role="menuitem" class="' + ac('dials') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
+    + '          <a href="' + pages.trust + '" role="menuitem" class="' + ac('trust') + '">' + (lang === 'ja' ? '信頼' : 'Trust') + '</a>'
     + '          <a href="' + pages.brain + '" role="menuitem" class="' + ac('brain') + '">Brain</a>'
     + '          <a href="' + pages.ruleengine + '" role="menuitem" class="' + ac('ruleengine') + '">Rule Engine</a>'
     + '          <a href="' + pages.axpatterns + '" role="menuitem" class="' + ac('axpatterns') + '">AX Patterns</a>'
@@ -612,8 +1106,9 @@ function initNav(opts) {
        + '    <a href="' + pages.overview + '"' + (active === 'context-grammar' ? ' class="nav-subnav-active"' : '') + '>Overview</a>'
        + '    <a href="' + pages.simulator + '"' + (active === 'simulator' ? ' class="nav-subnav-active"' : '') + '>Simulator</a>'
        + '    <a href="' + pages.intent + '"' + (active === 'intent' ? ' class="nav-subnav-active"' : '') + '>Intent</a>'
-       + '    <a href="' + pages.tokens + '"' + (active === 'tokens' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
-       + '    <a href="' + pages.trust + '"' + (active === 'trust' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
+       + '    <a href="' + pages.signals + '"' + (active === 'signals' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
+       + '    <a href="' + pages.dials + '"' + (active === 'dials' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
+       + '    <a href="' + pages.trust + '"' + (active === 'trust' ? ' class="nav-subnav-active"' : '') + '>Trust</a>'
        + '    <a href="' + pages.brain + '"' + (active === 'brain' ? ' class="nav-subnav-active"' : '') + '>Brain</a>'
        + '    <a href="' + pages.ruleengine + '"' + (active === 'ruleengine' ? ' class="nav-subnav-active"' : '') + '>Rule Engine</a>'
        + '    <a href="' + pages.axpatterns + '"' + (active === 'axpatterns' ? ' class="nav-subnav-active"' : '') + '>AX Patterns</a>'
@@ -630,8 +1125,9 @@ function initNav(opts) {
      + '  <a href="' + pages.overview + '" class="mobile-sub-link' + ac('context-grammar') + '">Overview</a>'
      + '  <a href="' + pages.simulator + '" class="mobile-sub-link' + ac('simulator') + '">Simulator</a>'
      + '  <a href="' + pages.intent + '" class="mobile-sub-link' + ac('intent') + '">Intent</a>'
-     + '  <a href="' + pages.tokens + '" class="mobile-sub-link' + ac('tokens') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
-     + '  <a href="' + pages.trust + '" class="mobile-sub-link' + ac('trust') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
+     + '  <a href="' + pages.signals + '" class="mobile-sub-link' + ac('signals') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
+     + '  <a href="' + pages.dials + '" class="mobile-sub-link' + ac('dials') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
+     + '  <a href="' + pages.trust + '" class="mobile-sub-link' + ac('trust') + '">' + (lang === 'ja' ? '信頼' : 'Trust') + '</a>'
      + '  <a href="' + pages.brain + '" class="mobile-sub-link' + ac('brain') + '">Brain</a>'
      + '  <a href="' + pages.ruleengine + '" class="mobile-sub-link' + ac('ruleengine') + '">Rule Engine</a>'
      + '  <a href="' + pages.axpatterns + '" class="mobile-sub-link' + ac('axpatterns') + '">AX Patterns</a>'
@@ -876,4 +1372,10 @@ function initNav(opts) {
       closeMobileMenu();
     });
   }
+
+  initGlossaryAndCommandK({
+    rootPrefix: rootPrefix,
+    lang: navLang,
+    cgLangInside: cgLangInside
+  });
 }
