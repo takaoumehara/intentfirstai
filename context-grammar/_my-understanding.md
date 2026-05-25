@@ -306,7 +306,7 @@ Autonomy Dial(信頼軸)と直交する7動詞(行動軸):
 
 ---
 
-## 4. Floor 3: Brain — 3層メモリ
+## 4. Brain (Cross-cut) — 3層メモリ
 
 ### 4.1 全体構造
 
@@ -410,7 +410,7 @@ Autonomy Dial(信頼軸)と直交する7動詞(行動軸):
 
 ---
 
-## 5. Floor 4: Rule Engine
+## 5. Stage 4: Rule Engine
 
 ### 5.1 何か
 > 「6 Situation Signals & 2 Relationship Dials + Brain → 具体的なデザインルール。If/then logic at scale。推奨ではなくルール。」
@@ -449,7 +449,7 @@ if Disclosure = hidden AND Autonomy > Confirm → constraint violation → reset
 
 ---
 
-## 6. Floor 5: Response — 23 AX Patterns
+## 6. Stage 7: AX × Lifecycle — 23 AX Patterns
 
 ### 6.1 構造
 - **Level 1: 3 Response Directions**(Delegation / Escalation / Adaptation)
