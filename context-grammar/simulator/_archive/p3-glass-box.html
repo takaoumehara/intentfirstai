@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Grammar · P3 — Voice to Purchase Journey</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Progress bar ─── */
+.prog {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--bg-3); z-index: 200;
+}
+.prog__fill {
+  height: 100%; background: var(--copper, #a05c35);
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Shell: 2-panel layout ─── */
+.shell {
+  display: flex;
+  height: 100dvh;
+  padding-top: 2px;
+  padding-bottom: var(--nav-h, 56px);
+}
+
+/* ─── Left: User UI ─── */
+.panel-user {
+  flex: 0 0 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px 16px;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  gap: 12px;
+  overflow: hidden;
+}
+
+.panel-eyebrow {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  align-self: flex-start;
+}
+
+.phone-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+}
+
+/* ─── Right: Backstage ─── */
+.panel-bts {
+  flex: 1;
+  background: var(--bts-bg, #08070b);
+  color: var(--bts-text, #f0ece4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Step panels */
+[data-step] { display: none; }
+[data-step].active { display: flex; flex-direction: column; flex: 1; }
+
+/* ═══════════════════════════════════════════════
+   BACKSTAGE PANEL STYLES
+   ═══════════════════════════════════════════════ */
+
+.bts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 32px;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.bts-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--bts-engine, #c4a8e0);
+  margin-bottom: 6px;
+}
+.bts-chip::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--bts-engine, #c4a8e0);
+}
+
+.bts-ttl {
+  font-size: clamp(24px, 2.6vw, 34px);
+  font-weight: 500;
+  color: var(--bts-text, #f0ece4);
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.bts-lede {
+  font-size: 14px;
+  color: var(--bts-text-2, rgba(240,236,228,0.88));
+  line-height: 1.6;
+  max-width: 520px;
+}
+
+/* Intent parse */
+.iparse {
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  padding: 16px;
+}
+.iparse-in {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(240,236,228,0.12);
+}
+.iparse-lbl {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--bts-text-3, rgba(240,236,228,0.68));
+  margin-bottom: 4px;
+}
+.iparse-txt {
+  font-size: 16px;
+  color: var(--bts-text-2, rgba(240,236,228,0.88));
+}
+
+/* Intent tags */
+.itags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.itag {
+  background: rgba(100,150,240,0.15);
+  color: #a8c4f0;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  animation: slidein 0.2s ease forwards;
+}
+@keyframes slidein {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.itag:nth-child(1) { animation-delay: 0.1s; }
+.itag:nth-child(2) { animation-delay: 0.2s; }
+.itag:nth-child(3) { animation-delay: 0.3s; }
+.itag:nth-child(4) { animation-delay: 0.4s; }
+.itag:nth-child(5) { animation-delay: 0.5s; }
+
+.iarrow {
+  color: var(--bts-text-3);
+  font-size: 14px;
+  margin: 6px 0;
+}
+.iaction {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--bts-yes, #a4d4a8);
+}
+
+/* Situation Signals & Relationship Dials */
+.token-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.token-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  font-size: 11px;
+  transition: background 200ms, border-color 200ms;
+  border: 1px solid transparent;
+}
+.token-row.is-active {
+  background: rgba(48,201,105,0.06);
+  border-color: rgba(48,201,105,0.2);
+}
+.token-row.is-crisis {
+  background: rgba(220,38,38,0.06);
+  border-color: rgba(220,38,38,0.18);
+}
+.token-row.is-changed {
+  background: rgba(245,158,11,0.08);
+  border-color: rgba(245,158,11,0.25);
+  animation: pulse-token 0.6s ease-out;
+}
+@keyframes pulse-token {
+  0% { background: rgba(245,158,11,0.25); }
+  100% { background: rgba(245,158,11,0.08); }
+}
+.token-num {
+  font-family: 'Geist Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--bts-text-3);
+  width: 14px;
+  flex-shrink: 0;
+}
+.token-name {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  color: var(--bts-text-3);
+  width: 86px;
+  flex-shrink: 0;
+}
+.token-val {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bts-text-2);
+  flex: 1;
+}
+.token-val.is-active { color: var(--bts-yes, #a4d4a8); font-weight: 600; }
+.token-val.is-crisis { color: #e89090; font-weight: 600; }
+.token-val.is-changed { color: #f5c542; font-weight: 600; }
+.token-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+.token-dot.is-active { background: #30c969; }
+.token-dot.is-crisis { background: #dc2626; }
+.token-dot.is-changed { background: #f59e0b; }
+
+/* Brain cards */
+.bcards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bcard {
+  background: rgba(196,168,224,0.06);
+  border-left: 3px solid var(--bts-engine, #c4a8e0);
+  border-radius: 2px 8px 8px 2px;
+  padding: 11px 14px;
+  opacity: 0;
+  animation: cardin 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.bcard:nth-child(1) { animation-delay: 0.08s; }
+.bcard:nth-child(2) { animation-delay: 0.22s; }
+.bcard:nth-child(3) { animation-delay: 0.36s; }
+.bcard:nth-child(4) { animation-delay: 0.5s; }
+.bcard:nth-child(5) { animation-delay: 0.64s; }
+@keyframes cardin {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.bcard-type {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--bts-engine, #c4a8e0);
+  margin-bottom: 4px;
+}
+.bcard-main {
+  font-size: 13px;
+  color: var(--bts-text, #f0ece4);
+  line-height: 1.4;
+}
+.bcard-detail {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  color: var(--bts-text-3);
+  margin-top: 4px;
+}
+.bcard-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  color: var(--bts-yes, #a4d4a8);
+  margin-top: 6px;
+}
+.bcard-ok::before { content: '●'; font-size: 6px; }
+
+/* Filter chain */
+.fchain {
+  display: flex;
+  flex-direction: column;
+}
+.fstep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(240,236,228,0.07);
+  opacity: 0;
+  animation: slidein 0.25s ease forwards;
+}
+.fstep:nth-child(1) { animation-delay: 0.05s; }
+.fstep:nth-child(2) { animation-delay: 0.18s; }
+.fstep:nth-child(3) { animation-delay: 0.31s; }
+.fstep:nth-child(4) { animation-delay: 0.44s; }
+.fstep-n {
+  font-family: 'Geist Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--bts-text, #f0ece4);
+  min-width: 54px;
+  text-align: right;
+}
+.fstep-arr { color: var(--bts-text-3); font-size: 13px; flex-shrink: 0; }
+.fstep-info { flex: 1; }
+.fstep-rule {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--bts-text-2, rgba(240,236,228,0.88));
+}
+.fstep-src { font-size: 10px; color: var(--bts-text-3); margin-top: 2px; }
+.fstep-src em {
+  font-style: normal;
+  color: var(--bts-engine, #c4a8e0);
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+}
+.fstep-out {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: var(--bts-text-3);
+  flex-shrink: 0;
+}
+.fstep-out--ok { color: var(--bts-yes, #a4d4a8); }
+
+/* AX Pattern badges */
+.ax-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.ax-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(124,58,237,0.06);
+  border: 1px solid rgba(124,58,237,0.18);
+  color: #7c3aed;
+}
+
+/* Decision trace */
+.dtrace {
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: 'Geist Mono', monospace;
+}
+.dtrace-hdr {
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--bts-text-3);
+  margin-bottom: 10px;
+}
+.drow {
+  display: flex;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 11px;
+  opacity: 0;
+  animation: slidein 0.2s ease forwards;
+}
+.drow:nth-child(2) { animation-delay: 0.05s; }
+.drow:nth-child(3) { animation-delay: 0.12s; }
+.drow:nth-child(4) { animation-delay: 0.19s; }
+.drow:nth-child(5) { animation-delay: 0.26s; }
+.drow:nth-child(6) { animation-delay: 0.33s; }
+.drow-t { color: var(--bts-text-3); flex-shrink: 0; }
+.drow-e { flex: 1; color: var(--bts-text-2); }
+.drow-ok { color: var(--bts-yes, #a4d4a8); flex-shrink: 0; }
+.drow-skip { color: var(--bts-text-3); }
+
+/* Quote */
+.bquote {
+  border-left: 2px solid var(--bts-engine, #c4a8e0);
+  padding: 12px 16px;
+  background: rgba(196,168,224,0.06);
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+  color: var(--bts-text-2);
+  line-height: 1.65;
+  font-style: italic;
+}
+
+/* Section headers */
+.reason-section { margin-bottom: 18px; }
+.reason-section:last-child { margin-bottom: 0; }
+.reason-section__head {
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--bts-text-3, rgba(240,236,228,0.68));
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(240,236,228,0.1);
+}
+
+/* ═══════════════════════════════════════════════
+   FOOTER NAV
+   ═══════════════════════════════════════════════ */
+
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-h, 56px);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 100;
+}
+
+.nbtn {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-2);
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: background 140ms, color 140ms;
+}
+.nbtn:hover { background: var(--bg-3); color: var(--text); }
+.nbtn:disabled { opacity: 0.3; cursor: default; }
+.nbtn:disabled:hover { background: none; color: var(--text-2); }
+.nbtn--next {
+  background: var(--copper, #a05c35);
+  color: #fff;
+  font-weight: 500;
+}
+.nbtn--next:hover { background: #8a4a28; color: #fff; }
+
+.nav-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.nav-lbl { font-size: 13px; font-weight: 500; color: var(--text); }
+.nav-num {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .shell { flex-direction: column; height: auto; overflow: auto; }
+  .panel-user { flex: none; min-height: 55vh; border-right: none; border-bottom: 1px solid var(--border); }
+  .panel-bts  { flex: none; min-height: 50vh; }
+  .bts { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="prog"><div class="prog__fill" id="prog"></div></div>
+
+<div class="shell">
+
+  <!-- ═══ LEFT: USER UI ═══ -->
+  <aside class="panel-user">
+    <div class="panel-eyebrow">USER UI · P3 Journey</div>
+    <div class="phone-wrap">
+      <div class="iphone15pro iphone15pro--lg">
+        <img class="iphone15pro__chrome"
+             src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+
+          <!-- ═══ Step 0: Voice Search ═══ -->
+          <div data-step="0" style="display:flex;flex-direction:column;flex:1;background:#fff;">
+            <div style="padding:14px 16px 4px;font-size:12px;font-weight:600;">9:41</div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;">
+              <div style="width:64px;height:64px;border-radius:50%;background:#ecfdf5;display:flex;align-items:center;justify-content:center;font-size:28px;animation:pulse-ring 2s ease-in-out infinite;">✦</div>
+              <div style="text-align:center;">
+                <div style="font-size:22px;font-weight:600;color:#0a0a0a;margin-bottom:4px;">Listening…</div>
+                <div style="font-size:14px;color:#737373;font-style:italic;">「息子の冬の靴を買いたい」</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;width:100%;">
+                <div style="height:3px;background:#f4f4f5;border-radius:2px;overflow:hidden;">
+                  <div style="height:100%;width:60%;background:#4a6a90;border-radius:2px;animation:voice-bar 1.5s ease-in-out infinite;"></div>
+                </div>
+                <div style="text-align:center;font-size:11px;color:#a1a1aa;font-family:'Geist Mono',monospace;">Intent parsing…</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══ Step 1: Brain Reading ═══ -->
+          <div data-step="1" style="display:flex;flex-direction:column;flex:1;background:#fff;">
+            <div style="padding:14px 16px 4px;font-size:12px;font-weight:600;">9:41</div>
+            <div style="padding:8px 16px 4px;display:flex;align-items:center;gap:8px;">
+              <span style="font-size:14px;">←</span>
+              <span style="font-size:15px;font-weight:500;color:#171717;">✦ <span style="color:#737373;">Shoe Search</span></span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:0;padding:8px 16px;overflow-y:auto;">
+              <div style="font-size:11px;font-weight:600;color:#737373;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-family:'Geist Mono',monospace;">Reading 5 Brains…</div>
+              <div style="padding:12px;background:#f4f4f5;border-radius:10px;margin-bottom:6px;border-left:3px solid #4a6a90;">
+                <div style="font-size:10px;font-family:'Geist Mono',monospace;color:#4a6a90;text-transform:uppercase;letter-spacing:0.5px;">Org Brain</div>
+                <div style="font-size:13px;color:#0a0a0a;font-weight:500;margin-top:2px;">家族ルール: 冬靴 = 防水・丈夫</div>
+              </div>
+              <div style="padding:12px;background:#f4f4f5;border-radius:10px;margin-bottom:6px;border-left:3px solid #a05c35;">
+                <div style="font-size:10px;font-family:'Geist Mono',monospace;color:#a05c35;text-transform:uppercase;letter-spacing:0.5px;">Marcus (Individual)</div>
+                <div style="font-size:13px;color:#0a0a0a;font-weight:500;margin-top:2px;">サイズ US 3Y · 前回は Nike</div>
+              </div>
+              <div style="padding:12px;background:#f4f4f5;border-radius:10px;margin-bottom:6px;border-left:3px solid #22863a;">
+                <div style="font-size:10px;font-family:'Geist Mono',monospace;color:#22863a;text-transform:uppercase;letter-spacing:0.5px;">Research Brain</div>
+                <div style="font-size:13px;color:#0a0a0a;font-weight:500;margin-top:2px;">気温 8°C · 今週は雨</div>
+              </div>
+              <div style="padding:12px;background:#f4f4f5;border-radius:10px;border-left:3px solid #dc2626;">
+                <div style="font-size:10px;font-family:'Geist Mono',monospace;color:#dc2626;text-transform:uppercase;letter-spacing:0.5px;">Life Moment Brain</div>
+                <div style="font-size:13px;color:#0a0a0a;font-weight:500;margin-top:2px;">通勤中 · 電車内 · 到着 18:05</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══ Step 2: 20 Candidates ═══ -->
+          <div data-step="2" style="display:flex;flex-direction:column;flex:1;background:#fafafa;">
+            <div style="padding:14px 16px 4px;font-size:12px;font-weight:600;">9:41</div>
+            <div style="padding:8px 16px 4px;font-size:15px;font-weight:500;color:#171717;">✦ <span style="color:#737373;">Shoe Search</span></div>
+            <div style="padding:6px 16px 8px;display:flex;gap:6px;overflow-x:auto;">
+              <span style="font-size:11px;padding:4px 10px;background:#f5f5f5;border:1px solid rgba(10,10,10,0.12);border-radius:9999px;white-space:nowrap;">✓ Waterproof</span>
+              <span style="font-size:11px;padding:4px 10px;background:#f5f5f5;border:1px solid rgba(10,10,10,0.12);border-radius:9999px;white-space:nowrap;">✓ Black</span>
+              <span style="font-size:11px;padding:4px 10px;background:#f5f5f5;border:1px solid rgba(10,10,10,0.12);border-radius:9999px;white-space:nowrap;">✓ Size 3Y</span>
+            </div>
+            <div style="flex:1;overflow-y:auto;padding:8px 16px 16px;">
+              <div style="font-size:10px;font-family:'Geist Mono',monospace;color:#737373;margin-bottom:8px;">20 candidates · Brain filtered</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="background:#fff;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center;">
+                  <div style="width:48px;height:48px;background:#f4f4f5;border-radius:10px;display:flex;align-items:center;justify-content:center;">👟</div>
+                  <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:500;">TNF Fastpack Hiker Mid WP</div>
+                    <div style="font-size:11px;color:#737373;">The North Face · $69</div>
+                  </div>
+                  <div style="font-size:11px;font-weight:600;padding:3px 8px;background:#ecfdf5;color:#3a6a3a;border-radius:6px;font-family:'Geist Mono',monospace;">94%</div>
+                </div>
+                <div style="background:#fff;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center;">
+                  <div style="width:48px;height:48px;background:#f4f4f5;border-radius:10px;display:flex;align-items:center;justify-content:center;">👟</div>
+                  <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:500;">Salomon XA Pro V8 Mid GTX</div>
+                    <div style="font-size:11px;color:#737373;">Salomon · $75</div>
+                  </div>
+                  <div style="font-size:11px;font-weight:600;padding:3px 8px;background:#ecfdf5;color:#3a6a3a;border-radius:6px;font-family:'Geist Mono',monospace;">92%</div>
+                </div>
+                <div style="background:#fff;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center;">
+                  <div style="width:48px;height:48px;background:#f4f4f5;border-radius:10px;display:flex;align-items:center;justify-content:center;">👟</div>
+                  <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:500;">On Cloudrock Mid WP</div>
+                    <div style="font-size:11px;color:#737373;">On · $190</div>
+                  </div>
+                  <div style="font-size:11px;font-weight:600;padding:3px 8px;background:#e8f0fe;color:#4a6a90;border-radius:6px;font-family:'Geist Mono',monospace;">88%</div>
+                </div>
+                <div style="text-align:center;padding:8px;font-size:11px;color:#a1a1aa;font-family:'Geist Mono',monospace;">+ 17 more…</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══ Step 3: On Train → Card UI ═══ -->
+          <div data-step="3" style="display:flex;flex-direction:column;flex:1;background:#f5f4f1;">
+            <div style="padding:14px 16px 4px;font-size:12px;font-weight:600;">9:41</div>
+            <div style="padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-size:10px;font-family:'Geist Mono',monospace;color:#a05c35;text-transform:uppercase;letter-spacing:1.4px;">Distill · 7 / 20</div>
+                <div style="font-size:16px;font-weight:600;">Marcus's winter shoes</div>
+              </div>

@@ -33,6 +33,11 @@
     homework_help:    { data: window.SCENARIO_HOMEWORK_HELP,     label: 'Kid homework · explain',   sub: 'Tue · 19:00 · iPad · child UI',         defaultDevice: 'ipad' },
     post_meeting:     { data: window.SCENARIO_POST_MEETING,      label: 'Post-meeting decompress',  sub: 'Wed · 12:48 · 3 calls · enforced break',defaultDevice: 'phone' },
     hospital_waiting: { data: window.SCENARIO_HOSPITAL_WAITING,  label: 'Hospital · waiting room',  sub: 'Fri · 14:42 · audio-routed · public',   defaultDevice: 'phone' },
+    // ─── New scenarios (Feature 3) ───
+    mpo_dinner:       { data: window.SCENARIO_MPO_DINNER,        label: '🏠 夕食 — 4人が同時に違うUIを受け取る', sub: 'Multi-person orchestration',            defaultDevice: 'fridge' },
+    typhoon:          { data: window.SCENARIO_TYPHOON,           label: '🌀 台風 — 新幹線全停止',               sub: 'Crisis · rebook under pressure',         defaultDevice: 'phone' },
+    midnight_purchase:{ data: window.SCENARIO_MIDNIGHT_PURCHASE, label: '🌙 深夜の衝動買い',                    sub: 'Fri · 01:12 · friction by design',       defaultDevice: 'phone' },
+    school_run:       { data: window.SCENARIO_SCHOOL_RUN,        label: '🚗 送迎中 — Slack緊急通知',            sub: 'Wed · 08:06 · driving · interrupted',    defaultDevice: 'phone' },
   };
 
   // Application state — derived live, not stored across mutations.
@@ -104,7 +109,7 @@
     `;
   }
 
-  // ─── Render: Stage 2 · Context Tokens ───
+  // ─── Render: Stage 2 · Situation Signals & Relationship Dials ───
   const TOKEN_ICONS = {
     physical_state: '../../assets/img/Large/Token_02_PhysicalState.webp',
     cognitive_load: '../../assets/img/Large/Token_03_%20CognitiveLoad.webp', // URL-encoded space
@@ -189,7 +194,7 @@
       <p class="ax-column__title">AX Patterns · named UI moves</p>
       <div class="ax-list">
         ${state.axPatterns.map((p, i) => `
-          <div class="ax-row ${p.overruled ? 'is-overruled' : ''}" data-fire-order="${i + 1}" data-flip-key="ax-${p.id}">
+          <div class="ax-row ${p.overruled ? 'is-overruled' : ''}" data-fire-order="${i + 1}" data-flip-key="ax-${p.id}" data-pattern-id="${p.id}">
             <span class="ax-row__id">${p.id}</span>
             <span class="ax-row__name">${p.name}</span>
             <span class="ax-row__essence">${p.essence}</span>
@@ -203,15 +208,76 @@
         </div>
       ` : ''}
     `;
+    // ─── Feature 2: Causal Trace — hover an AX row to highlight affected Stage 4 elements ───
+    el.querySelectorAll('.ax-row[data-pattern-id]').forEach((row) => {
+      const patternId = row.dataset.patternId;
+      row.addEventListener('mouseenter', () => {
+        const stage4 = document.getElementById('stage-4-body');
+        if (!stage4) return;
+        // Inline rendering: highlight recipe cards that list this pattern in data-affected-by
+        stage4.querySelectorAll(`[data-affected-by]`).forEach((card) => {
+          const ids = (card.dataset.affectedBy || '').split(' ');
+          if (ids.includes(patternId)) card.classList.add('is-highlighted-by-pattern');
+        });
+        // iframe rendering: postMessage to the iframe
+        const iframe = stage4.querySelector('iframe.stage4-iframe');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({ type: 'HIGHLIGHT', patternId }, '*');
+        }
+      });
+      row.addEventListener('mouseleave', () => {
+        const stage4 = document.getElementById('stage-4-body');
+        if (!stage4) return;
+        stage4.querySelectorAll('.is-highlighted-by-pattern').forEach((el) => {
+          el.classList.remove('is-highlighted-by-pattern');
+        });
+        // iframe rendering: clear highlights
+        const iframe = stage4.querySelector('iframe.stage4-iframe');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({ type: 'HIGHLIGHT_CLEAR' }, '*');
+        }
+      });
+    });
   }
 
   // ─── Render: Stage 4 · UI Output (per-device) ───
+  // Feature 1: if the scenario declares a `uiScreen` URL, render an iframe instead
+  // of the inline-generated HTML. Falls back to inline rendering when absent.
+  const IFRAME_HEIGHTS = { phone: 844, fridge: 1080, ipad: 600, carplay: 480 };
+
   function renderUI(state) {
     const el = document.getElementById('stage-4-body');
     if (!el) return;
     const device = SCENARIO.devices.find((d) => d.id === appState.activeDevice);
 
-    // Build the device frame wrapper + the inner UI atoms
+    // ─── iframe path (Feature 1) ───
+    if (SCENARIO.uiScreen) {
+      const height = IFRAME_HEIGHTS[appState.activeDevice] || 600;
+      // Reuse an existing iframe if already present to avoid reloading on every renderAll
+      let iframe = el.querySelector('iframe.stage4-iframe');
+      const newSrc = SCENARIO.uiScreen;
+      if (!iframe) {
+        el.innerHTML = `
+          <div class="frame-wrap">
+            <p class="frame-meta">${device ? device.label + ' · ' + device.anchorHint : ''}</p>
+            <iframe class="stage4-iframe"
+                    src="${newSrc}"
+                    width="100%"
+                    height="${height}"
+                    loading="lazy"
+                    title="UI Screen — ${device ? device.label : 'Stage 4'}"></iframe>
+          </div>
+        `;
+      } else {
+        if (iframe.getAttribute('src') !== newSrc) {
+          iframe.setAttribute('src', newSrc);
+        }
+        iframe.setAttribute('height', height);
+      }
+      return;
+    }
+
+    // ─── inline path (backward-compatible fallback) ───
     let inner;
     switch (appState.activeDevice) {
       case 'fridge':

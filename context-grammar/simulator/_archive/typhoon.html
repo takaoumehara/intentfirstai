@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Grammar · S23 台風 × 新幹線全停止</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.sim-header {
+  padding: 28px 36px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sim-header__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.sim-header__title {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.6px;
+  margin-bottom: 6px;
+}
+.sim-header__title em { font-style: normal; color: var(--color-success); }
+.sim-header__sub {
+  font-size: 13px;
+  color: var(--text-2);
+  max-width: 560px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* ── Scenario strip ── */
+.scenario-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.s-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--gray-100);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.s-pill strong {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ── Tabs ── */
+.state-tabs {
+  display: flex;
+  gap: 0;
+}
+.state-tab {
+  padding: 11px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms, border-color 120ms;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.state-tab .t-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--gray-100);
+  color: var(--text-3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  transition: all 120ms;
+}
+.state-tab:hover { color: var(--text); }
+.state-tab.active { color: var(--text); border-bottom-color: var(--text); }
+.state-tab.active .t-badge { background: var(--text); color: var(--bg); }
+.state-tab.reasoning-tab { border-left: 1px solid var(--border); margin-left: 8px; padding-left: 20px; }
+.state-tab.reasoning-tab.active { border-bottom-color: #7c3aed; }
+.state-tab.reasoning-tab.active .t-badge { background: #7c3aed; color: #fff; }
+
+/* ── Body ── */
+.sim-body {
+  padding: 32px 36px 60px;
+}
+
+/* ─────────────────────────────────────────────────
+   TAB 1: COMPARE
+───────────────────────────────────────────────── */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.compare-col {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.compare-col__head {
+  padding: 12px 18px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.compare-col__head.no-cg { background: var(--bg-2); color: var(--text-3); }
+.compare-col__head.with-cg { background: rgba(5,150,105,0.07); color: var(--color-success); }
+.compare-col__body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.logic-block {
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.7;
+}
+.logic-block strong { color: var(--text-2); }
+
+.device-wrap { display: flex; justify-content: center; }
+
+.verdict {
+  padding: 10px 13px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.verdict.bad { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.14); color: #b91c1c; }
+.verdict.good { background: rgba(5,150,105,0.05); border: 1px solid rgba(5,150,105,0.18); color: var(--color-success); }
+
+/* Diff table */
+.diff-table-wrap {
+  margin-top: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.diff-table-head {
+  padding: 10px 18px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.diff-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.diff-table td { padding: 10px 18px; }
+.diff-table tr { border-bottom: 1px solid var(--border); }
+.diff-table tr:last-child { border-bottom: none; }
+.diff-table td:first-child { color: var(--text-2); width: 30%; }
+.diff-table td:last-child { color: var(--text); }
+.diff-table .col-head { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+
+/* ─────────────────────────────────────────────────
+   TAB 2: TIMELINE (state change)
+───────────────────────────────────────────────── */
+.timeline-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+.timeline-phone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.timeline-phone__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.timeline-phone__time {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+.timeline-phone__desc {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 16px;
+  text-align: center;
+  line-height: 1.5;
+}
+.timeline-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  padding-top: 120px;
+  flex-shrink: 0;
+  gap: 12px;
+}
+.timeline-arrow__line {
+  width: 1px;
+  height: 48px;
+  background: var(--border);
+}
+.timeline-arrow__icon {
+  font-size: 18px;
+  color: var(--text-3);
+}
+.timeline-arrow__text {
+  font-size: 11px;
+  color: var(--text-3);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.5px;
+  transform: rotate(180deg);
+}
+
+/* Agent moment callout */
+.agent-moment {
+  margin-top: 28px;
+  padding: 18px 22px;
+  background: rgba(124,58,237,0.05);
+  border: 1px solid rgba(124,58,237,0.18);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.agent-moment__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.agent-moment__body {}
+.agent-moment__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #7c3aed;
+  margin-bottom: 5px;
+}
+.agent-moment__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+  letter-spacing: -0.3px;
+}
+.agent-moment__desc {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+/* Change indicators */
+.change-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.change-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.change-item.rank-up { background: rgba(5,150,105,0.05); border: 1px solid rgba(5,150,105,0.18); }
+.change-item.rank-down { background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.18); }
+.change-item__arrow { font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.change-item.rank-up .change-item__arrow { color: var(--color-success); }
+.change-item.rank-down .change-item__arrow { color: #b45309; }
+.change-item__text { color: var(--text-2); }
+.change-item__text strong { color: var(--text); }
+.change-item__reason {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-3);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────
+   TAB 3: AI REASONING (Glass Box)
+───────────────────────────────────────────────── */
+.glass-box {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+/* State toggle inside reasoning tab */
+.reason-state-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+.rst-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: all 120ms;
+}
+.rst-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* Reasoning panel */
+.reason-panel {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  position: sticky;
+  top: 16px;
+}
+.reason-panel__title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #7c3aed;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.reason-panel__title::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #7c3aed;
+  flex-shrink: 0;
+}
+
+.reason-section { margin-bottom: 16px; }
+.reason-section:last-child { margin-bottom: 0; }
+.reason-section__head {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 7px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Intent */
+.intent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(37,99,235,0.07);
+  border: 1px solid rgba(37,99,235,0.15);
+  color: #1d4ed8;
+}
+
+/* Tokens */
+.token-grid { display: flex; flex-direction: column; gap: 3px; }
+.token-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 6px;
+  background: var(--bg); border: 1px solid transparent;
+  font-size: 11px; transition: background 300ms, border-color 300ms;
+}
+.token-row.is-active { background: rgba(5,150,105,0.06); border-color: rgba(5,150,105,0.2); }
+.token-row.is-changed { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.22); animation: pulse-t 0.6s ease-out; }
+.token-row.is-crisis { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.18); }
+@keyframes pulse-t { 0%{background:rgba(245,158,11,0.22)} 100%{background:rgba(245,158,11,0.07)} }
+.token-num { font-family:var(--font-mono); font-size:8px; font-weight:700; color:var(--text-3); width:14px; flex-shrink:0; }
+.token-name { font-family:var(--font-mono); font-size:9px; color:var(--text-3); width:82px; flex-shrink:0; }
+.token-val { font-size:11px; font-weight:500; color:var(--text-2); flex:1; }
+.token-val.is-active { color:var(--color-success); font-weight:600; }
+.token-val.is-changed { color:#b45309; font-weight:600; }
+.token-val.is-crisis { color:#b91c1c; font-weight:600; }
+.token-dot { width:5px;height:5px;border-radius:50%;background:var(--gray-300);flex-shrink:0; }
+.token-dot.is-active { background:var(--color-success); }
+.token-dot.is-changed { background:#f59e0b; }
+.token-dot.is-crisis { background:#dc2626; }
+
+/* Brain layers */
+.brain-layers { display:flex; flex-direction:column; gap:4px; }
+.brain-layer { padding:7px 10px; border-radius:7px; border:1px solid var(--border); background:var(--bg); font-size:11px; }
+.brain-layer__head { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+.brain-layer__num { font-family:var(--font-mono); font-size:8px; font-weight:700; padding:1px 5px; border-radius:3px; background:var(--gray-100); color:var(--text-3); }
+.brain-layer__name { font-family:var(--font-mono); font-size:9px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--text-3); }
+.brain-layer__val { font-size:11px; color:var(--text-2); line-height:1.45; }
+.brain-layer.is-active { background:rgba(139,92,246,0.06); border-color:rgba(139,92,246,0.2); }
+.brain-layer.is-active .brain-layer__num { background:rgba(139,92,246,0.12); color:#7c3aed; }
+.brain-layer.is-active .brain-layer__name { color:#7c3aed; }
+
+/* Rules */
+.rule-row { padding:8px 10px; border-radius:7px; border:1px solid rgba(5,150,105,0.18); background:rgba(5,150,105,0.04); font-size:11px; margin-bottom:5px; }
+.rule-row:last-child { margin-bottom:0; }
+.rule-row__id { font-family:var(--font-mono); font-size:9px; color:var(--color-success); font-weight:700; margin-bottom:3px; }
+.rule-row__text { color:var(--text-2); line-height:1.45; }
+
+/* AX */
+.ax-list { display:flex; flex-wrap:wrap; gap:5px; }
+.ax-badge { font-size:11px; font-weight:500; padding:4px 10px; border-radius:6px; background:rgba(124,58,237,0.06); border:1px solid rgba(124,58,237,0.18); color:#7c3aed; }
+
+/* Decision */
+.decision-box { padding:11px 14px; border-radius:8px; background:rgba(5,150,105,0.05); border:1px solid rgba(5,150,105,0.18); font-size:12px; color:var(--text); line-height:1.6; }
+.decision-box strong { color:var(--color-success); }
+
+/* iframe fills phone */
+.iphone15pro__screen iframe { width:100%; height:100%; border:none; display:block; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .compare-grid { grid-template-columns: 1fr; }
+  .glass-box { grid-template-columns: 1fr; }
+  .timeline-wrap { flex-direction: column; align-items: center; }
+  .timeline-arrow { padding-top: 0; flex-direction: row; writing-mode: horizontal-tb; }
+  .timeline-arrow__text { writing-mode: horizontal-tb; transform: none; }
+  .sim-body { padding: 20px; }
+  .sim-header { padding: 20px 20px 0; }
+  .state-tabs { overflow-x: auto; scrollbar-width: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="sim-header">
+  <div class="sim-header__eyebrow">Context Grammar · Scenario S23 · シミュレーター</div>
+  <h1 class="sim-header__title">台風 × 新幹線全停止 — <em>Live Recomposition</em></h1>
+  <p class="sim-header__sub">
+    アプリは「運休です」と表示して終わる。Context Grammar は崩れない — 代替案を計算し、状況が変わるたびに自動で再構成する。
+  </p>
+
+  <div class="scenario-strip">
+    <div class="s-pill"><strong>WHO</strong> Kiran · 大阪出張中</div>
+    <div class="s-pill"><strong>WHEN</strong> 水曜 17:45</div>
+    <div class="s-pill"><strong>INTENT</strong> 「今日中に東京に帰れますか？」</div>
+    <div class="s-pill"><strong>CRISIS</strong> 台風4号 · 新幹線全列車運休</div>
+  </div>
+
+  <div class="state-tabs">
+    <button class="state-tab active" data-state="compare">
+      <span class="t-badge">比較</span>
+      従来アプリ vs Context Grammar
+    </button>
+    <button class="state-tab" data-state="timeline">
+      <span class="t-badge">変化</span>
+      状況変化 17:45 → 18:15
+    </button>
+    <button class="state-tab reasoning-tab" data-state="reasoning">
+      <span class="t-badge">推論</span>
+      AI がどう考えたか
+    </button>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="sim-body">
+
+  <!-- ═══════════════════════════════════════
+       TAB 1: COMPARE (default)
+  ═══════════════════════════════════════ -->
+  <div id="state-compare" class="state-view">
+    <div class="compare-grid">
+
+      <div class="compare-col">
+        <div class="compare-col__head no-cg">Context Grammar なし — 従来のアプリ</div>
+        <div class="compare-col__body">
+          <div class="logic-block">
+            判断ロジック：<br>
+            <strong>「運休情報を取得して表示する」</strong><br>
+            それだけ。代替案は出ない。<br>
+            状況の変化を監視しない。<br>
+            ユーザーが自分で探す。
+          </div>
+          <div class="device-wrap">
+            <div class="iphone15pro iphone15pro--md">
+              <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+              <div class="iphone15pro__screen">
+                <iframe src="screens/typhoon-no-cg.html?noframe=1" title="CGなし" loading="lazy"></iframe>
+              </div>
+              <div class="iphone15pro__island" aria-hidden="true"></div>
+            </div>
+          </div>
+          <div class="verdict bad">
+            「運休です」以上の情報はない。代替案・信頼度・予算比較・状況更新 — すべてユーザーが別々のアプリで自分でやる。
+          </div>
+        </div>
+      </div>
+
+      <div class="compare-col">
+        <div class="compare-col__head with-cg">Context Grammar あり — Live Recomposition</div>
+        <div class="compare-col__body">
+          <div class="logic-block">
+            判断ロジック：<br>
+            <strong>Feasibility × Priority × Brain L1/L2/L3</strong><br>
+            → 代替案3つを即時計算 + 信頼度付与<br>
+            → ¥47k → D6 Dynamic Friction 発動<br>
+            → 台風変化 → 自動再ランク（ユーザー操作不要）
+          </div>
+          <div class="device-wrap">
+            <div class="iphone15pro iphone15pro--md">
+              <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+              <div class="iphone15pro__screen">
+                <iframe src="screens/typhoon-crisis.html?noframe=1" title="CGあり" loading="lazy"></iframe>
+              </div>
+              <div class="iphone15pro__island" aria-hidden="true"></div>
+            </div>
+          </div>
+          <div class="verdict good">
+            UIが崩れない。エラーではなく再構成。代替案は Brain の「今夜帰宅必須 · ¥50k以内 · 飛行機優先」に基づいてランク付けされている。
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="diff-table-wrap">
+      <div class="diff-table-head">Context Grammar が加えた判断レイヤー</div>
+      <table class="diff-table">
+        <tr>
+          <td class="col-head">従来アプリ</td>
+          <td class="col-head">Context Grammar</td>
+        </tr>
+        <tr>
+          <td>「運休です」</td>
+          <td>代替案3つ × 信頼度 × ランク順</td>
+        </tr>
+        <tr>
+          <td>ユーザーが更新を見に来る</td>
+          <td>台風変化を検知 → ユーザー操作なしで自動再ランク</td>
+        </tr>
+        <tr>
+          <td>¥47,000 = ただの金額</td>
+          <td>¥47,000 → D6 Dynamic Friction → 確認ゲート強制挿入</td>
+        </tr>
+        <tr>
+          <td>Brain を持たない</td>
+          <td>L2「今夜帰宅必須 · 飛行機優先 · ¥50k許容」を参照してランク付け</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 2: TIMELINE
+  ═══════════════════════════════════════ -->
+  <div id="state-timeline" class="state-view" style="display:none">
+
+    <div class="timeline-wrap">
+
+      <!-- 17:45 -->
+      <div class="timeline-phone">
+        <div class="timeline-phone__label">状態 A · 新幹線キャンセル直後</div>
+        <div class="timeline-phone__time">17:45</div>
+        <div class="timeline-phone__desc">台風4号 警戒レベル4<br>新幹線 全線運休確認</div>
+        <div class="iphone15pro iphone15pro--lg">
+          <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+          <div class="iphone15pro__screen">
+            <iframe src="screens/typhoon-crisis.html?noframe=1" title="17:45 危機" loading="eager"></iframe>
+          </div>
+          <div class="iphone15pro__island" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="timeline-arrow">
+        <div class="timeline-arrow__line"></div>
+        <div class="timeline-arrow__icon">↓</div>
+        <div class="timeline-arrow__text">30分後</div>
+        <div class="timeline-arrow__icon">↓</div>
+        <div class="timeline-arrow__line"></div>
+      </div>
+
+      <!-- 18:15 -->
+      <div class="timeline-phone">
+        <div class="timeline-phone__label">状態 B · 台風が弱まる</div>
+        <div class="timeline-phone__time">18:15</div>
+        <div class="timeline-phone__desc">台風 警戒レベル4 → 2<br>新幹線再開 信頼度 上昇</div>
+        <div class="iphone15pro iphone15pro--lg">
+          <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+          <div class="iphone15pro__screen">
+            <iframe src="screens/typhoon-clearing.html?noframe=1" title="18:15 回復" loading="lazy"></iframe>
+          </div>
+          <div class="iphone15pro__island" aria-hidden="true"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Agentic moment callout -->
+    <div class="agent-moment">
+      <div class="agent-moment__icon">🤖</div>
+      <div class="agent-moment__body">
+        <div class="agent-moment__eyebrow">Agentic UX · この30分に何が起きたか</div>
+        <div class="agent-moment__title">Kiran は何もしていない。</div>
+        <div class="agent-moment__desc">
+          台風の勢力データが変化した。Context Grammar がそれを検知し、全選択肢を自律的に再スコアリングした。新幹線の信頼度が 78% → 92% に上がり、飛行機を抜いて #1 に浮上。このランク変更はユーザーの操作なしに起きた — これが Live Recomposition の本質。
+        </div>
+      </div>
+    </div>
+
+    <!-- What changed -->
+    <div class="change-list">
+      <div class="change-item rank-up">
+        <div class="change-item__arrow">↑</div>
+        <div class="change-item__text"><strong>新幹線 再開待ち</strong>　#2 → #1 へ浮上 · 信頼度 78% → 92%</div>
+        <div class="change-item__reason">台風Lv4→2 · 再開予測 20:10</div>
+      </div>
+      <div class="change-item rank-down">
+        <div class="change-item__arrow">↓</div>
+        <div class="change-item__text"><strong>JAL 伊丹 → 羽田</strong>　#1 → #2 へ降格 · 残席1</div>
+        <div class="change-item__reason">今から空港移動 間に合わない可能性</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       TAB 3: REASONING (Glass Box)
+  ═══════════════════════════════════════ -->
+  <div id="state-reasoning" class="state-view" style="display:none">
+
+    <!-- State toggle -->
+    <div class="reason-state-toggle">
+      <button class="rst-btn active" data-rstate="crisis">17:45 · キャンセル直後</button>
+      <button class="rst-btn" data-rstate="clearing">18:15 · 台風が弱まる</button>
+    </div>
+
+    <!-- Crisis state -->
+    <div id="rstate-crisis" class="glass-box">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;">User UI · Kiran の iPhone</div>
+        <div class="iphone15pro iphone15pro--lg">
+          <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+          <div class="iphone15pro__screen">
+            <iframe src="screens/typhoon-crisis.html?noframe=1" title="17:45 危機" loading="lazy"></iframe>
+          </div>
+          <div class="iphone15pro__island" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="reason-panel">
+        <div class="reason-panel__title">AI Reasoning — Context Grammar が考えていること</div>
+        <div class="reason-section">
+          <div class="reason-section__head">① Intent</div>
+          <div class="intent-badge">✈ Explicit — 「今日中に東京に帰れますか？」</div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">② Situation Signals &amp; Relationship Dials — 6 signals + 2 dials</div>
+          <div class="token-grid">
+            <div class="token-row is-crisis"><span class="token-num">①</span><span class="token-name">Physical</span><span class="token-val is-crisis">Mobile · 駅構内</span><span class="token-dot is-crisis"></span></div>
+            <div class="token-row is-active"><span class="token-num">②</span><span class="token-name">Cognitive</span><span class="token-val is-active">HIGH · 危機対処中</span><span class="token-dot is-active"></span></div>
+            <div class="token-row"><span class="token-num">③</span><span class="token-name">Social</span><span class="token-val">Private · 1人</span><span class="token-dot"></span></div>
+            <div class="token-row is-crisis"><span class="token-num">④</span><span class="token-name">Priority</span><span class="token-val is-crisis">CRITICAL ⚡ 帰宅</span><span class="token-dot is-crisis"></span></div>
+            <div class="token-row"><span class="token-num">⑤</span><span class="token-name">Form Factor</span><span class="token-val">Phone</span><span class="token-dot"></span></div>
+            <div class="token-row is-changed"><span class="token-num">⑥</span><span class="token-name">Feasibility</span><span class="token-val is-changed">新幹線× / 飛行機○ / 泊○</span><span class="token-dot is-changed"></span></div>
+            <div class="token-row is-active"><span class="token-num">⑦</span><span class="token-name">Autonomy</span><span class="token-val is-active">CONFIRM · 高額判断</span><span class="token-dot is-active"></span></div>
+            <div class="token-row"><span class="token-num">⑧</span><span class="token-name">Disclosure</span><span class="token-val">travel · full</span><span class="token-dot"></span></div>
+          </div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">③ Brain · 3 Layers</div>
+          <div class="brain-layers">
+            <div class="brain-layer"><div class="brain-layer__head"><span class="brain-layer__num">L1</span><span class="brain-layer__name">Identity</span></div><div class="brain-layer__val">会社員 · 出張 · 今夜中に帰宅必須（明朝9:00 MTG）</div></div>
+            <div class="brain-layer is-active"><div class="brain-layer__head"><span class="brain-layer__num">L2</span><span class="brain-layer__name">Learning</span></div><div class="brain-layer__val">過去の出張：急変時は飛行機優先 · ¥50k以下は許容 · ホテルは最終手段</div></div>
+            <div class="brain-layer is-active"><div class="brain-layer__head"><span class="brain-layer__num">L3</span><span class="brain-layer__name">Right Now</span></div><div class="brain-layer__val">17:45 · 大阪駅 · 台風警戒Lv4 · 新幹線全線運休確認済み</div></div>
+          </div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">④ Rules fired</div>
+          <div class="rule-row"><div class="rule-row__id">A7_live_recomposition</div><div class="rule-row__text">交通機関キャンセル → エラー表示ではなく代替案を即時計算・ランク付け</div></div>
+          <div class="rule-row"><div class="rule-row__id">D6_dynamic_friction</div><div class="rule-row__text">¥47,000（飛行機）→ Autonomy=AUTO でも確認ゲートを強制発動</div></div>
+          <div class="rule-row"><div class="rule-row__id">E1_confidence_signal</div><div class="rule-row__text">各案に信頼度を付与：飛行機92% / 新幹線待機78% / ホテル100%</div></div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">⑤ AX Patterns</div>
+          <div class="ax-list">
+            <span class="ax-badge">A7 Live Recomposition</span>
+            <span class="ax-badge">D6 Dynamic Friction</span>
+            <span class="ax-badge">E1 Confidence Signal</span>
+            <span class="ax-badge">D1 Approval Gate</span>
+          </div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">⑥ だからこのUIになった</div>
+          <div class="decision-box"><strong>エラーを出さない。</strong> 新幹線が運休になった瞬間、3つの代替案を信頼度付きで即時表示。¥47,000の飛行機には Dynamic Friction が発動して確認ゲートを挿入。台風の状況が変われば、このUIも自動で変わる。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clearing state -->
+    <div id="rstate-clearing" class="glass-box" style="display:none">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;">User UI · Kiran の iPhone — 自動更新後</div>
+        <div class="iphone15pro iphone15pro--lg">
+          <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+          <div class="iphone15pro__screen">
+            <iframe src="screens/typhoon-clearing.html?noframe=1" title="18:15 回復" loading="lazy"></iframe>
+          </div>
+          <div class="iphone15pro__island" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="reason-panel">
+        <div class="reason-panel__title">AI Reasoning — 自動再評価が走った</div>
+        <div class="reason-section">
+          <div class="reason-section__head">① Intent</div>
+          <div class="intent-badge">✈ Explicit — 「今日中に東京に帰れますか？」（変わらず）</div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">② Situation Signals &amp; Relationship Dials — 変化したシグナル</div>
+          <div class="token-grid">
+            <div class="token-row"><span class="token-num">①</span><span class="token-name">Physical</span><span class="token-val">Mobile · 駅構内</span><span class="token-dot"></span></div>
+            <div class="token-row"><span class="token-num">②</span><span class="token-name">Cognitive</span><span class="token-val is-active">HIGH · 状況監視中</span><span class="token-dot is-active"></span></div>
+            <div class="token-row"><span class="token-num">③</span><span class="token-name">Social</span><span class="token-val">Private · 1人</span><span class="token-dot"></span></div>
+            <div class="token-row is-active"><span class="token-num">④</span><span class="token-name">Priority</span><span class="token-val is-active">CRITICAL · 帰宅</span><span class="token-dot is-active"></span></div>
+            <div class="token-row"><span class="token-num">⑤</span><span class="token-name">Form Factor</span><span class="token-val">Phone</span><span class="token-dot"></span></div>
+            <div class="token-row is-changed"><span class="token-num">⑥</span><span class="token-name">Feasibility</span><span class="token-val is-changed">新幹線 78%→92% ⚡ 上昇</span><span class="token-dot is-changed"></span></div>
+            <div class="token-row is-active"><span class="token-num">⑦</span><span class="token-name">Autonomy</span><span class="token-val is-active">CONFIRM · 継続</span><span class="token-dot is-active"></span></div>
+            <div class="token-row"><span class="token-num">⑧</span><span class="token-name">Disclosure</span><span class="token-val">travel · full</span><span class="token-dot"></span></div>
+          </div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">③ Brain · 何が変わったか</div>
+          <div class="brain-layers">
+            <div class="brain-layer"><div class="brain-layer__head"><span class="brain-layer__num">L1</span><span class="brain-layer__name">Identity</span></div><div class="brain-layer__val">変わらず · 今夜帰宅必須</div></div>
+            <div class="brain-layer is-active"><div class="brain-layer__head"><span class="brain-layer__num">L2</span><span class="brain-layer__name">Learning</span></div><div class="brain-layer__val">新幹線優先ルール再適用 · 飛行機はコスト高 · 92%なら待つ判断</div></div>
+            <div class="brain-layer is-active"><div class="brain-layer__head"><span class="brain-layer__num">L3</span><span class="brain-layer__name">Right Now</span></div><div class="brain-layer__val">18:15 · 台風Lv4→2 · 新幹線再開予測 20:10 · 信頼度 92%</div></div>
+          </div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">④ 何が起きたか</div>
+          <div class="rule-row"><div class="rule-row__id">A7_live_recomposition (自動)</div><div class="rule-row__text">ユーザー操作なしに、台風の勢力変化を検知 → 全選択肢を再スコアリング → 自動でランク入れ替え</div></div>
+          <div class="rule-row"><div class="rule-row__id">E1_confidence_signal (更新)</div><div class="rule-row__text">新幹線: 78% → 92%。飛行機: 空港到達不可のリスクを加味して#2に降格</div></div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">⑤ AX Patterns</div>
+          <div class="ax-list">
+            <span class="ax-badge">A7 Live Recomposition</span>
+            <span class="ax-badge">E1 Confidence Signal ↑</span>
+          </div>
+        </div>
+        <div class="reason-section">
+          <div class="reason-section__head">⑥ だからUIが変わった</div>
+          <div class="decision-box"><strong>Kiran は何もしていない。</strong> 台風が弱まったという外部データを受け取り、Context Grammar が自律的に再計算した。新幹線の信頼度が78%→92%に上がり、#1に浮上。このランク変更はユーザーの操作なしに起きた。</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /state-reasoning -->
+
+</div><!-- /sim-body -->
+
+<script>
+// Tab switching
+document.querySelectorAll('.state-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.state-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.state-view').forEach(v => v.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('state-' + btn.dataset.state).style.display = 'block';
+  });
+});
+
+// Reasoning state toggle
+document.querySelectorAll('.rst-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rst-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('[id^="rstate-"]').forEach(v => v.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('rstate-' + btn.dataset.rstate).style.display = 'grid';
+  });
+});
+</script>
+</body>
+</html>

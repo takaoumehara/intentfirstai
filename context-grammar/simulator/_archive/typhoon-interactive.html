@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CG Simulator · S23 台風 × 新幹線全停止</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.sim-header {
+  padding: 28px 40px 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sim-header__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.sim-header__title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin-bottom: 4px;
+}
+.sim-header__title em { font-style: normal; color: var(--color-success); }
+.sim-header__sub {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 20px;
+}
+
+/* ── Scene Buttons ── */
+.scene-bar {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+}
+.scene-btn {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: all 150ms;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.scene-btn__time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.scene-btn__label {
+  font-size: 12px;
+  font-weight: 500;
+}
+.scene-btn__tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  opacity: 0.6;
+}
+.scene-btn:hover { color: var(--text); }
+.scene-btn.active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+.scene-btn.active.crisis { border-bottom-color: #dc2626; color: #b91c1c; }
+.scene-btn.active.clearing { border-bottom-color: var(--color-success); color: var(--color-success); }
+
+/* ── Main layout ── */
+.sim-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 260px 1fr 240px;
+  gap: 0;
+  border-top: 1px solid var(--border);
+  min-height: 0;
+}
+
+/* ── Brain Panel (Left) ── */
+.brain-panel {
+  padding: 24px 20px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.brain-panel__title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brain-layer {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  margin-bottom: 6px;
+  transition: all 250ms ease;
+}
+.brain-layer__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+.brain-layer__num {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--gray-100);
+  color: var(--text-3);
+  transition: all 250ms;
+}
+.brain-layer__name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  transition: color 250ms;
+}
+.brain-layer__val {
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.5;
+  transition: color 250ms;
+}
+.brain-layer__note {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-3);
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--border);
+  transition: all 250ms;
+}
+
+/* Brain layer states */
+.brain-layer.state-normal-l3 {
+  background: rgba(5,150,105,0.05);
+  border-color: rgba(5,150,105,0.18);
+}
+.brain-layer.state-normal-l3 .brain-layer__num { background: rgba(5,150,105,0.1); color: var(--color-success); }
+.brain-layer.state-normal-l3 .brain-layer__name { color: var(--color-success); }
+.brain-layer.state-normal-l3 .brain-layer__note { color: var(--color-success); border-top-color: rgba(5,150,105,0.18); }
+
+.brain-layer.state-crisis-l3 {
+  background: rgba(220,38,38,0.06);
+  border-color: rgba(220,38,38,0.2);
+  animation: pulse-red 1.4s ease-in-out infinite;
+}
+@keyframes pulse-red {
+  0%, 100% { background: rgba(220,38,38,0.06); }
+  50% { background: rgba(220,38,38,0.12); }
+}
+.brain-layer.state-crisis-l3 .brain-layer__num { background: rgba(220,38,38,0.1); color: #b91c1c; }
+.brain-layer.state-crisis-l3 .brain-layer__name { color: #b91c1c; }
+.brain-layer.state-crisis-l3 .brain-layer__note { color: #b91c1c; border-top-color: rgba(220,38,38,0.2); }
+
+.brain-layer.state-clearing-l3 {
+  background: rgba(5,150,105,0.06);
+  border-color: rgba(5,150,105,0.2);
+  animation: pulse-green 1.4s ease-in-out infinite;
+}
+@keyframes pulse-green {
+  0%, 100% { background: rgba(5,150,105,0.06); }
+  50% { background: rgba(5,150,105,0.12); }
+}
+.brain-layer.state-clearing-l3 .brain-layer__num { background: rgba(5,150,105,0.1); color: var(--color-success); }
+.brain-layer.state-clearing-l3 .brain-layer__name { color: var(--color-success); }
+.brain-layer.state-clearing-l3 .brain-layer__note { color: var(--color-success); border-top-color: rgba(5,150,105,0.2); }
+
+/* ── Center: iPhone ── */
+.center-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  position: relative;
+}
+.center-panel__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.iphone15pro__screen iframe { width: 100%; height: 100%; border: none; display: block; }
+
+/* ── Token Panel (Right) ── */
+.token-panel {
+  padding: 24px 20px;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+.token-panel__title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.token-item {
+  margin-bottom: 12px;
+}
+.token-item:last-child { margin-bottom: 0; }
+
+.token-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.token-item__name { font-size: 11px; font-weight: 600; color: var(--text); }
+.token-item__score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.token-item__prev { color: var(--text-3); text-decoration: line-through; }
+.token-item__curr { font-weight: 700; }
+.token-item__curr.up { color: var(--color-success); }
+.token-item__curr.down { color: #b45309; }
+.token-item__curr.same { color: var(--text-2); }
+
+.token-bar-wrap { position: relative; height: 5px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+.token-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.token-bar-fill.green { background: var(--color-success); }
+.token-bar-fill.amber { background: #f59e0b; }
+.token-bar-fill.gray { background: var(--gray-300); }
+
+.token-item__rank {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-3);
+  margin-top: 3px;
+}
+
+/* ── Reasoning footer ── */
+.reason-footer {
+  border-top: 1px solid var(--border);
+  padding: 14px 40px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  background: var(--bg-2);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.reason-footer__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+  margin-top: 3px;
+}
+.reason-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.rule-chip {
+  padding: 4px 9px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  opacity: 0;
+  transition: opacity 250ms;
+}
+.rule-chip.active { opacity: 1; }
+.rule-chip.a7 { background: rgba(37,99,235,0.07); border: 1px solid rgba(37,99,235,0.18); color: #1d4ed8; }
+.rule-chip.d6 { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); color: #b45309; }
+.rule-chip.e1 { background: rgba(5,150,105,0.06); border: 1px solid rgba(5,150,105,0.2); color: var(--color-success); }
+.rule-chip.d1 { background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.18); color: #7c3aed; }
+
+.reason-footer__decision {
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.6;
+  max-width: 340px;
+  margin-top: 2px;
+}
+.reason-footer__decision strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="sim-header">
+  <div class="sim-header__eyebrow">Context Grammar · Scenario S23 · インタラクティブ版</div>
+  <h1 class="sim-header__title">台風 × 新幹線全停止 — <em>Live Recomposition</em></h1>
+  <p class="sim-header__sub">状況が変わると、Brain が変わり、Token が変わり、UI が自動で変わる。</p>
+
+  <div class="scene-bar">
+    <button class="scene-btn active" data-scene="normal">
+      <span class="scene-btn__time">17:00</span>
+      <span class="scene-btn__label">通常 — 新幹線で帰宅予定</span>
+      <span class="scene-btn__tag">タクシーで大阪駅へ</span>
+    </button>
+    <button class="scene-btn crisis" data-scene="crisis">
+      <span class="scene-btn__time">17:45</span>
+      <span class="scene-btn__label">危機 — 新幹線 全列車運休</span>
+      <span class="scene-btn__tag">台風4号 警戒レベル4 · 自動再構成</span>
+    </button>
+    <button class="scene-btn clearing" data-scene="clearing">
+      <span class="scene-btn__time">18:15</span>
+      <span class="scene-btn__label">自動再計算 — 台風が弱まる</span>
+      <span class="scene-btn__tag">Kiran は何もしていない</span>
+    </button>
+  </div>
+</div>
+
+<!-- Main 3-panel -->
+<div class="sim-main">
+
+  <!-- LEFT: Brain -->
+  <div class="brain-panel">
+    <div class="brain-panel__title">Context Brain · 3 Layers</div>
+
+    <div class="brain-layer" id="brain-l1">
+      <div class="brain-layer__head">
+        <span class="brain-layer__num">L1</span>
+        <span class="brain-layer__name">Identity</span>
+      </div>
+      <div class="brain-layer__val">会社員<br>大阪出張中<br>今夜帰宅必須</div>
+    </div>
+
+    <div class="brain-layer" id="brain-l2">
+      <div class="brain-layer__head">
+        <span class="brain-layer__num">L2</span>
+        <span class="brain-layer__name">Learning</span>
+      </div>
+      <div class="brain-layer__val">急変時は飛行機優先<br>¥50k以下は許容<br>ホテルは最終手段</div>
+    </div>
+
+    <div class="brain-layer state-normal-l3" id="brain-l3">
+      <div class="brain-layer__head">
+        <span class="brain-layer__num">L3</span>
+        <span class="brain-layer__name">Right Now</span>
+      </div>
+      <div class="brain-layer__val" id="brain-l3-val">17:00<br>タクシー内<br>晴天</div>
+      <div class="brain-layer__note" id="brain-l3-note">新幹線 ✓ 17:58 発</div>
+    </div>
+  </div>
+
+  <!-- CENTER: iPhone -->
+  <div class="center-panel">
+    <div class="center-panel__label" id="phone-label">ユーザーが見る画面 · 17:00</div>
+    <div class="iphone15pro iphone15pro--lg">
+      <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+      <div class="iphone15pro__screen">
+        <iframe id="phone-iframe" src="screens/typhoon-normal.html?noframe=1" loading="eager"></iframe>
+      </div>
+      <div class="iphone15pro__island" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Tokens -->
+  <div class="token-panel">
+    <div class="token-panel__title">Feasibility · 選択肢スコア</div>
+
+    <div class="token-item" id="tok-shinkansen">
+      <div class="token-item__head">
+        <span class="token-item__name">🚄 新幹線 再開待ち</span>
+        <div class="token-item__score">
+          <span class="token-item__prev" id="tok-s-prev" style="display:none"></span>
+          <span class="token-item__curr same" id="tok-s-curr">100%</span>
+        </div>
+      </div>
+      <div class="token-bar-wrap">
+        <div class="token-bar-fill green" id="tok-s-bar" style="width:100%"></div>
+      </div>
+      <div class="token-item__rank" id="tok-s-rank">#1 · 予約済み</div>
+    </div>
+
+    <div class="token-item" id="tok-flight">
+      <div class="token-item__head">
+        <span class="token-item__name">✈️ JAL 伊丹 → 羽田</span>
+        <div class="token-item__score">
+          <span class="token-item__prev" id="tok-f-prev" style="display:none"></span>
+          <span class="token-item__curr same" id="tok-f-curr">60%</span>
+        </div>
+      </div>
+      <div class="token-bar-wrap">
+        <div class="token-bar-fill amber" id="tok-f-bar" style="width:60%"></div>
+      </div>
+      <div class="token-item__rank" id="tok-f-rank">#2 · 参考</div>
+    </div>
+
+    <div class="token-item" id="tok-hotel">
+      <div class="token-item__head">
+        <span class="token-item__name">🏨 大阪泊 → 明朝</span>
+        <div class="token-item__score">
+          <span class="token-item__prev" id="tok-h-prev" style="display:none"></span>
+          <span class="token-item__curr same" id="tok-h-curr">40%</span>
+        </div>
+      </div>
+      <div class="token-bar-wrap">
+        <div class="token-bar-fill gray" id="tok-h-bar" style="width:40%"></div>
+      </div>
+      <div class="token-item__rank" id="tok-h-rank">#3 · 参考</div>
+    </div>
+  </div>
+
+</div><!-- /sim-main -->
+
+<!-- Reasoning footer -->
+<div class="reason-footer">
+  <div class="reason-footer__label">Rules fired</div>
+  <div class="reason-rules">
+    <span class="rule-chip a7" id="rule-a7">A7 Live Recomposition</span>
+    <span class="rule-chip d6" id="rule-d6">D6 Dynamic Friction</span>
+    <span class="rule-chip e1" id="rule-e1">E1 Confidence Signal</span>
+    <span class="rule-chip d1" id="rule-d1">D1 Approval Gate</span>
+  </div>
+  <div class="reason-footer__decision" id="reason-decision">
+    新幹線 17:58 発を予約確認中。代替案は参考として表示。<br>
+    <strong>Context Grammar は状況を継続監視中。</strong>
+  </div>
+</div>
+
+<script>
+const SCENES = {
+  normal: {
+    iframeSrc: 'screens/typhoon-normal.html?noframe=1',
+    phoneLabel: 'ユーザーが見る画面 · 17:00',
+    brainL3Class: 'state-normal-l3',
+    brainL3Val: '17:00<br>タクシー内<br>晴天',
+    brainL3Note: '新幹線 ✓ 17:58 発',
+    tokens: {
+      shinkansen: { prev: null, curr: '100%', bar: 100, cls: 'same', barCls: 'green', rank: '#1 · 予約済み' },
+      flight:     { prev: null, curr: '60%',  bar: 60,  cls: 'same', barCls: 'amber', rank: '#2 · 参考' },
+      hotel:      { prev: null, curr: '40%',  bar: 40,  cls: 'same', barCls: 'gray',  rank: '#3 · 参考' },
+    },
+    rules: [],
+    decision: '新幹線 17:58 発を予約確認中。代替案は参考として表示。<br><strong>Context Grammar は状況を継続監視中。</strong>',
+  },
+  crisis: {
+    iframeSrc: 'screens/typhoon-crisis.html?noframe=1',
+    phoneLabel: 'ユーザーが見る画面 · 17:45 — 自動再構成',
+    brainL3Class: 'state-crisis-l3',
+    brainL3Val: '17:45<br>大阪駅<br>台風 Lv4',
+    brainL3Note: '新幹線 ✗ 全線運休',
+    tokens: {
+      shinkansen: { prev: '100%', curr: '78%',  bar: 78,  cls: 'down', barCls: 'gray',  rank: '#2 · 信頼度 78%' },
+      flight:     { prev: '60%',  curr: '92%',  bar: 92,  cls: 'up',   barCls: 'green', rank: '#1 · ¥47,000 残席3' },
+      hotel:      { prev: '40%',  curr: '100%', bar: 100, cls: 'up',   barCls: 'green', rank: '#3 · 確実' },
+    },
+    rules: ['a7', 'd6', 'e1', 'd1'],
+    decision: '<strong>エラーを出さない。</strong> 3つの代替案を信頼度付きで即時表示。¥47,000 の飛行機は Dynamic Friction が発動。',
+  },
+  clearing: {
+    iframeSrc: 'screens/typhoon-clearing.html?noframe=1',
+    phoneLabel: 'ユーザーが見る画面 · 18:15 — 自律的に再計算',
+    brainL3Class: 'state-clearing-l3',
+    brainL3Val: '18:15<br>大阪駅<br>台風 Lv2',
+    brainL3Note: '新幹線 ○ 再開予測 20:10',
+    tokens: {
+      shinkansen: { prev: '78%',  curr: '92%',  bar: 92,  cls: 'up',   barCls: 'green', rank: '#1 ↑ · 信頼度 92%' },
+      flight:     { prev: '92%',  curr: '85%',  bar: 85,  cls: 'down', barCls: 'amber', rank: '#2 ↓ · 残席1' },
+      hotel:      { prev: null,   curr: '100%', bar: 100, cls: 'same', barCls: 'green', rank: '#3 · 確実' },
+    },
+    rules: ['a7', 'e1'],
+    decision: '<strong>Kiran は何もしていない。</strong> 台風が弱まったデータを受け取り、自律的に再スコアリング。新幹線が #1 に浮上。',
+  },
+};
+
+function applyScene(key) {
+  const scene = SCENES[key];
+
+  // iframe
+  document.getElementById('phone-iframe').src = scene.iframeSrc;
+  document.getElementById('phone-label').textContent = scene.phoneLabel;
+
+  // Brain L3
+  const l3 = document.getElementById('brain-l3');
+  l3.className = 'brain-layer ' + scene.brainL3Class;
+  document.getElementById('brain-l3-val').innerHTML = scene.brainL3Val;
+  document.getElementById('brain-l3-note').textContent = scene.brainL3Note;
+
+  // Tokens
+  const tmap = {
+    shinkansen: ['tok-s-prev', 'tok-s-curr', 'tok-s-bar', 'tok-s-rank'],
+    flight:     ['tok-f-prev', 'tok-f-curr', 'tok-f-bar', 'tok-f-rank'],
+    hotel:      ['tok-h-prev', 'tok-h-curr', 'tok-h-bar', 'tok-h-rank'],
+  };
+  for (const [key2, ids] of Object.entries(tmap)) {
+    const t = scene.tokens[key2];
+    const prevEl = document.getElementById(ids[0]);
+    const currEl = document.getElementById(ids[1]);
+    const barEl  = document.getElementById(ids[2]);
+    const rankEl = document.getElementById(ids[3]);
+
+    if (t.prev) {
+      prevEl.textContent = t.prev;
+      prevEl.style.display = 'inline';
+    } else {
+      prevEl.style.display = 'none';
+    }
+    currEl.textContent = t.curr;
+    currEl.className = 'token-item__curr ' + t.cls;
+    barEl.style.width = t.bar + '%';
+    barEl.className = 'token-bar-fill ' + t.barCls;
+    rankEl.textContent = t.rank;
+  }
+
+  // Rules
+  ['a7','d6','e1','d1'].forEach(r => {
+    const el = document.getElementById('rule-' + r);
+    el.classList.toggle('active', scene.rules.includes(r));
+  });
+
+  // Decision
+  document.getElementById('reason-decision').innerHTML = scene.decision;
+
+  // Buttons
+  document.querySelectorAll('.scene-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.scene === key);
+  });
+}
+
+document.querySelectorAll('.scene-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyScene(btn.dataset.scene));
+});
+</script>
+</body>
+</html>

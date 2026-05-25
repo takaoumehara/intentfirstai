@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AX Patterns  — Context Grammar · 型紙集</title>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #fdfcfa;
+    --surface: #ffffff;
+    --ink: #0a0a0a;
+    --ink-2: #525252;
+    --ink-3: #a1a1aa;
+    --line: #e5e5e5;
+    --line-strong: #d4d4d4;
+
+    --deleg: #6889b4;       /* Delegation = blue (trust transfer) */
+    --deleg-bg: rgba(104, 137, 180, 0.10);
+    --escal: #c2410c;       /* Escalation = orange (return to human) */
+    --escal-bg: rgba(194, 65, 12, 0.10);
+    --adapt: #8a6ab0;       /* Adaptation = purple (UI shape-shift) */
+    --adapt-bg: rgba(138, 106, 176, 0.10);
+    --enter: #2f7d6c;       /* Enterprise = teal */
+    --enter-bg: rgba(47, 125, 108, 0.10);
+    --green: #16803a;
+    --green-bg: rgba(22, 128, 58, 0.10);
+
+    --font-sans: 'Geist', 'Geist Sans', 'Noto Sans JP', system-ui, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.7;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 80px 32px; }
+
+  /* ── Hero ─────────────────────────────── */
+  .hero { text-align: center; margin-bottom: 80px; }
+  .hero__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 20px;
+  }
+  .hero__title {
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 24px;
+  }
+  .hero__sub {
+    font-size: 18px;
+    color: var(--ink-2);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* ── Section ──────────────────────────── */
+  section { margin-bottom: 88px; scroll-margin-top: 40px; }
+
+  .sec-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 14px;
+  }
+  .sec-eyebrow::before {
+    content: "";
+    width: 28px; height: 1px;
+    background: var(--ink-3);
+  }
+  .sec-title {
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.8px;
+    margin-bottom: 28px;
+  }
+  .sec-lede {
+    font-size: 18px;
+    color: var(--ink-2);
+    margin-bottom: 32px;
+    max-width: 720px;
+  }
+
+  /* ── Two columns: pattern vs not-a-pattern ──────── */
+  .vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: stretch;
+    margin: 32px 0;
+  }
+  @media (max-width: 768px) { .vs { grid-template-columns: 1fr; } .vs__divider { display: none; } }
+
+  .vs__card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px 28px;
+    background: var(--surface);
+  }
+  .vs__card--yes { border-top: 4px solid var(--green); background: linear-gradient(180deg, var(--green-bg) 0%, var(--surface) 24%); }
+  .vs__card--no  { border-top: 4px solid var(--ink-3); background: linear-gradient(180deg, rgba(0,0,0,0.04) 0%, var(--surface) 24%); }
+
+  .vs__divider {
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+  }
+
+  .vs__icon { font-size: 40px; margin-bottom: 12px; line-height: 1; }
+  .vs__label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .vs__card--yes .vs__label { color: var(--green); }
+  .vs__card--no  .vs__label { color: var(--ink-3); }
+
+  .vs__name { font-size: 24px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.4px; }
+  .vs__role { font-size: 16px; color: var(--ink-2); margin-bottom: 18px; line-height: 1.6; }
+  .vs__list { list-style: none; padding: 0; }
+  .vs__list li {
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14.5px;
+    color: var(--ink);
+    display: flex;
+    gap: 10px;
+  }
+  .vs__list li::before {
+    content: "→";
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+  .vs__card--no .vs__list li::before { content: "✗"; color: var(--ink-3); }
+
+  /* ── Restaurant metaphor ─────────────── */
+  .restaurant {
+    background: linear-gradient(180deg, #fef9f3 0%, #fffaf0 100%);
+    border: 1px solid #f0d9b5;
+    border-radius: 16px;
+    padding: 36px 32px;
+    margin: 32px 0;
+  }
+  .restaurant__title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #8a4500;
+  }
+  .restaurant__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 600px) { .restaurant__grid { grid-template-columns: 1fr; } }
+
+  .rest-item h4 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .rest-item p { font-size: 16px; color: var(--ink); margin-bottom: 8px; line-height: 1.6; }
+  .rest-item__items { font-size: 14px; color: var(--ink-2); }
+
+  /* ── Pattern category grid ──────────── */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 32px 0 16px;
+  }
+  @media (max-width: 768px) { .cat-grid { grid-template-columns: 1fr; } }
+
+  .cat {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 22px;
+    background: var(--surface);
+    border-top-width: 4px;
+  }
+  .cat--deleg { border-top-color: var(--deleg); background: linear-gradient(180deg, var(--deleg-bg) 0%, var(--surface) 30%); }
+  .cat--escal { border-top-color: var(--escal); background: linear-gradient(180deg, var(--escal-bg) 0%, var(--surface) 30%); }
+  .cat--adapt { border-top-color: var(--adapt); background: linear-gradient(180deg, var(--adapt-bg) 0%, var(--surface) 30%); }
+
+  .cat__label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .cat--deleg .cat__label { color: var(--deleg); }
+  .cat--escal .cat__label { color: var(--escal); }
+  .cat--adapt .cat__label { color: var(--adapt); }
+
+  .cat__name { font-size: 20px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.3px; }
+  .cat__lede { font-size: 14.5px; color: var(--ink-2); margin-bottom: 14px; line-height: 1.55; }
+  .cat__list { list-style: none; padding: 0; }
+  .cat__list li {
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .cat__list li:first-child { border-top: none; }
+  .cat__list .pid {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+    display: inline-block;
+  }
+  .cat--deleg .pid { background: var(--deleg-bg); color: var(--deleg); }
+  .cat--escal .pid { background: var(--escal-bg); color: var(--escal); }
+  .cat--adapt .pid { background: var(--adapt-bg); color: var(--adapt); }
+  .cat__list .pname { font-weight: 600; }
+  .cat__list .pessence { display: block; color: var(--ink-2); font-size: 12.5px; margin-top: 4px; }
+  .cat__list .pex { display: block; color: var(--ink-3); font-size: 12px; margin-top: 2px; font-style: italic; }
+
+  /* Enterprise mini-row */
+  .enter-row {
+    margin-top: 16px;
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--enter);
+    border-radius: 14px;
+    padding: 22px 24px;
+    background: linear-gradient(180deg, var(--enter-bg) 0%, var(--surface) 30%);
+  }
+  .enter-row .cat__label { color: var(--enter); }
+  .enter-row__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 24px;
+    margin-top: 10px;
+  }
+  @media (max-width: 600px) { .enter-row__grid { grid-template-columns: 1fr; } }
+  .enter-row__grid .pid { background: var(--enter-bg); color: var(--enter); font-family: var(--font-mono); font-weight: 700; font-size: 11.5px; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
+  .enter-row__grid .pname { font-weight: 600; }
+  .enter-row__grid p { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+  .enter-row__grid p strong { color: var(--ink); }
+
+  /* ── Step / Compose walkthrough ────────── */
+  .scenario-intro {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .scenario-intro__quote {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+  .scenario-intro__source { font-size: 14px; color: var(--ink-3); font-family: var(--font-mono); }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 4px;
+  }
+  .step--deleg::before  { background: var(--deleg); }
+  .step--escal::before  { background: var(--escal); }
+  .step--adapt::before  { background: var(--adapt); }
+  .step--result::before { background: var(--green); }
+
+  .step__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-right: 12px;
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .step--deleg  .step__num { background: var(--deleg); }
+  .step--escal  .step__num { background: var(--escal); }
+  .step--adapt  .step__num { background: var(--adapt); }
+  .step--result .step__num { background: var(--green); }
+
+  .step__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .step__title { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  .step__chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-left: auto;
+  }
+  .step--deleg  .step__chip { color: var(--deleg);  background: var(--deleg-bg); }
+  .step--escal  .step__chip { color: var(--escal);  background: var(--escal-bg); }
+  .step--adapt  .step__chip { color: var(--adapt);  background: var(--adapt-bg); }
+  .step--result .step__chip { color: var(--green);  background: var(--green-bg); }
+
+  .step__body { font-size: 16px; color: var(--ink); line-height: 1.65; }
+  .step__body strong { font-weight: 600; }
+  .step__body em { font-style: normal; color: var(--ink-2); font-family: var(--font-mono); font-size: 14.5px; }
+
+  .pattern-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+  }
+  .pattern-tag--deleg { background: var(--deleg-bg); color: var(--deleg); }
+  .pattern-tag--escal { background: var(--escal-bg); color: var(--escal); }
+  .pattern-tag--adapt { background: var(--adapt-bg); color: var(--adapt); }
+
+  .verdict {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--green-bg);
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--green);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Compose diagram (4 patterns → 1 outcome) ── */
+  .compose {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 30px;
+    margin: 24px 0;
+  }
+  .compose__title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 18px;
+  }
+  .compose__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 768px) { .compose__grid { grid-template-columns: 1fr 1fr; } }
+  .compose__cell {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 14px;
+    background: var(--surface);
+  }
+  .compose__cell--deleg { border-top: 3px solid var(--deleg); }
+  .compose__cell--escal { border-top: 3px solid var(--escal); }
+  .compose__cell--adapt { border-top: 3px solid var(--adapt); }
+  .compose__id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .compose__cell--deleg .compose__id { color: var(--deleg); }
+  .compose__cell--escal .compose__id { color: var(--escal); }
+  .compose__cell--adapt .compose__id { color: var(--adapt); }
+  .compose__name { font-size: 14.5px; font-weight: 600; line-height: 1.3; margin-bottom: 6px; }
+  .compose__role { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+
+  .compose__sum {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: var(--green-bg);
+    border-left: 3px solid var(--green);
+    border-radius: 0 8px 8px 0;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  /* ── Why-library cards ──────────── */
+  .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0; }
+  @media (max-width: 768px) { .why-grid { grid-template-columns: 1fr; } }
+  .why {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+    background: var(--surface);
+  }
+  .why h4 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .why__title { font-size: 18px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.2px; }
+  .why p { font-size: 14.5px; color: var(--ink-2); line-height: 1.6; }
+  .why p strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Recommendation cards ──────────── */
+  .recs { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .rec {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 28px;
+    background: var(--surface);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .rec__num {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--adapt);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-weight: 700; font-size: 16px;
+  }
+  .rec__title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .rec__body { font-size: 15px; color: var(--ink-2); line-height: 1.65; }
+
+  /* ── Mini callout / aside ─────────── */
+  .callout {
+    border-left: 3px solid var(--ink-3);
+    padding: 14px 20px;
+    margin: 24px 0;
+    color: var(--ink-2);
+    font-size: 15.5px;
+    line-height: 1.65;
+    background: rgba(0,0,0,0.02);
+    border-radius: 0 8px 8px 0;
+  }
+  .callout strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Footer ─────────────────────────── */
+  .foot {
+    margin-top: 100px;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── Bottom-right project marker (same pattern as P3) ─── */
+  .chpt-corner {
+    position: fixed;
+    bottom: 24px;
+    right: 28px;
+    z-index: 40;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(10,10,10,0.55);
+    pointer-events: none;
+    mix-blend-mode: difference;
+  }
+  .chpt-corner strong {
+    color: var(--ink);
+    font-weight: 600;
+    margin-right: 10px;
+  }
+  @media (max-width: 768px) {
+    .chpt-corner { right: 16px; bottom: 16px; font-size: 10px; }
+  }
+
+  *::selection { background: #30c969 !important; color: #07120c !important; }
+  *::-moz-selection { background: #30c969 !important; color: #07120c !important; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ─────────────────── HERO ─────────────────── -->
+<header class="hero">
+  <div class="hero__eyebrow">Context Grammar · Concept Explainer · 平易な日本語で</div>
+  <h1 class="hero__title">AX Patterns は<br>「型紙」の集まりです。</h1>
+  <p class="hero__sub">
+    Brain は記憶、Token は今の状態、Rule Engine は翻訳機。<br>
+    最後に出てくる UI を作るときに、<strong>毎回ゼロから考えない</strong>ための型紙が AX Patterns。<br>
+    23 個の小さな部品を組み合わせて、家族の朝・旅・買い物すべての画面を組み立てます。
+  </p>
+</header>
+
+<!-- ─────────── §1 · AX Patterns is what? ─────────── -->
+<section id="s1">
+  <div class="sec-eyebrow">§1</div>
+  <h2 class="sec-title">まず根っこから — AX Pattern は「再利用できる型紙」</h2>
+  <p class="sec-lede">
+    AX は <strong>Agentic eXperience</strong> の略。AI が動く時代の UI 体験のことです。
+    その<strong>体験を作る型紙</strong>が AX Pattern。23 個に整理されていて、どれも「いつ使うか」「どう振る舞うか」がセットで決まっています。
+  </p>
+
+  <div class="vs">
+    <div class="vs__card vs__card--yes">
+      <div class="vs__icon">🧩</div>
+      <div class="vs__label">これは Pattern</div>
+      <div class="vs__name">再利用できる型紙</div>
+      <p class="vs__role">いつ発動するか（Token 条件）と、どう振る舞うか（UI 規則）が決まっている。プロジェクトをまたいで使える。</p>
+      <ul class="vs__list">
+        <li><strong>Approval Gate</strong>(D1) — 承認・修正・却下の関門</li>
+        <li><strong>Confidence Signal</strong>(E1) — AI の確信度を可視化</li>
+        <li><strong>Cognitive Scaling</strong>(A2) — 忙しさで情報密度を変える</li>
+        <li>P1, P2, P3, P4 すべてで再登場する</li>
+      </ul>
+    </div>
+
+    <div class="vs__divider">vs</div>
+
+    <div class="vs__card vs__card--no">
+      <div class="vs__icon">🖼</div>
+      <div class="vs__label">これは Pattern じゃない</div>
+      <div class="vs__name">ただの画面・ただの機能</div>
+      <p class="vs__role">「弁当提案画面」「旅プラン編集ページ」のような<strong>固有の画面</strong>。一度きり、他で使えない。</p>
+      <ul class="vs__list">
+        <li>「Mai の朝の弁当画面」(個別)</li>
+        <li>「ロンドン旅 4 日目の地図」(個別)</li>
+        <li>「Sota のサッカー靴注文ページ」(個別)</li>
+        <li>これらは Pattern を<strong>使って組み立てた結果</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>覚え方:</strong> Pattern は<strong>レゴブロック</strong>。画面は<strong>レゴで作った家</strong>。
+    家は無限にあるけど、ブロックは 23 種類で済む。だから家族の朝も、旅先のアプリも、エンタープライズの管理画面も<strong>同じブロック</strong>で組める。
+  </div>
+</section>
+
+<!-- ─────────── §2 · What counts vs what doesn't ─────────── -->
+<section id="s2">
+  <div class="sec-eyebrow">§2 · 線引き</div>
+  <h2 class="sec-title">「Pattern」と「ただの UI 工夫」は別もの</h2>
+  <p class="sec-lede">
+    「これって Pattern？」と迷ったら、3 つの問いを通せば分かります。3 つ全部 YES なら Pattern。1 つでも NO なら、ただの UI アイデア。
+  </p>
+
+  <div class="cat-grid">
+    <div class="cat cat--deleg">
+      <div class="cat__label">Q1 · Token 条件</div>
+      <div class="cat__name">いつ発動するか書ける？</div>
+      <p class="cat__lede">「Cognitive Load=high のとき」「Autonomy Dial=Confirm のとき」のように、<strong>Token の値で発動条件</strong>を書けるか。</p>
+      <p class="cat__lede" style="color:var(--ink-3);font-size:13px;">書けない → 単発のアイデアであって、Pattern ではない。</p>
+    </div>
+    <div class="cat cat--escal">
+      <div class="cat__name" style="font-size:18px;">Q2 · 再利用</div>
+      <div class="cat__name">違うシーンでも使える？</div>
+      <p class="cat__lede">弁当でも、靴でも、旅程でも、社内承認でも<strong>同じ仕組みで動くか</strong>。シーン固有のものは型紙ではない。</p>
+      <p class="cat__lede" style="color:var(--ink-3);font-size:13px;">1 シーン専用 → 画面 (screen) であって、Pattern ではない。</p>
+    </div>
+    <div class="cat cat--adapt">
+      <div class="cat__name" style="font-size:18px;">Q3 · デバイス独立</div>
+      <div class="cat__name">どの surface でも成立する？</div>
+      <p class="cat__lede">iPhone・冷蔵庫・CarPlay・Apple Watch、どれにも<strong>形を変えて当てはまるか</strong>。「iPhone 限定」のものは型紙ではない。</p>
+      <p class="cat__lede" style="color:var(--ink-3);font-size:13px;">1 デバイス専用 → コンポーネント (component) であって、Pattern ではない。</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>具体例で線引き:</strong><br>
+    ✓ <strong>Approval Gate</strong> (承認関門) — Token 条件あり / 弁当でも靴でも使える / 冷蔵庫でも iPhone でも成立 → <strong>Pattern</strong>。<br>
+    ✗ <strong>「弁当提案カードの右上に時間を出す」</strong> — Token 条件なし / 弁当限定 / iPhone 限定 → <strong>ただの UI 工夫</strong>。Pattern ではない。
+  </div>
+</section>
+
+<!-- ─────────── §3 · Restaurant metaphor ─────────── -->
+<section id="s3">
+  <div class="sec-eyebrow">§3 · 比喩</div>
+  <h2 class="sec-title">レストランで考えてみる — 「盛り付けの型」と「料理そのもの」</h2>
+  <p class="sec-lede">
+    Pattern の正体は、料理のレシピでも、メニューでもありません。料理人が体に染み込ませている<strong>「こういう時はこう盛る」「こういう客にはこう声をかける」</strong>という型。
+  </p>
+
+  <div class="restaurant">
+    <div class="restaurant__title">🍽 厨房とホールの「型」</div>
+    <div class="restaurant__grid">
+      <div class="rest-item">
+        <h4>🧩 AX Pattern = 盛り付け・接客の型</h4>
+        <p>「どう出すか」「どう声をかけるか」の決まった作法。何の料理にも使える。</p>
+        <div class="rest-item__items">
+          ・お会計を「カード／現金／後払い」で聞く型 (Approval Gate)<br>
+          ・自信のない料理は「お口に合わなかったら替えますね」と添える型 (Confidence Signal)<br>
+          ・忙しそうな客には選択肢を 3 つに絞る型 (Cognitive Scaling)<br>
+          ・常連には黙ってビールを出す型 (Omakase Mode)
+        </div>
+      </div>
+      <div class="rest-item">
+        <h4>🍳 これは Pattern じゃない</h4>
+        <p>「今日の鮭の照り焼き」みたいな個別の料理・個別のシーンは Pattern ではない。</p>
+        <div class="rest-item__items">
+          ・本日のメニュー (= 画面)<br>
+          ・特定の客の好み台帳 (= Brain)<br>
+          ・冷蔵庫の在庫表 (= Token)<br>
+          ・「ピーナッツ抜きで」という一回の指示 (= 個別命令)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    料理 (= 画面) は毎日違うけど、盛り付けの型 (= Pattern) は<strong>ずっと同じ</strong>。
+    だから新人でも、型を覚えれば<strong>初めて作る料理</strong>でもサマになる。AX Pattern Library が目指しているのも、これと同じ。
+    新しいプロジェクトで新しい画面を作るときに、デザイナーが<strong>毎回ゼロから悩まない</strong>ように、型紙を 23 枚だけ用意しておく。
+  </div>
+</section>
+
+<!-- ─────────── §4 · Pattern categories ─────────── -->
+<section id="s4">
+  <div class="sec-eyebrow">§4 · 全体像</div>
+  <h2 class="sec-title">3 つのバケツに 23 個の型紙</h2>
+  <p class="sec-lede">
+    23 個の型紙は、<strong>3 つの大きなバケツ</strong>に分けて整理されています。
+    Delegation (委譲) / Escalation (返却) / Adaptation (適応)。さらに Enterprise 専用の追加が 4 個。
+  </p>
+
+  <div class="cat-grid">
+    <!-- Delegation -->
+    <div class="cat cat--deleg">
+      <div class="cat__label">Delegation · 6 patterns</div>
+      <div class="cat__name">人 → AI に任せていく</div>
+      <p class="cat__lede">信頼を少しずつ AI に渡していく型紙。「最初は毎回確認、慣れたら任せる」という流れを設計する。</p>
+      <ul class="cat__list">
+        <li>
+          <span class="pid">D1</span><span class="pname">Approval Gate</span>
+          <span class="pessence">承認・修正・却下の関門を置く</span>
+          <span class="pex">Sota の靴 ¥4,800 → Mai に「OK / 違う色 / やめる」を出す</span>
+        </li>
+        <li>
+          <span class="pid">D2</span><span class="pname">Progressive Trust</span>
+          <span class="pessence">成功体験が貯まると確認回数を減らす</span>
+          <span class="pex">8 週連続で食材代替 OK → 確認 → 通知だけに昇格</span>
+        </li>
+        <li>
+          <span class="pid">D3</span><span class="pname">Proactive Nudge</span>
+          <span class="pessence">余裕がある時間帯に先回り提案する</span>
+          <span class="pex">9:15 AM、Cognitive Load 低 → 「明日の食材を見ておきますか？」</span>
+        </li>
+        <li>
+          <span class="pid">D4</span><span class="pname">Omakase Mode</span>
+          <span class="pessence">十分信頼できる領域は完全委任</span>
+          <span class="pex">牛乳・ヨーグルトの定期発注 → 黙って買って事後報告</span>
+        </li>
+        <li>
+          <span class="pid">D5</span><span class="pname">Substitution Modes</span>
+          <span class="pessence">代替の自由度を 4 段階で指定 (Exact / Flexible / Exploring / Surprise)</span>
+          <span class="pex">アレルギー食材 = Exact 固定 / 飲料 = Surprise OK</span>
+        </li>
+        <li>
+          <span class="pid">D6</span><span class="pname">Dynamic Friction</span>
+          <span class="pessence">高リスク・高額は信頼が育っても摩擦を残す</span>
+          <span class="pex">¥200 のおやつ = Auto / ¥15,000 のワイン = 必ず提案のみ</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Escalation -->
+    <div class="cat cat--escal">
+      <div class="cat__label">Escalation · 5 patterns</div>
+      <div class="cat__name">AI → 人に判断を返す</div>
+      <p class="cat__lede">AI が自分の限界・不安を認識して、人に判断を戻す型紙。返さなさすぎる AI は暴走、返しすぎる AI は使えない。</p>
+      <ul class="cat__list">
+        <li>
+          <span class="pid">E1</span><span class="pname">Confidence Signal</span>
+          <span class="pessence">確信度をバーで見せる (71% など)</span>
+          <span class="pex">翻訳の自信が低い箇所をオレンジで表示</span>
+        </li>
+        <li>
+          <span class="pid">E2</span><span class="pname">Limitation Disclosure</span>
+          <span class="pessence">「これは私には判断できません」と正直に開示</span>
+          <span class="pex">Hana が発熱 → 「医療判断は不可。近くの病院 →」</span>
+        </li>
+        <li>
+          <span class="pid">E3</span><span class="pname">Rollback</span>
+          <span class="pessence">実行済みを取り消し、代替を提示</span>
+          <span class="pex">航空券キャンセル → 16:30 便を自動提案</span>
+        </li>
+        <li>
+          <span class="pid">E4</span><span class="pname">Ambiguity Escalation</span>
+          <span class="pessence">グレーゾーン (40-79%) は警告つきで人に渡す</span>
+          <span class="pex">Sota にこの辛さは大丈夫？ → A/B で Mai に判断委ね</span>
+        </li>
+        <li>
+          <span class="pid">E5</span><span class="pname">Trust Breach Recovery</span>
+          <span class="pessence">AI が間違えたら Autonomy Dial を 1-2 段階降格</span>
+          <span class="pex">誤注文 → Notify から Suggest に戻して再構築</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Adaptation -->
+    <div class="cat cat--adapt">
+      <div class="cat__label">Adaptation · 8 patterns</div>
+      <div class="cat__name">文脈 → UI を変形させる</div>
+      <p class="cat__lede">場面・デバイス・同席者の変化に応じて UI の形・密度・公開度を変える型紙。文脈が戻れば UI も戻る。</p>
+      <ul class="cat__list">
+        <li>
+          <span class="pid">A1</span><span class="pname">Form Factor Transform</span>
+          <span class="pessence">デバイス変化で UI 構造ごと作り直す</span>
+          <span class="pex">iPhone の縦リスト → TV のグリッドへ</span>
+        </li>
+        <li>
+          <span class="pid">A2</span><span class="pname">Cognitive Scaling</span>
+          <span class="pessence">忙しさに応じて情報密度を増減</span>
+          <span class="pex">朝 7:02 = 候補 1 つ / 9:15 = フルメニュー</span>
+        </li>
+        <li>
+          <span class="pid">A3</span><span class="pname">Social-Aware Filtering</span>
+          <span class="pessence">同席者で表示内容をフィルタ</span>
+          <span class="pex">来客時は買い物履歴と価格を非表示</span>
+        </li>
+        <li>
+          <span class="pid">A4</span><span class="pname">Disclosure Cascade</span>
+          <span class="pessence">FULL / SUMMARY / EXISTENCE / HIDDEN の 4 段階</span>
+          <span class="pex">医療情報 = 本人 FULL、配偶者 SUMMARY、客は HIDDEN</span>
+        </li>
+        <li>
+          <span class="pid">A5</span><span class="pname">Disposable Surface</span>
+          <span class="pessence">目的のために生まれ、達成後に消える UI</span>
+          <span class="pex">London Trip 用画面 → 帰宅後に消滅、学びだけ Home Brain に残す</span>
+        </li>
+        <li>
+          <span class="pid">A6</span><span class="pname">Care Architecture</span>
+          <span class="pessence">効率より関係性。ケアの機会を浮かび上がらせる</span>
+          <span class="pex">「お母さんの誕生日来週、去年は花でしたね」</span>
+        </li>
+        <li>
+          <span class="pid">A7</span><span class="pname">Live Recomposition</span>
+          <span class="pessence">外部状態が変わったら計画を即時再構成</span>
+          <span class="pex">雨予報 80% → 屋外マーケット → 屋内博物館に差し替え</span>
+        </li>
+        <li>
+          <span class="pid">A8</span><span class="pname">Temporal Handoff</span>
+          <span class="pessence">時限 Brain の学びを Home Brain に蒸留して戻す</span>
+          <span class="pex">Trip Brain 終了 → 「3 つの好み」だけ Home Brain に残す</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Enterprise row -->
+  <div class="enter-row">
+    <div class="cat__label">Enterprise · 4 patterns</div>
+    <div class="cat__name" style="font-size:20px;font-weight:600;letter-spacing:-0.3px;margin-bottom:6px;">エンタープライズ専用の追加</div>
+    <p class="cat__lede" style="font-size:14.5px;color:var(--ink-2);margin-bottom:6px;">P4 (Enterprise Context Brain) で必要になった 4 つ。組織で AI を使うときに欠かせない型紙。</p>
+    <div class="enter-row__grid">
+      <p><span class="pid">X1</span><span class="pname">Reasoning Trace</span> — <strong>判断の根拠</strong>を折りたたみで開示。「なぜこの提案？」に展開で答える。</p>
+      <p><span class="pid">X2</span><span class="pname">Inline Edit</span> — AI 提案を<strong>その場で修正</strong>して再実行。「ほぼ良いが微調整したい」に応える。</p>
+      <p><span class="pid">X3</span><span class="pname">Autonomy Dial UI</span> — Suggest → Confirm → Notify → Auto を<strong>明示的に操作する UI</strong>。Disclosure Dial と連動。</p>
+      <p><span class="pid">X4</span><span class="pname">Source Attribution</span> — AI 回答が<strong>どのデータに依拠したか</strong>を明示。CRM・メール・カレンダー等。</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>23 = 6 + 5 + 8 + 4。</strong> 「23 という数字に意味はあるの？」とよく聞かれるけど、<strong>意味はない</strong>。
+    Yamashiro 家・London Trip・P4 の 8 章すべてを実装してみたら、ちょうど 23 種類の型で足りた。<br>
+    新しいシーンを設計して、どの型でも書けないと分かったら、<strong>24 個目</strong>を足す。逆に重複が見つかったら統合する。固定数ではなく<strong>育つカタログ</strong>。
+  </div>
+</section>
+
+<!-- ─────────── §5 · Patterns COMPOSE ─────────── -->
+<section id="s5">
+  <div class="sec-eyebrow">§5 · 合成</div>
+  <h2 class="sec-title">Pattern は組み合わせて使う — Silent Resolution の正体</h2>
+  <p class="sec-lede">
+    Pattern は単体で輝かない。<strong>4 つを組み合わせて 1 つの体験</strong>になる。
+    Yamashiro 家でいちばん象徴的な「Silent Resolution (静かに解決)」を例に、4 つの型紙が<strong>どう噛み合うか</strong>を分解します。
+  </p>
+
+  <div class="scenario-intro">
+    <p class="scenario-intro__quote">「お母さん、サッカーシューズきつい！」</p>
+    <p class="scenario-intro__source">— Sota (11歳) · 火曜 7:08 AM, 朝食中</p>
+  </div>
+
+  <div class="callout">
+    <strong>この一言で起きること:</strong> Mai は何も判断しない。AI が裏で 4 つの型紙を発火させ、靴を注文し、事後報告だけ届く。これが <strong>Silent Resolution</strong>。
+    Pattern を 1 つだけ使ってもこれは作れない。<strong>4 つの組み合わせ</strong>で初めて成り立つ。
+  </div>
+
+  <!-- Compose diagram -->
+  <div class="compose">
+    <div class="compose__title">🧩 Silent Resolution = 4 patterns wired together</div>
+    <div class="compose__grid">
+      <div class="compose__cell compose__cell--deleg">
+        <div class="compose__id">D4</div>
+        <div class="compose__name">Omakase Mode</div>
+        <div class="compose__role">「子供の必需品 ¥50 以下なら任せる」と Mai が事前設定済み。土台。</div>
+      </div>
+      <div class="compose__cell compose__cell--deleg">
+        <div class="compose__id">D6</div>
+        <div class="compose__name">Dynamic Friction</div>
+        <div class="compose__role">$48 は安全圏。これが ¥30,000 のスニーカーなら摩擦が戻り、Auto は止まる。</div>
+      </div>
+      <div class="compose__cell compose__cell--escal">
+        <div class="compose__id">E5</div>
+        <div class="compose__name">Trust Breach Recovery</div>
+        <div class="compose__role">「Tap to undo」が 30 分残る。失敗したら Autonomy が 1 段階下がる安全装置。</div>
+      </div>
+      <div class="compose__cell compose__cell--adapt">
+        <div class="compose__id">A2</div>
+        <div class="compose__name">Cognitive Scaling</div>
+        <div class="compose__role">朝 7 時の Mai は両手塞がり。通知は 1 行・受動・スワイプで終わる形に圧縮。</div>
+      </div>
+    </div>
+    <div class="compose__sum">
+      <strong>= Silent Resolution.</strong> 「Mai が朝の判断地獄から解放される」体験は、この 4 つの型紙が同時に発火している結果。1 つでも欠けると破綻する。
+    </div>
+  </div>
+
+  <!-- Step-by-step composition -->
+  <div class="step step--deleg">
+    <div class="step__head">
+      <span class="step__num">1</span>
+      <span class="step__title">D4 Omakase Mode が発動条件を満たす</span>
+      <span class="step__chip">Delegation</span>
+    </div>
+    <div class="step__body">
+      Mai は Brain の Identity Layer に「子供の必需品 ¥50 以下は任せる」を 6 か月前に登録済み。
+      Sota の靴は <em>$48 = 子供必需品カテゴリ</em>。<strong>D4 の発動条件 (Autonomy=Auto + Disclosure=FULL + Brain L2 trust score=HIGH) を満たす</strong>。
+      <br><br>
+      もしこの設定がなければ、AI は提案で止まり、Mai に「買っていい？」と聞いていた。Omakase Mode は<strong>"自動進行を許可する旗"</strong>。
+    </div>
+  </div>
+
+  <div class="step step--deleg">
+    <div class="step__head">
+      <span class="step__num">2</span>
+      <span class="step__title">D6 Dynamic Friction が金額をチェック</span>
+      <span class="step__chip">Delegation</span>
+    </div>
+    <div class="step__body">
+      Auto に進む前に、もう一つ関門がある。<strong>D6 が「この金額・この種類は本当に Auto で良いか」を再判定</strong>する。
+      $48 は予算枠 $50 の中、月次バジェット $230 残り十分。<em>Friction = 0 → 通過</em>。<br><br>
+      これが ¥30,000 の高級スニーカーだったら、D4 が許可しても D6 が止める。<strong>D4 と D6 は重なって守る</strong>。Omakase の暴走は D6 が押さえる。
+    </div>
+  </div>
+
+  <div class="step step--escal">
+    <div class="step__head">
+      <span class="step__num">3</span>
+      <span class="step__title">E5 Trust Breach Recovery が安全装置を仕込む</span>
+      <span class="step__chip">Escalation</span>
+    </div>
+    <div class="step__body">
+      購入と同時に、E5 が<strong>「30 分以内なら Tap to undo で取り消せる」窓を開ける</strong>。
+      もし Mai が「あ、それじゃなくて」と Undo したら、E5 は Autonomy Dial を Auto → Notify に 1 段階降格し、Brain の Learning Layer にネガティブシグナルを記録する。<br><br>
+      Pattern は<strong>失敗を前提に組まれている</strong>。Auto は不可逆ではなく、<em>「短い時限つきの Auto」</em>として実装される。
+    </div>
+  </div>
+
+  <div class="step step--adapt">
+    <div class="step__head">
+      <span class="step__num">4</span>
+      <span class="step__title">A2 Cognitive Scaling が通知の形を圧縮する</span>
+      <span class="step__chip">Adaptation</span>
+    </div>
+    <div class="step__body">
+      最後に、A2 が「Mai に何をどう見せるか」を整える。
+      朝 7 時、両手塞がり、Cognitive Load = HIGH。詳細画面は出さない。<strong>1 行・色控えめ・スワイプで消せる通知</strong>に圧縮する。
+      <br><br>
+      <em>"Sota's soccer shoes ordered. Auto-approved. $48. — Tap to undo."</em><br>
+      昼ごはんの後、Mai が落ち着いて確認するときには A2 が再発火し、同じ事実を<strong>もっと詳しい形</strong>に展開できる。
+    </div>
+  </div>
+
+  <div class="step step--result">
+    <div class="step__head">
+      <span class="step__num">5</span>
+      <span class="step__title">結果: Silent Resolution が成立</span>
+      <span class="step__chip">Result</span>
+    </div>
+    <div class="step__body">
+      Mai が朝食で受けた「シューズきつい」一言は、<strong>4 つの Pattern が連鎖した</strong>結果として、注文済み・取消可・通知最小・予算反映済の状態になっている。
+      Mai は何も決めていない。<strong>でも全部のセーフティが効いている</strong>。これが Silent Resolution の正体。
+
+      <div class="verdict">→ D4 + D6 + E5 + A2 = Silent Resolution</div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 28px;">
+    <strong>大事な気づき:</strong> Silent Resolution は<strong>独立した「機能」ではない</strong>。
+    23 個の型紙のうち 4 つを<strong>正しい順序で発火させた結果</strong>として現れる現象。だから新しいシーン (旅行先のチケット予約・在宅介護の薬の補充など) でも、同じ 4 つの型紙を組めば再現できる。<br>
+    <strong>Pattern は単語、合成は文章、Silent Resolution は段落</strong>。これが "Context Grammar" の <em>"Grammar"</em> たる所以。
+  </div>
+</section>
+
+<!-- ─────────── §6 · Why a library matters ─────────── -->
+<section id="s6">
+  <div class="sec-eyebrow">§6 · なぜカタログ化するのか</div>
+  <h2 class="sec-title">Pinterest じゃなくて、システム</h2>
+  <p class="sec-lede">
+    「いいデザイン」を集めただけなら、Pinterest や Mobbin で十分。AX Pattern Library が違うのは、<strong>Token 条件・原則・合成ルール</strong>がセットで定義されていること。これが「集まり」と「システム」の境目。
+  </p>
+
+  <div class="why-grid">
+    <div class="why">
+      <h4>① 再利用</h4>
+      <div class="why__title">同じ型を別シーンに使い回せる</div>
+      <p>Approval Gate は<strong>靴の購入</strong>でも、<strong>旅程の確定</strong>でも、<strong>営業メールの送信承認</strong>でも、まったく同じ仕組みで動く。23 個の型を覚えれば、無限のシーンが組める。</p>
+    </div>
+    <div class="why">
+      <h4>② 一貫性</h4>
+      <div class="why__title">家族・職場・どこでも同じ作法</div>
+      <p>D2 Progressive Trust の昇格条件 (8 週連続成功 → Notify) は P1 でも P4 でも同じ。<strong>家庭の弁当 AI と会社の営業 AI が同じ作法で振る舞う</strong>。学習コストが激減する。</p>
+    </div>
+    <div class="why">
+      <h4>③ 検証可能</h4>
+      <div class="why__title">「これは正しいか」を議論できる</div>
+      <p>「この画面は Pattern X の発動条件を満たしているか？」と問えば、<strong>議論が具体になる</strong>。「なんか良くない気がする」が「D6 の摩擦が抜けている」になる。デザイン批評が言語化される。</p>
+    </div>
+    <div class="why">
+      <h4>④ 育つカタログ</h4>
+      <div class="why__title">新シーンが新パターンを呼ぶ</div>
+      <p>新しい設計をして、23 個のどれでも書けないと分かったら、<strong>24 個目を提案</strong>する。Care Architecture (A6) は P5 で初めて出てきた。ライブラリは固定ではなく、<strong>家族構成や事業領域と一緒に育つ</strong>。</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Pinterest との違いを一言で:</strong>
+    Pinterest は<strong>「いいデザインの写真集」</strong>。AX Pattern Library は<strong>「いつ・なぜ・どう組み合わせるか」のルールブック</strong>。
+    前者は眺めるもの、後者は使うもの。だからカタログ化に意味がある。
+  </div>
+</section>
+
+<!-- ─────────── §7 · 推奨アクション ─────────── -->
+<section id="s7">
+  <div class="sec-eyebrow">§7 · これからどうするか</div>
+  <h2 class="sec-title">推奨アクション</h2>
+  <p class="sec-lede">
+    AX Pattern Library を portfolio で使うときに、徹底すべき 3 つ。
+  </p>
+
+  <div class="recs">
+    <div class="rec">
+      <div class="rec__num">1</div>
+      <div>
+        <div class="rec__title">画面ごとに「使った Pattern」をタグで貼る</div>
+        <div class="rec__body">
+          各 UI モックアップに <strong>D1 / E5 / A2</strong> のような Pattern ID を 2-4 個タグ付けする。読者が「あ、ここでも Approval Gate 使ってる」と<strong>横串で認識</strong>できる。これが "system" を可視化する一番手軽な方法。
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec__num">2</div>
+      <div>
+        <div class="rec__title">「合成して 1 体験」を毎プロジェクトで 1 回見せる</div>
+        <div class="rec__body">
+          Silent Resolution のように <strong>4 つ程度の Pattern を組んで 1 つの現象</strong>を描くシーンを、各プロジェクト最低 1 つ用意する。単発の Pattern 紹介だけだと、読者は「なんかいいけど点でしかない」と感じる。<strong>線で繋ぐと一気に強度が出る</strong>。
+        </div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="rec__num">3</div>
+      <div>
+        <div class="rec__title">新しい Pattern を発見したら 24 個目として記録する</div>
+        <div class="rec__body">
+          設計中に「23 個のどれにも当てはまらない」シーンに出会ったら、それは<strong>新しい Pattern の候補</strong>。安易に既存 Pattern にねじ込まず、<code>AX_Pattern_Library_Definition.md</code> に下書きで追加し、<strong>Token 条件・原則・例</strong>を埋める。育つカタログを実装する。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── §8 · Q&A ─────────── -->
+<section id="s8">
+  <div class="sec-eyebrow">§8 · よくある混乱</div>
+  <h2 class="sec-title">よくある質問を整理する</h2>
+
+  <div class="step step--deleg">
+    <div class="step__head">
+      <span class="step__title">Q1. AX Pattern と「デザインパターン」(GoF など) は同じもの？</span>
+    </div>
+    <div class="step__body">
+      <strong>遠い親戚です。</strong> ソフトウェアの GoF パターンは「Singleton」「Observer」のように<strong>コードの構造</strong>を扱う。
+      AX Pattern は <strong>Agentic UX の振る舞い</strong>を扱う。共通点は「再利用できる型紙にする」という考え方。
+      違いは、AX Pattern は必ず <strong>Token 条件 (人間や状況)</strong> をトリガーに含むこと。コードだけでは閉じない。
+    </div>
+  </div>
+
+  <div class="step step--deleg">
+    <div class="step__head">
+      <span class="step__title">Q2. なぜ Delegation・Escalation・Adaptation の 3 バケツ？</span>
+    </div>
+    <div class="step__body">
+      <strong>3 つが互いに独立しているから。</strong>
+      Delegation は「人 → AI」、Escalation は「AI → 人」、Adaptation は「文脈 → UI」。<strong>方向と主語がそれぞれ違う</strong>。
+      ある場面で 3 つすべてが同時に起きうるし、片方だけが起きることもある。だから 3 つに分けると Pattern が綺麗に整理される。
+      <em>(2 つだと足りない、4 つ目を加えても他の 3 つの組み合わせで書けてしまう。Einstein's Test 済み。)</em>
+    </div>
+  </div>
+
+  <div class="step step--escal">
+    <div class="step__head">
+      <span class="step__title">Q3. 23 個も覚えないとダメなの？</span>
+    </div>
+    <div class="step__body">
+      <strong>全部覚える必要はないです。</strong> 設計中に「これって Pattern として整理されてないかな？」と思ったときにカタログを引けばいい。
+      よく使う 5-6 個 (Approval Gate · Progressive Trust · Cognitive Scaling · Disclosure Cascade · Trust Breach Recovery など) は自然に手に馴染む。
+      残りはレファレンスで十分。<strong>"覚えるカタログ" ではなく "引くカタログ"</strong>。
+    </div>
+  </div>
+
+  <div class="step step--adapt">
+    <div class="step__head">
+      <span class="step__title">Q4. Pattern と Component (CSS の部品) はどう違う？</span>
+    </div>
+    <div class="step__body">
+      <strong>Pattern は「振る舞いのレシピ」、Component は「具体的な UI 部品」。</strong>
+      Approval Gate (Pattern) は「承認・修正・却下を 3 ボタンで聞く」という振る舞いの規約。
+      これを iPhone 用に実装した「3 ボタンの SwiftUI ビュー」が Component。
+      <strong>Pattern は 1 つでも、Component は surface ごと (iPhone / Watch / 冷蔵庫) に複数</strong>存在する。AX Pattern Library が定義するのは Pattern の方だけ。
+    </div>
+  </div>
+
+  <div class="step step--adapt">
+    <div class="step__head">
+      <span class="step__title">Q5. これって Material Design の "design system" と何が違うの？</span>
+    </div>
+    <div class="step__body">
+      <strong>カバーしている層が違います。</strong> Material は<strong>見た目とコンポーネント</strong> (色・余白・ボタン形状) を統一するシステム。
+      AX Patterns は<strong>振る舞いと判断のしかた</strong> (いつ AI が引き下がるか、いつ任せるか、いつ画面を作り直すか) を統一するシステム。
+      両者は対立しないし、<strong>両方必要</strong>。Material が「絵の具」だとすれば、AX Pattern は「絵の構図」。Context Grammar は構図の文法を扱う。
+    </div>
+  </div>
+</section>
+
+<div class="foot">Context Grammar · AX Patterns Explainer · 2026-04-30</div>
+
+</div>
+
+<!-- Bottom-right project marker (same pattern as p3-scroll) -->
+<div class="chpt-corner" aria-hidden="true"><strong>Context Grammar</strong> AX Patterns</div>
+
+</body>
+</html>

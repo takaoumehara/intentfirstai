@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CG · 台風 — 移動中 17:00</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="../../../assets/css/tokens.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px 6px;
+}
+.status-bar__time { font-size: 14px; font-weight: 700; }
+.status-bar__icons { font-size: 10px; color: var(--text-2); }
+
+/* News alert */
+.news-alert {
+  padding: 10px 16px;
+  background: rgba(245,158,11,0.1);
+  border-bottom: 1px solid rgba(245,158,11,0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.news-alert__icon { font-size: 14px; flex-shrink: 0; }
+.news-alert__text {
+  font-size: 11px;
+  color: #b45309;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* Location banner */
+.location-banner {
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.location-banner__icon { font-size: 14px; }
+.location-banner__info {
+  flex: 1;
+}
+.location-banner__status {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 2px;
+}
+.location-banner__eta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.location-banner__time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  text-align: right;
+}
+
+/* Header */
+.header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.header__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--color-success);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.header__eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+.header__title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.header__sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 11px;
+  background: rgba(5,150,105,0.08);
+  border: 1px solid rgba(5,150,105,0.2);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--color-success);
+  font-weight: 500;
+}
+.status-badge__dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+.options-label {
+  padding: 12px 16px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.option-card {
+  margin: 0 16px 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.option-card.primary {
+  border-color: rgba(5,150,105,0.3);
+  background: rgba(5,150,105,0.02);
+}
+
+.option-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 0;
+}
+.option-rank { font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-3); }
+.confidence {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+}
+.confidence__bar {
+  height: 3px; width: 36px; background: var(--gray-200); border-radius: 2px; overflow: hidden;
+}
+.confidence__fill { height: 100%; border-radius: 2px; background: var(--color-success); }
+.confidence__num { color: var(--color-success); }
+
+.option-card__body { padding: 6px 14px 12px; }
+.option-main {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px;
+}
+.option-icon { font-size: 16px; }
+.option-name { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.option-time { font-family: var(--font-mono); font-size: 12px; color: var(--text-3); }
+.option-meta { font-size: 11px; color: var(--text-2); line-height: 1.5; margin-bottom: 8px; }
+
+.option-cta {
+  width: 100%; padding: 10px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--bg);
+  font-size: 13px; font-weight: 600; color: var(--text);
+  cursor: pointer; text-align: center;
+}
+.option-cta.primary {
+  background: var(--text); color: var(--bg); border-color: var(--text);
+}
+
+.footer {
+  margin: 12px 16px 20px;
+  padding: 8px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 10px; color: var(--text-3);
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); letter-spacing: 0.2px;
+}
+.footer::before {
+  content: '✓'; font-size: 11px; color: var(--color-success); font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span class="status-bar__time">17:00</span>
+  <span class="status-bar__icons">●●● 🔋</span>
+</div>
+
+<!-- News alert -->
+<div class="news-alert">
+  <div class="news-alert__icon">⚠️</div>
+  <div class="news-alert__text">台風4号 接近中 · 警戒レベル 3 · 大阪地方</div>
+</div>
+
+<!-- Location banner -->
+<div class="location-banner">
+  <div class="location-banner__icon">🚕</div>
+  <div class="location-banner__info">
+    <div class="location-banner__status">移動中 · 大阪駅へ</div>
+    <div class="location-banner__eta">駅到着予定 17:20（あと 20 分）</div>
+  </div>
+  <div class="location-banner__time">17:58 発</div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header__eyebrow">確定</div>
+  <div class="header__title">今日中に東京に帰る</div>
+  <div class="header__sub">新幹線 17:58 発 · 乗車まであと 58 分</div>
+  <div class="status-badge">
+    <span class="status-badge__dot"></span>
+    <span>新幹線 · 東海道線 · 現在運行正常</span>
+  </div>
+</div>
+
+<div class="options-label">推奨 — 予約済み</div>
+
+<div class="option-card primary">
+  <div class="option-card__head">
+    <span class="option-rank">#1</span>
+    <div class="confidence">
+      <div class="confidence__bar"><div class="confidence__fill" style="width:100%"></div></div>
+      <span class="confidence__num">100%</span>
+    </div>
+  </div>
+  <div class="option-card__body">
+    <div class="option-main">
+      <span class="option-icon">🚄</span>
+      <span class="option-name">東海道新幹線</span>
+      <span class="option-time">17:58発</span>
+    </div>
+    <div class="option-meta">予約済み · 追加費用なし · 東京着 20:10 予定</div>
+    <button class="option-cta primary">予約確認</button>
+  </div>
+</div>
+
+<div class="options-label">代替案（参考）</div>
+
+<div class="option-card">
+  <div class="option-card__head">
+    <span class="option-rank">#2</span>
+    <div class="confidence">
+      <div class="confidence__bar"><div class="confidence__fill" style="width:60%"></div></div>
+      <span class="confidence__num">60%</span>
+    </div>
+  </div>
+  <div class="option-card__body">
+    <div class="option-main">
+      <span class="option-icon">✈️</span>
+      <span class="option-name">JAL 伊丹 → 羽田</span>
+      <span class="option-time">18:45発</span>
+    </div>
+    <div class="option-meta">¥47,000 · 空席あり · 21:10着</div>
+    <button class="option-cta">確認</button>
+  </div>
+</div>
+
+<div class="option-card">
+  <div class="option-card__head">
+    <span class="option-rank">#3</span>
+    <div class="confidence">
+      <div class="confidence__bar"><div class="confidence__fill" style="width:40%"></div></div>
+      <span class="confidence__num">40%</span>
+    </div>
+  </div>
+  <div class="option-card__body">
+    <div class="option-main">
+      <span class="option-icon">🏨</span>
+      <span class="option-name">大阪泊 → 明朝</span>
+    </div>
+    <div class="option-meta">¥18,000〜 · 確実 · 翌朝7:00台で帰宅</div>
+    <button class="option-cta">探す</button>
+  </div>
+</div>
+
+<div class="footer">新幹線運行状況は自動で監視されています</div>
+
+</body>
+</html>

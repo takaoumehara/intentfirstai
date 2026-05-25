@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Grammar — 3 Approaches Sketch</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ─── Header ─── */
+.sk-header {
+  padding: 28px 36px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sk-header__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.sk-header__title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+.sk-header__sub {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 20px;
+}
+
+/* ─── Scenario summary ─── */
+.scenario-strip {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.scenario-strip__pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--gray-100);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.scenario-strip__pill strong { color: var(--text); font-family: var(--font-mono); font-size: 10px; }
+
+/* ─── Tabs ─── */
+.sk-tabs {
+  display: flex;
+  gap: 0;
+}
+.sk-tab {
+  padding: 11px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms, border-color 120ms;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sk-tab .badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--gray-100);
+  color: var(--text-3);
+  transition: all 120ms;
+}
+.sk-tab:hover { color: var(--text); }
+.sk-tab.active { color: var(--text); border-bottom-color: var(--text); }
+.sk-tab.active .badge { background: var(--text); color: var(--bg); }
+
+/* ─── Views ─── */
+.sk-view { display: none; padding: 32px 36px 48px; }
+.sk-view.active { display: block; }
+
+/* ─── Approach label ─── */
+.sk-approach-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.sk-approach-label__char {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-success);
+  background: rgba(5,150,105,0.08);
+  border: 1px solid rgba(5,150,105,0.2);
+  border-radius: 5px;
+  padding: 3px 8px;
+}
+.sk-approach-label__text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.sk-approach-label__meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  margin-left: auto;
+}
+
+/* ─── Timeline selector ─── */
+.timeline-nav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+.timeline-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  transition: all 150ms;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.timeline-btn .t-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.timeline-btn:hover { border-color: var(--border-hover); color: var(--text-2); }
+.timeline-btn.active {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+.timeline-btn.active .t-time { color: #30c969; }
+
+/* ─── Glass Box ─── */
+.glass-box {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 36px;
+  align-items: start;
+}
+.glass-box__right {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  position: sticky;
+  top: 16px;
+}
+
+/* ─── Reasoning panel ─── */
+.reason-section { margin-bottom: 18px; }
+.reason-section:last-child { margin-bottom: 0; }
+.reason-section__head {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.intent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid;
+}
+.intent-badge--implicit { background: rgba(5,150,105,0.07); color: var(--color-success); border-color: rgba(5,150,105,0.2); }
+.intent-badge--explicit { background: rgba(37,99,235,0.07); color: #1d4ed8; border-color: rgba(37,99,235,0.18); }
+
+.token-grid { display: flex; flex-direction: column; gap: 3px; }
+.token-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid transparent;
+  font-size: 11px;
+  transition: background 250ms, border-color 250ms;
+}
+.token-row.is-active { background: rgba(5,150,105,0.06); border-color: rgba(5,150,105,0.2); }
+.token-row.is-changed { background: rgba(217,119,6,0.07); border-color: rgba(217,119,6,0.2); animation: pulse-token 0.5s ease-out; }
+@keyframes pulse-token { 0% { background: rgba(217,119,6,0.2); } 100% { background: rgba(217,119,6,0.07); } }
+.token-num { font-family: var(--font-mono); font-size: 8px; font-weight: 700; color: var(--text-3); width: 14px; flex-shrink: 0; }
+.token-name { font-family: var(--font-mono); font-size: 9px; color: var(--text-3); width: 84px; flex-shrink: 0; }
+.token-val { font-size: 11px; font-weight: 500; color: var(--text-2); flex: 1; }
+.token-val.is-active { color: var(--color-success); font-weight: 600; }
+.token-val.is-changed { color: #b45309; font-weight: 600; }
+.token-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gray-300); flex-shrink: 0; }
+.token-dot.is-active { background: var(--color-success); }
+.token-dot.is-changed { background: #f59e0b; }
+
+.brain-layers { display: flex; flex-direction: column; gap: 4px; }
+.brain-layer {
+  padding: 7px 10px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--bg); font-size: 11px;
+}
+.brain-layer__head { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.brain-layer__num { font-family: var(--font-mono); font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: var(--gray-100); color: var(--text-3); }
+.brain-layer__name { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-3); }
+.brain-layer__val { font-size: 11px; color: var(--text-2); line-height: 1.45; }
+.brain-layer.is-active { background: rgba(139,92,246,0.06); border-color: rgba(139,92,246,0.2); }
+.brain-layer.is-active .brain-layer__num { background: rgba(139,92,246,0.12); color: #7c3aed; }
+.brain-layer.is-active .brain-layer__name { color: #7c3aed; }
+
+.rule-row { padding: 8px 10px; border-radius: 7px; border: 1px solid rgba(5,150,105,0.18); background: rgba(5,150,105,0.04); font-size: 11px; margin-bottom: 5px; }
+.rule-row:last-child { margin-bottom: 0; }
+.rule-row__id { font-family: var(--font-mono); font-size: 9px; color: var(--color-success); font-weight: 700; margin-bottom: 3px; }
+.rule-row__text { color: var(--text-2); line-height: 1.45; }
+
+.ax-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.ax-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px; background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.15); color: #1d4ed8; }
+
+.decision-box { padding: 11px 14px; border-radius: 8px; background: rgba(5,150,105,0.05); border: 1px solid rgba(5,150,105,0.18); font-size: 12px; color: var(--text); line-height: 1.6; }
+.decision-box strong { color: var(--color-success); }
+
+/* ─── Compare (B) ─── */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.compare-col { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.compare-col__head {
+  padding: 12px 18px;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.compare-col__head.trad { background: var(--bg-2); color: var(--text-3); }
+.compare-col__head.cg { background: rgba(5,150,105,0.07); color: var(--color-success); }
+.compare-col__body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.logic-block {
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.7;
+}
+.logic-block strong { color: var(--text-2); }
+
+.device-wrap { display: flex; justify-content: center; }
+
+.verdict {
+  padding: 10px 13px; border-radius: 8px; font-size: 12px; font-weight: 500; line-height: 1.5;
+}
+.verdict.bad { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.14); color: #b91c1c; }
+.verdict.good { background: rgba(5,150,105,0.05); border: 1px solid rgba(5,150,105,0.18); color: var(--color-success); }
+
+.compare-footer {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px;
+}
+.cf-card { padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-2); }
+.cf-card__head { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.cf-card__head.trad { color: var(--text-3); }
+.cf-card__head.cg { color: var(--color-success); }
+.cf-card__body { font-size: 12px; color: var(--text-2); line-height: 1.7; }
+.cf-card__body strong { color: var(--text); }
+
+/* ─── Multi-person (C) ─── */
+.multi-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start;
+}
+.person-label {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.person-avatar {
+  width: 30px; height: 30px; border-radius: 50%; font-size: 12px;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;
+}
+.person-avatar.sota { background: rgba(5,150,105,0.12); color: var(--color-success); }
+.person-avatar.yuki { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+.person-avatar.ren  { background: rgba(217,119,6,0.12); color: #b45309; }
+.person-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.person-meta { font-family: var(--font-mono); font-size: 9px; color: var(--text-3); }
+.person-brain {
+  margin-top: 12px; padding: 11px 13px;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px;
+  font-size: 11px; color: var(--text-2); line-height: 1.6;
+}
+.person-brain__head {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 6px;
+}
+.person-brain strong { color: var(--text); }
+.multi-footer {
+  margin-top: 24px; padding: 14px 18px;
+  background: rgba(139,92,246,0.05); border: 1px solid rgba(139,92,246,0.15); border-radius: 10px;
+  font-size: 12px; color: var(--text-2); line-height: 1.7;
+}
+.multi-footer strong { color: #7c3aed; }
+
+/* ─── iframe fills device screen ─── */
+.iphone15pro__screen iframe {
+  width: 100%; height: 100%; border: none; display: block;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .glass-box { grid-template-columns: 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .compare-footer { grid-template-columns: 1fr; }
+  .multi-grid { grid-template-columns: 1fr; }
+  .sk-view { padding: 20px; }
+  .sk-header { padding: 20px 20px 0; }
+}
+@media (max-width: 480px) {
+  .timeline-nav { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<div class="sk-header">
+  <div class="sk-header__eyebrow">Context Grammar · Simulator Redesign — Strategy Sketch</div>
+  <div class="sk-header__title">3つのアプローチ比較</div>
+  <div class="sk-header__sub">同一シナリオを3パターンで展示。どれが Context Grammar の力を最も見せるか。</div>
+
+  <div class="scenario-strip">
+    <div class="scenario-strip__pill"><strong>WHO</strong> Sota（父・37歳）帰宅途中</div>
+    <div class="scenario-strip__pill"><strong>WHEN</strong> 18:04 → 18:06 → 18:22</div>
+    <div class="scenario-strip__pill"><strong>WHAT</strong> 夕食を決めたい</div>
+    <div class="scenario-strip__pill"><strong>TWIST</strong> ゲストが来た</div>
+  </div>
+
+  <div class="sk-tabs">
+    <button class="sk-tab active" data-tab="a">
+      <span class="badge">A</span>シナリオ型 — 時系列
+    </button>
+    <button class="sk-tab" data-tab="b">
+      <span class="badge">B</span>比較型 — CG なし vs あり
+    </button>
+    <button class="sk-tab" data-tab="c">
+      <span class="badge">C</span>多人数型 — 同じ瞬間
+    </button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     A: シナリオ型（時系列）
+     ══════════════════════════════════════════════════ -->
+<div class="sk-view active" id="view-a">
+  <div class="sk-approach-label">
+    <span class="sk-approach-label__char">A</span>
+    <span class="sk-approach-label__text">時系列 — コンテキストが変わると、Brain が変わり、UIが変わる</span>
+    <span class="sk-approach-label__meta">1人 × 3モーメント</span>
+  </div>
+
+  <div class="timeline-nav">
+    <button class="timeline-btn active" data-moment="driving">
+      <span class="t-time">18:04</span>
+      <span>帰宅途中</span>
+    </button>
+    <button class="timeline-btn" data-moment="guest">
+      <span class="t-time">18:06</span>
+      <span>ゲスト到着</span>
+    </button>
+    <button class="timeline-btn" data-moment="home">
+      <span class="t-time">18:22</span>
+      <span>帰宅後</span>
+    </button>
+  </div>
+
+  <div class="glass-box">
+    <div class="glass-box__left">
+      <div class="iphone15pro iphone15pro--lg">
+        <img class="iphone15pro__chrome"
+             src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <iframe id="a-iframe" src="screens/cg-driving.html?noframe=1" title="UI screen" loading="eager"></iframe>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="glass-box__right">
+      <div class="reason-section">
+        <div class="reason-section__head">① Intent</div>
+        <div id="a-intent"></div>
+      </div>
+      <div class="reason-section">
+        <div class="reason-section__head">② Situation Signals &amp; Relationship Dials</div>
+        <div class="token-grid" id="a-tokens"></div>
+      </div>
+      <div class="reason-section">
+        <div class="reason-section__head">③ Brain · 3 Layers</div>
+        <div class="brain-layers" id="a-brain"></div>
+      </div>
+      <div class="reason-section">
+        <div class="reason-section__head">④ Rules fired</div>
+        <div id="a-rules"></div>
+      </div>
+      <div class="reason-section">
+        <div class="reason-section__head">⑤ AX Pattern</div>
+        <div class="ax-list" id="a-ax"></div>
+      </div>
+      <div class="reason-section">
+        <div class="reason-section__head">⑥ だからこのUIになった</div>
+        <div class="decision-box" id="a-decision"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     B: 比較型
+     ══════════════════════════════════════════════════ -->
+<div class="sk-view" id="view-b">
+  <div class="sk-approach-label">
+    <span class="sk-approach-label__char">B</span>
+    <span class="sk-approach-label__text">比較型 — 同じ瞬間・同じ intent。なぜUIが全く違うのか？</span>
+    <span class="sk-approach-label__meta">CG なし vs CG あり</span>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-col">
+      <div class="compare-col__head trad">Context Grammar なし</div>
+      <div class="compare-col__body">
+        <div class="logic-block">
+          判断ロジック：<br>
+          <strong>if screen.width &lt; 768px</strong><br>
+          → モバイルレイアウトを表示<br><br>
+          状況は一切読まない。
+        </div>
+        <div class="device-wrap">
+          <div class="iphone15pro iphone15pro--md">
+            <img class="iphone15pro__chrome"
+                 src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+                 alt="" aria-hidden="true">
+            <div class="iphone15pro__screen">
+              <iframe src="screens/no-cg.html?noframe=1" title="CGなし" loading="lazy"></iframe>
+            </div>
+            <div class="iphone15pro__island" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="verdict bad">
+          運転中に20件のレシピ一覧。読めない、危ない。Sota が今どこにいるか、何ができるか、Brain の学習 — 何も使っていない。
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-col">
+      <div class="compare-col__head cg">Context Grammar あり</div>
+      <div class="compare-col__body">
+        <div class="logic-block">
+          判断ロジック：<br>
+          <strong>① DRIVING + ② DEPLETED</strong><br>
+          <strong>Brain L2:</strong> 帰宅パターン・家族の好み<br>
+          <strong>Rule:</strong> density=minimal, max=1
+        </div>
+        <div class="device-wrap">
+          <div class="iphone15pro iphone15pro--md">
+            <img class="iphone15pro__chrome"
+                 src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+                 alt="" aria-hidden="true">
+            <div class="iphone15pro__screen">
+              <iframe src="screens/cg-driving.html?noframe=1" title="CGあり" loading="lazy"></iframe>
+            </div>
+            <div class="iphone15pro__island" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="verdict good">
+          1択のみ。Brain が「材料あり・家族好き・25分で作れる」を計算済み。確認ボタン1つ。これが今の Sota に必要なもの。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="compare-footer">
+    <div class="cf-card">
+      <div class="cf-card__head trad">従来の判断材料</div>
+      <div class="cf-card__body">
+        <strong>画面サイズのみ</strong><br>
+        ユーザーの状況：知らない<br>
+        Brain の学習：なし<br>
+        Rules：メディアクエリのみ
+      </div>
+    </div>
+CF-CARD    <div class="cf-card">
+      <div class="cf-card__head cg">Context Grammar の判断材料</div>
+      <div class="cf-card__body">
+        <strong>6つの状況シグナルと2つの関係性ダイヤル × Brain 3層 × Rules</strong>
+        ユーザーの状況：運転中・疲弊・18分前<br>
+        Brain の学習：家族の好み・在庫・過去パターン<br>
+        Rules：具体的な設計ルール群
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════
+     C: 多人数型
+     ══════════════════════════════════════════════════ -->
+<div class="sk-view" id="view-c">
+  <div class="sk-approach-label">
+    <span class="sk-approach-label__char">C</span>
+    <span class="sk-approach-label__text">多人数型 — 同じ18:06。Brain が違えば、UIが違う</span>
+    <span class="sk-approach-label__meta">3人 × 1モーメント</span>
+  </div>
+
+  <div class="multi-grid">
+
+    <div class="person-col">
+      <div class="person-label">
+        <div class="person-avatar sota">S</div>
+        <div>
+          <div class="person-name">Sota（父）</div>
+          <div class="person-meta">車内 · 運転中 · Autonomy = NOTIFY</div>
+        </div>
+      </div>
+      <div class="iphone15pro iphone15pro--md">
+        <img class="iphone15pro__chrome"
+             src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <iframe src="screens/cg-guest.html?noframe=1" title="Sota" loading="lazy"></iframe>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+      <div class="person-brain">
+        <div class="person-brain__head">Brain (Sota)</div>
+        L3: 運転中・ゲスト到着通知<br>
+        L2: Social=PUBLIC → ゲスト情報優先<br>
+        <strong>→ ゲストモード + ワイン提案</strong>
+      </div>
+    </div>
+
+    <div class="person-col">
+      <div class="person-label">
+        <div class="person-avatar yuki">Y</div>
+        <div>
+          <div class="person-name">Yuki（母）</div>
+          <div class="person-meta">在宅 · 調理中 · Autonomy = AUTO</div>
+        </div>
+      </div>
+      <div class="iphone15pro iphone15pro--md">
+        <img class="iphone15pro__chrome"
+             src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <iframe src="screens/cg-home.html?noframe=1" title="Yuki" loading="lazy"></iframe>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+      <div class="person-brain">
+        <div class="person-brain__head">Brain (Yuki)</div>
+        L3: 在宅・4人分の料理開始<br>
+        L2: ゲスト=調整済み<br>
+        <strong>→ 料理進行状況 + Sota の帰宅 ETA</strong>
+      </div>
+    </div>
+
+    <div class="person-col">
+      <div class="person-label">
+        <div class="person-avatar ren">R</div>
+        <div>
+          <div class="person-name">Ren（子・10歳）</div>
+          <div class="person-meta">宿題中 · Autonomy = SUGGEST</div>
+        </div>
+      </div>
+      <div class="iphone15pro iphone15pro--md">
+        <img class="iphone15pro__chrome"
+             src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+             alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <iframe src="screens/cg-driving.html?noframe=1" title="Ren" loading="lazy"></iframe>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+      <div class="person-brain">
+        <div class="person-brain__head">Brain (Ren)</div>
+        L3: 宿題中・集中モード<br>
+        L2: ゲスト通知は子には不要<br>
+        <strong>→ ゲスト情報を非表示。宿題を続ける</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="multi-footer">
+    <strong>Context Grammar が示すこと：</strong>
+    同じ瞬間（18:06）・同じ出来事（ゲスト到着）。でも Sota・Yuki・Ren の Brain と Autonomy Dial が違う。
+    Sota はゲストモードに切り替わり、Yuki は料理に集中し、Ren はゲスト情報すら知らない。
+    <strong>これは responsive design では絶対に不可能。</strong>
+  </div>
+</div>
+
+
+<script>
+/* ─── Tabs ─── */
+document.querySelectorAll('.sk-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sk-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.sk-view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ─── Approach A data ─── */
+const moments = {
+  driving: {
+    src: 'screens/cg-driving.html?noframe=1',
+    intent: { type:'implicit', text:'⟳ Implicit — 夕食を決めたい（帰宅途中）' },
+    tokens: [
+      { n:'T1', name:'Physical',    val:'DRIVING ⚡',       active:true,  changed:true  },
+      { n:'T2', name:'Cognitive',   val:'DEPLETED ⚡',      active:true,  changed:true  },
+      { n:'T3', name:'Social',      val:'Private · 車内',   active:false, changed:false },
+      { n:'T4', name:'Priority',    val:'dinner_decision',  active:true,  changed:false },
+      { n:'T5', name:'Form Factor', val:'Phone',            active:false, changed:false },
+      { n:'T6', name:'Feasibility', val:'GPS + fridge ✓',  active:true,  changed:false },
+      { n:'D1', name:'Autonomy',    val:'NOTIFY',           active:true,  changed:false },
+      { n:'D2', name:'Disclosure',  val:'household · full', active:false, changed:false },
+    ],
+    brain: [
+      { num:'L1', name:'Identity',  val:'会社員 · 父 · 週5通勤',                     active:false },
+      { num:'L2', name:'Learning',  val:'疲れた帰宅 → 1択提示。照り焼き=家族好き',    active:true  },
+      { num:'L3', name:'Right Now', val:'18:04 · 運転中 · ETA 18:22 · 認知疲弊',     active:true  },
+    ],
+    rules: [{ id:'p1_dinner_suggestion_timing', text:'driving + depleted → density=minimal, max_options=1, autonomy=NOTIFY' }],
+    ax: ['🎯 Single Best Bet', '✋ Confirm-only CTA'],
+    decision: '<strong>運転中 + 疲弊</strong> → 情報を極限まで削る。1択のみ。確認ボタン1つ。Brain が全部計算済み。',
+  },
+  guest: {
+    src: 'screens/cg-guest.html?noframe=1',
+    intent: { type:'implicit', text:'⟳ Implicit — ゲスト対応 + 夕食調整' },
+    tokens: [
+      { n:'T1', name:'Physical',    val:'DRIVING',                   active:true,  changed:false },
+      { n:'T2', name:'Cognitive',   val:'DEPLETED',                  active:true,  changed:false },
+      { n:'T3', name:'Social',      val:'GUEST_PRESENT ⚡ 変化',     active:true,  changed:true  },
+      { n:'T4', name:'Priority',    val:'guest_welcome ↑ 変化',     active:true,  changed:true  },
+      { n:'T5', name:'Form Factor', val:'Phone',                     active:false, changed:false },
+      { n:'T6', name:'Feasibility', val:'4人分の材料 OK',            active:true,  changed:true  },
+      { n:'D1', name:'Autonomy',    val:'NOTIFY',                    active:false, changed:false },
+      { n:'D2', name:'Disclosure',  val:'household · restricted ⚡', active:true,  changed:true  },
+    ],
+    brain: [
+      { num:'L1', name:'Identity',  val:'会社員 · 父 · 友人=田中（3回目）',           active:false },
+      { num:'L2', name:'Learning',  val:'田中=ワイン好き · ゲスト時は家計情報を隠す', active:true  },
+      { num:'L3', name:'Right Now', val:'18:06 · ゲスト到着通知受信 · 運転継続',      active:true  },
+    ],
+    rules: [
+      { id:'social_exposure_guest', text:'GUEST_PRESENT → Disclosure=restricted。個人情報・家計・健康情報を非表示' },
+      { id:'guest_context_switch', text:'known_guest(田中) → ゲスト嗜好から提案を生成。ワイン+人数調整' },
+    ],
+    ax: ['🔒 Selective Disclosure', '🎁 Guest Context Switch', '🍷 Contextual Recommendation'],
+    decision: '<strong>ゲスト到着</strong> → Disclosure Dial が自動でかかり、プライベート情報が消える。代わりに田中さんの好みからワインを提案。UIが根本的に組み替わる。',
+  },
+  home: {
+    src: 'screens/cg-home.html?noframe=1',
+    intent: { type:'implicit', text:'⟳ Implicit — 帰宅後の整理 + ゲスト歓迎' },
+    tokens: [
+      { n:'T1', name:'Physical',    val:'STATIONARY ⚡ 変化',       active:false, changed:true  },
+      { n:'T2', name:'Cognitive',   val:'LOW · 疲弊継続',           active:false, changed:false },
+      { n:'T3', name:'Social',      val:'GUEST_PRESENT',            active:true,  changed:false },
+      { n:'T4', name:'Priority',    val:'wind_down',                active:true,  changed:true  },
+      { n:'T5', name:'Form Factor', val:'Phone',                    active:false, changed:false },
+      { n:'T6', name:'Feasibility', val:'Yuki が調理中 ✓',         active:false, changed:false },
+      { n:'D1', name:'Autonomy',    val:'SUGGEST · Sota は疲れ中', active:false, changed:false },
+      { n:'D2', name:'Disclosure',  val:'household · restricted',   active:false, changed:false },
+    ],
+    brain: [
+      { num:'L1', name:'Identity',  val:'会社員 · 父 · 帰宅後は静かに過ごしたい',    active:false },
+      { num:'L2', name:'Learning',  val:'疲れた日の帰宅 → 最小情報。Yuki に任せる', active:true  },
+      { num:'L3', name:'Right Now', val:'18:22 · 帰宅 · ゲストあり · Yuki が調理中', active:true },
+    ],
+    rules: [
+      { id:'night_wind_down_with_guest', text:'帰宅 + 疲弊 + ゲストあり → Sota には最小情報。料理は Yuki に委任済み' },
+    ],
+    ax: ['🌙 Minimal Home View', '✅ Delegation Complete'],
+    decision: '<strong>帰宅 + ゲストあり + 疲弊</strong> → Sota への情報は最小限。夕食は Yuki が進行中。Sota はただ帰ってくるだけでいい。',
+  },
+};
+
+function renderMoment(key) {
+  const d = moments[key];
+  document.getElementById('a-iframe').src = d.src;
+
+  document.getElementById('a-intent').innerHTML =
+    `<div class="intent-badge intent-badge--${d.intent.type}">${d.intent.text}</div>`;
+
+  document.getElementById('a-tokens').innerHTML = d.tokens.map(t => `
+    <div class="token-row ${t.active ? 'is-active' : ''} ${t.changed ? 'is-changed' : ''}">
+      <span class="token-num">${t.n}</span>
+      <span class="token-name">${t.name}</span>
+      <span class="token-val ${t.active ? 'is-active' : ''} ${t.changed ? 'is-changed' : ''}">${t.val}</span>
+      <span class="token-dot ${t.active ? 'is-active' : ''} ${t.changed ? 'is-changed' : ''}"></span>
+    </div>`).join('');
+
+  document.getElementById('a-brain').innerHTML = d.brain.map(b => `
+    <div class="brain-layer ${b.active ? 'is-active' : ''}">
+      <div class="brain-layer__head">
+        <span class="brain-layer__num">${b.num}</span>
+        <span class="brain-layer__name">${b.name}</span>
+      </div>
+      <div class="brain-layer__val">${b.val}</div>
+    </div>`).join('');
+
+  document.getElementById('a-rules').innerHTML = d.rules.map(r => `
+    <div class="rule-row">
+      <div class="rule-row__id">${r.id}</div>
+      <div class="rule-row__text">${r.text}</div>
+    </div>`).join('');
+
+  document.getElementById('a-ax').innerHTML =
+    d.ax.map(a => `<span class="ax-badge">${a}</span>`).join('');
+
+  document.getElementById('a-decision').innerHTML = d.decision;
+}
+
+renderMoment('driving');
+
+document.querySelectorAll('.timeline-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.timeline-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMoment(btn.dataset.moment);
+  });
+});
+</script>
+</body>
+</html>

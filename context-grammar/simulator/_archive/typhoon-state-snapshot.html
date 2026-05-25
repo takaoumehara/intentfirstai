@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>State Snapshot · S23 台風 × 新幹線全停止</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  padding: 40px 20px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 60px;
+  text-align: center;
+}
+.header__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.header__title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+.header__sub {
+  font-size: 13px;
+  color: var(--text-2);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Scene chapter */
+.scene-chapter {
+  margin-bottom: 80px;
+}
+.scene-label {
+  margin-bottom: 28px;
+  text-align: center;
+}
+.scene-label__time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.scene-label__title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.scene-label__desc {
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════
+   SNAPSHOT LAYOUT: LEFT | CENTER | RIGHT
+═══════════════════════════════════════════════ */
+.snapshot {
+  display: grid;
+  grid-template-columns: 280px 1fr 260px;
+  gap: 32px;
+  align-items: center;
+  padding: 40px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+/* Timeline connector */
+.timeline-connector {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0;
+}
+.timeline-connector__line {
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(180deg, var(--text-3) 0%, transparent 100%);
+}
+
+/* ─────────────────────────────────────────
+   LEFT: Brain 3-Layer Visualization
+───────────────────────────────────────────── */
+.brain-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.brain-layer-item {
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  transition: all 200ms;
+}
+.brain-layer-item.is-static {
+  opacity: 0.6;
+}
+.brain-layer-item.is-active {
+  background: rgba(220,38,38,0.08);
+  border-color: rgba(220,38,38,0.2);
+}
+.brain-layer-item.is-active-green {
+  background: rgba(5,150,105,0.08);
+  border-color: rgba(5,150,105,0.2);
+}
+
+.blink {
+  animation: gentle-blink 1.2s ease-in-out infinite;
+}
+@keyframes gentle-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.brain-layer__icon {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+.brain-layer__label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+.brain-layer-item.is-active .brain-layer__label {
+  color: #b91c1c;
+}
+.brain-layer-item.is-active-green .brain-layer__label {
+  color: var(--color-success);
+}
+
+.brain-layer__text {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.brain-layer-item.is-active .brain-layer__text,
+.brain-layer-item.is-active-green .brain-layer__text {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.brain-layer__compare {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-3);
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+.brain-layer-item.is-active .brain-layer__compare {
+  border-top-color: rgba(220,38,38,0.2);
+  color: #b91c1c;
+}
+.brain-layer-item.is-active-green .brain-layer__compare {
+  border-top-color: rgba(5,150,105,0.2);
+  color: var(--color-success);
+}
+
+/* ─────────────────────────────────────────
+   CENTER: Before/After Phones
+───────────────────────────────────────────── */
+.center-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.phone-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.phone-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: center;
+}
+.phone-time {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  text-align: center;
+}
+
+.transition-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.transition-arrow__icon {
+  font-size: 24px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.transition-arrow__text {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-3);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.iphone15pro__screen iframe { width: 100%; height: 100%; border: none; display: block; }
+
+/* ─────────────────────────────────────────
+   RIGHT: Token Changes
+───────────────────────────────────────────── */
+.token-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.token-item {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.token-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.token-item__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+.token-item__arrow {
+  font-size: 12px;
+  font-weight: 700;
+}
+.token-item__arrow.up { color: var(--color-success); }
+.token-item__arrow.down { color: #b45309; }
+.token-item__arrow.same { color: var(--text-3); }
+
+.token-item__values {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+}
+.token-item__before {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--gray-100);
+}
+.token-item__after {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--gray-100);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.token-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.token-bar__before {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gray-200);
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.token-bar__after {
+  height: 6px;
+  border-radius: 2px;
+  background: var(--color-success);
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  animation: bar-grow 0.8s ease-out;
+}
+.token-item__arrow.down ~ .token-bar .token-bar__after {
+  background: #b45309;
+  animation: bar-shrink 0.8s ease-out;
+}
+.token-item__arrow.same ~ .token-bar .token-bar__after {
+  background: var(--text-3);
+  animation: none;
+}
+
+@keyframes bar-grow {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes bar-shrink {
+  from { width: 100%; }
+  to { width: 70%; }
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .snapshot {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+  .center-panel {
+    flex-direction: column;
+  }
+  .transition-arrow {
+    transform: rotate(90deg);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header__eyebrow">State Snapshot · ストーリー版</div>
+    <h1 class="header__title">台風 × 新幹線全停止</h1>
+    <p class="header__sub">
+      通常 → 危機 → 自動再計算。Brain が変わり、Token が変わり、UI が変わった。
+    </p>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SCENE 1: NORMAL (17:00)
+  ═══════════════════════════════════════ -->
+  <div class="scene-chapter">
+    <div class="scene-label">
+      <div class="scene-label__time">Scene 1 · 17:00</div>
+      <div class="scene-label__title">通常 — 新幹線で帰宅確定</div>
+      <div class="scene-label__desc">
+        新幹線 17:58 発で予約済み。東京着 20:10。何の問題もない。
+      </div>
+    </div>
+
+    <div class="snapshot">
+      <!-- LEFT: Brain 3-Layer -->
+      <div class="brain-panel">
+        <div class="brain-layer-item is-static">
+          <div class="brain-layer__icon">🏢</div>
+          <div class="brain-layer__label">L1 · Identity</div>
+          <div class="brain-layer__text">
+            会社員<br>
+            出張中<br>
+            帰宅必須
+          </div>
+        </div>
+        <div class="brain-layer-item is-static">
+          <div class="brain-layer__icon">📚</div>
+          <div class="brain-layer__label">L2 · Learning</div>
+          <div class="brain-layer__text">
+            新幹線優先<br>
+            ¥50k以下OK<br>
+            ホテル最終手段
+          </div>
+        </div>
+        <div class="brain-layer-item is-active-green">
+          <div class="brain-layer__icon">✓</div>
+          <div class="brain-layer__label">L3 · Right Now</div>
+          <div class="brain-layer__text">
+            17:00<br>
+            大阪駅<br>
+            晴天
+          </div>
+          <div class="brain-layer__compare">新幹線 ✓ 17:58 発</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Phone -->
+      <div class="center-panel">
+        <div class="phone-wrap">
+          <div class="phone-label">ユーザーが見る画面</div>
+          <div class="phone-time">17:00</div>
+          <div class="iphone15pro iphone15pro--lg">
+            <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+            <div class="iphone15pro__screen">
+              <iframe src="screens/typhoon-normal.html?noframe=1" loading="eager"></iframe>
+            </div>
+            <div class="iphone15pro__island" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Token (all normal) -->
+      <div class="token-panel">
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">新幹線 · 東海道</div>
+            <div class="token-item__arrow same">✓</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">100%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__after" style="width: 100%; animation: none;"></div>
+          </div>
+        </div>
+
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">飛行機</div>
+            <div class="token-item__arrow same">—</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">60%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__after" style="width: 60%; animation: none;"></div>
+          </div>
+        </div>
+
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">ホテル</div>
+            <div class="token-item__arrow same">—</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">40%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__after" style="width: 40%; animation: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline connector -->
+  <div class="timeline-connector">
+    <div class="timeline-connector__line"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SCENE 2: CRISIS (17:45)
+  ═══════════════════════════════════════ -->
+  <div class="scene-chapter">
+    <div class="scene-label">
+      <div class="scene-label__time">Scene 2 · 17:45</div>
+      <div class="scene-label__title">危機 — 新幹線 全列車運休</div>
+      <div class="scene-label__desc">
+        台風4号 警戒レベル4。45分で状況は一変。Context Grammar が代替案を即座に再計算した。
+      </div>
+    </div>
+
+    <div class="snapshot">
+      <!-- LEFT: Brain 3-Layer -->
+      <div class="brain-panel">
+        <div class="brain-layer-item is-static">
+          <div class="brain-layer__icon">🏢</div>
+          <div class="brain-layer__label">L1 · Identity</div>
+          <div class="brain-layer__text">
+            会社員<br>
+            出張中<br>
+            帰宅必須
+          </div>
+        </div>
+        <div class="brain-layer-item is-static">
+          <div class="brain-layer__icon">📚</div>
+          <div class="brain-layer__label">L2 · Learning</div>
+          <div class="brain-layer__text">
+            飛行機優先<br>
+            ¥50k以下OK<br>
+            ホテル最終手段
+          </div>
+        </div>
+        <div class="brain-layer-item is-active blink">
+          <div class="brain-layer__icon">🔴</div>
+          <div class="brain-layer__label">L3 · Right Now</div>
+          <div class="brain-layer__text">
+            17:45<br>
+            大阪駅<br>
+            台風Lv4
+          </div>
+          <div class="brain-layer__compare">新幹線 ✗ 全線運休</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Phone -->
+      <div class="center-panel">
+        <div class="phone-wrap">
+          <div class="phone-label">ユーザーが見る画面</div>
+          <div class="phone-time">17:45</div>
+          <div class="iphone15pro iphone15pro--lg">
+            <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+            <div class="iphone15pro__screen">
+              <iframe src="screens/typhoon-crisis.html?noframe=1" loading="lazy"></iframe>
+            </div>
+            <div class="iphone15pro__island" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Token Changes -->
+      <div class="token-panel">
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">新幹線 待機</div>
+            <div class="token-item__arrow down">✗</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">100%</span>
+            <span>→</span>
+            <span class="token-item__after">78%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__before" style="width: 100%;"></div>
+            <div class="token-bar__after" style="width: 78%;"></div>
+          </div>
+        </div>
+
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">飛行機 · JAL</div>
+            <div class="token-item__arrow up">↑</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">60%</span>
+            <span>→</span>
+            <span class="token-item__after">92%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__before" style="width: 60%;"></div>
+            <div class="token-bar__after" style="width: 92%;"></div>
+          </div>
+        </div>
+
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">大阪泊</div>
+            <div class="token-item__arrow up">↑</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">40%</span>
+            <span>→</span>
+            <span class="token-item__after">100%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__before" style="width: 40%;"></div>
+            <div class="token-bar__after" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline connector -->
+  <div class="timeline-connector">
+    <div class="timeline-connector__line"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SCENE 3: CLEARING (18:15)
+  ═══════════════════════════════════════ -->
+  <div class="scene-chapter">
+    <div class="scene-label">
+      <div class="scene-label__time">Scene 3 · 18:15</div>
+      <div class="scene-label__title">自動再計算 — 台風が弱まる</div>
+      <div class="scene-label__desc">
+        Kiran は何もしていない。台風の勢力が変わった。Context Grammar が自律的に再計算して、UI が自動で変わった。
+      </div>
+    </div>
+
+    <div class="snapshot">
+      <!-- LEFT: Brain 3-Layer -->
+      <div class="brain-panel">
+        <div class="brain-layer-item is-static">
+          <div class="brain-layer__icon">🏢</div>
+          <div class="brain-layer__label">L1 · Identity</div>
+          <div class="brain-layer__text">
+            会社員<br>
+            出張中<br>
+            帰宅必須
+          </div>
+        </div>
+        <div class="brain-layer-item is-static">
+          <div class="brain-layer__icon">📚</div>
+          <div class="brain-layer__label">L2 · Learning</div>
+          <div class="brain-layer__text">
+            飛行機優先<br>
+            ¥50k以下OK<br>
+            ホテル最終手段
+          </div>
+        </div>
+        <div class="brain-layer-item is-active-green blink">
+          <div class="brain-layer__icon">✓</div>
+          <div class="brain-layer__label">L3 · Right Now</div>
+          <div class="brain-layer__text">
+            18:15<br>
+            大阪駅<br>
+            台風Lv2
+          </div>
+          <div class="brain-layer__compare">新幹線 ○ 再開予測 20:10</div>
+        </div>
+      </div>
+
+      <!-- CENTER: Before/After Phones -->
+      <div class="center-panel">
+        <div class="phone-wrap">
+          <div class="phone-label">状態 A（15分前）</div>
+          <div class="phone-time">17:45</div>
+          <div class="iphone15pro iphone15pro--sm" style="transform: scale(0.75); transform-origin: center;">
+            <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+            <div class="iphone15pro__screen">
+              <iframe src="screens/typhoon-crisis.html?noframe=1" loading="lazy"></iframe>
+            </div>
+            <div class="iphone15pro__island" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="transition-arrow">
+          <div class="transition-arrow__icon">→</div>
+          <div class="transition-arrow__text">
+            台風<br>
+            弱化<br>
+            自動<br>
+            再<br>
+            計算
+          </div>
+          <div class="transition-arrow__icon">→</div>
+        </div>
+
+        <div class="phone-wrap">
+          <div class="phone-label">状態 B（いま）</div>
+          <div class="phone-time">18:15</div>
+          <div class="iphone15pro iphone15pro--lg">
+            <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+            <div class="iphone15pro__screen">
+              <iframe src="screens/typhoon-clearing.html?noframe=1" loading="lazy"></iframe>
+            </div>
+            <div class="iphone15pro__island" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Token Changes -->
+      <div class="token-panel">
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">新幹線 待機</div>
+            <div class="token-item__arrow up">↑</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">78%</span>
+            <span>→</span>
+            <span class="token-item__after">92%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__before" style="width: 78%;"></div>
+            <div class="token-bar__after" style="width: 92%;"></div>
+          </div>
+        </div>
+
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">飛行機 · JAL</div>
+            <div class="token-item__arrow down">↓</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">92%</span>
+            <span>→</span>
+            <span class="token-item__after">85%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__before" style="width: 92%;"></div>
+            <div class="token-bar__after" style="width: 85%;"></div>
+          </div>
+        </div>
+
+        <div class="token-item">
+          <div class="token-item__head">
+            <div class="token-item__name">大阪泊</div>
+            <div class="token-item__arrow same">→</div>
+          </div>
+          <div class="token-item__values">
+            <span class="token-item__before">100%</span>
+          </div>
+          <div class="token-bar">
+            <div class="token-bar__after" style="width: 100%; animation: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// (No JavaScript needed for scroll version)
+</script>
+</body>
+</html>

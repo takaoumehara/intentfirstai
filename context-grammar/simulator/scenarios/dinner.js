@@ -5,7 +5,7 @@
 
    This is a pure-data file. It declares:
      - Intent (stage 1)
-     - 8 Context Tokens with values + signals (stage 2)
+     - 6 Situation Signals & 2 Relationship Dials with values + signals (stage 2)
      - Brain memory entries for L1/L2/L3 (stage 3a)
      - Rules that fire and the tokens/brain that drive them (stage 3b)
      - AX Patterns the rules invoke (stage 3c)

@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Grammar · P3 Journey — Voice → Purchase</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+
+  <style>
+    /* ═══════════════════════════════════════════
+   P3 Journey — Glass Box Simulator (v2)
+   ═══════════════════════════════════════════ */
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --nav-h: 56px;
+      --prog-h: 2px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Progress bar ── */
+    .prog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--prog-h);
+      background: var(--bg-3);
+      z-index: 200;
+    }
+
+    .prog__fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 500ms var(--ease-out-expo);
+      width: 0;
+    }
+
+    /* ── Shell ── */
+    .shell {
+      display: flex;
+      height: 100dvh;
+      padding-top: var(--prog-h);
+      padding-bottom: var(--nav-h);
+    }
+
+    /* ═══════════════════════════════════════════
+   LEFT PANEL — User UI
+   ═══════════════════════════════════════════ */
+    .panel-user {
+      flex: 0 0 44%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 24px 16px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      gap: 16px;
+      min-width: 0;
+      transition: flex-basis 350ms var(--ease-out-quart);
+    }
+
+    /* In multidevice mode, give left panel more room */
+    .shell[data-layout="multidevice"] .panel-user {
+      flex-basis: 58%;
+    }
+
+    .panel-eyebrow {
+      font-family: var(--font-mono);
+      font-size: var(--text-mono-xs);
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      align-self: flex-start;
+    }
+
+    /* ── Regular phone wrap (single-device mode) ── */
+    .phone-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      width: 100%;
+      transition: opacity 250ms var(--ease-out-quart);
+    }
+
+    .iphone15pro__screen iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* ── Multi-device wrap (TV + Phone) ── */
+    .tv-phone-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      gap: 0;
+    }
+
+    .shell[data-layout="multidevice"] .phone-wrap {
+      display: none;
+    }
+
+    .shell[data-layout="multidevice"] .tv-phone-wrap {
+      display: flex;
+    }
+
+    .tvp-stage {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    .tvp-tv-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .tvp-phone-col {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── TV Frame (CSS-only) ── */
+    .tv-frame {
+      background: #111;
+      border-radius: 12px 12px 6px 6px;
+      padding: 8px 10px 10px;
+      box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.07);
+      width: 100%;
+      position: relative;
+    }
+
+    .tv-frame__screen {
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .tv-frame__screen iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .tv-frame__dot {
+      display: block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 6px auto 0;
+    }
+
+    .tv-stand__neck {
+      width: 40px;
+      height: 10px;
+      background: #1c1c1c;
+      margin: 0 auto;
+    }
+
+    .tv-stand__base {
+      width: 90px;
+      height: 5px;
+      background: #1c1c1c;
+      border-radius: 0 0 3px 3px;
+      margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .tvp-device-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* Phone controller small size */
+    .tvp-phone-col .iphone15pro {
+      --iphone-w: 118px;
+    }
+
+    /* Mobile notice (shown on ≤768px for multidevice steps) */
+    .tvp-mobile-notice {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 24px 20px;
+      color: var(--text-2);
+    }
+
+    .tvp-mobile-notice svg {
+      flex-shrink: 0;
+      color: var(--text-3);
+    }
+
+    @media (max-width: 768px) {
+      .tvp-stage {
+        display: none;
+      }
+
+      .tvp-mobile-notice {
+        display: flex;
+      }
+    }
+
+    /* ── Step Caption ── */
+    .step-caption {
+      align-self: stretch;
+    }
+
+    .step-caption__kind {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-caption__kind::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--color-brand);
+      flex-shrink: 0;
+    }
+
+    .step-caption__text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════
+   RIGHT PANEL — Backstage (Dark)
+   ═══════════════════════════════════════════ */
+    .panel-bts {
+      flex: 1;
+      background: var(--bts-bg);
+      color: var(--bts-text);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      transition: flex 350ms var(--ease-out-quart);
+    }
+
+    /* ── Step Dots ── */
+    .step-dots {
+      display: flex;
+      gap: 4px;
+      padding: 14px 28px 0;
+      flex-shrink: 0;
+    }
+
+    .step-dot {
+      height: 3px;
+      flex: 1;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.08);
+      transition: background 300ms var(--ease-out-quart);
+    }
+
+    .step-dot.active {
+      background: var(--bts-engine);
+    }
+
+    .step-dot.done {
+      background: rgba(196, 168, 224, 0.3);
+    }
+
+    /* ── Backstage Scroll ── */
+    .bts-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    }
+
+    .bts-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .bts-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    .step-panel {
+      display: none;
+    }
+
+    .step-panel.active {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: fadeStepIn 350ms var(--ease-out-expo) both;
+    }
+
+    @keyframes fadeStepIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── BTS Typography ── */
+    .bts-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--bts-engine);
+    }
+
+    .bts-chip::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--bts-engine);
+    }
+
+    .bts-title {
+      font-size: clamp(22px, 2.4vw, 30px);
+      font-weight: 500;
+      color: var(--bts-text);
+      line-height: 1.15;
+      letter-spacing: -0.4px;
+    }
+
+    .bts-lede {
+      font-size: 13px;
+      color: var(--bts-text-2);
+      line-height: 1.6;
+      max-width: 460px;
+    }
+
+    /* ── Section Blocks ── */
+    .bts-section {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 16px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .bts-section__head {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--bts-text-2);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .bts-section__head::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--bts-text-3);
+      flex-shrink: 0;
+    }
+
+    /* Color-coded section types */
+    .bts-section--token .bts-section__head {
+      color: #8bb4e8;
+    }
+
+    .bts-section--token .bts-section__head::before {
+      background: #8bb4e8;
+    }
+
+    .bts-section--brain .bts-section__head {
+      color: var(--bts-engine);
+    }
+
+    .bts-section--brain .bts-section__head::before {
+      background: var(--bts-engine);
+    }
+
+    .bts-section--rule .bts-section__head {
+      color: var(--bts-yes);
+    }
+
+    .bts-section--rule .bts-section__head::before {
+      background: var(--bts-yes);
+    }
+
+    .bts-section--ax .bts-section__head {
+      color: #c4a8e0;
+    }
+
+    .bts-section--ax .bts-section__head::before {
+      background: #c4a8e0;
+    }
+
+    /* ── Big Stat Blocks ── */
+    .bts-stats-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .bts-stat {
+      flex: 1;
+      padding: 14px 14px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .bts-stat__num {
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -1.5px;
+      color: var(--bts-yes);
+    }
+
+    .bts-stat__num--blue {
+      color: #8bb4e8;
+    }
+
+    .bts-stat__num--purple {
+      color: var(--bts-engine);
+    }
+
+    .bts-stat__num--amber {
+      color: #f59e0b;
+    }
+
+    .bts-stat__num--white {
+      color: var(--bts-text);
+    }
+
+    .bts-stat__label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--bts-text-3);
+    }
+
+    /* ── Intent Badge ── */
+    .intent-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: rgba(100, 150, 240, 0.08);
+      border: 1px solid rgba(100, 150, 240, 0.15);
+      color: #8bb4e8;
+      font-family: var(--font-mono);
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Token Grid — IMPROVED ── */
+    .token-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .token-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: border-color 200ms var(--ease-out-quart);
+    }
+
+    .token-item.is-active {
+      background: rgba(48, 201, 105, 0.07);
+      border-color: rgba(48, 201, 105, 0.25);
+    }
+
+    .token-item.is-hot {
+      background: rgba(245, 158, 11, 0.07);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .token-item__label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--bts-text-3);
+      margin-bottom: 5px;
+    }
+
+    .token-item__val {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--bts-text);
+      line-height: 1.2;
+      letter-spacing: -0.4px;
+    }
+
+    .token-item__val.hot {
+      color: #f59e0b;
+    }
+
+    .token-item.is-active .token-item__val {
+      color: var(--bts-yes);
+    }
+
+    /* ── Brain Cards ── */
+    .brain-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .brain-card {
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(196, 168, 224, 0.05);
+      border-left: 3px solid var(--bts-engine);
+      animation: cardSlideIn 300ms var(--ease-out-expo) both;
+    }
+
+    .brain-card:nth-child(1) { animation-delay: 40ms; }
+    .brain-card:nth-child(2) { animation-delay: 100ms; }
+    .brain-card:nth-child(3) { animation-delay: 160ms; }
+    .brain-card:nth-child(4) { animation-delay: 220ms; }
+
+    @keyframes cardSlideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .brain-card__type {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--bts-engine);
+      margin-bottom: 5px;
+    }
+
+    .brain-card__main {
+      font-size: 14px;
+      color: var(--bts-text);
+      line-height: 1.4;
+    }
+
+    .brain-card__detail {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--bts-text-3);
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .brain-card__ok {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--bts-yes);
+      margin-top: 6px;
+    }
+
+    .brain-card__ok::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--bts-yes);
+    }
+
+    /* ── Rule Rows — IMPROVED ── */
+    .rule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rule-row {
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(48, 201, 105, 0.15);
+      background: rgba(48, 201, 105, 0.04);
+    }
+
+    .rule-row__id {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--bts-yes);
+      margin-bottom: 5px;
+      letter-spacing: 0.3px;
+    }
+
+    .rule-row__text {
+      font-size: 13px;
+      color: var(--bts-text-2);
+      line-height: 1.5;
+    }
+
+    /* ── AX Badges ── */
+    .ax-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ax-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: rgba(196, 168, 224, 0.08);
+      border: 1px solid rgba(196, 168, 224, 0.2);
+      color: #c4a8e0;
+    }
+
+    /* ── Decision Box — IMPROVED ── */
+    .decision-box {
+      padding: 14px 18px;
+      border-radius: 10px;
+      background: rgba(48, 201, 105, 0.06);
+      border: 1px solid rgba(48, 201, 105, 0.2);
+      font-size: 14px;
+      color: var(--bts-text);
+      line-height: 1.65;
+    }
+
+    .decision-box strong {
+      color: var(--bts-yes);
+      font-weight: 600;
+    }
+
+    /* ── Multi-device info block ── */
+    .device-split {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .device-block {
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .device-block__icon {
+      font-size: 20px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .device-block__label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--bts-engine);
+      margin-bottom: 4px;
+    }
+
+    .device-block__val {
+      font-size: 14px;
+      color: var(--bts-text);
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    .device-block__sub {
+      font-size: 11px;
+      color: var(--bts-text-3);
+      margin-top: 3px;
+    }
+
+    /* ── Quote ── */
+    .bquote {
+      border-left: 2px solid var(--bts-engine);
+      padding: 12px 16px;
+      background: rgba(196, 168, 224, 0.04);
+      border-radius: 0 10px 10px 0;
+      font-size: 13px;
+      color: var(--bts-text-2);
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    /* ── Diff Blocks ── */
+    .diff-blocks {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .diff-file {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .diff-file__head {
+      background: rgba(255, 255, 255, 0.04);
+      padding: 7px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .diff-file__name {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--bts-text-2);
+    }
+
+    .diff-file__layer {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--bts-engine);
+    }
+
+    .diff-file__body {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 10px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .diff-line--add { color: var(--bts-yes); }
+    .diff-line--add::before { content: '+ '; }
+    .diff-line--rm { color: var(--bts-no); text-decoration: line-through; opacity: 0.7; }
+    .diff-line--rm::before { content: '- '; }
+    .diff-line--ctx { color: var(--bts-text-3); }
+    .diff-line--ctx::before { content: '  '; }
+
+    /* ── Pipeline Stages ── */
+    .pipeline-stages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pipeline-stage {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid;
+      animation: cardSlideIn 300ms var(--ease-out-expo) both;
+    }
+
+    .pipeline-stage:nth-child(1) { animation-delay: 40ms; background: rgba(74,106,144,0.06); border-color: rgba(74,106,144,0.15); }
+    .pipeline-stage:nth-child(2) { animation-delay: 100ms; background: rgba(106,74,144,0.06); border-color: rgba(106,74,144,0.15); }
+    .pipeline-stage:nth-child(3) { animation-delay: 160ms; background: rgba(106,74,144,0.06); border-color: rgba(106,74,144,0.15); }
+    .pipeline-stage:nth-child(4) { animation-delay: 220ms; background: rgba(48,201,105,0.05); border-color: rgba(48,201,105,0.15); }
+    .pipeline-stage:nth-child(5) { animation-delay: 280ms; background: rgba(74,106,144,0.06); border-color: rgba(74,106,144,0.15); }
+    .pipeline-stage:nth-child(6) { animation-delay: 340ms; background: rgba(48,201,105,0.05); border-color: rgba(48,201,105,0.15); }
+
+    .pipeline-stage__label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .pipeline-stage:nth-child(1) .pipeline-stage__label,
+    .pipeline-stage:nth-child(5) .pipeline-stage__label { color: #8bb4e8; }
+    .pipeline-stage:nth-child(2) .pipeline-stage__label,
+    .pipeline-stage:nth-child(3) .pipeline-stage__label { color: var(--bts-engine); }
+    .pipeline-stage:nth-child(4) .pipeline-stage__label,
+    .pipeline-stage:nth-child(6) .pipeline-stage__label { color: var(--bts-yes); }
+
+    .pipeline-stage__text {
+      font-size: 12px;
+      color: var(--bts-text-2);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════════════
+   FOOTER NAV
+   ═══════════════════════════════════════════ */
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-h);
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 100;
+    }
+
+    .nbtn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--text-2);
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background 140ms var(--ease-out-quart), color 140ms var(--ease-out-quart);
+    }
+
+    .nbtn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .nbtn:not(:disabled):active {
+      transform: scale(0.97);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .nbtn:not(:disabled):hover {
+        background: var(--bg-3);
+        color: var(--text);
+      }
+    }
+
+    .nbtn--next {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .nbtn--next:not(:disabled):hover {
+        background: var(--text);
+        color: var(--bg);
+      }
+    }
+
+    .nav-mid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-lbl {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: -0.1px;
+    }
+
+    .nav-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+    }
+
+    /* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+    @media (max-height: 700px) {
+      .iphone15pro { --iphone-w: 210px !important; }
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        flex-direction: column;
+        height: auto;
+        overflow: auto;
+      }
+
+      .panel-user {
+        flex: none;
+        min-height: 55vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .shell[data-layout="multidevice"] .panel-user {
+        flex-basis: auto;
+        min-height: 30vh;
+      }
+
+      .panel-bts {
+        flex: none;
+        min-height: 55vh;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @keyframes micWave {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1); }
+    }
+
+    /* ═══════════════════════════════════════════
+   TV GALLERY — Inline (replaces composite iframe)
+   ═══════════════════════════════════════════ */
+    .tv-gallery-inline {
+      width: 100%; height: 100%;
+      background: #0d0d0d;
+      display: flex; flex-direction: column;
+      font-family: var(--font-sans);
+    }
+    .tvg-header {
+      padding: 5px 10px 4px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .tvg-header__logo { font-family: var(--font-mono); font-size: 8px; color: #30c969; letter-spacing: 1px; }
+    .tvg-header__title { font-size: 10px; font-weight: 600; color: #f0f0f0; flex: 1; }
+    .tvg-header__sub { font-size: 8px; color: rgba(255,255,255,0.3); font-family: var(--font-mono); }
+    .tvg-grid {
+      flex: 1; display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 5px; padding: 7px; align-content: center; min-height: 0;
+    }
+    .tvg-card {
+      background: #1a1a1a; border-radius: 5px;
+      border: 1.5px solid rgba(255,255,255,0.07);
+      overflow: hidden; display: flex; flex-direction: column;
+      transition: border-color 200ms, box-shadow 200ms;
+    }
+    .tvg-card--selected {
+      border-color: rgba(100,150,240,0.65);
+      box-shadow: 0 0 0 1px rgba(100,150,240,0.25), 0 0 12px rgba(100,150,240,0.15);
+    }
+    .tvg-card--confirmed {
+      border-color: rgba(48,201,105,0.75);
+      box-shadow: 0 0 0 1px rgba(48,201,105,0.3), 0 0 12px rgba(48,201,105,0.12);
+    }
+    .tvg-card-img {
+      width: 100%; aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .tvg-card-info { padding: 3px 5px 4px; }
+    .tvg-card-name {
+      font-size: 8px; font-weight: 700; color: #e0e0e0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .tvg-card--confirmed .tvg-card-name::after { content: ' ✓'; color: #30c969; }
+    .tvg-card-tag { font-size: 7px; color: rgba(255,255,255,0.35); margin-top: 1px; }
+    .tvg-card--selected .tvg-card-tag { color: #8bb4e8; }
+    .tvg-card--confirmed .tvg-card-tag { color: #30c969; }
+
+    /* ═══════════════════════════════════════════
+   PHONE CONTROLLER — Inline
+   ═══════════════════════════════════════════ */
+    .phone-ctrl {
+      width: 100%; height: 100%;
+      background: #fafafa;
+      display: flex; flex-direction: column;
+      font-family: var(--font-sans);
+    }
+    .phone-ctrl__cast {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 10px 6px;
+      background: #111; color: rgba(255,255,255,0.8);
+      font-size: 8px; font-weight: 600; font-family: var(--font-mono);
+      letter-spacing: 0.5px; flex-shrink: 0;
+    }
+    .phone-ctrl__cast-dot { width: 5px; height: 5px; border-radius: 50%; background: #30c969; flex-shrink: 0; }
+    .phone-ctrl__selected {
+      padding: 8px 10px; border-bottom: 1px solid #ebebeb;
+      display: flex; gap: 7px; align-items: center; flex-shrink: 0;
+    }
+    .phone-ctrl__shoe-img {
+      width: 32px; height: 32px; border-radius: 5px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+      background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+    }
+    .phone-ctrl__shoe-info { flex: 1; min-width: 0; }
+    .phone-ctrl__shoe-name { font-size: 9px; font-weight: 700; color: #0a0a0a; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .phone-ctrl__shoe-price { font-size: 11px; font-weight: 700; color: #0a0a0a; margin-top: 1px; }
+    .phone-ctrl__shoe-price span { font-size: 8px; font-weight: 400; color: #a1a1aa; margin-left: 3px; }
+    .phone-ctrl__dpad { flex: 1; display: flex; align-items: center; justify-content: center; }
+    .dpad { display: grid; grid-template-columns: 26px 26px 26px; grid-template-rows: 26px 26px 26px; gap: 2px; }
+    .dpad-btn {
+      display: flex; align-items: center; justify-content: center;
+      background: #ebebeb; border: none; border-radius: 5px; cursor: pointer;
+      font-size: 9px; color: #525252; line-height: 1;
+    }
+    .dpad-btn--center { background: #0a0a0a; color: #fff; border-radius: 50%; }
+    .dpad-btn--empty { background: transparent; cursor: default; }
+    .phone-ctrl__buy {
+      margin: 0 10px 10px;
+      background: #0a0a0a; color: #fff; border: none; border-radius: 8px;
+      padding: 9px; font-size: 10px; font-weight: 700; cursor: pointer;
+      width: calc(100% - 20px); flex-shrink: 0;
+      font-family: var(--font-sans);
+    }
+    .phone-ctrl__confirm {
+      margin: 8px 10px;
+      padding: 7px 10px; border-radius: 7px;
+      background: rgba(48,201,105,0.1); border: 1px solid rgba(48,201,105,0.3);
+      font-size: 8px; color: #059669; font-weight: 600; font-family: var(--font-mono);
+      text-align: center; flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════════
+   BACKSTAGE COLLAPSE / EXPAND
+   ═══════════════════════════════════════════ */
+    .step-dots { position: relative; }
+    .bts-collapse-btn {
+      position: absolute; top: 50%; right: 14px; transform: translateY(-50%);
+      width: 22px; height: 22px; border: none; border-radius: 5px;
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-family: var(--font-mono);
+      transition: background 140ms, color 140ms;
+    }
+    .bts-collapse-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+    .panel-bts { position: relative; }
+    .panel-bts.bts-collapsed { flex: 0 0 40px; }
+    .panel-bts.bts-collapsed .bts-scroll,
+    .panel-bts.bts-collapsed .step-dots { opacity: 0; pointer-events: none; }
+    .bts-expand-strip {
+      display: none; position: absolute; inset: 0;
+      align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .bts-expand-strip__inner {
+      writing-mode: vertical-rl; text-orientation: mixed;
+      font-family: var(--font-mono); font-size: 8px; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.25); text-transform: uppercase;
+    }
+    .panel-bts.bts-collapsed .bts-expand-strip { display: flex; }
+
+    /* ── Restart button ── */
+    .nbtn--restart { font-size: 15px; padding: 6px 10px; }
+  </style>
+</head>
+
+<body>
+
+  <div class="prog">
+    <div class="prog__fill" id="prog"></div>
+  </div>
+
+  <div class="shell" id="shell" data-layout="single">
+
+    <!-- ═══════ LEFT: USER UI ═══════ -->
+    <aside class="panel-user">
+      <div class="panel-eyebrow" id="panelEyebrow">User UI · iPhone 15 Pro</div>
+
+      <!-- Single-device: regular iPhone wrap (steps 0–4, 7–9) -->
+      <div class="phone-wrap" id="phoneWrap">
+        <div class="iphone15pro iphone15pro--lg">
+          <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt=""
+            aria-hidden="true">
+          <div class="iphone15pro__screen" id="phoneScreen">
+
+            <!-- ═══ 0 · Voice (custom) ═══ -->
+            <div data-step="0"
+              style="display:none;flex:1;background:linear-gradient(180deg,#ffffff,#f8f8fa);flex-direction:column;">
+              <div
+                style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:24px;">
+                <div style="text-align:center;">
+                  <div style="font-size:13px;font-weight:500;color:#525252;margin-bottom:20px;letter-spacing:-0.1px;">✦
+                    Gemini</div>
+                  <div
+                    style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4a6a90,#5a7aa0);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(74,106,144,0.06),0 0 0 20px rgba(74,106,144,0.03);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                      <rect x="9" y="2" width="6" height="12" rx="3" />
+                      <path d="M5 10a7 7 0 0 0 14 0" fill="none" stroke="#fff" stroke-width="1.8" />
+                      <line x1="12" y1="17" x2="12" y2="22" stroke="#fff" stroke-width="1.8" />
+                      <line x1="8" y1="22" x2="16" y2="22" stroke="#fff" stroke-width="1.8" />
+                    </svg>
+                  </div>
+                  <div style="font-size:17px;font-weight:500;color:#0a0a0a;margin-bottom:6px;letter-spacing:-0.3px;">
+                    声で話しかけてください</div>
+                  <div style="font-size:14px;color:#a1a1aa;">「息子の冬のPE用の靴を探してる」</div>
+                </div>
+                <div style="display:flex;gap:3px;align-items:center;height:32px;">
+                  <div style="width:3px;height:10px;background:#4a6a90;border-radius:2px;animation:micWave 1.2s ease-in-out infinite 0s;"></div>
+                  <div style="width:3px;height:18px;background:#4a6a90;border-radius:2px;animation:micWave 1.2s ease-in-out infinite 0.1s;"></div>
+                  <div style="width:3px;height:26px;background:#4a6a90;border-radius:2px;animation:micWave 1.2s ease-in-out infinite 0.2s;"></div>
+                  <div style="width:3px;height:32px;background:#4a6a90;border-radius:2px;animation:micWave 1.2s ease-in-out infinite 0.3s;"></div>
+                  <div style="width:3px;height:26px;background:#4a6a90;border-radius:2px;animation:micWave 1.2s ease-in-out infinite 0.4s;"></div>
+                  <div style="width:3px;height:18px;background:#4a6a90;border-radius:2px;animation:micWave 1.2s ease-in-out infinite 0.5s;"></div>
+                  <div style="width:3px;height:10px;background:#4a6a90;border-radius:2px;animation:micWave 1.2s ease-in-out infinite 0.6s;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ 1 · Brain Reading (custom) ═══ -->
+            <div data-step="1" style="display:none;flex:1;background:#fafafa;flex-direction:column;">
+              <div style="padding:16px 16px 10px;border-bottom:1px solid var(--border);">
+                <div style="font-size:13px;font-weight:500;color:#0a0a0a;display:flex;align-items:center;gap:6px;">
+                  <span style="color:var(--color-brain);">✦</span> Brain Reading...
+                </div>
+              </div>
+              <div style="flex:1;padding:12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+                <div style="padding:10px 12px;background:#fff;border-radius:10px;border-left:3px solid var(--color-brain);font-size:11px;color:#525252;">
+                  <div style="font-family:var(--font-mono);font-size:9px;color:var(--color-brain);text-transform:uppercase;margin-bottom:4px;letter-spacing:0.8px;">Org Brain · Identity</div>
+                  <div>田中家 · 息子Marcus(10歳) · 靴サイズ US 3Y · 冬用</div>
+                </div>
+                <div style="padding:10px 12px;background:#fff;border-radius:10px;border-left:3px solid var(--color-grammar);font-size:11px;color:#525252;">
+                  <div style="font-family:var(--font-mono);font-size:9px;color:var(--color-grammar);text-transform:uppercase;margin-bottom:4px;letter-spacing:0.8px;">Individual Brain · Marcus</div>
+                  <div>「モコモコ嫌い」· 黒が好き · 前回はナイキ · 防水希望</div>
+                </div>
+                <div style="padding:10px 12px;background:#fff;border-radius:10px;border-left:3px solid var(--illust-amber);font-size:11px;color:#525252;">
+                  <div style="font-family:var(--font-mono);font-size:9px;color:var(--illust-amber);text-transform:uppercase;margin-bottom:4px;letter-spacing:0.8px;">Research Brain · Live</div>
+                  <div>気温 8°C · 来週雪予報 · 今季PE靴在庫: 古い · サイズアウト検知</div>
+                </div>
+                <div style="padding:10px 12px;background:#fff;border-radius:10px;border-left:3px solid var(--color-brand);font-size:11px;color:#525252;">
+                  <div style="font-family:var(--font-mono);font-size:9px;color:var(--color-brand);text-transform:uppercase;margin-bottom:4px;letter-spacing:0.8px;">Life Moment Brain</div>
+                  <div>電車内 · 残り12分 · 片手 · 音出せない</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ 2 · 20 Candidates → p3-01-browse.html ═══ -->
+            <div data-step="2" style="display:none;flex:1;background:#fff;">
+              <iframe src="../../ui-screens/p3/p3-01-browse.html?noframe=1" loading="eager" title="Browse"></iframe>
+            </div>
+
+            <!-- ═══ 3 · Card UI → p3-06-card-sort.html ═══ -->
+            <div data-step="3" style="display:none;flex:1;flex-direction:column;background:#f5f4f1;overflow:hidden;">
+              <iframe src="../../ui-screens/p3/p3-06-card-sort.html?noframe=1" loading="eager" title="Card Sort" style="flex:1;min-height:0;width:100%;border:none;display:block;"></iframe>
+            </div>
+
+            <!-- ═══ 4 · Comparison Board → p3-01-browse.html ═══ -->
+            <div data-step="4" style="display:none;flex:1;background:#fafafa;">
+              <iframe src="../../ui-screens/p3/p3-01-browse.html?noframe=1" loading="lazy" title="Browse"></iframe>
+            </div>
+
+            <!-- Steps 5, 6 are handled by tv-phone-wrap below — no iframe here -->
+
+            <!-- ═══ 7 · Purchase → p3-04-purchase.html ═══ -->
+            <div data-step="7" style="display:none;flex:1;background:#fff;">
+              <iframe src="../../ui-screens/p3/p3-04-purchase.html?noframe=1" loading="lazy" title="Purchase"></iframe>
+            </div>
+
+            <!-- ═══ 8 · Disposable UI (home state) ═══ -->
+            <div data-step="8" style="display:none;flex:1;background:#fff;flex-direction:column;">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;">
+                <div style="font-size:44px;color:var(--color-grammar);line-height:1;">✦</div>
+                <div style="font-size:19px;font-weight:500;color:#0a0a0a;letter-spacing:-0.3px;">Good afternoon</div>
+                <div style="font-size:13px;color:var(--text-3);">What can I help with?</div>
+                <div style="width:220px;height:44px;background:var(--bg-2);border-radius:99px;display:flex;align-items:center;padding:0 16px;gap:8px;margin-top:18px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  <span style="font-size:13px;color:var(--text-3);">Ask Gemini...</span>
+                </div>
+                <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:20px;text-align:center;letter-spacing:0.3px;">
+                  Disposable UI — born for a purpose, gone when done
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ 9 · Pipeline Summary ═══ -->
+            <div data-step="9" style="display:none;flex:1;background:var(--bg-2);flex-direction:column;">
+              <div style="padding:14px 16px 8px;border-bottom:1px solid var(--border);">
+                <div style="font-size:13px;font-weight:500;color:#0a0a0a;display:flex;align-items:center;gap:6px;">
+                  <span style="color:var(--color-grammar);">✦</span> Full Pipeline
+                </div>
+              </div>
+              <div style="flex:1;overflow-y:auto;padding:14px;">
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div style="width:26px;height:26px;border-radius:50%;background:var(--color-grammar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">1</div>
+                  <div style="padding-top:2px;">
+                    <div style="font-size:13px;font-weight:600;color:#0a0a0a;">Voice Intent</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:1px;">音声 → Intent 解析</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div style="width:26px;height:26px;border-radius:50%;background:var(--color-brain);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">2</div>
+                  <div style="padding-top:2px;">
+                    <div style="font-size:13px;font-weight:600;color:#0a0a0a;">5 Brains Read</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:1px;">Org · Individual · Research · Life Moment</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div style="width:26px;height:26px;border-radius:50%;background:var(--illust-amber);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">3</div>
+                  <div style="padding-top:2px;">
+                    <div style="font-size:13px;font-weight:600;color:#0a0a0a;">20 → 8 Distill</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:1px;">Brain × Tokens → 候補を絞り込み</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div style="width:26px;height:26px;border-radius:50%;background:var(--color-brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">4</div>
+                  <div style="padding-top:2px;">
+                    <div style="font-size:13px;font-weight:600;color:#0a0a0a;">Form Factor Transform</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:1px;">電車(Card UI) → 帰宅(比較) → TV(キャスト)</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">5</div>
+                  <div style="padding-top:2px;">
+                    <div style="font-size:13px;font-weight:600;color:#0a0a0a;">Purchase + Dissolve</div>
+                    <div style="font-size:11px;color:var(--text-3);margin-top:1px;">Disposable UI は役目を終えると消える</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /phoneScreen -->
+          <div class="iphone15pro__island" aria-hidden="true"></div>
+        </div>
+      </div><!-- /phone-wrap -->
+
+      <!-- Multi-device wrap — TV Cast + Phone Controller (steps 5–6) -->
+      <div class="tv-phone-wrap" id="tvPhoneWrap">
+
+        <!-- Desktop: TV + Phone side by side -->
+        <div class="tvp-stage">
+
+          <!-- TV -->
+          <div class="tvp-tv-col">
+            <div class="tv-frame">
+              <div class="tv-frame__screen">
+                <!-- TV-only iframe using actual project shoe images -->
+                <iframe id="tvIframe"
+                  src="../../ui-screens/p3/p3-tv-only.html?tvmode=select"
+                  style="width:100%;height:100%;border:none;display:block;"
+                  loading="eager"
+                  title="Samsung TV · Shoe Gallery"></iframe>
+              </div>
+              <span class="tv-frame__dot" aria-hidden="true"></span>
+            </div>
+            <div class="tv-stand">
+              <div class="tv-stand__neck"></div>
+              <div class="tv-stand__base"></div>
+            </div>
+            <div class="tvp-device-label">Samsung TV · リビング</div>
+          </div>
+
+          <!-- Phone controller -->
+          <div class="tvp-phone-col">
+            <div class="iphone15pro">
+              <img class="iphone15pro__chrome"
+                src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+                alt="" aria-hidden="true">
+              <div class="iphone15pro__screen">
+                <!-- Inline phone controller (avoids iframe noframe issues) -->
+                <div class="phone-ctrl" id="phoneCtrl">
+                  <div class="phone-ctrl__cast">
+                    <div class="phone-ctrl__cast-dot"></div>
+                    TV にキャスト中
+                  </div>
+                  <div class="phone-ctrl__selected">
+                    <div class="phone-ctrl__shoe-img">👟</div>
+                    <div class="phone-ctrl__shoe-info">
+                      <div class="phone-ctrl__shoe-name">TNF Fastpack Hiker Mid WP</div>
+                      <div class="phone-ctrl__shoe-price">¥9,800 <span>税込</span></div>
+                    </div>
+                  </div>
+                  <div class="phone-ctrl__dpad">
+                    <div class="dpad">
+                      <div class="dpad-btn dpad-btn--empty"></div>
+                      <div class="dpad-btn">▲</div>
+                      <div class="dpad-btn dpad-btn--empty"></div>
+                      <div class="dpad-btn">◀</div>
+                      <div class="dpad-btn dpad-btn--center">●</div>
+                      <div class="dpad-btn">▶</div>
+                      <div class="dpad-btn dpad-btn--empty"></div>
+                      <div class="dpad-btn">▼</div>
+                      <div class="dpad-btn dpad-btn--empty"></div>
+                    </div>
+                  </div>
+                  <div id="phoneCtrlConfirm" class="phone-ctrl__confirm" style="display:none;">Marcus が選択！✓ 親の承認待ち</div>
+                  <button class="phone-ctrl__buy" id="phoneCtrlBuy">購入する · ¥9,800</button>
+                </div>
+              </div>
+              <div class="iphone15pro__island" aria-hidden="true"></div>
+            </div>
+            <div class="tvp-device-label">Parent Controller</div>
+          </div>
+
+        </div><!-- /tvp-stage -->
+
+        <!-- Mobile: Notice instead of two devices -->
+        <div class="tvp-mobile-notice">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+          </svg>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--text);">このステップはデスクトップでご覧ください</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:3px;">TV + Phone の2台同時表示 — A1 Form Factor Transform</div>
+          </div>
+        </div>
+
+      </div><!-- /tv-phone-wrap -->
+
+      <div class="step-caption">
+        <div class="step-caption__kind" id="stepKind">Step 0 · Voice</div>
+        <div class="step-caption__text" id="stepText">音声でIntentを発話</div>
+      </div>
+    </aside>
+
+    <!-- ═══════ RIGHT: BACKSTAGE ═══════ -->
+    <div class="panel-bts" id="panelBts">
+      <div class="step-dots" id="stepDots">
+        <button class="bts-collapse-btn" onclick="toggleBts()" title="AIパネルを閉じる">◀</button>
+      </div>
+      <!-- Expand strip (shown when collapsed) -->
+      <div class="bts-expand-strip" onclick="toggleBts()">
+        <span class="bts-expand-strip__inner">AI Backstage ▶</span>
+      </div>
+
+      <div class="bts-scroll">
+
+        <!-- ═══ Step 0 · Voice ═══ -->
+        <div data-step="0" class="step-panel active">
+          <div class="bts-chip">Step 1 of 10</div>
+          <div class="bts-title">Voice Intent を受け取る</div>
+          <div class="bts-lede">音声から Intent を抽出し、検索アクションに変換する。全てのはじまり。</div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Raw Voice Input</div>
+            <div style="font-size:16px;color:var(--bts-text);font-style:italic;padding:6px 0;">「息子の冬のPE用の靴を探してる」</div>
+          </div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Intent Parsed</div>
+            <div class="intent-badge">✦ shopping:shoes — child winter PE</div>
+            <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;">
+              <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(100,150,240,0.08);color:#8bb4e8;font-family:var(--font-mono);">target:son</span>
+              <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(100,150,240,0.08);color:#8bb4e8;font-family:var(--font-mono);">season:winter</span>
+              <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(100,150,240,0.08);color:#8bb4e8;font-family:var(--font-mono);">use:PE</span>
+              <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(100,150,240,0.08);color:#8bb4e8;font-family:var(--font-mono);">category:shoes</span>
+              <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(100,150,240,0.08);color:#8bb4e8;font-family:var(--font-mono);">implicit:waterproof</span>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--token">
+            <div class="bts-section__head">Situation Signals &amp; Relationship Dials — 初期値</div>
+            <div class="token-grid">
+              <div class="token-item is-hot">
+                <div class="token-item__label">Physical State</div>
+                <div class="token-item__val hot">電車内</div>
+              </div>
+              <div class="token-item is-hot">
+                <div class="token-item__label">Cognitive Load</div>
+                <div class="token-item__val hot">HIGH</div>
+              </div>
+              <div class="token-item">
+                <div class="token-item__label">Social Exposure</div>
+                <div class="token-item__val">Private · 1人</div>
+              </div>
+              <div class="token-item is-active">
+                <div class="token-item__label">Form Factor</div>
+                <div class="token-item__val">Phone</div>
+              </div>
+              <div class="token-item">
+                <div class="token-item__label">Autonomy Dial</div>
+                <div class="token-item__val">SUGGEST</div>
+              </div>
+              <div class="token-item">
+                <div class="token-item__label">Disclosure</div>
+                <div class="token-item__val">family</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--ax">
+            <div class="bts-section__head">AX Pattern → UI Decision</div>
+            <div class="decision-box">
+              <strong>A1 Form Factor Transform</strong> + <strong>A2 Cognitive Scaling</strong><br>
+              電車内 × 片手 × 時間制限 → 音声入力UIだけ表示。検索はBrainが裏で開始。
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Step 1 · Brain Reading ═══ -->
+        <div data-step="1" class="step-panel">
+          <div class="bts-chip">Step 2 of 10</div>
+          <div class="bts-title">5つのBrainが並列に読む</div>
+          <div class="bts-lede">Intent を受け取り、5種類のBrainが同時に情報を集める。それぞれ違うレイヤーの記憶を読んでいる。</div>
+
+          <div class="bts-stats-row">
+            <div class="bts-stat">
+              <div class="bts-stat__num bts-stat__num--purple">5</div>
+              <div class="bts-stat__label">Brains 並列読み</div>
+            </div>
+            <div class="bts-stat">
+              <div class="bts-stat__num bts-stat__num--blue">3</div>
+              <div class="bts-stat__label">Memory Layers</div>
+            </div>
+            <div class="bts-stat">
+              <div class="bts-stat__num">94%</div>
+              <div class="bts-stat__label">Top match</div>
+            </div>
+          </div>
+
+          <div class="brain-cards">
+            <div class="brain-card">
+              <div class="brain-card__type">Org Brain · Identity (L1)</div>
+              <div class="brain-card__main">田中家ルール: 冬靴は防水必須 · 予算¥10,000以内 · 家族のサイズ情報全員登録済み</div>
+              <div class="brain-card__ok">L1 match: family_shopping policy</div>
+            </div>
+            <div class="brain-card">
+              <div class="brain-card__type">Individual Brain · Marcus (L1+L2)</div>
+              <div class="brain-card__main">息子(10歳) · US 3Y · 「モコモコ嫌い」· 黒希望</div>
+              <div class="brain-card__detail">L2: 67% of Marcus's shoes are black, non-fleece</div>
+              <div class="brain-card__ok">substitution=EXACT for color</div>
+            </div>
+            <div class="brain-card">
+              <div class="brain-card__type">Research Brain · Live Data</div>
+              <div class="brain-card__main">気温 8°C · 来週雪予報 · 現冬靴はサイズアウト検知</div>
+              <div class="brain-card__ok">urgency flag: winter preparation overdue</div>
+            </div>
+            <div class="brain-card">
+              <div class="brain-card__type">Life Moment Brain · Right Now</div>
+              <div class="brain-card__main">電車内 · 残り12分 · 片手 → UI は簡潔に</div>
+              <div class="brain-card__ok">cognitive load = HIGH</div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--rule">
+            <div class="bts-section__head">Rules Fired</div>
+            <div class="rule-list">
+              <div class="rule-row">
+                <div class="rule-row__id">p3_winter_shopping_trigger</div>
+                <div class="rule-row__text">child + winter + PE + size_outdated → urgency HIGH · max_candidates: 20</div>
+              </div>
+              <div class="rule-row">
+                <div class="rule-row__id">p3_cognitive_scaling</div>
+                <div class="rule-row__text">train + limited_time → card_ui mode (not full grid)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Step 2 · 20 Candidates ═══ -->
+        <div data-step="2" class="step-panel">
+          <div class="bts-chip">Step 3 of 10</div>
+          <div class="bts-title">20候補 — Brain × Feasibility で生成</div>
+          <div class="bts-lede">「Marcus に今必要な靴」だけを Brain が選別して出している。382種類から20まで絞り込み。</div>
+
+          <div class="bts-stats-row">
+            <div class="bts-stat">
+              <div class="bts-stat__num bts-stat__num--amber">382</div>
+              <div class="bts-stat__label">検索ヒット</div>
+            </div>
+            <div class="bts-stat">
+              <div class="bts-stat__num bts-stat__num--white">→ 20</div>
+              <div class="bts-stat__label">Brain 絞り込み後</div>
+            </div>
+            <div class="bts-stat">
+              <div class="bts-stat__num">94%</div>
+              <div class="bts-stat__label">Top 候補</div>
+            </div>
+          </div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Scoring — Brain Confidence</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-family:var(--font-mono);font-size:12px;color:var(--bts-yes);width:50px;font-weight:700;">TNF 94%</span>
+                <div style="flex:1;height:5px;background:rgba(255,255,255,0.07);border-radius:3px;">
+                  <div style="height:100%;width:94%;background:var(--bts-yes);border-radius:3px;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--bts-text-3);white-space:nowrap;">防水✓ 黒✓ サイズ✓</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-family:var(--font-mono);font-size:12px;color:var(--bts-yes);width:50px;font-weight:700;">SAL 92%</span>
+                <div style="flex:1;height:5px;background:rgba(255,255,255,0.07);border-radius:3px;">
+                  <div style="height:100%;width:92%;background:var(--bts-yes);border-radius:3px;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--bts-text-3);white-space:nowrap;">防水✓ 黒✓ やや重い</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-family:var(--font-mono);font-size:12px;color:var(--bts-text-2);width:50px;font-weight:700;">On 88%</span>
+                <div style="flex:1;height:5px;background:rgba(255,255,255,0.07);border-radius:3px;">
+                  <div style="height:100%;width:88%;background:rgba(74,106,144,0.5);border-radius:3px;"></div>
+                </div>
+                <span style="font-size:10px;color:var(--bts-text-3);white-space:nowrap;">防水✓ 価格高め</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--ax">
+            <div class="bts-section__head">AX Patterns</div>
+            <div class="ax-badges">
+              <span class="ax-badge">A5 Disposable Brain</span>
+              <span class="ax-badge">E1 Confidence Signal</span>
+              <span class="ax-badge">D5 Substitution Mode</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Step 3 · Card UI ═══ -->
+        <div data-step="3" class="step-panel">
+          <div class="bts-chip">Step 4 of 10</div>
+          <div class="bts-title">電車内 → Card UI に自動変形</div>
+          <div class="bts-lede">比較ボードは電車では使いにくい。Context Grammar が Cognitive Load を読み、UI を「1枚ずつめくる」カードモードに変えた。</div>
+
+          <div class="bts-section bts-section--token">
+            <div class="bts-section__head">Situation Signals &amp; Relationship Dials — Changed</div>
+            <div class="token-grid">
+              <div class="token-item is-hot">
+                <div class="token-item__label">Cognitive Load</div>
+                <div class="token-item__val hot">MAX</div>
+              </div>
+              <div class="token-item is-hot">
+                <div class="token-item__label">Form Factor</div>
+                <div class="token-item__val hot">CARD UI</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--rule">
+            <div class="bts-section__head">Rule Fired</div>
+            <div class="rule-list">
+              <div class="rule-row">
+                <div class="rule-row__id">p3_card_ui_transform</div>
+                <div class="rule-row__text">cognitive_load=HIGH + mobile + time_limit → switch grid to card stack. One shoe at a time.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--ax">
+            <div class="bts-section__head">AX Patterns</div>
+            <div class="ax-badges">
+              <span class="ax-badge">A1 Form Factor Transform</span>
+              <span class="ax-badge">A2 Cognitive Scaling</span>
+            </div>
+          </div>
+
+          <div class="bquote">
+            同じ検索結果でも、状況によってUIの「見せ方」が変わる。これはレスポンシブデザインじゃない — Context Grammar が Cognitive Load を読んで、UI の密度を計算している。
+          </div>
+        </div>
+
+        <!-- ═══ Step 4 · Restore ═══ -->
+        <div data-step="4" class="step-panel">
+          <div class="bts-chip">Step 5 of 10</div>
+          <div class="bts-title">帰宅 → 比較ボードに戻る</div>
+          <div class="bts-lede">電車を降り、時間ができた。Card UI で Keep した8件が、再び比較ボードとして表示される。</div>
+
+          <div class="bts-section bts-section--token">
+            <div class="bts-section__head">Situation Signals &amp; Relationship Dials — Updated</div>
+            <div class="token-grid">
+              <div class="token-item is-active">
+                <div class="token-item__label">Cognitive Load</div>
+                <div class="token-item__val">NORMAL</div>
+              </div>
+              <div class="token-item is-active">
+                <div class="token-item__label">Form Factor</div>
+                <div class="token-item__val">Full view</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Diff — UI Layer Changed</div>
+            <div class="diff-blocks">
+              <div class="diff-file">
+                <div class="diff-file__head">
+                  <span class="diff-file__name">surface_mode</span>
+                  <span class="diff-file__layer">Form Factor Layer</span>
+                </div>
+                <div class="diff-file__body">
+                  <div class="diff-line--rm">card_ui: true (1 at a time)</div>
+                  <div class="diff-line--add">card_ui: false</div>
+                  <div class="diff-line--add">comparison_board: 8 candidates</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--rule">
+            <div class="bts-section__head">Rule Fired</div>
+            <div class="rule-list">
+              <div class="rule-row">
+                <div class="rule-row__id">p3_home_restoration</div>
+                <div class="rule-row__text">cognitive_load=NORMAL + at_home → restore full comparison board. All Keep'd candidates visible.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Step 5 · TV Cast ═══ -->
+        <div data-step="5" class="step-panel">
+          <div class="bts-chip">Step 6 of 10</div>
+          <div class="bts-title">TV キャスト — 2台が協調</div>
+          <div class="bts-lede">家族で見るために TV にキャスト。ミラーリングじゃない — 2台が全く違う役割を持つ。</div>
+
+          <div class="bts-stats-row">
+            <div class="bts-stat">
+              <div class="bts-stat__num bts-stat__num--blue">2</div>
+              <div class="bts-stat__label">同時デバイス</div>
+            </div>
+            <div class="bts-stat">
+              <div class="bts-stat__num bts-stat__num--purple">A4</div>
+              <div class="bts-stat__label">Disclosure Cascade</div>
+            </div>
+            <div class="bts-stat">
+              <div class="bts-stat__num bts-stat__num--amber">0</div>
+              <div class="bts-stat__label">TV に価格表示</div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--ax">
+            <div class="bts-section__head">Multi-Device Role Split</div>
+            <div class="device-split">
+              <div class="device-block">
+                <div class="device-block__icon">📺</div>
+                <div>
+                  <div class="device-block__label">Samsung TV · Living Room</div>
+                  <div class="device-block__val">8足の大きい画像 · 感情ラベルのみ</div>
+                  <div class="device-block__sub">「防水！」「軽い！」· 価格なし · 子供が見る</div>
+                </div>
+              </div>
+              <div class="device-block">
+                <div class="device-block__icon">📱</div>
+                <div>
+                  <div class="device-block__label">iPhone · Parent Controller</div>
+                  <div class="device-block__val">D-pad 操作 · 価格情報 · Buy ボタン</div>
+                  <div class="device-block__sub">親だけが見る · 子供には非表示</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--token">
+            <div class="bts-section__head">Disclosure Dial が発動</div>
+            <div class="token-grid">
+              <div class="token-item is-hot">
+                <div class="token-item__label">Social Exposure</div>
+                <div class="token-item__val hot">FAMILY</div>
+              </div>
+              <div class="token-item is-hot">
+                <div class="token-item__label">Disclosure Dial</div>
+                <div class="token-item__val hot">価格を非表示</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bquote">
+            キャスト = ミラーリング、が現在の常識。Context Grammar は「同じコンテンツを別 surface に分割する」。TV は子供向け、Phone は親向け — 情報が物理的に分離される。
+          </div>
+        </div>
+
+        <!-- ═══ Step 6 · Kid Chooses ═══ -->
+        <div data-step="6" class="step-panel">
+          <div class="bts-chip">Step 7 of 10</div>
+          <div class="bts-title">Marcus が決めた</div>
+          <div class="bts-lede">TV の大きい画像から、息子が自分で選んだ。Brain が Marcus の Individual Brain を参照して、最終確認を親に求める。</div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Selection Event</div>
+            <div style="font-size:14px;color:var(--bts-text-2);line-height:1.65;">
+              User: Marcus (Individual Brain)<br>
+              Selection: TNF Fastpack Hiker Mid WP<br>
+              Brain L2 check: black ✓ · waterproof ✓ · non-fleece ✓<br>
+              Price: $69 → within budget ✓<br>
+              <strong style="color:var(--bts-yes);">→ D1 Approval Gate → parent confirm required</strong>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--rule">
+            <div class="bts-section__head">Rule Fired</div>
+            <div class="rule-list">
+              <div class="rule-row">
+                <div class="rule-row__id">d1_approval_gate</div>
+                <div class="rule-row__text">child selection + purchase → parent confirmation required. Show summary + budget check to parent.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--ax">
+            <div class="bts-section__head">Why This Matters</div>
+            <div class="decision-box">
+              <strong>D1 Approval Gate</strong> — 子供の決定をそのまま実行しない。Brain が「これは親の承認が必要」と判断し、承認フローを挿入する。<br><br>
+              Samsung JD: 「信頼の段階的構築」 — Context Grammar はこれを Autonomy Dial + Approval Gate で実装している。
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Step 7 · Purchase ═══ -->
+        <div data-step="7" class="step-panel">
+          <div class="bts-chip">Step 8 of 10</div>
+          <div class="bts-title">購入完了 → Disposable UI の運命</div>
+          <div class="bts-lede">購入が終わると、この比較ボードはもう要らない。Context Grammar の UI は「生まれて、役目を終えて、消える」。</div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Purchase Confirmation</div>
+            <div style="font-size:14px;color:var(--bts-text-2);line-height:1.65;">
+              Item: TNF Fastpack Hiker Mid WP · Size 3Y<br>
+              Price: $69 · Budget: OK<br>
+              Parent approved → Purchase executed<br>
+              <strong style="color:var(--bts-yes);">Shipping: Friday · Order confirmed</strong>
+            </div>
+          </div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Disposable UI Lifecycle</div>
+            <div class="diff-blocks">
+              <div class="diff-file">
+                <div class="diff-file__head">
+                  <span class="diff-file__name">comparison_board</span>
+                  <span class="diff-file__layer">Disposable Surface</span>
+                </div>
+                <div class="diff-file__body">
+                  <div class="diff-line--rm">state: active (8 candidates)</div>
+                  <div class="diff-line--add">state: dissolving → peeling cards</div>
+                  <div class="diff-line--ctx">→ ghost outlines → fade to home</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--ax">
+            <div class="bts-section__head">AX Pattern</div>
+            <div class="ax-badges">
+              <span class="ax-badge">A5 Disposable Brain/Surface</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Step 8 · Home ═══ -->
+        <div data-step="8" class="step-panel">
+          <div class="bts-chip">Step 9 of 10</div>
+          <div class="bts-title">Disposable UI が消えた</div>
+          <div class="bts-lede">比較ボード、カード、TVキャスト — 全部消えた。残るのは Gemini のホーム画面だけ。これが「Disposable UI」の本質。</div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">Full Pipeline Recap</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--bts-text-2);line-height:1.65;">
+              <div><strong style="color:var(--bts-yes);">① Voice</strong> → Intent 抽出</div>
+              <div><strong style="color:var(--bts-yes);">② Brain</strong> → 5 Brain 並列読み</div>
+              <div><strong style="color:var(--bts-yes);">③ Generate</strong> → 20候補生成 → 8に絞り込み</div>
+              <div><strong style="color:var(--bts-yes);">④ Transform</strong> → 電車(Card UI) → 帰宅(比較) → TV(キャスト)</div>
+              <div><strong style="color:var(--bts-yes);">⑤ Purchase</strong> → Disposable UI が消える</div>
+            </div>
+          </div>
+
+          <div class="bts-section bts-section--ax">
+            <div class="bts-section__head">What This Proves</div>
+            <div class="decision-box">
+              <strong>UI デモじゃない。</strong> これは「AI のビヘイビアを設計した」証拠。<br><br>
+              どのステップでも「画面を変えた」のではなく、<strong>Context を読んで、Brain が判断して、Rule が火して、UI が計算された</strong>。<br><br>
+              これが Samsung / Google が探している「Agentic UX Designer」の仕事。
+            </div>
+          </div>
+
+          <div class="bquote">
+            「画面」じゃなく「関係性」をデザインする。<br>
+            AI の判断プロセスを見える化する。<br>
+            ユーザーが AI を理解し、介入できるようにする。<br>
+            <strong>Trust + Transparency + Control.</strong>
+          </div>
+        </div>
+
+        <!-- ═══ Step 9 · Pipeline Summary ═══ -->
+        <div data-step="9" class="step-panel">
+          <div class="bts-chip">Summary</div>
+          <div class="bts-title">全コンポーネントの協働</div>
+          <div class="bts-lede">Intent → Tokens → 5 Brains → Rule Engine → AX Patterns → Surface。Context Grammar の Pipeline 全体。</div>
+
+          <div class="bts-section bts-section--rule">
+            <div class="bts-section__head">Pipeline Stages</div>
+            <div class="pipeline-stages">
+              <div class="pipeline-stage">
+                <div class="pipeline-stage__label">STAGE 1 · INTENT</div>
+                <div class="pipeline-stage__text">音声 → shopping:shoes · child · winter · PE</div>
+              </div>
+              <div class="pipeline-stage">
+                <div class="pipeline-stage__label">STAGE 2 · SIGNALS &amp; DIALS</div>
+                <div class="pipeline-stage__text">Physical · Cognitive · Social · Priority · Form · Feasibility · Autonomy · Disclosure</div>
+              </div>
+              <div class="pipeline-stage">
+                <div class="pipeline-stage__label">STAGE 3 · 5 BRAINS</div>
+                <div class="pipeline-stage__text">Org · Brand · Research · Life Moment · Individual × N</div>
+              </div>
+              <div class="pipeline-stage">
+                <div class="pipeline-stage__label">STAGE 4 · RULE ENGINE</div>
+                <div class="pipeline-stage__text">p3_winter_shopping · p3_card_ui · p3_home_restoration · d1_approval_gate</div>
+              </div>
+              <div class="pipeline-stage">
+                <div class="pipeline-stage__label">STAGE 5 · AX PATTERNS</div>
+                <div class="pipeline-stage__text">A1 Form Factor · A2 Cognitive · A4 Disclosure · A5 Disposable · D1 Approval · E1 Confidence</div>
+              </div>
+              <div class="pipeline-stage">
+                <div class="pipeline-stage__label">STAGE 6 · SURFACE OUTPUT</div>
+                <div class="pipeline-stage__text">Voice UI → Card UI → Comparison Board → TV Cast + Phone Controller → Purchase → Dissolve</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bts-section">
+            <div class="bts-section__head">JD Alignment</div>
+            <div style="font-size:13px;color:var(--bts-text-2);line-height:1.8;">
+              <strong style="color:var(--bts-yes);">Samsung</strong> — Multi-device orchestration · Token-based design · Trust architecture<br>
+              <strong style="color:var(--bts-yes);">Google</strong> — Intent-first · Ambient computing · Cross-app Brain<br>
+              <strong style="color:var(--bts-yes);">Apple</strong> — On-device AI · Privacy · Disclosure control<br>
+              <strong style="color:var(--bts-yes);">JAPAN AI</strong> — Reasoning trace · Confidence signals · Override control
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /bts-scroll -->
+    </div><!-- /panel-bts -->
+  </div><!-- /shell -->
+
+  <!-- ═══════ FOOTER NAV ═══════ -->
+  <div class="nav">
+    <button class="nbtn" id="prevBtn" onclick="go(-1)" disabled>← Back</button>
+    <div class="nav-mid">
+      <div class="nav-lbl" id="navLbl">Voice Intent</div>
+      <div class="nav-num" id="navNum">Step 0 / 9</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="nbtn nbtn--restart" onclick="restart()" title="最初から (R)">↺</button>
+      <button class="nbtn nbtn--next" id="nextBtn" onclick="go(1)">Next →</button>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL_STEPS = 10;
+    let current = 0;
+    let btsCollapsed = false;
+
+    /* ── Backstage collapse/expand ── */
+    function toggleBts() {
+      btsCollapsed = !btsCollapsed;
+      document.getElementById('panelBts').classList.toggle('bts-collapsed', btsCollapsed);
+      // Update collapse button icon
+      const btn = document.querySelector('.bts-collapse-btn');
+      if (btn) btn.textContent = btsCollapsed ? '▶' : '◀';
+    }
+
+    /* ── Restart ── */
+    function restart() {
+      current = 0;
+      const meta = stepMeta[0];
+      const shell = document.getElementById('shell');
+      shell.setAttribute('data-layout', 'single');
+
+      // Deactivate all BTS panels, activate step 0
+      document.querySelectorAll('.step-panel').forEach(el => el.classList.remove('active'));
+      const panel = document.querySelector('.step-panel[data-step="0"]');
+      if (panel) panel.classList.add('active');
+
+      showPhoneScreen(0);
+      updateTvContent(0);
+
+      // Reset dots
+      document.querySelectorAll('.step-dot').forEach((d, i) => {
+        d.className = 'step-dot';
+        if (i === 0) d.classList.add('active');
+      });
+
+      // Reset nav
+      document.getElementById('prevBtn').disabled = true;
+      document.getElementById('nextBtn').disabled = false;
+      document.getElementById('navLbl').textContent = meta.label;
+      document.getElementById('navNum').textContent = 'Step 0 / 9';
+      document.getElementById('stepKind').textContent = meta.kind;
+      document.getElementById('stepText').textContent = meta.desc;
+      document.getElementById('panelEyebrow').textContent = meta.eyebrow;
+      document.getElementById('prog').style.width = (1 / TOTAL_STEPS * 100) + '%';
+      document.querySelector('.bts-scroll').scrollTop = 0;
+    }
+
+    /* ── Update TV iframe src and phone controller per step ── */
+    function updateTvContent(step) {
+      const tvIframe = document.getElementById('tvIframe');
+      const confirm = document.getElementById('phoneCtrlConfirm');
+      const buy = document.getElementById('phoneCtrlBuy');
+      const base = '../../ui-screens/p3/p3-tv-only.html';
+
+      if (step === 5) {
+        if (tvIframe) tvIframe.src = base + '?tvmode=select';
+        if (confirm) confirm.style.display = 'none';
+        if (buy) { buy.style.display = 'block'; buy.textContent = '購入する · ¥9,800'; }
+      } else if (step === 6) {
+        if (tvIframe) tvIframe.src = base + '?tvmode=confirm';
+        if (confirm) confirm.style.display = 'block';
+        if (buy) { buy.style.display = 'block'; buy.textContent = '承認して購入 · ¥9,800'; }
+      }
+    }
+
+    // layout: 'single' | 'multidevice'
+    const stepMeta = [
+      { kind: 'Step 0 · Voice',    desc: '音声でIntentを発話',                label: 'Voice Intent',         layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+      { kind: 'Step 1 · Brain',    desc: '5 Brain が並列に情報を読む',          label: 'Brain Reading',        layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+      { kind: 'Step 2 · Generate', desc: 'Brain × Feasibility で20候補生成',   label: '20 Candidates',        layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+      { kind: 'Step 3 · Card UI',  desc: '電車内 → Card UIに自動変形',          label: 'Card UI (On Train)',   layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+      { kind: 'Step 4 · Restore',  desc: '帰宅 → 比較ボードに戻る',             label: 'Comparison Board',     layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+      { kind: 'Step 5 · TV Cast',  desc: 'TVキャスト — Phoneはコントローラ',    label: 'TV Cast + Phone',      layout: 'multidevice', eyebrow: 'User UI · Samsung TV + iPhone' },
+      { kind: 'Step 6 · Choose',   desc: 'Marcus が TV から選択',              label: 'Kid Chooses',          layout: 'multidevice', eyebrow: 'User UI · Samsung TV + iPhone' },
+      { kind: 'Step 7 · Purchase', desc: '購入完了 → Disposable UI の運命',    label: 'Purchase + Dissolve',  layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+      { kind: 'Step 8 · Home',     desc: 'Disposable UI が消えてホームに',      label: 'Disposable UI Gone',   layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+      { kind: 'Step 9 · Summary',  desc: '全Pipelineの協働を総覧',             label: 'Full Pipeline',        layout: 'single',      eyebrow: 'User UI · iPhone 15 Pro' },
+    ];
+
+    // Build dots
+    const dotsEl = document.getElementById('stepDots');
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+      const d = document.createElement('div');
+      d.className = 'step-dot' + (i === 0 ? ' active' : '');
+      dotsEl.appendChild(d);
+    }
+
+    // Left panel screens (inside iPhone)
+    const phoneScreenEl = document.getElementById('phoneScreen');
+    const phoneScreens = phoneScreenEl.querySelectorAll(':scope > [data-step]');
+
+    function showPhoneScreen(idx) {
+      phoneScreens.forEach(s => { s.style.display = 'none'; });
+      const target = phoneScreenEl.querySelector(`:scope > [data-step="${idx}"]`);
+      if (target) target.style.display = 'flex';
+    }
+
+    function go(dir) {
+      const next = current + dir;
+      if (next < 0 || next >= TOTAL_STEPS) return;
+
+      // Deactivate current BTS panel
+      document.querySelectorAll('.step-panel').forEach(el => el.classList.remove('active'));
+
+      current = next;
+      const meta = stepMeta[current];
+
+      // Activate BTS panel
+      const panel = document.querySelector(`.step-panel[data-step="${current}"]`);
+      if (panel) panel.classList.add('active');
+
+      // Switch layout mode
+      const shell = document.getElementById('shell');
+      shell.setAttribute('data-layout', meta.layout);
+
+      // Show phone screen (single mode) or update inline TV content (multidevice)
+      if (meta.layout === 'single') {
+        showPhoneScreen(current);
+      } else {
+        updateTvContent(current);
+      }
+
+      // Update eyebrow
+      document.getElementById('panelEyebrow').textContent = meta.eyebrow;
+
+      // Update dots
+      document.querySelectorAll('.step-dot').forEach((d, i) => {
+        d.className = 'step-dot';
+        if (i < current) d.classList.add('done');
+        if (i === current) d.classList.add('active');
+      });
+
+      // Update nav labels
+      document.getElementById('prevBtn').disabled = current === 0;
+      document.getElementById('nextBtn').disabled = current === TOTAL_STEPS - 1;
+      document.getElementById('navLbl').textContent = meta.label;
+      document.getElementById('navNum').textContent = `Step ${current} / ${TOTAL_STEPS - 1}`;
+      document.getElementById('stepKind').textContent = meta.kind;
+      document.getElementById('stepText').textContent = meta.desc;
+
+      // Progress bar
+      document.getElementById('prog').style.width = ((current + 1) / TOTAL_STEPS * 100) + '%';
+
+      // Scroll backstage to top
+      document.querySelector('.bts-scroll').scrollTop = 0;
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+      if (e.key === 'r' || e.key === 'R') restart();
+      if (e.key === 'b' || e.key === 'B') toggleBts();
+    });
+
+    // Init
+    showPhoneScreen(0);
+    document.getElementById('prog').style.width = ((1) / TOTAL_STEPS * 100) + '%';
+  </script>
+
+</body>
+
+</html>

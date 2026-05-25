@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Grammar · Multi-Person Orchestration — Dinner</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+
+  <style>
+    /* ─── Reset + root ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Geist', var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Progress bar ─── */
+    .prog {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 200;
+    }
+    .prog__fill {
+      height: 100%;
+      background: var(--gray-900);
+      transition: width 450ms var(--ease-out);
+      width: 0;
+    }
+
+    /* ─── Shell ─── */
+    .shell {
+      display: flex;
+      height: 100dvh;
+      padding-top: 2px;
+      padding-bottom: 56px;
+    }
+
+    /* ═══════════════════════════════════════════
+       LEFT PANEL — User UI
+    ═══════════════════════════════════════════ */
+    .panel-user {
+      flex: 0 0 44%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 28px 18px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      gap: 18px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .panel-eyebrow {
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      align-self: flex-start;
+      flex-shrink: 0;
+    }
+
+    /* Device stages — each step controls its own layout */
+    .device-stage {
+      display: none;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      align-items: center;
+      justify-content: center;
+    }
+    .device-stage.active { display: flex; }
+
+    /* ── Single phone ── */
+    .phone {
+      height: 88%;
+      max-height: 580px;
+      aspect-ratio: 393 / 852;
+      background: var(--gray-50);
+      border-radius: clamp(28px, 3.5vw, 44px);
+      border: 7px solid var(--gray-950);
+      box-shadow:
+        0 0 0 1px var(--gray-800),
+        0 24px 64px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .phone__island {
+      position: absolute;
+      top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 30%; height: 11px;
+      background: var(--gray-950);
+      border-radius: 20px;
+      z-index: 3;
+    }
+    .phone__screen {
+      flex: 1;
+      overflow: hidden;
+      padding-top: 22px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Fridge screen ── */
+    .device-stage--fridge.active { justify-content: center; }
+    .fridge {
+      width: min(100%, 380px);
+      aspect-ratio: 16 / 10;
+      background: var(--gray-950);
+      border-radius: 14px;
+      border: 2px solid var(--gray-800);
+      box-shadow:
+        0 0 0 1px var(--gray-700),
+        0 20px 56px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+    }
+
+    /* ── MPO 4-phone grid ── */
+    .device-stage--mpo-4.active {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: min(100%, 272px);
+      margin: auto;
+      align-content: center;
+    }
+
+    .mini-phone {
+      aspect-ratio: 9 / 19.5;
+      background: var(--gray-50);
+      border-radius: 14px;
+      border: 4px solid var(--gray-950);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+    }
+    .mini-phone__island {
+      position: absolute;
+      top: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 28%; height: 7px;
+      background: var(--gray-950);
+      border-radius: 10px;
+      z-index: 2;
+    }
+    .mini-phone__body {
+      flex: 1;
+      overflow: hidden;
+      padding-top: 13px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Caption ── */
+    .step-caption {
+      align-self: stretch;
+      flex-shrink: 0;
+    }
+    .step-caption__kind {
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: var(--text-mono-xs);
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-caption__kind::before {
+      content: '';
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--color-brand);
+      flex-shrink: 0;
+    }
+    .step-caption__text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.5;
+      letter-spacing: -0.15px;
+    }
+
+    /* ═══════════════════════════════════════════
+       RIGHT PANEL — Backstage
+    ═══════════════════════════════════════════ */
+    .panel-bts {
+      flex: 1;
+      background: var(--bts-bg);
+      color: var(--bts-text);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* Step dots */
+    .step-dots {
+      display: flex;
+      gap: 5px;
+      padding: 16px 32px 0;
+      flex-shrink: 0;
+    }
+    .step-dot {
+      height: 3px; flex: 1;
+      border-radius: 2px;
+      background: rgba(240, 236, 228, 0.08);
+      transition: background 280ms var(--ease-out);
+    }
+    .step-dot.active { background: var(--bts-engine); }
+    .step-dot.done { background: rgba(196, 168, 224, 0.28); }
+
+    /* Scroll area */
+    .bts-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(240, 236, 228, 0.1) transparent;
+    }
+    .bts-scroll::-webkit-scrollbar { width: 4px; }
+    .bts-scroll::-webkit-scrollbar-thumb { background: rgba(240, 236, 228, 0.1); border-radius: 2px; }
+
+    .step-panel { display: none; }
+    .step-panel.active {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      animation: fadeStepIn 380ms var(--ease-out) both;
+    }
+    @keyframes fadeStepIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* BTS type */
+    .bts-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: var(--text-mono-xs);
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--bts-engine);
+    }
+    .bts-badge::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--bts-engine);
+      flex-shrink: 0;
+    }
+    .bts-badge--intent  { color: var(--bts-string); }
+    .bts-badge--intent::before  { background: var(--bts-string); }
+    .bts-badge--rule    { color: #7ab4f0; }
+    .bts-badge--rule::before    { background: #7ab4f0; }
+    .bts-badge--yes     { color: var(--bts-yes); }
+    .bts-badge--yes::before     { background: var(--bts-yes); }
+
+    .bts-h { font-size: clamp(22px, 2.5vw, 30px); font-weight: 500; color: var(--bts-text); line-height: 1.14; letter-spacing: -0.5px; }
+    .bts-p { font-size: 14px; color: var(--bts-text-2); line-height: 1.7; max-width: 520px; }
+
+    /* Section block */
+    .bts-block {
+      background: rgba(240, 236, 228, 0.03);
+      border: 1px solid var(--bts-border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .bts-block__label {
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--bts-text-3);
+      margin-bottom: 14px;
+    }
+
+    /* Inline insight box */
+    .bts-insight {
+      background: rgba(240, 236, 228, 0.04);
+      border: 1px solid var(--bts-border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--bts-text-2);
+      line-height: 1.65;
+    }
+    .bts-insight strong { color: var(--bts-text); font-weight: 600; }
+
+    /* Data cards */
+    .data-card {
+      background: rgba(240, 236, 228, 0.04);
+      border: 1px solid var(--bts-border);
+      border-left: 3px solid var(--bts-engine);
+      border-radius: 10px;
+      padding: 13px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: cardIn 380ms var(--ease-out) both;
+    }
+    .data-card + .data-card { margin-top: 8px; }
+    .data-card--intent { border-left-color: var(--bts-string); }
+    .data-card--rule   { border-left-color: #7ab4f0; }
+    .data-card--yes    { border-left-color: var(--bts-yes); }
+    .data-card--warn   { border-left-color: #fbbf24; }
+    .data-card--dim    { border-left-color: rgba(240, 236, 228, 0.18); }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .data-card:nth-child(1) { animation-delay: 0ms; }
+    .data-card:nth-child(2) { animation-delay: 70ms; }
+    .data-card:nth-child(3) { animation-delay: 140ms; }
+    .data-card:nth-child(4) { animation-delay: 210ms; }
+    .data-card:nth-child(5) { animation-delay: 280ms; }
+
+    .data-card__label {
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--bts-engine);
+    }
+    .data-card--intent .data-card__label { color: var(--bts-string); }
+    .data-card--rule   .data-card__label { color: #7ab4f0; }
+    .data-card--yes    .data-card__label { color: var(--bts-yes); }
+    .data-card--warn   .data-card__label { color: #fbbf24; }
+    .data-card__text { font-size: 13px; color: var(--bts-text-2); line-height: 1.55; }
+    .data-card__sub  { font-size: 11px; color: var(--bts-text-3); }
+
+    /* Token grid */
+    .token-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .token-item {
+      background: rgba(240, 236, 228, 0.04);
+      border: 1px solid var(--bts-border);
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+    .token-item__name { font-family: 'Geist Mono', var(--font-mono); font-size: 9px; color: var(--bts-text-3); letter-spacing: 0.5px; margin-bottom: 4px; }
+    .token-item__val  { font-size: 12px; font-weight: 600; color: var(--bts-engine); letter-spacing: -0.2px; }
+
+    /* Dispatch grid (2×2 cards) */
+    .dispatch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dispatch-card {
+      background: rgba(240, 236, 228, 0.04);
+      border: 1px solid var(--bts-border);
+      border-radius: 10px;
+      padding: 13px 14px;
+    }
+    .dispatch-card__name { font-size: 13px; font-weight: 600; color: var(--bts-text); margin-bottom: 5px; }
+    .dispatch-card__why  { font-size: 11px; color: var(--bts-text-3); line-height: 1.45; margin-bottom: 6px; }
+    .dispatch-card__ui   { font-family: 'Geist Mono', var(--font-mono); font-size: 10px; color: var(--bts-engine); }
+
+    /* AX tags */
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      display: inline-flex; align-items: center;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      background: rgba(196, 168, 224, 0.1);
+      color: var(--bts-engine);
+      border: 1px solid rgba(196, 168, 224, 0.22);
+    }
+
+    /* ─── Navigation ─── */
+    .nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 56px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+    .nav__meta {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .nav__step {
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: 0.3px;
+    }
+    .nav__title {
+      font-family: 'Geist Mono', var(--font-mono);
+      font-size: 9px;
+      color: var(--text-3);
+      opacity: 0.55;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .nav__btns { display: flex; gap: 8px; }
+    .nav__btn {
+      height: 36px;
+      padding: 0 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Geist', var(--font-sans);
+      letter-spacing: -0.1px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 120ms, border-color 120ms;
+    }
+    .nav__btn:hover { background: var(--bg-2); border-color: var(--border-hover); }
+    .nav__btn--primary {
+      background: var(--gray-950);
+      color: var(--gray-50);
+      border-color: var(--gray-950);
+    }
+    .nav__btn--primary:hover { background: var(--gray-900); }
+    .nav__btn:disabled { opacity: 0.3; pointer-events: none; }
+
+    /* ─── Phone screen utilities ─── */
+    .p-hd {
+      padding: 10px 12px 8px;
+      border-bottom: 1px solid var(--gray-100);
+      flex-shrink: 0;
+    }
+    .p-hd__title { font-size: 12px; font-weight: 600; color: var(--gray-900); }
+    .p-hd__sub   { font-size: 9px; color: var(--gray-400); margin-top: 1px; font-family: 'Geist Mono', monospace; letter-spacing: 0.4px; }
+    .p-body {
+      flex: 1;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      overflow: hidden;
+    }
+    .p-row {
+      padding: 9px 11px;
+      border-radius: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .p-row--green { background: var(--chip-green-bg); border-left: 2px solid var(--illust-green); }
+    .p-row--gray  { background: var(--gray-100); }
+    .p-row--red   { background: var(--chip-red-bg); opacity: 0.5; }
+    .p-row__name  { font-size: 11px; font-weight: 600; color: var(--gray-900); }
+    .p-row__meta  { font-size: 9px; color: var(--gray-400); }
+    .p-row__tag   { font-size: 8px; font-weight: 700; font-family: 'Geist Mono', monospace; letter-spacing: 0.3px; }
+    .p-row__tag--green { color: var(--illust-green); }
+    .p-row__tag--red   { color: var(--illust-red); }
+    .p-cta {
+      margin: 2px 0;
+      padding: 9px 12px;
+      background: var(--gray-950);
+      color: var(--gray-50);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: -0.1px;
+    }
+    .p-cta--ghost {
+      background: transparent;
+      color: var(--gray-500);
+      border: 1px solid var(--gray-200);
+    }
+    .p-meta {
+      font-size: 9px;
+      color: var(--gray-400);
+      font-family: 'Geist Mono', monospace;
+      letter-spacing: 0.3px;
+    }
+
+    /* ─── Mini phone body utilities ─── */
+    .mp-hd { padding: 4px 7px 3px; border-bottom: 1px solid var(--gray-100); flex-shrink: 0; }
+    .mp-hd__name { font-size: 7px; font-weight: 700; color: var(--gray-500); font-family: 'Geist Mono', monospace; text-transform: uppercase; letter-spacing: 0.7px; }
+    .mp-body { flex: 1; padding: 4px 6px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+    .mp-row { padding: 5px 7px; border-radius: 6px; }
+    .mp-row--green { background: var(--chip-green-bg); border-left: 2px solid var(--illust-green); }
+    .mp-row--gray  { background: var(--gray-100); }
+    .mp-row--red   { background: var(--chip-red-bg); opacity: 0.5; }
+    .mp-row__name  { font-size: 8px; font-weight: 700; color: var(--gray-900); }
+    .mp-row__tag   { font-size: 7px; font-weight: 600; font-family: monospace; }
+    .mp-row__tag--g { color: var(--illust-green); }
+    .mp-row__tag--r { color: var(--illust-red); }
+    .mp-cta { padding: 6px 7px; background: var(--gray-950); color: var(--gray-50); border-radius: 6px; font-size: 8px; font-weight: 700; text-align: center; }
+
+    /* ─── Fridge text ─── */
+    .fridge__badge { font-family: 'Geist Mono', monospace; font-size: 9px; color: var(--color-brand); letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600; }
+    .fridge__title { font-size: 26px; font-weight: 300; color: var(--bts-text); letter-spacing: -0.5px; text-align: center; line-height: 1.25; }
+    .fridge__sub   { font-family: 'Geist Mono', monospace; font-size: 10px; color: var(--gray-600); letter-spacing: 0.5px; }
+
+    /* Voice wave */
+    .wave { display: flex; gap: 3px; align-items: center; height: 24px; }
+    .wave__bar {
+      width: 3px; border-radius: 2px;
+      background: var(--color-brand);
+      animation: wavePulse 1.2s ease-in-out infinite;
+    }
+    @keyframes wavePulse { 0%,100%{transform:scaleY(0.35)} 50%{transform:scaleY(1)} }
+
+    /* Token status indicator */
+    .blink-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #7ab4f0;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+    @media (prefers-reduced-motion: reduce) {
+      .step-panel.active { animation: none; }
+      .data-card { animation: none; }
+      .prog__fill { transition: none; }
+      .wave__bar { animation: none; transform: scaleY(0.7); }
+      .blink-dot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Progress -->
+<div class="prog"><div class="prog__fill" id="prog-fill"></div></div>
+
+<div class="shell">
+
+  <!-- ═══════════════════════════════════════════
+       LEFT PANEL
+  ═══════════════════════════════════════════ -->
+  <div class="panel-user">
+    <div class="panel-eyebrow">User UI · Multi-Person Orchestration</div>
+
+    <!-- Step 0 — Fridge voice trigger -->
+    <div class="device-stage device-stage--fridge" data-step="0">
+      <div class="fridge">
+        <div class="fridge__badge">✦ Samsung Family Hub · Kitchen</div>
+        <div class="fridge__title">"What should we<br>have for dinner?"</div>
+        <div class="wave">
+          <div class="wave__bar" style="height:8px;animation-delay:0s;"></div>
+          <div class="wave__bar" style="height:14px;animation-delay:0.1s;"></div>
+          <div class="wave__bar" style="height:21px;animation-delay:0.2s;"></div>
+          <div class="wave__bar" style="height:24px;animation-delay:0.3s;"></div>
+          <div class="wave__bar" style="height:21px;animation-delay:0.4s;"></div>
+          <div class="wave__bar" style="height:14px;animation-delay:0.5s;"></div>
+          <div class="wave__bar" style="height:8px;animation-delay:0.6s;"></div>
+        </div>
+        <div class="fridge__sub">Aoi · 6:31 PM · kitchen</div>
+      </div>
+    </div>
+
+    <!-- Step 1 — Brain loading (Mai's phone) -->
+    <div class="device-stage" data-step="1">
+      <div class="phone">
+        <div class="phone__island"></div>
+        <div class="phone__screen">
+          <div class="p-hd">
+            <div class="p-hd__title" style="display:flex;align-items:center;gap:5px;">
+              <span style="color:var(--color-brain);">✦</span>
+              Hana Brain Loading…
+            </div>
+          </div>
+          <div class="p-body">
+            <div class="p-row p-row--gray" style="border-left:2px solid var(--color-brain);background:var(--chip-purple-bg);">
+              <div class="p-row__name" style="color:var(--color-brain);">Identity · L1</div>
+              <div class="p-row__meta">Hana family · 4 members</div>
+            </div>
+            <div class="p-row" style="background:var(--chip-green-bg);border-left:2px solid var(--illust-green);animation:cardIn 400ms 100ms both;">
+              <div class="p-row__name" style="color:var(--illust-green);">Learning · L2 ← Safety Flag</div>
+              <div class="p-row__meta">Aoi · dairy allergy · logged 2024-09</div>
+            </div>
+            <div class="p-row" style="background:var(--chip-amber-bg);border-left:2px solid var(--illust-amber);animation:cardIn 400ms 200ms both;">
+              <div class="p-row__name" style="color:var(--illust-amber);">Now · L3 · Kiran</div>
+              <div class="p-row__meta">Commuting · ETA 22 min</div>
+            </div>
+            <div class="p-row p-row--gray" style="animation:cardIn 400ms 300ms both;">
+              <div class="p-row__name">Now · L3 · Leo</div>
+              <div class="p-row__meta">Doing homework · age 6</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 — Situation Signals firing -->
+    <div class="device-stage" data-step="2">
+      <div class="phone">
+        <div class="phone__island"></div>
+        <div class="phone__screen">
+          <div class="p-hd">
+            <div class="p-hd__title">Signals &amp; Dials Firing</div>
+            <div class="p-hd__sub">4 members · simultaneous analysis</div>
+          </div>
+          <div class="p-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;align-content:start;">
+              <div style="padding:9px;background:var(--gray-100);border-radius:8px;text-align:center;">
+                <div style="font-size:8px;color:var(--gray-400);margin-bottom:3px;text-transform:uppercase;font-family:monospace;">Social</div>
+                <div style="font-size:11px;font-weight:700;color:var(--gray-900);">Family 4×</div>
+              </div>
+              <div style="padding:9px;background:var(--chip-purple-bg);border-radius:8px;text-align:center;">
+                <div style="font-size:8px;color:var(--color-brain);margin-bottom:3px;text-transform:uppercase;font-family:monospace;">Form Factor</div>
+                <div style="font-size:11px;font-weight:700;color:var(--color-brain);">Split 4×</div>
+              </div>
+              <div style="padding:9px;background:var(--chip-red-bg);border-radius:8px;text-align:center;">
+                <div style="font-size:8px;color:var(--illust-red);margin-bottom:3px;text-transform:uppercase;font-family:monospace;">Cognitive</div>
+                <div style="font-size:11px;font-weight:700;color:var(--illust-red);">Mixed</div>
+              </div>
+              <div style="padding:9px;background:var(--chip-green-bg);border-radius:8px;text-align:center;">
+                <div style="font-size:8px;color:var(--illust-green);margin-bottom:3px;text-transform:uppercase;font-family:monospace;">Priority</div>
+                <div style="font-size:11px;font-weight:700;color:var(--illust-green);">Dinner Now</div>
+              </div>
+              <div style="padding:9px;background:var(--chip-blue-bg);border-radius:8px;text-align:center;grid-column:1/-1;">
+                <div style="font-size:8px;color:var(--illust-blue);margin-bottom:3px;text-transform:uppercase;font-family:monospace;">Autonomy Dial</div>
+                <div style="font-size:10px;font-weight:600;color:var(--illust-blue);">Mai:Confirm · Kiran:Notify · Kids:Suggest</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 — Rule Engine -->
+    <div class="device-stage" data-step="3">
+      <div class="phone">
+        <div class="phone__island"></div>
+        <div class="phone__screen">
+          <div class="p-hd">
+            <div class="p-hd__title" style="display:flex;align-items:center;gap:6px;">
+              <span class="blink-dot" style="width:5px;height:5px;"></span>
+              Rule Engine Running
+            </div>
+          </div>
+          <div class="p-body">
+            <div style="flex:1;font-size:10px;font-family:'Geist Mono',monospace;display:flex;flex-direction:column;gap:6px;color:var(--gray-600);">
+              <div style="color:#3b82f6;">► A3 · Aoi allergy filter applied</div>
+              <div style="color:var(--color-brain);">► A2 · Kiran → 2 options (high load)</div>
+              <div style="color:var(--color-brain);">► A2 · Leo → thumbs only (age 6)</div>
+              <div style="color:var(--illust-green);">► D5 · 4 UI variants forked</div>
+              <div style="color:var(--illust-amber);">► D1 · Approve → Mai only</div>
+              <div style="font-size:9px;color:var(--gray-400);margin-top:6px;letter-spacing:0.3px;">4 dispatch paths ready</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 — 4 phones dispatched simultaneously -->
+    <div class="device-stage device-stage--mpo-4" data-step="4">
+
+      <!-- Mai: Full admin UI -->
+      <div class="mini-phone">
+        <div class="mini-phone__island"></div>
+        <div class="mini-phone__body">
+          <div class="mp-hd"><div class="mp-hd__name">Mai · Admin</div></div>
+          <div class="mp-body">
+            <div class="mp-row mp-row--green">
+              <div class="mp-row__name">Pork Miso Stew</div>
+              <div class="mp-row__tag mp-row__tag--g">Recommended</div>
+            </div>
+            <div class="mp-row mp-row--gray">
+              <div class="mp-row__name">Mapo Tofu</div>
+              <div class="mp-row__tag">¥980 · 20 min</div>
+            </div>
+            <div class="mp-cta">Approve →</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kiran: Commute summary -->
+      <div class="mini-phone">
+        <div class="mini-phone__island"></div>
+        <div class="mini-phone__body">
+          <div class="mp-hd"><div class="mp-hd__name">Kiran · Train</div></div>
+          <div class="mp-body" style="align-items:center;justify-content:center;gap:8px;text-align:center;">
+            <div style="font-size:8px;color:var(--gray-400);">Tonight's dinner</div>
+            <div style="font-size:12px;font-weight:700;color:var(--gray-900);">Pork Miso</div>
+            <div style="font-size:7px;color:#3b82f6;background:var(--chip-blue-bg);border-radius:4px;padding:2px 6px;">Home in 22 min</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aoi: Dairy-free filtered -->
+      <div class="mini-phone">
+        <div class="mini-phone__island"></div>
+        <div class="mini-phone__body">
+          <div class="mp-hd"><div class="mp-hd__name">Aoi · Filtered</div></div>
+          <div class="mp-body">
+            <div class="mp-row mp-row--green">
+              <div class="mp-row__name">Pork Miso Stew</div>
+              <div class="mp-row__tag mp-row__tag--g">✓ Dairy-free</div>
+            </div>
+            <div class="mp-row mp-row--red" style="text-decoration:line-through;">
+              <div class="mp-row__name" style="text-decoration:line-through;">Gratin</div>
+              <div class="mp-row__tag mp-row__tag--r">✕ Contains dairy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leo: Thumbs only -->
+      <div class="mini-phone">
+        <div class="mini-phone__island"></div>
+        <div class="mini-phone__body">
+          <div class="mp-hd"><div class="mp-hd__name">Leo · Age 6</div></div>
+          <div class="mp-body" style="align-items:center;justify-content:center;gap:8px;">
+            <div style="font-size:9px;font-weight:700;color:var(--gray-900);text-align:center;line-height:1.3;">Pork soup<br>tonight?</div>
+            <div style="display:flex;gap:8px;">
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--chip-green-bg);border:1px solid var(--illust-green);display:flex;align-items:center;justify-content:center;font-size:14px;">👍</div>
+              <div style="width:26px;height:26px;border-radius:50%;background:var(--chip-red-bg);border:1px solid var(--illust-red);display:flex;align-items:center;justify-content:center;font-size:14px;">👎</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Step 5 — Kiran's commute view -->
+    <div class="device-stage" data-step="5">
+      <div class="phone">
+        <div class="phone__island"></div>
+        <div class="phone__screen">
+          <div class="p-hd">
+            <div class="p-hd__title">Tonight's Dinner</div>
+            <div class="p-hd__sub">A2 · Cognitive Scaling — commute mode</div>
+          </div>
+          <div class="p-body">
+            <div class="p-meta">🚆 Home in 22 min</div>
+            <div class="p-row p-row--green">
+              <div class="p-row__name">Pork Miso Stew</div>
+              <div class="p-row__meta">¥1,200 · Everyone's OK with it</div>
+            </div>
+            <div class="p-row p-row--gray">
+              <div class="p-row__name">Mapo Tofu</div>
+              <div class="p-row__meta">¥980 · 20 min to cook</div>
+            </div>
+            <div class="p-meta" style="margin-top:4px;">Mai is approving. You'll be notified.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 — Aoi's filtered view -->
+    <div class="device-stage" data-step="6">
+      <div class="phone">
+        <div class="phone__island"></div>
+        <div class="phone__screen">
+          <div class="p-hd">
+            <div class="p-hd__title">Dinner Options for Aoi</div>
+            <div class="p-hd__sub">A3 · dairy auto-excluded</div>
+          </div>
+          <div class="p-body">
+            <div class="p-row p-row--green">
+              <div class="p-row__name">Pork Miso Stew</div>
+              <div class="p-row__tag p-row__tag--green">✓ Dairy-free · Safe</div>
+            </div>
+            <div class="p-row p-row--green">
+              <div class="p-row__name">Mapo Tofu</div>
+              <div class="p-row__tag p-row__tag--green">✓ Dairy-free</div>
+            </div>
+            <div class="p-row p-row--red">
+              <div class="p-row__name" style="text-decoration:line-through;">Gratin</div>
+              <div class="p-row__tag p-row__tag--red">✕ Contains cheese</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7 — Mai's approval gate -->
+    <div class="device-stage" data-step="7">
+      <div class="phone">
+        <div class="phone__island"></div>
+        <div class="phone__screen">
+          <div class="p-hd">
+            <div class="p-hd__title" style="display:flex;align-items:center;gap:5px;">
+              <span style="color:var(--illust-amber);">⚠</span>
+              Confirmation needed
+            </div>
+            <div class="p-hd__sub">D1 · Approval Gate · Mai only</div>
+          </div>
+          <div class="p-body">
+            <div class="p-row" style="background:var(--chip-amber-bg);border:1px solid #fde68a;border-radius:9px;">
+              <div class="p-row__name">Confirm: Pork Miso Stew?</div>
+              <div class="p-row__meta" style="margin-top:4px;line-height:1.6;">
+                Leo: 👍 OK<br>
+                Kiran: notified<br>
+                Aoi: allergy checked
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:2px;">
+              <div class="p-cta" style="flex:1;">Approve</div>
+              <div class="p-cta p-cta--ghost" style="padding:9px 12px;">Change</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Caption -->
+    <div class="step-caption">
+      <div class="step-caption__kind" id="caption-kind">User UI · Samsung Family Hub</div>
+      <div class="step-caption__text" id="caption-text">Aoi's voice is detected at the fridge</div>
+    </div>
+
+  </div><!-- /panel-user -->
+
+  <!-- ═══════════════════════════════════════════
+       RIGHT PANEL — Backstage
+  ═══════════════════════════════════════════ -->
+  <div class="panel-bts">
+    <div class="step-dots" id="step-dots"></div>
+
+    <div class="bts-scroll">
+
+      <!-- ── Step 0 ── -->
+      <div class="step-panel" data-step="0">
+        <div>
+          <div class="bts-badge bts-badge--intent" style="margin-bottom:10px;">Intent Layer</div>
+          <div class="bts-h">One voice.<br>Four interfaces.</div>
+          <div class="bts-p" style="margin-top:12px;">"What's for dinner?" — spoken once, to the fridge. From this moment, the Brain constructs four distinct interfaces for four people simultaneously.</div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">Intent · Parsed</div>
+          <div class="data-card data-card--intent">
+            <div class="data-card__label">Raw Input</div>
+            <div class="data-card__text">"What's for dinner tonight?"</div>
+            <div class="data-card__sub">Aoi · Samsung Family Hub · 6:31 PM · Kitchen</div>
+          </div>
+          <div class="data-card data-card--intent">
+            <div class="data-card__label">Parsed Intent</div>
+            <div class="data-card__text">Food Decision · Family · Tonight · Scope = 4 members</div>
+            <div class="data-card__sub">Confidence: 97%</div>
+          </div>
+        </div>
+        <div class="bts-insight">One intent becomes four UIs. Not <em>responsive</em> — <strong>orchestrated</strong>. Each person gets a different interface because each has a different context, role, and need.</div>
+      </div>
+
+      <!-- ── Step 1 ── -->
+      <div class="step-panel" data-step="1">
+        <div>
+          <div class="bts-badge" style="margin-bottom:10px;">Context Brain · L1 + L2 + L3</div>
+          <div class="bts-h">4 member profiles<br>loaded at once</div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">Brain Read · All Members</div>
+          <div class="data-card">
+            <div class="data-card__label">Mai · L1 Identity</div>
+            <div class="data-card__text">Home · family admin · Autonomy = Confirm</div>
+          </div>
+          <div class="data-card">
+            <div class="data-card__label">Kiran · L3 Now</div>
+            <div class="data-card__text">Commuting · 22 min ETA · Cognitive Load = High</div>
+          </div>
+          <div class="data-card data-card--warn">
+            <div class="data-card__label">Aoi · L2 Learning ← Safety Flag</div>
+            <div class="data-card__text">Dairy allergy · severity: moderate</div>
+            <div class="data-card__sub">Logged: 2024-09 · always-on → A3 fires automatically</div>
+          </div>
+          <div class="data-card">
+            <div class="data-card__label">Leo · L1 + L3</div>
+            <div class="data-card__text">Age 6 · doing homework · focus mode</div>
+            <div class="data-card__sub">Age = child → A2 Cognitive Scaling fires</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Step 2 ── -->
+      <div class="step-panel" data-step="2">
+        <div>
+          <div class="bts-badge" style="margin-bottom:10px;">Signals &amp; Dials · 4-Way Split</div>
+          <div class="bts-h">Same intent.<br>Different signal states.</div>
+          <div class="bts-p" style="margin-top:12px;">All four members share the same intent. But each has a different token state. That difference is what drives four distinct interfaces.</div>
+        </div>
+        <div class="token-grid">
+          <div class="token-item">
+            <div class="token-item__name">Social Exposure</div>
+            <div class="token-item__val">Family · 4×</div>
+          </div>
+          <div class="token-item">
+            <div class="token-item__name">Form Factor</div>
+            <div class="token-item__val">Fridge → Phone×3</div>
+          </div>
+          <div class="token-item">
+            <div class="token-item__name">Cognitive · Kiran</div>
+            <div class="token-item__val">High (moving)</div>
+          </div>
+          <div class="token-item">
+            <div class="token-item__name">Cognitive · Leo</div>
+            <div class="token-item__val">Child (age 6)</div>
+          </div>
+          <div class="token-item" style="grid-column:1/-1;">
+            <div class="token-item__name">Autonomy Dial (per person)</div>
+            <div class="token-item__val" style="font-size:11px;">Mai: Confirm · Kiran: Notify · Kids: Suggest</div>
+          </div>
+        </div>
+        <div class="bts-insight">Responsive design adapts <strong>the same content</strong> to screen size. MPO generates <strong>different content</strong> for different people from the same intent.</div>
+      </div>
+
+      <!-- ── Step 3 ── -->
+      <div class="step-panel" data-step="3">
+        <div>
+          <div class="bts-badge bts-badge--rule" style="margin-bottom:10px;">Rule Engine · 4 Paths Fork</div>
+          <div class="bts-h">Rules calculate<br>four branches</div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">Rules Fired</div>
+          <div class="data-card data-card--rule">
+            <div class="data-card__label">A3 · Social-Aware Filtering</div>
+            <div class="data-card__text">Aoi's dairy allergy applied to all candidates</div>
+            <div class="data-card__sub">Trigger: L2 safety flag → automatic, no user action needed</div>
+          </div>
+          <div class="data-card data-card--rule">
+            <div class="data-card__label">A2 · Cognitive Scaling × 2</div>
+            <div class="data-card__text">Kiran: 2 options only. Leo: thumbs up/down only.</div>
+            <div class="data-card__sub">Trigger: Cognitive Load = High · Age = 6</div>
+          </div>
+          <div class="data-card data-card--rule">
+            <div class="data-card__label">D5 · Substitution Modes</div>
+            <div class="data-card__text">Full (Mai) · Summary (Kiran) · Filtered (Aoi) · Minimal (Leo)</div>
+          </div>
+          <div class="data-card data-card--rule">
+            <div class="data-card__label">D1 · Approval Gate</div>
+            <div class="data-card__text">Only Mai gets the Approve action</div>
+            <div class="data-card__sub">Trigger: Autonomy = Confirm + family admin role (L1)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Step 4 ── -->
+      <div class="step-panel" data-step="4">
+        <div>
+          <div class="bts-badge bts-badge--yes" style="margin-bottom:10px;">Multi-Person Orchestration · Dispatched</div>
+          <div class="bts-h">4 interfaces.<br>Same moment.</div>
+          <div class="bts-p" style="margin-top:12px;">From one intent, the Brain builds and delivers four distinct interfaces simultaneously. Each person receives exactly what their context requires.</div>
+        </div>
+        <div class="dispatch-grid">
+          <div class="dispatch-card">
+            <div class="dispatch-card__name">Mai · Full UI</div>
+            <div class="dispatch-card__why">Autonomy=Confirm · Admin role</div>
+            <div class="dispatch-card__ui">→ Full list + Approve</div>
+          </div>
+          <div class="dispatch-card">
+            <div class="dispatch-card__name">Kiran · Summary</div>
+            <div class="dispatch-card__why">Cognitive=High · On train</div>
+            <div class="dispatch-card__ui">→ 2 options only</div>
+          </div>
+          <div class="dispatch-card">
+            <div class="dispatch-card__name">Aoi · Filtered</div>
+            <div class="dispatch-card__why">L2 safety flag (dairy)</div>
+            <div class="dispatch-card__ui">→ Auto-filtered list</div>
+          </div>
+          <div class="dispatch-card">
+            <div class="dispatch-card__name">Leo · Minimal</div>
+            <div class="dispatch-card__why">Age=6 · Homework</div>
+            <div class="dispatch-card__ui">→ 👍 / 👎 only</div>
+          </div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">AX Patterns Active</div>
+          <div class="tag-row">
+            <span class="tag">D5 Substitution Modes</span>
+            <span class="tag">A3 Social Filtering</span>
+            <span class="tag">A2 Cognitive Scaling</span>
+            <span class="tag">D1 Approval Gate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Step 5 ── -->
+      <div class="step-panel" data-step="5">
+        <div>
+          <div class="bts-badge" style="margin-bottom:10px;">A2 · Cognitive Scaling — Kiran</div>
+          <div class="bts-h">On a moving train:<br>2 options only</div>
+          <div class="bts-p" style="margin-top:12px;">Kiran is on his commute home. High cognitive load means showing many choices creates friction, not help. The Brain shows exactly two.</div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">Why this UI</div>
+          <div class="data-card">
+            <div class="data-card__label">L3 · Kiran Now</div>
+            <div class="data-card__text">Commuting · standing · ETA 22 min</div>
+          </div>
+          <div class="data-card data-card--rule">
+            <div class="data-card__label">A2 Rule Applied</div>
+            <div class="data-card__text">Cognitive Load = High → max 2 options + arrival context</div>
+          </div>
+        </div>
+        <div class="bts-insight"><strong>What he doesn't see:</strong> no Approve button. No ingredient details. No allergy info. Kiran's role is "informed" — Mai decides.</div>
+      </div>
+
+      <!-- ── Step 6 ── -->
+      <div class="step-panel" data-step="6">
+        <div>
+          <div class="bts-badge" style="margin-bottom:10px;">A3 · Social-Aware Filtering — Aoi</div>
+          <div class="bts-h">Allergens disappear.<br>Not warnings — absence.</div>
+          <div class="bts-p" style="margin-top:12px;">Aoi's L2 dairy flag is applied silently to every candidate. The UI shows only safe options. No alert. No "contains dairy" warning for the options she never sees.</div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">Filter Logic</div>
+          <div class="data-card data-card--warn">
+            <div class="data-card__label">L2 · Aoi Safety Flag</div>
+            <div class="data-card__text">Dairy allergy · severity: moderate</div>
+            <div class="data-card__sub">Logged: 2024-09 · always-on</div>
+          </div>
+          <div class="data-card data-card--yes">
+            <div class="data-card__label">A3 Result</div>
+            <div class="data-card__text">Gratin → hidden. Pork stew → safe. Mapo tofu → safe.</div>
+            <div class="data-card__sub">No warning shown. She sees a clean, safe world.</div>
+          </div>
+        </div>
+        <div class="bts-insight"><strong>Design principle:</strong> Don't warn about danger — <strong>build a world without it</strong>. Aoi doesn't feel restricted. She just sees good options.</div>
+      </div>
+
+      <!-- ── Step 7 ── -->
+      <div class="step-panel" data-step="7">
+        <div>
+          <div class="bts-badge bts-badge--yes" style="margin-bottom:10px;">D1 · Approval Gate — Resolution</div>
+          <div class="bts-h">Mai approves.<br>All four are notified.</div>
+          <div class="bts-p" style="margin-top:12px;">The moment Mai taps Approve, the Brain dispatches a completion event to all four devices. Each receives exactly the right signal for their role.</div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">Post-Approval Dispatch</div>
+          <div class="data-card data-card--yes">
+            <div class="data-card__label">Kiran</div>
+            <div class="data-card__text">"Pork Miso Stew confirmed" → cooking timer offer based on ETA</div>
+          </div>
+          <div class="data-card data-card--yes">
+            <div class="data-card__label">Aoi + Leo</div>
+            <div class="data-card__text">Quiet notification: "Dinner is decided"</div>
+          </div>
+          <div class="data-card data-card--dim">
+            <div class="data-card__label">A5 · Disposable Surface</div>
+            <div class="data-card__text">The "dinner decision" UI dissolves. All four return to their home screens.</div>
+            <div class="data-card__sub">Surface born for a purpose → goal reached → dissolved</div>
+          </div>
+        </div>
+        <div class="bts-block">
+          <div class="bts-block__label">Full AX pattern set</div>
+          <div class="tag-row">
+            <span class="tag">D1 Approval Gate</span>
+            <span class="tag">D5 Substitution Modes</span>
+            <span class="tag">A3 Social Filtering</span>
+            <span class="tag">A2 Cognitive Scaling</span>
+            <span class="tag">A5 Disposable Surface</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /panel-bts -->
+
+</div><!-- /shell -->
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav__meta">
+    <span class="nav__step" id="nav-step">Step 1 of 8</span>
+    <span class="nav__title">M19 · Multi-Person Orchestration — Dinner</span>
+  </div>
+  <div class="nav__btns">
+    <button class="nav__btn" id="btn-prev" onclick="go(-1)" disabled>← Back</button>
+    <button class="nav__btn nav__btn--primary" id="btn-next" onclick="go(1)">Next →</button>
+  </div>
+</nav>
+
+<script>
+  var TOTAL = 8;
+  var current = 0;
+
+  var STEPS = [
+    { kind: 'User UI · Samsung Family Hub',     text: 'Aoi\'s voice detected at the fridge — 6:31 PM' },
+    { kind: 'Backstage · Context Brain',         text: '4 member profiles loaded simultaneously' },
+    { kind: 'Backstage · Signals & Dials',        text: 'Same intent, different signal states across 4 people' },
+    { kind: 'Backstage · Rule Engine',           text: '4 dispatch branches calculated' },
+    { kind: 'User UI · 4 Phones Dispatched',    text: 'One intent arrives on four phones simultaneously' },
+    { kind: 'User UI · Kiran\'s iPhone',         text: 'A2 Cognitive Scaling — commute mode shows 2 options' },
+    { kind: 'User UI · Aoi\'s iPhone',           text: 'A3 Social Filtering — dairy options silently removed' },
+    { kind: 'User UI · Mai\'s iPhone',           text: 'D1 Approval Gate — only Mai can confirm' },
+  ];
+
+  function render() {
+    // Progress bar
+    document.getElementById('prog-fill').style.width = ((current + 1) / TOTAL * 100) + '%';
+
+    // Step counter
+    document.getElementById('nav-step').textContent = 'Step ' + (current + 1) + ' of ' + TOTAL;
+
+    // Buttons
+    document.getElementById('btn-prev').disabled = current === 0;
+    var nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === TOTAL - 1;
+    nextBtn.textContent = current === TOTAL - 1 ? 'Done' : 'Next →';
+
+    // Step dots
+    document.querySelectorAll('.step-dot').forEach(function(d, i) {
+      d.classList.toggle('active', i === current);
+      d.classList.toggle('done', i < current);
+    });
+
+    // Left: show active device stage
+    document.querySelectorAll('.device-stage').forEach(function(el) {
+      el.classList.toggle('active', parseInt(el.dataset.step) === current);
+    });
+
+    // Right: show active step panel
+    document.querySelectorAll('.step-panel').forEach(function(el) {
+      el.classList.toggle('active', parseInt(el.dataset.step) === current);
+    });
+
+    // Caption
+    var s = STEPS[current];
+    document.getElementById('caption-kind').textContent = s.kind;
+    document.getElementById('caption-text').textContent = s.text;
+
+    // Scroll backstage to top on step change
+    document.querySelector('.bts-scroll').scrollTop = 0;
+  }
+
+  function go(dir) {
+    var next = current + dir;
+    if (next < 0 || next >= TOTAL) return;
+    current = next;
+    render();
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); go(1);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); go(-1);
+    }
+  });
+
+  // Build step dots
+  var dotsEl = document.getElementById('step-dots');
+  for (var i = 0; i < TOTAL; i++) {
+    var d = document.createElement('div');
+    d.className = 'step-dot';
+    dotsEl.appendChild(d);
+  }
+
+  // Init
+  render();
+</script>
+
+</body>
+</html>

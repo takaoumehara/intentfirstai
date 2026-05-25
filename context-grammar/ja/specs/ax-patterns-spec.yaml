@@ -1,0 +1,545 @@
+# AX Patterns Specification
+# Machine-readable trigger conditions for all 23 Context Grammar AX Patterns
+# Source: intentfirst.ai — context-grammar/ax-patterns/index.html
+# Version: 1.0 | Date: 2026-05-05
+
+spec:
+  name: AX Patterns Specification
+  version: "1.0"
+  date: "2026-05-05"
+  description: "Trigger conditions and metadata for the 23 reusable AX Patterns in Context Grammar"
+  license: "CC BY 4.0"
+  url: "https://intentfirst.ai/context-grammar/ax-patterns"
+  token_spec_ref: "./context-tokens-spec.yaml"
+  design_rules_ref: "./design-rules.yaml"
+  note: >
+    Token values use enum IDs from context-tokens-spec.yaml.
+    Brain conditions (L1/L2/L3), AI confidence, and system state
+    are non-token inputs documented in trigger_conditions.extended.
+
+# -------------------------------------------------------------------
+# Token value reference (for trigger condition validation)
+# -------------------------------------------------------------------
+token_value_index:
+  physical_state: [stationary_both_hands, stationary_one_hand, walking, transit_passive, driving, exercising, lying_down]
+  cognitive_load: [low, moderate, high, overloaded]
+  social_exposure: [private, trusted_partner, family_with_children, social_acquaintances, public]
+  priority_weight: [critical, high, standard, low]
+  form_factor: [phone_handheld, phone_folded, phone_unfolded, tablet, tv_display, fridge_display, car_display, watch, desktop_monitor]
+  feasibility: [fully_feasible, partially_feasible, infeasible]
+  autonomy_dial: [suggest, confirm, notify, auto]
+  disclosure_dial: [none, minimal, moderate, full]
+
+# -------------------------------------------------------------------
+# Pattern Categories
+# -------------------------------------------------------------------
+categories:
+  D:
+    name: Delegation
+    description: "Trust transfer from human to AI — the human hands authority to the AI"
+    direction: human_to_ai
+    count: 6
+  E:
+    name: Escalation
+    description: "Control return from AI to human — the AI hands the decision back"
+    direction: ai_to_human
+    count: 5
+  A:
+    name: Adaptation
+    description: "UI and content transform in response to context changes"
+    direction: context_driven
+    count: 8
+  X:
+    name: Enterprise
+    description: "Organizational patterns for multi-person, compliance-driven, or high-stakes contexts"
+    direction: organizational
+    count: 4
+
+# -------------------------------------------------------------------
+# D — Delegation (6 patterns)
+# -------------------------------------------------------------------
+patterns:
+
+  - id: D1
+    name: Approval Gate
+    category: D
+    essence: "A checkpoint where the user approves, edits, or rejects an AI proposal before it executes."
+    trigger_tokens:
+      autonomy_dial: confirm
+      priority_weight: [high, critical]
+    trigger_extended:
+      description: "Fires when Autonomy is in Confirm mode and the proposed action has High or Critical weight."
+      note: "D1 is the baseline delegation pattern — before Progressive Trust (D2) has elevated the dial."
+    outputs:
+      ui_pattern: approval_card
+      primary_actions: [approve, edit, reject]
+      edit_path: X2  # Inline Edit is the edit sub-pattern
+    example: "The fridge proposes a grocery order — Hana taps Approve, Edit, or Skip before anything is sent."
+
+  - id: D2
+    name: Progressive Trust
+    category: D
+    essence: "AI earns the right to act with less friction as successful outcomes accumulate over time."
+    trigger_tokens:
+      autonomy_dial: [confirm, notify]  # Current dial before upgrade
+    trigger_extended:
+      brain_condition:
+        layer: L2
+        signal: consecutive_successful_approvals
+        threshold: "configurable — default 5"
+      description: "Fires when Brain L2 records sufficient consecutive approvals without user correction."
+      note: "Proposes dial upgrade to user. Does not auto-upgrade — user must confirm the first time."
+    outputs:
+      ui_pattern: upgrade_proposal
+      proposed_transition: "confirm → notify, or notify → auto"
+    example: "Weeks 1–3 Hana approves every grocery sub. By Week 8 the system moves to Notify — she sees the swap after, not before."
+
+  - id: D3
+    name: Proactive Nudge
+    category: D
+    essence: "AI surfaces a non-urgent suggestion precisely when Cognitive Load is low enough to act on it."
+    trigger_tokens:
+      cognitive_load: low
+      priority_weight: standard
+      feasibility: fully_feasible
+    trigger_extended:
+      description: "All three conditions must be true simultaneously. Low load ensures the user has bandwidth. Standard priority ensures no interruption urgency."
+      note: "If cognitive_load rises to moderate or high, the nudge is deferred — stored as candidate, not surfaced."
+    outputs:
+      ui_pattern: ambient_suggestion_card
+      dismissable: true
+      defer_on_load_rise: true
+    example: "Saturday morning, nobody's rushing — the app surfaces 'Kai's soccer cleats need replacing, end of season sale now.'"
+
+  - id: D4
+    name: Omakase Mode
+    category: D
+    essence: "Full delegation to AI in a domain where trust, disclosure, and Brain confidence are all at maximum."
+    trigger_tokens:
+      autonomy_dial: auto
+      disclosure_dial: full
+    trigger_extended:
+      brain_condition:
+        layer: L2
+        signal: domain_trust_level
+        threshold: high
+      description: "Requires all three axes at maximum: Autonomy=Auto, Disclosure=Full, Brain L2 trust high in this domain."
+      note: "Per-domain — a user may be in Omakase Mode for grocery staples but Suggest for travel."
+    outputs:
+      ui_pattern: silent_execution
+      post_execution: activity_log_entry
+      user_facing: none
+    example: "Hana says nothing — the regular grocery order runs itself, exactly as she would have placed it."
+
+  - id: D5
+    name: Substitution Modes
+    category: D
+    essence: "Four levels of substitution freedom — Exact, Flexible, Exploring, Surprise — per item and per risk level."
+    trigger_tokens:
+      feasibility: [partially_feasible, infeasible]
+    trigger_extended:
+      brain_condition:
+        layer: L1
+        signal: per_item_substitution_setting
+        values: [exact, flexible, exploring, surprise]
+      description: "Fires when requested item cannot be fulfilled as-is. Substitution mode is stored per-item in Brain L1 (stable preference)."
+    outputs:
+      substitution_modes:
+        exact:
+          description: "Same item, different source"
+          autonomy_requirement: suggest
+        flexible:
+          description: "Close equivalent meeting most criteria"
+          autonomy_requirement: confirm
+        exploring:
+          description: "AI-expanded alternatives user might not have considered"
+          autonomy_requirement: confirm
+        surprise:
+          description: "AI autonomously picks best available"
+          autonomy_requirement: notify
+    example: "Koji's peanut butter is Exact (allergy risk). The yogurt brand is Flexible. A new snack is Surprise."
+
+  - id: D6
+    name: Dynamic Friction
+    category: D
+    essence: "High-cost or high-risk actions keep a confirmation step even when overall trust is mature — a ceiling that Progressive Trust cannot exceed."
+    trigger_tokens:
+      autonomy_dial: [notify, auto]  # Trust is already elevated...
+      priority_weight: [high, critical]  # ...but action risk is high
+    trigger_extended:
+      risk_condition:
+        dimensions: [financial_cost, irreversibility, safety_impact]
+        threshold: configurable
+        description: "Fires when cost × irreversibility product exceeds threshold, regardless of Autonomy Dial level."
+      description: "Overrides elevated Autonomy Dial for specific action types. Trust and risk are independent axes."
+    outputs:
+      ui_pattern: forced_approval_gate
+      overrides: [D4]
+      note: "Always generates a D1 Approval Gate for the matched action, even at Auto autonomy."
+    example: "The fridge reorders yogurt automatically. But a ¥15,000 appliance always asks first — trust and risk are independent axes."
+
+# -------------------------------------------------------------------
+# E — Escalation (5 patterns)
+# -------------------------------------------------------------------
+
+  - id: E1
+    name: Confidence Signal
+    category: E
+    essence: "AI displays its uncertainty in graduated levels — not hiding doubt, but making it legible."
+    trigger_tokens:
+      social_exposure: [social_acquaintances, public]  # Higher exposure = more critical to be transparent
+    trigger_extended:
+      system_condition:
+        ai_confidence_threshold: "≤ 0.80"
+        description: "Fires when AI model confidence falls below 80%. Social exposure context determines how prominently the signal is displayed."
+      description: "Not purely token-triggered — requires AI confidence signal from the model layer."
+    outputs:
+      confidence_levels:
+        high: "≥ 0.80 — standard display, no confidence indicator"
+        medium: "0.40–0.79 — confidence percentage visible, alternatives offered"
+        low: "< 0.40 — escalates to E4 Ambiguity Escalation"
+    example: "The travel app shows '71% match — alternatives available' for the hotel recommendation, not a confident single choice."
+
+  - id: E2
+    name: Limitation Disclosure
+    category: E
+    essence: "AI honestly names what it cannot do and redirects to the appropriate resource."
+    trigger_tokens:
+      priority_weight: [high, critical]
+    trigger_extended:
+      system_condition:
+        request_type: outside_ai_capability
+        description: "Fires when request type is outside AI's defined capability boundary AND priority is high."
+      description: "Priority condition ensures routine out-of-scope requests don't generate noise."
+    outputs:
+      ui_pattern: limitation_card
+      required_elements:
+        - explicit_capability_boundary_statement
+        - redirect_to_appropriate_resource
+      tone: "honest, not apologetic"
+    example: "Mia reports feeling unwell mid-trip. The app says 'I can find nearby clinics, but I cannot make medical decisions' and shows a map."
+
+  - id: E3
+    name: Rollback
+    category: E
+    essence: "AI reverses a completed action and offers alternatives when external conditions change after execution."
+    trigger_tokens:
+      feasibility: infeasible  # Changed to infeasible AFTER execution
+    trigger_extended:
+      state_condition:
+        execution_state: completed
+        feasibility_change: post_execution
+        description: "Fires when feasibility of an already-executed action becomes infeasible due to external change."
+    outputs:
+      ui_pattern: rollback_card
+      required_elements:
+        - visual_strikethrough_of_cancelled_item
+        - pre_computed_alternative
+        - cost_delta_if_relevant
+    example: "The booked 14:00 flight is cancelled by the airline. The app strikes it through, shows a 16:30 alternative at no extra cost."
+
+  - id: E4
+    name: Ambiguity Escalation
+    category: E
+    essence: "AI surfaces gray-zone decisions with a warning and explicitly defers the final call to the human."
+    trigger_tokens: {}  # No token trigger — driven by AI confidence only
+    trigger_extended:
+      system_condition:
+        ai_confidence_range: "0.40–0.79"
+        description: "Fires when AI confidence falls in the gray zone — too uncertain to commit, too relevant to discard."
+    outputs:
+      ui_pattern: ambiguity_card
+      required_elements:
+        - explicit_doubt_statement
+        - two_or_more_options
+        - deferred_decision_prompt
+      note: "Below 0.40 confidence, escalation may be unnecessary — silence may be better than a low-confidence guess."
+    example: "The planner isn't sure if Kai would enjoy a particular museum. It flags the doubt, shows two options, and says 'your call.'"
+
+  - id: E5
+    name: Trust Breach Recovery
+    category: E
+    essence: "After an AI misjudgment, the Autonomy Dial is demoted and trust is rebuilt from a lower stage."
+    trigger_tokens:
+      autonomy_dial: [notify, auto]  # Elevated dial that triggered the misjudgment
+    trigger_extended:
+      user_action_condition:
+        action: [reject, undo]
+        context: "AI-initiated action or proposal"
+        description: "Fires when user rejects or undoes an AI decision, signaling a trust breach."
+    outputs:
+      dial_change:
+        direction: downgrade
+        steps: 1
+        example: "notify → confirm, auto → notify"
+      rebuild_protocol:
+        description: "Re-runs the approval gate pattern for N interactions before re-proposing upgrade"
+        n: configurable
+    brain_update:
+      layer: L2
+      signal: trust_breach_recorded
+      effect: "Resets consecutive-approval counter for this domain"
+    example: "Hana rejects a substitution she explicitly blocked. The system demotes from Notify → Suggest and confirms every swap until trust is re-earned."
+
+# -------------------------------------------------------------------
+# A — Adaptation (8 patterns)
+# -------------------------------------------------------------------
+
+  - id: A1
+    name: Form Factor Transform
+    category: A
+    essence: "The same content restructures itself when the active device changes — a different vessel, not a different message."
+    trigger_tokens:
+      form_factor: any  # Fires on any form_factor change
+    trigger_extended:
+      state_condition:
+        form_factor_change: true
+        description: "Fires whenever the primary display surface changes — phone to TV, phone to watch, etc."
+    outputs:
+      transformation_examples:
+        phone_handheld_to_tv_display: "Scrollable list → full-bleed timeline with photos"
+        phone_handheld_to_watch: "Full list → single next action only"
+        phone_handheld_to_fridge_display: "Standard card → large touch target card with meal context"
+      principle: "Content is the same. Presentation shape follows the vessel."
+    example: "The family trip itinerary is a scrollable list on Hana's phone; cast to the TV it becomes a full-bleed timeline with photos."
+
+  - id: A2
+    name: Cognitive Scaling
+    category: A
+    essence: "Information density and number of choices contract when Cognitive Load is high, expand when it drops."
+    trigger_tokens:
+      cognitive_load: [high, overloaded]
+    trigger_extended:
+      description: "Fires when cognitive_load is high or overloaded. Expansion fires when cognitive_load returns to low or moderate."
+    outputs:
+      scaling_table:
+        low: { max_choices: 8, ui_density: high }
+        moderate: { max_choices: 5, ui_density: medium }
+        high: { max_choices: 3, ui_density: low }
+        overloaded: { max_choices: 1, ui_density: low, defer_non_critical: true }
+    example: "Running late at the airport, Hana sees three pre-selected options. At home on a quiet evening, she sees the full 12-item list."
+
+  - id: A3
+    name: Social-Aware Filtering
+    category: A
+    essence: "Displayed content shifts based on who is present — prices, wish lists, and personal notes hide as exposure increases."
+    trigger_tokens:
+      social_exposure: [social_acquaintances, public, family_with_children]
+      disclosure_dial: [none, minimal, moderate]  # NOT full
+    trigger_extended:
+      description: "Fires when social_exposure is non-private AND disclosure_dial is not full."
+      logic: "social_exposure >= social_acquaintances AND disclosure_dial != full"
+    outputs:
+      filtering_by_exposure:
+        family_with_children:
+          hidden: [gift_prices, adult_content, financial_details]
+        social_acquaintances:
+          hidden: [financial_information, health_data, message_previews]
+        public:
+          hidden: [all_personal_information]
+    example: "Alone, Hana sees prices and budget stats. At a dinner party, the TV shows the recipe — no costs visible."
+
+  - id: A4
+    name: Disclosure Cascade
+    category: A
+    essence: "Information visibility moves through four levels — FULL → SUMMARY → EXISTENCE → HIDDEN — per domain and per person."
+    trigger_tokens:
+      disclosure_dial: any  # Any disclosure_dial value triggers this — the cascade IS the output
+    trigger_extended:
+      state_condition:
+        social_exposure_change: true
+        or: disclosure_dial_change: true
+        description: "Fires on any change to disclosure_dial OR social_exposure that changes the effective visibility level."
+    outputs:
+      cascade_levels:
+        full: "Complete information visible — Hana sees all of Koji's medical history"
+        summary: "Category and status visible — doctor app sees 'has allergies: peanut'"
+        existence: "Presence acknowledged, details hidden — school nurse form sees 'medical info on file'"
+        hidden: "No information — strangers see nothing"
+    example: "Koji's medical history: Full for Hana, Summary for the family doctor's app, Existence-only for the school nurse's form."
+
+  - id: A5
+    name: Disposable Surface
+    category: A
+    essence: "A UI instance is born for a specific purpose and dissolves when that purpose is complete — tied to the Disposable Brain lifecycle."
+    trigger_tokens: {}  # No standard token trigger
+    trigger_extended:
+      intent_condition:
+        intent_type: time_bound_goal
+        description: "Fires when Intent is time-bound and scoped (trip, renovation, event)."
+      brain_condition:
+        brain_lifecycle: created
+        brain_type: disposable
+    outputs:
+      lifecycle: [born, active, returning, dissolved]
+      brain_coupling:
+        born_with: "Disposable Brain instance for this goal"
+        dissolves_when: "Goal time window closes"
+        handoff_to: A8  # Temporal Handoff handles the learning return
+    example: "The Kyoto trip UI appears the morning they leave, learns during the trip, and disappears when they arrive home."
+
+  - id: A6
+    name: Care Architecture
+    category: A
+    essence: "AI tracks emotional and relational context to surface care opportunities buried in daily life."
+    trigger_tokens: {}  # No standard token trigger
+    trigger_extended:
+      brain_condition:
+        layer: L2
+        signal: relationship_event_proximity
+        description: "Fires when Brain L2 detects an upcoming relational event (birthday, anniversary, recurring care moment)."
+      temporal_condition:
+        proximity_window: configurable
+        default: "7 days ahead"
+    outputs:
+      ui_pattern: ambient_care_suggestion
+      must_not: "interrupt current task — always surface at Cognitive Load = low"
+      cognitive_load_gate: true  # Only surface when cognitive_load is low or moderate
+    example: "The app surfaces 'Hana's mother's birthday is next week — last year you sent flowers' before she thinks to check."
+
+  - id: A7
+    name: Live Recomposition
+    category: A
+    essence: "An existing plan is instantly rebuilt when external conditions change — weather, cancellations, or inventory — without the user seeing the seam."
+    trigger_tokens:
+      feasibility: [partially_feasible, infeasible]  # Changed from feasible
+    trigger_extended:
+      state_condition:
+        plan_state: active
+        feasibility_change: external_trigger
+        description: "Fires when an active plan's feasibility changes due to external event (weather, cancellation, stock)."
+      note: "Unlike E3 Rollback, A7 operates before execution — the plan is rebuilt before the user needs to act on it."
+    outputs:
+      ui_pattern: silent_recomposition
+      user_facing: "Updated plan shown as-is, without 'we changed this' friction"
+      optional: "Contextual note for significant changes (cancelled venue vs minor time shift)"
+    example: "The outdoor market is rained out. The itinerary silently swaps it for an indoor museum at the same time slot."
+
+  - id: A8
+    name: Temporal Handoff
+    category: A
+    essence: "When a Disposable Brain ends, its distilled learnings return to the persistent Home Brain — the temporary context dissolves, the knowledge survives."
+    trigger_tokens: {}  # No standard token trigger
+    trigger_extended:
+      brain_condition:
+        brain_lifecycle: ending
+        brain_type: disposable
+        description: "Fires when a Disposable Brain's lifecycle reaches its end state."
+    outputs:
+      handoff_process:
+        - "Distill key learnings from Disposable Brain L2"
+        - "Write to Home Brain L2 with source tag and date"
+        - "Mark Disposable Brain as dissolved"
+      written_to_home_brain:
+        - "Preference discoveries (foods, pacing, comfort)"
+        - "Behavioral patterns unique to that person in that context"
+        - "Tradeoff decisions made under pressure"
+      not_written: "Temporary operational data (booking confirmations, receipts)"
+    coupling: A5  # Disposable Surface is created by A5; A8 handles its end
+    example: "After the Kyoto trip, 'Kai loves ramen' and 'Mia fades at 3pm' are written into the Home Brain. The Trip Brain is gone."
+
+# -------------------------------------------------------------------
+# X — Enterprise (4 patterns)
+# -------------------------------------------------------------------
+
+  - id: X1
+    name: Reasoning Trace
+    category: X
+    essence: "AI decision rationale is available in a collapsible format — auto-expands for high-risk decisions, silent otherwise."
+    trigger_tokens:
+      priority_weight: [high, critical]
+    trigger_extended:
+      user_action_condition:
+        action: request_reasoning
+        optional: true
+      description: "Auto-expands for high/critical priority decisions. Also fires on explicit user request."
+    outputs:
+      ui_pattern: collapsible_trace
+      auto_expand_at: [high, critical]
+      trace_content:
+        - data_sources_used
+        - confidence_level
+        - alternative_options_considered
+    example: "The AI recommends Vendor A. Priya sees the answer; tapping 'Why?' reveals the three CRM threads and two calendar entries that drove it."
+
+  - id: X2
+    name: Inline Edit
+    category: X
+    essence: "An AI proposal can be edited in place and immediately re-executed — the edit path within Approval Gate."
+    trigger_tokens:
+      autonomy_dial: confirm  # Must be at Approval Gate to have an edit option
+    trigger_extended:
+      user_action_condition:
+        action: select_edit
+        context: "at a D1 Approval Gate"
+        description: "Fires when user selects 'Edit' at a D1 Approval Gate, rather than Approve or Reject."
+    outputs:
+      ui_pattern: inline_editor
+      on_save: "Re-execute AI process with edited input"
+      coupling: D1  # X2 is the edit sub-pattern of D1
+    example: "The AI drafts a sales email. Priya changes one sentence inline; the system re-runs the draft and returns a revised version in seconds."
+
+  - id: X3
+    name: Autonomy Dial UI
+    category: X
+    essence: "Explicit user control over the four-stage Autonomy level — Suggest, Confirm, Notify, Auto — paired with the Disclosure Dial."
+    trigger_tokens: {}  # Settings-invoked, not context-triggered
+    trigger_extended:
+      user_action_condition:
+        action: explicit_dial_adjustment
+        context: "settings or in-context dial control"
+        description: "Fires when user explicitly adjusts Autonomy Dial. This is the UI pattern — not a reaction to a token state."
+    outputs:
+      ui_pattern: paired_dial_control
+      requires_both: [autonomy_dial, disclosure_dial]
+      note: "Always shows Autonomy and Disclosure together — the logical coupling must be visually represented."
+      per_domain: true
+    example: "Priya sets the brief-writing agent to Confirm for client-facing content, Notify for internal drafts, Auto for first-pass research summaries."
+
+  - id: X4
+    name: Source Attribution
+    category: X
+    essence: "AI answers include the specific data sources that produced them — CRM, email, calendar — meeting audit and compliance requirements."
+    trigger_tokens:
+      priority_weight: [high, critical]  # Compliance most critical for high-stakes decisions
+    trigger_extended:
+      compliance_condition:
+        compliance_rule_active: true
+        optional: true
+      user_action_condition:
+        action: request_source_evidence
+        optional: true
+      description: "Fires when compliance rules are active OR when user requests source evidence. Also auto-fires at high/critical priority."
+    outputs:
+      ui_pattern: source_chips
+      chip_contents: "Data source label + tap-to-expand"
+      required_for: "compliance-sensitive outputs"
+    example: "'Q3 revenue up 12%' is shown with chips: CRM · Email · Calendar · Sheets — traceable in one tap."
+
+# -------------------------------------------------------------------
+# Pattern Composition Map
+# -------------------------------------------------------------------
+composition_notes:
+  - id: silent_resolution
+    name: "Silent Resolution (canonical composition example)"
+    sequence: [D4, D6, E5, A2]
+    description: >
+      Omakase Mode (D4) runs autonomously until an action triggers Dynamic Friction (D6).
+      If the user rejects the forced approval, Trust Breach Recovery (E5) demotes the dial.
+      Meanwhile, Cognitive Scaling (A2) ensures the UI shows only critical info if load is high.
+    source_page: "context-grammar/ax-patterns/index.html — 'Patterns Compose' section"
+
+  - id: approval_with_inline_edit
+    name: "Approval Gate + Inline Edit"
+    sequence: [D1, X2]
+    description: "D1 generates the approval UI; X2 is activated when the user selects the 'Edit' path."
+
+  - id: disposable_brain_lifecycle
+    name: "Disposable Brain lifecycle"
+    sequence: [A5, A7, A8]
+    description: "A5 creates the surface and brain. A7 adapts plans while active. A8 dissolves and extracts learnings."
+
+  - id: trust_escalation_cycle
+    name: "Trust escalation → breach → recovery cycle"
+    sequence: [D2, D6, E5]
+    description: "D2 builds trust and proposes dial upgrades. D6 maintains a safety ceiling. E5 handles breaches and resets."

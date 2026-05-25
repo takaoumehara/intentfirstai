@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Grammar — Direct Proof</title>
+<meta name="description" content="One toggle. The UI assembles itself differently. Seven scenarios across every device.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-laptop.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-nest.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-watch.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-galaxy.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-tablet.css">
+
+<style>
+/* ─── Reset ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Hero ─── */
+.proof-hero {
+  background: #08070b;
+  color: #f0ece4;
+  padding: clamp(48px, 7vw, 88px) clamp(24px, 5vw, 80px);
+  text-align: center;
+}
+.proof-hero__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(240,236,228,0.45);
+  margin-bottom: 20px;
+}
+.proof-hero__title {
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 500;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  max-width: 820px;
+  margin: 0 auto 20px;
+}
+.proof-hero__title em { font-style: normal; color: #30c969; }
+.proof-hero__sub {
+  font-size: clamp(15px, 1.3vw, 18px);
+  color: rgba(240,236,228,0.6);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* ─── Scenario nav ─── */
+.proof-nav {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 clamp(16px, 4vw, 64px);
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.proof-nav::-webkit-scrollbar { display: none; }
+
+.proof-nav__btn {
+  padding: 14px 20px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms, border-color 120ms;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.proof-nav__btn .num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--gray-200);
+  color: var(--text-3);
+  border-radius: 4px;
+  padding: 2px 5px;
+  transition: all 120ms;
+}
+.proof-nav__btn:hover { color: var(--text); }
+.proof-nav__btn.active { color: var(--text); border-bottom-color: var(--text); }
+.proof-nav__btn.active .num { background: var(--text); color: var(--bg); }
+
+/* ─── Stage ─── */
+.proof-stage {
+  display: none;
+  padding: clamp(32px, 4vw, 56px) clamp(24px, 5vw, 80px);
+  min-height: 75vh;
+}
+.proof-stage.active { display: block; }
+
+.proof-cols {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 48px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+@media (max-width: 860px) {
+  .proof-cols { grid-template-columns: 1fr; gap: 28px; }
+}
+
+/* ─── Left controls ─── */
+.proof-controls { position: sticky; top: 58px; }
+
+.proof-scenario-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.proof-scenario-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: var(--gray-100);
+  border-radius: 4px;
+  padding: 3px 7px;
+}
+.proof-intent-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+}
+.intent-explicit   { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.intent-implicit   { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+.intent-forgotten  { background: #fdf4ff; color: #7e22ce; border-color: #e9d5ff; }
+.intent-declared   { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+
+.proof-scenario-title {
+  font-size: clamp(18px, 1.8vw, 24px);
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+.proof-scenario-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* Toggle */
+.proof-toggle-wrap {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+.proof-toggle-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toggle-opt {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 120ms;
+  user-select: none;
+  line-height: 1.3;
+  flex: 1;
+}
+.toggle-opt.a { text-align: right; }
+.toggle-opt.b { text-align: left; }
+.toggle-opt.active { color: var(--text); }
+
+.toggle-pill {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  background: var(--gray-200);
+  border-radius: 14px;
+  cursor: pointer;
+  border: none;
+  appearance: none;
+  flex-shrink: 0;
+  transition: background 220ms var(--ease-out-soft);
+}
+.toggle-pill::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 22px; height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+  transition: transform 220ms var(--ease-out-soft);
+}
+.toggle-pill.on { background: #30c969; }
+.toggle-pill.on::after { transform: translateX(20px); }
+
+/* Radio selector (scenario 3, 7) */
+.radio-opts { display: flex; flex-direction: column; gap: 6px; }
+.radio-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  transition: all 120ms;
+}
+.radio-opt:hover { background: var(--bg-2); }
+.radio-opt input[type="radio"] { accent-color: #30c969; width: 14px; height: 14px; flex-shrink: 0; }
+.radio-opt:has(input:checked) { background: #f0fdf6; border-color: #86efac; color: var(--text); }
+
+/* Token chips */
+.proof-tokens { margin-bottom: 16px; }
+.proof-tokens-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+.token-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.token-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: var(--gray-100);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  transition: all 200ms var(--ease-out-soft);
+  white-space: nowrap;
+}
+.token-chip.fired {
+  background: #e6f9ef;
+  color: #15803d;
+  border-color: #86efac;
+  font-weight: 700;
+}
+
+/* Why box */
+.proof-why {
+  border-left: 3px solid #30c969;
+  padding: 11px 14px;
+  background: #f0fdf6;
+  border-radius: 0 10px 10px 0;
+  transition: all 200ms;
+}
+.proof-why.idle {
+  border-left-color: var(--gray-300);
+  background: var(--bg-2);
+}
+.proof-why__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #16a34a;
+  margin-bottom: 5px;
+}
+.proof-why.idle .proof-why__label { color: var(--text-3); }
+.proof-why__text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.55;
+}
+.proof-why.idle .proof-why__text { color: var(--text-2); }
+
+/* ─── Right: device preview ─── */
+.proof-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.proof-preview__meta {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.proof-device-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.proof-caption {
+  font-size: 13px;
+  color: var(--text-3);
+  text-align: center;
+  max-width: 480px;
+  line-height: 1.5;
+}
+.proof-caption strong { color: var(--text-2); font-weight: 600; }
+
+/* ─── Dual device layout (scenario 6) ─── */
+.dual-phones {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.dual-phones .device-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.dual-phones .device-slot-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ─── Iframe transition ─── */
+@keyframes frame-in {
+  from { opacity: 0.3; transform: scale(0.985); }
+  to   { opacity: 1;   transform: scale(1); }
+}
+.switching { animation: frame-in 320ms var(--ease-out-soft) forwards; }
+
+/* ─── Bottom nav ─── */
+.proof-footer-nav {
+  border-top: 1px solid var(--border);
+  padding: 24px clamp(24px, 5vw, 80px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.proof-footer-nav__hint { font-size: 13px; color: var(--text-3); }
+.proof-footer-nav__links { display: flex; gap: 10px; }
+.proof-footer-nav__links a {
+  font-size: 13px;
+  color: var(--text-2);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 120ms;
+}
+.proof-footer-nav__links a:hover { background: var(--bg-2); }
+
+/* ─── Foot ─── */
+.proof-foot {
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  padding: 20px clamp(24px, 5vw, 80px);
+  font-size: 13px;
+  color: var(--text-3);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.proof-foot a { color: var(--text-2); text-decoration: none; }
+.proof-foot a:hover { color: var(--text); }
+.proof-foot span[aria-hidden] { color: var(--gray-300); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .toggle-pill, .toggle-pill::after, .token-chip, .proof-why, .switching {
+    transition: none; animation: none;
+  }
+}
+
+/* ── ipad11 screen fill ── */
+.ipad11__screen { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.ipad11__screen iframe { width: 100%; height: 100%; border: 0; display: block; }
+</style>
+</head>
+<body>
+
+<script src="../../assets/js/nav.js"></script>
+<script>initNav({ basePath: '../../', activePage: 'simulator', lang: 'en', showLang: true });</script>
+
+<!-- Hero -->
+<header class="proof-hero">
+  <p class="proof-hero__eyebrow">Context Grammar · Direct Proof</p>
+  <h1 class="proof-hero__title">
+    One toggle.<br>The UI <em>assembles itself</em> differently.
+  </h1>
+  <p class="proof-hero__sub">
+    Pick a scenario. Flip the context. Watch the interface change — and see exactly which signals caused it.
+  </p>
+</header>
+
+<!-- Scenario nav -->
+<nav class="proof-nav" aria-label="Scenarios">
+  <button class="proof-nav__btn active" data-scenario="0"><span class="num">01</span> Work → Emergency</button>
+  <button class="proof-nav__btn" data-scenario="1"><span class="num">02</span> Trip → Kid sick</button>
+  <button class="proof-nav__btn" data-scenario="2"><span class="num">03</span> Who receives it</button>
+  <button class="proof-nav__btn" data-scenario="3"><span class="num">04</span> Music for Dad</button>
+  <button class="proof-nav__btn" data-scenario="4"><span class="num">05</span> New project intent</button>
+  <button class="proof-nav__btn" data-scenario="5"><span class="num">06</span> Train → Home → TV</button>
+  <button class="proof-nav__btn" data-scenario="6"><span class="num">07</span> Forgotten intent</button>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCENARIO 01 — Work mode → Family emergency
+     Intent: Implicit inferred  |  Device: iPhone
+═══════════════════════════════════════════════════════ -->
+<div class="proof-stage active" id="scenario-0">
+  <div class="proof-cols">
+    <div class="proof-controls">
+      <div class="proof-scenario-meta">
+        <span class="proof-scenario-num">01</span>
+        <span class="proof-intent-tag intent-implicit">Implicit inferred</span>
+      </div>
+      <h2 class="proof-scenario-title">Deep work — then a family member gets sick</h2>
+      <p class="proof-scenario-desc">The AI was helping you focus on a deadline. Then priority weight collides with something that can't wait.</p>
+
+      <div class="proof-toggle-wrap">
+        <p class="proof-toggle-label">Context signal</p>
+        <div class="toggle-row">
+          <span class="toggle-opt a active" id="s0-a">Deep work mode</span>
+          <button class="toggle-pill" id="s0-toggle" role="switch" aria-checked="false" aria-label="Emergency"></button>
+          <span class="toggle-opt b" id="s0-b">Partner has 39°C fever</span>
+        </div>
+      </div>
+
+      <div class="proof-tokens">
+        <p class="proof-tokens-label">Situation Signals &amp; Relationship Dials</p>
+        <div class="token-chips">
+          <span class="token-chip" id="s0-t1">② Cognitive Load</span>
+          <span class="token-chip fired" id="s0-t2">④ Priority Weight</span>
+          <span class="token-chip" id="s0-t3">⑦ Autonomy Dial</span>
+          <span class="token-chip" id="s0-t4">⑥ Feasibility</span>
+        </div>
+      </div>
+
+      <div class="proof-why idle" id="s0-why">
+        <p class="proof-why__label">Why the UI looks like this</p>
+        <p class="proof-why__text" id="s0-why-text">Deep work mode: the AI sees high cognitive load. Notifications silenced, only work-relevant cards visible. Autonomy Dial is high — the AI acts ahead.</p>
+      </div>
+    </div>
+
+    <div class="proof-preview">
+      <div class="proof-preview__meta">
+        <span class="proof-device-label" id="s0-device-label">iPhone 15 Pro · Home assistant</span>
+      </div>
+      <div class="iphone15pro iphone15pro--xl" id="s0-device">
+        <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <iframe id="s0-iframe" src="../../ui-screens/p1-v2/s9a-normal-home.html?noframe=1" title="Home assistant" scrolling="no" loading="lazy" style="width:100%;height:100%;border:0;display:block;"></iframe>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+      <p class="proof-caption" id="s0-caption"><strong>Deep work mode</strong> — work tasks surface. Everything else silent.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCENARIO 02 — Vacation planning → Kid sick mid-trip
+     Intent: Implicit inferred  |  Device: iPhone
+═══════════════════════════════════════════════════════ -->
+<div class="proof-stage" id="scenario-1">
+  <div class="proof-cols">
+    <div class="proof-controls">
+      <div class="proof-scenario-meta">
+        <span class="proof-scenario-num">02</span>
+        <span class="proof-intent-tag intent-implicit">Implicit inferred</span>
+      </div>
+      <h2 class="proof-scenario-title">Trip Brain running — kid gets sick mid-vacation</h2>
+      <p class="proof-scenario-desc">The AI was planning your family trip. Then a health signal overrides everything — layout, autonomy, and content all shift.</p>
+
+      <div class="proof-toggle-wrap">
+        <p class="proof-toggle-label">Context signal</p>
+        <div class="toggle-row">
+          <span class="toggle-opt a active" id="s1-a">Vacation planning</span>
+          <button class="toggle-pill" id="s1-toggle" role="switch" aria-checked="false" aria-label="Emergency"></button>
+          <span class="toggle-opt b" id="s1-b">Kai has 38°C fever</span>
+        </div>
+      </div>
+
+      <div class="proof-tokens">
+        <p class="proof-tokens-label">Situation Signals &amp; Relationship Dials</p>
+        <div class="token-chips">
+          <span class="token-chip" id="s1-t1">① Physical State</span>
+          <span class="token-chip fired" id="s1-t2">④ Priority Weight</span>
+          <span class="token-chip" id="s1-t3">⑦ Autonomy Dial</span>
+          <span class="token-chip" id="s1-t4">② Cognitive Load</span>
+        </div>
+      </div>
+
+      <div class="proof-why idle" id="s1-why">
+        <p class="proof-why__label">Why the UI looks like this</p>
+        <p class="proof-why__text" id="s1-why-text">Vacation mode: Trip Brain active, surfacing bookings and plans. Autonomy Dial high — the AI books ahead without asking.</p>
+      </div>
+    </div>
+
+    <div class="proof-preview">
+      <div class="proof-preview__meta">
+        <span class="proof-device-label">iPhone 15 Pro · Trip assistant</span>
+      </div>
+      <div class="iphone15pro iphone15pro--xl" id="s1-device">
+        <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+        <div class="iphone15pro__screen">
+          <iframe id="s1-iframe" src="../../ui-screens/p2/p2-01-trip-brain.html?noframe=1" title="Trip Brain" scrolling="no" loading="lazy" style="width:100%;height:100%;border:0;display:block;"></iframe>
+        </div>
+        <div class="iphone15pro__island" aria-hidden="true"></div>
+      </div>
+      <p class="proof-caption" id="s1-caption"><strong>Vacation planning</strong> — Trip Brain active, bookings and plans surfaced.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCENARIO 03 — Same fact, different recipients
+     Intent: Implicit inferred  |  Device: Concept (wide)
+═══════════════════════════════════════════════════════ -->
+<div class="proof-stage" id="scenario-2">
+  <div class="proof-cols">
+    <div class="proof-controls">
+      <div class="proof-scenario-meta">
+        <span class="proof-scenario-num">03</span>
+        <span class="proof-intent-tag intent-implicit">Implicit inferred</span>
+      </div>
+      <h2 class="proof-scenario-title">Same fact. Three people. Three different messages.</h2>
+      <p class="proof-scenario-desc">Kai has a 38°C fever. The AI notifies Mom, Grandparents, and Kai himself — each version shaped by Disclosure Dial per recipient.</p>
+
+      <div class="proof-toggle-wrap">
+        <p class="proof-toggle-label">Who receives the message</p>
+        <div class="radio-opts" id="s2-radios">
+          <label class="radio-opt"><input type="radio" name="s2" value="0" checked><span>Mom — full medical detail</span></label>
+          <label class="radio-opt"><input type="radio" name="s2" value="1"><span>Grandparents — soft reassurance</span></label>
+          <label class="radio-opt"><input type="radio" name="s2" value="2"><span>Kai (the child) — age-safe framing</span></label>
+        </div>
+      </div>
+
+      <div class="proof-tokens">
+        <p class="proof-tokens-label">Situation Signals &amp; Relationship Dials</p>
+        <div class="token-chips">
+          <span class="token-chip fired">③ Social Exposure</span>
+          <span class="token-chip fired">④ Priority Weight</span>
+          <span class="token-chip fired">⑧ Disclosure Dial</span>
+        </div>
+      </div>
+
+      <div class="proof-why" id="s2-why">
+        <p class="proof-why__label">Why the message looks like this</p>
+        <p class="proof-why__text" id="s2-why-text">Mom gets full clinical detail — she needs to make decisions. Disclosure Dial is fully open for her alone.</p>
+      </div>
+    </div>
+
+    <div class="proof-preview">
+      <div class="proof-preview__meta">
+        <span class="proof-device-label">MacBook Pro · Disclosure concept</span>
+      </div>
+      <div class="macbookpro macbookpro--lg">
+        <img class="macbookpro__chrome" src="../../Global_Assets/DeviceFrame/AppleMacbookPro15.svg" alt="" aria-hidden="true">
+        <div class="macbookpro__screen">
+          <iframe id="s2-iframe" src="../../ui-screens/p2/p2-concept-03-disclosure-sculpt.html?noframe=1" title="Disclosure sculpt" loading="lazy" style="width:100%;height:100%;border:0;background:#fff;"></iframe>
+        </div>
+      </div>
+      <p class="proof-caption" id="s2-caption">One source fact. Three recipients. Three completely different interfaces.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCENARIO 04 — Disclosure Dial: music for Dad
+     Intent: Implicit inferred  |  Device: Google Nest Hub
+═══════════════════════════════════════════════════════ -->
+<div class="proof-stage" id="scenario-3">
+  <div class="proof-cols">
+    <div class="proof-controls">
+      <div class="proof-scenario-meta">
+        <span class="proof-scenario-num">04</span>
+        <span class="proof-intent-tag intent-implicit">Implicit inferred</span>
+      </div>
+      <h2 class="proof-scenario-title">Aoi's music appears on Dad's Nest Hub — but only because she allowed it</h2>
+      <p class="proof-scenario-desc">Aoi and her dad are both reading Jujutsu Kaisen 0. The Brain noticed. But it only acts because her Disclosure Dial lets music taste cross to Dad.</p>
+
+      <div class="proof-toggle-wrap">
+        <p class="proof-toggle-label">Aoi's Disclosure Dial</p>
+        <div class="toggle-row">
+          <span class="toggle-opt a active" id="s3-a">Sharing off</span>
+          <button class="toggle-pill" id="s3-toggle" role="switch" aria-checked="false" aria-label="Music sharing on"></button>
+          <span class="toggle-opt b" id="s3-b">Music taste → Dad</span>
+        </div>
+      </div>
+
+      <div class="proof-tokens">
+        <p class="proof-tokens-label">Situation Signals &amp; Relationship Dials</p>
+        <div class="token-chips">
+          <span class="token-chip" id="s3-t1">③ Social Exposure</span>
+          <span class="token-chip fired" id="s3-t2">⑧ Disclosure Dial</span>
+          <span class="token-chip" id="s3-t3">① Physical State</span>
+        </div>
+      </div>
+
+      <div class="proof-why idle" id="s3-why">
+        <p class="proof-why__label">Why the UI looks like this</p>
+        <p class="proof-why__text" id="s3-why-text">Disclosure Dial is off for music. Dad's Nest Hub shows nothing from Aoi. The Brain saw the shared manga — but permission wasn't granted, so it stays private.</p>
+      </div>
+    </div>
+
+    <div class="proof-preview">
+      <div class="proof-preview__meta">
+        <span class="proof-device-label">Google Nest Hub · Dad's living room</span>
+      </div>
+      <div class="nest-hub nest-hub--xl" id="s3-device">
+        <img class="nest-hub__chrome" src="../../Global_Assets/DeviceFrame/Googe_nest.svg" alt="" aria-hidden="true">
+        <div class="nest-hub__screen">
+          <iframe id="s3-iframe" src="../../ui-screens/p1-v2/s8a-fridge-screen.html?noframe=1" title="Nest Hub screen" loading="lazy" style="width:100%;height:100%;border:0;background:#f7f5f1;"></iframe>
+        </div>
+      </div>
+      <p class="proof-caption" id="s3-caption"><strong>Disclosure off</strong> — Nest Hub shows Dad's own content only. Aoi's world stays private.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCENARIO 05 — New project intent on MacBook
+     Intent: Explicit declared  |  Device: MacBook Pro
+═══════════════════════════════════════════════════════ -->
+<div class="proof-stage" id="scenario-4">
+  <div class="proof-cols">
+    <div class="proof-controls">
+      <div class="proof-scenario-meta">
+        <span class="proof-scenario-num">05</span>
+        <span class="proof-intent-tag intent-declared">Explicit declared</span>
+      </div>
+      <h2 class="proof-scenario-title">You declare a new project — the UI assembles itself for that goal</h2>
+      <p class="proof-scenario-desc">You open your laptop and say what you're starting. The Brain spins up a dedicated workspace tailored to the intent type.</p>
+
+      <div class="proof-toggle-wrap">
+        <p class="proof-toggle-label">Project type declared</p>
+        <div class="radio-opts" id="s4-radios">
+          <label class="radio-opt"><input type="radio" name="s4" value="0" checked><span>Trip to Japan — family travel</span></label>
+          <label class="radio-opt"><input type="radio" name="s4" value="1"><span>New product launch — work</span></label>
+          <label class="radio-opt"><input type="radio" name="s4" value="2"><span>Marathon training — health</span></label>
+        </div>
+      </div>
+
+      <div class="proof-tokens">
+        <p class="proof-tokens-label">Situation Signals &amp; Relationship Dials</p>
+        <div class="token-chips">
+          <span class="token-chip fired">Intent · Declared</span>
+          <span class="token-chip fired">⑤ Form Factor</span>
+          <span class="token-chip">② Cognitive Load</span>
+          <span class="token-chip">⑦ Autonomy Dial</span>
+        </div>
+      </div>
+
+      <div class="proof-why" id="s4-why">
+        <p class="proof-why__label">Why the UI looks like this</p>
+        <p class="proof-why__text" id="s4-why-text">You declared a family trip. Trip Brain activates — a temporary project brain born just for this, pulling from booking windows, family calendars, and past trip patterns.</p>
+      </div>
+    </div>
+
+    <div class="proof-preview">
+      <div class="proof-preview__meta">
+        <span class="proof-device-label">MacBook Pro · Project workspace</span>
+      </div>
+      <div class="macbookpro macbookpro--lg" id="s4-device">
+        <img class="macbookpro__chrome" src="../../Global_Assets/DeviceFrame/AppleMacbookPro15.svg" alt="" aria-hidden="true">
+        <div class="macbookpro__screen">
+          <iframe id="s4-iframe" src="../../ui-screens/p2/p2-01-trip-brain.html?noframe=1" title="Project workspace" loading="lazy" style="width:100%;height:100%;border:0;background:#fff;"></iframe>
+        </div>
+      </div>
+      <p class="proof-caption" id="s4-caption"><strong>Family trip declared</strong> — Trip Brain active. Workspace assembled for this goal only.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCENARIO 06 — Same content, three surfaces (P3 style)
+     Intent: Explicit request  |  Device: iPhone → iPad → TV
+═══════════════════════════════════════════════════════ -->
+<div class="proof-stage" id="scenario-5">
+  <div class="proof-cols">
+    <div class="proof-controls">
+      <div class="proof-scenario-meta">
+        <span class="proof-scenario-num">06</span>
+        <span class="proof-intent-tag intent-explicit">Explicit request</span>
+      </div>
+      <h2 class="proof-scenario-title">Browsing shoes: train → home → couch with kids</h2>
+      <p class="proof-scenario-desc">Same product research session. The interface rebuilds itself completely as the surface changes — not just resized, but re-composed for the context.</p>
+
+      <div class="proof-toggle-wrap">
+        <p class="proof-toggle-label">Surface</p>
+        <div class="radio-opts">
+          <label class="radio-opt"><input type="radio" name="s5" value="0" checked><span>iPhone · on the train · thumb only</span></label>
+          <label class="radio-opt"><input type="radio" name="s5" value="1"><span>iPad · at home · relaxed browsing</span></label>
+          <label class="radio-opt"><input type="radio" name="s5" value="2"><span>TV · on the couch with kids</span></label>
+        </div>
+      </div>
+
+      <div class="proof-tokens">
+        <p class="proof-tokens-label">Situation Signals &amp; Relationship Dials</p>
+        <div class="token-chips">
+          <span class="token-chip fired">⑤ Form Factor</span>
+          <span class="token-chip fired">① Physical State</span>
+          <span class="token-chip">③ Social Exposure</span>
+          <span class="token-chip">② Cognitive Load</span>
+        </div>
+      </div>
+
+      <div class="proof-why idle" id="s5-why">
+        <p class="proof-why__label">Why the UI looks like this</p>
+        <p class="proof-why__text" id="s5-why-text">On the train with one thumb — only swipeable card mode. No text input. One decision per screen. Form Factor token drives the layout completely.</p>
+      </div>
+    </div>
+
+    <div class="proof-preview" id="s5-preview">
+      <div class="proof-preview__meta">
+        <span class="proof-device-label" id="s5-device-label">iPhone 15 Pro · train</span>
+      </div>
+      <!-- iPhone view (default) -->
+      <div id="s5-iphone-wrap">
+        <div class="iphone15pro iphone15pro--xl">
+          <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+          <div class="iphone15pro__screen">
+            <iframe id="s5-iframe-phone" src="../../ui-screens/p3/p3-02-commute.html?noframe=1" title="Train browsing" scrolling="no" loading="lazy" style="width:100%;height:100%;border:0;"></iframe>
+          </div>
+          <div class="iphone15pro__island" aria-hidden="true"></div>
+        </div>
+      </div>
+      <!-- iPad view (hidden by default) -->
+      <div id="s5-ipad-wrap" style="display:none;">
+        <div class="ipad11" style="--ipad-w:520px;">
+          <div class="ipad11__cam" aria-hidden="true"></div>
+          <div class="ipad11__screen">
+            <iframe id="s5-iframe-ipad" src="../../ui-screens/p3/p3-01-browse.html?noframe=1" title="Home browsing" loading="lazy" style="width:100%;height:100%;border:0;background:#fff;"></iframe>
+          </div>
+        </div>
+      </div>
+      <!-- TV view (hidden by default) -->
+      <div id="s5-tv-wrap" style="display:none;width:100%;max-width:680px;">
+        <div style="position:relative;width:100%;background:#111;border-radius:12px 12px 4px 4px;box-shadow:0 24px 60px rgba(0,0,0,0.3);overflow:hidden;aspect-ratio:16/9;">
+          <iframe id="s5-iframe-tv" src="../../ui-screens/p3/p3-03-tv-cast.html?noframe=1" title="TV browsing" loading="lazy" style="width:100%;height:100%;border:0;"></iframe>
+        </div>
+        <div style="height:14px;background:linear-gradient(to bottom,#2a2a2a,#1a1a1a);border-radius:0 0 8px 8px;"></div>
+      </div>
+      <p class="proof-caption" id="s5-caption"><strong>Train · iPhone</strong> — swipe-only card mode. One thumb, one decision at a time.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCENARIO 07 — Forgotten intent: saved café surfaces on Maps
+     Intent: Implicit forgotten  |  Device: iPhone (before/after)
+═══════════════════════════════════════════════════════ -->
+<div class="proof-stage" id="scenario-6">
+  <div class="proof-cols">
+    <div class="proof-controls">
+      <div class="proof-scenario-meta">
+        <span class="proof-scenario-num">07</span>
+        <span class="proof-intent-tag intent-forgotten">Implicit forgotten</span>
+      </div>
+      <h2 class="proof-scenario-title">You saved a café on Instagram six months ago. You walked past it just now.</h2>
+      <p class="proof-scenario-desc">You forgot completely. The AI held onto that intent. When location + feasibility align, it surfaces it — without you asking.</p>
+
+      <div class="proof-toggle-wrap">
+        <p class="proof-toggle-label">Location signal</p>
+        <div class="toggle-row">
+          <span class="toggle-opt a active" id="s6-a">Anywhere else</span>
+          <button class="toggle-pill" id="s6-toggle" role="switch" aria-checked="false" aria-label="Near saved place"></button>
+          <span class="toggle-opt b" id="s6-b">50m from saved café</span>
+        </div>
+      </div>
+
+      <div class="proof-tokens">
+        <p class="proof-tokens-label">Situation Signals &amp; Relationship Dials</p>
+        <div class="token-chips">
+          <span class="token-chip fired" id="s6-t1">① Physical State</span>
+          <span class="token-chip" id="s6-t2">Intent · Forgotten</span>
+          <span class="token-chip" id="s6-t3">④ Priority Weight</span>
+          <span class="token-chip" id="s6-t4">⑥ Feasibility</span>
+        </div>
+      </div>
+
+      <div class="proof-why idle" id="s6-why">
+        <p class="proof-why__label">Why the UI looks like this</p>
+        <p class="proof-why__text" id="s6-why-text">You're not near the saved place. Physical State doesn't match — the AI keeps the forgotten intent dormant. Nothing surfaces.</p>
+      </div>
+    </div>
+
+    <div class="proof-preview">
+      <div class="proof-preview__meta">
+        <span class="proof-device-label">iPhone 15 Pro · Maps / Life Brain retrieval</span>
+      </div>
+      <!-- Before: directions only -->
+      <div id="s6-before-wrap">
+        <div class="iphone15pro iphone15pro--xl">
+          <img class="iphone15pro__chrome" src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg" alt="" aria-hidden="true">
+          <div class="iphone15pro__screen">
+            <iframe src="../../ui-screens/p2/p2-10-plan-directions.html?noframe=1" title="Maps — no retrieval" scrolling="no" loading="lazy" style="width:100%;height:100%;border:0;display:block;"></iframe>
+          </div>
+          <div class="iphone15pro__island" aria-hidden="true"></div>
+        </div>
+      </div>
+      <!-- After: forgotten intent retrieved — MacBook concept view -->
+      <div id="s6-after-wrap" style="display:none;width:100%;max-width:720px;">
+        <div class="macbookpro macbookpro--lg">
+          <img class="macbookpro__chrome" src="../../Global_Assets/DeviceFrame/AppleMacbookPro15.svg" alt="" aria-hidden="true">
+          <div class="macbookpro__screen">
+            <iframe src="../../ui-screens/p6-v2/forgotten-intent-retrieval.html?noframe=1" title="Forgotten intent retrieved" loading="lazy" style="width:100%;height:100%;border:0;display:block;background:#fff;"></iframe>
+          </div>
+        </div>
+      </div>
+      <p class="proof-caption" id="s6-caption"><strong>Not near the café</strong> — nothing surfaced. Forgotten intent stays dormant.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- Bottom nav -->
+<div class="proof-footer-nav">
+  <span class="proof-footer-nav__hint">More scenarios in progress</span>
+  <div class="proof-footer-nav__links">
+    <a href="index.html">Full pipeline →</a>
+    <a href="../">← Context Grammar</a>
+  </div>
+</div>
+
+<footer class="proof-foot">
+  <a href="../../">intentfirst.ai</a>
+  <span aria-hidden="true">→</span>
+  <a href="../">Context Grammar</a>
+  <span aria-hidden="true">→</span>
+  <span aria-current="page">Direct Proof</span>
+</footer>
+
+
+<script>
+/* ── Scenario nav ── */
+document.querySelectorAll('.proof-nav__btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const idx = btn.dataset.scenario;
+    document.querySelectorAll('.proof-nav__btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.proof-stage').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('scenario-' + idx).classList.add('active');
+  });
+});
+
+/* ── Helper: wire a simple toggle ── */
+function wireToggle(prefix, opts) {
+  const toggle = document.getElementById(prefix + '-toggle');
+  const lblA   = document.getElementById(prefix + '-a');
+  const lblB   = document.getElementById(prefix + '-b');
+  const why    = document.getElementById(prefix + '-why');
+  const whyTxt = document.querySelector('#' + prefix + '-why .proof-why__text');
+  const cap    = document.getElementById(prefix + '-caption');
+  if (!toggle) return;
+  let on = false;
+
+  function apply(isOn) {
+    toggle.classList.toggle('on', isOn);
+    toggle.setAttribute('aria-checked', String(isOn));
+    if (lblA) lblA.classList.toggle('active', !isOn);
+    if (lblB) lblB.classList.toggle('active', isOn);
+    const s = isOn ? opts.on : opts.off;
+    if (why) why.classList.toggle('idle', !isOn);
+    if (whyTxt) whyTxt.textContent = s.why;
+    if (cap) cap.innerHTML = s.caption;
+    // token chips
+    if (s.tokens) s.tokens.forEach(([tid, state]) => {
+      const el = document.getElementById(tid);
+      if (el) el.classList.toggle('fired', state);
+    });
+    // iframe switch
+    if (s.iframe) {
+      const iframe = document.getElementById(prefix + '-iframe');
+      if (iframe) { iframe.src = s.iframe; }
+    }
+    // custom callback
+    if (opts.onToggle) opts.onToggle(isOn);
+  }
+
+  toggle.addEventListener('click', () => { on = !on; apply(on); });
+}
+
+/* ══ S01: Deep work → Emergency ══ */
+wireToggle('s0', {
+  off: {
+    why: "Deep work mode: the AI sees high cognitive load. Only work-relevant cards shown. Notifications silenced. Autonomy Dial high — the AI acts ahead without asking.",
+    caption: '<strong>Deep work mode</strong> — work tasks surface. Everything else silent.',
+    tokens: [['s0-t1', false], ['s0-t2', true], ['s0-t3', false], ['s0-t4', false]],
+  },
+  on: {
+    why: "Priority Weight token: health event fired and overrides work context. Rule Engine judged health > deadline. Autonomy Dial auto-downgraded Notify → Confirm. The AI surfaces options and waits for your call.",
+    caption: '<strong>Partner sick</strong> — Priority Weight override. Autonomy Dial pulled back. AI surfaces options.',
+    tokens: [['s0-t1', true], ['s0-t2', true], ['s0-t3', true], ['s0-t4', true]],
+    iframe: '../../ui-screens/p2/p2-05-health.html?noframe=1',
+  }
+});
+
+/* ══ S02: Trip Brain → Kid sick ══ */
+wireToggle('s1', {
+  off: {
+    why: "Vacation mode: Trip Brain active, surfacing bookings and plans. Autonomy Dial high — the AI books ahead without asking.",
+    caption: '<strong>Vacation planning</strong> — Trip Brain active, bookings and plans surfaced.',
+    tokens: [['s1-t1', false], ['s1-t2', false], ['s1-t3', false], ['s1-t4', false]],
+  },
+  on: {
+    why: "Priority Weight collision: health signal > vacation plan. Rule Engine escalates. Autonomy Dial downgraded automatically. Trip Brain pauses; medical options take over the entire layout.",
+    caption: '<strong>Kai has fever</strong> — Priority Weight escalated. Trip Brain paused. Medical layout takes over.',
+    tokens: [['s1-t1', true], ['s1-t2', true], ['s1-t3', true], ['s1-t4', true]],
+    iframe: '../../ui-screens/p2/p2-05-health.html?noframe=1',
+  }
+});
+
+/* ══ S03: Disclosure sculpt (radio) — static iframe, text changes ══ */
+const s2msgs = [
+  { why: "Mom gets full clinical detail — she needs to make decisions. Disclosure Dial is fully open for her alone.", cap: "One source fact. Three recipients. Three completely different messages." },
+  { why: "Grandparents get soft reassurance. Same underlying fact — but the AI reads Disclosure Dial: 'protect, don't alarm.' No numbers, no temperature.", cap: "Grandparents: calm reassurance only. The AI reshaped the message." },
+  { why: "Kai gets age-appropriate framing. The Brain knows his age and role. No clinical data delivered to the child who is the patient.", cap: "Kai's version is age-safe. Nothing clinical. Nothing scary." },
+];
+document.querySelectorAll('input[name="s2"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const m = s2msgs[parseInt(r.value)];
+    const txt = document.querySelector('#s2-why .proof-why__text');
+    const cap = document.getElementById('s2-caption');
+    if (txt) txt.textContent = m.why;
+    if (cap) cap.textContent = m.cap;
+  });
+});
+
+/* ══ S04: Disclosure — Aoi → Dad (Nest Hub) ══ */
+wireToggle('s3', {
+  off: {
+    why: "Disclosure Dial is off for music sharing. The Brain saw they're both reading Jujutsu Kaisen 0 — but permission wasn't granted. Dad's Nest Hub stays quiet.",
+    caption: '<strong>Disclosure off</strong> — Nest Hub shows Dad\'s own content. Aoi\'s world stays private.',
+    tokens: [['s3-t1', false], ['s3-t2', false], ['s3-t3', false]],
+    iframe: '../../ui-screens/p1-v2/s8a-fridge-screen.html?noframe=1',
+  },
+  on: {
+    why: "Aoi's Disclosure Dial now allows music taste to cross to Dad. The Brain correlates: same manga, same week. Dad's Nest Hub surfaces Aoi's Jujutsu Kaisen picks — bridging a shared moment without either saying a word.",
+    caption: '<strong>Disclosure on</strong> — Jujutsu Kaisen music from Aoi appears on Dad\'s Nest Hub.',
+    tokens: [['s3-t1', true], ['s3-t2', true], ['s3-t3', true]],
+    iframe: '../../ui-screens/p1-v2/nest-aoi-music.html?noframe=1',
+  }
+});
+
+/* ══ S05: Project intent (radio) — MacBook ══ */
+const s4data = [
+  { src: '../../ui-screens/p2/p2-01-trip-brain.html?noframe=1',        why: "Family trip declared. Trip Brain activates — a temporary brain born just for this, pulling from booking windows, family calendars, and past trip patterns.", cap: '<strong>Family trip declared</strong> — Trip Brain active. Workspace assembled for this goal only.' },
+  { src: '../../ui-screens/p4/atlas-priya-brand-check.html?noframe=1', why: "Work project declared. A Project Brain spawns — pulling from Org Brain constraints, Brand Brain rules, and past project patterns to surface relevant decisions.", cap: '<strong>Product launch declared</strong> — Project Brain active. Constraints and decisions surfaced.' },
+  { src: '../../ui-screens/p6-v2/phone-day1-intent.html?noframe=1',    why: "Health goal declared. Domain agents activate for tracking, schedule blocking, and habit reinforcement — all scoped to the marathon timeline you defined.", cap: '<strong>Marathon training declared</strong> — Health agents active. Goal-specific workspace assembled.' },
+];
+document.querySelectorAll('input[name="s4"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const d = s4data[parseInt(r.value)];
+    const iframe = document.getElementById('s4-iframe');
+    if (iframe) iframe.src = d.src;
+    const txt = document.querySelector('#s4-why .proof-why__text');
+    const cap = document.getElementById('s4-caption');
+    if (txt) txt.textContent = d.why;
+    if (cap) cap.innerHTML = d.cap;
+  });
+});
+
+/* ══ S06: Surface switch (radio) ══ */
+const s5data = [
+  { show: 's5-iphone-wrap', hide: ['s5-ipad-wrap','s5-tv-wrap'], label: 'iPhone 15 Pro · train',
+    why: "On the train with one thumb — swipe-only card mode. No text input. One action per screen. Form Factor token drives the entire layout.",
+    cap: '<strong>Train · iPhone</strong> — swipe-only. One thumb, one decision at a time.' },
+  { show: 's5-ipad-wrap', hide: ['s5-iphone-wrap','s5-tv-wrap'], label: 'iPad · home',
+    why: "At home with iPad — relaxed browsing layout expands. More products visible at once. The same session, but the interface uses the larger canvas.",
+    cap: '<strong>Home · iPad</strong> — full browse layout. More surface, more options revealed.' },
+  { show: 's5-tv-wrap', hide: ['s5-iphone-wrap','s5-ipad-wrap'], label: 'TV · living room',
+    why: "On the couch — TV-native layout. Large cards, remote-friendly. No text input. Social Exposure: kids present, so content is filtered automatically.",
+    cap: '<strong>Couch · TV</strong> — remote-native. Kids detected. Content filtered.' },
+];
+document.querySelectorAll('input[name="s5"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const s = s5data[parseInt(r.value)];
+    s.hide.forEach(hid => { const el = document.getElementById(hid); if (el) el.style.display = 'none'; });
+    const show = document.getElementById(s.show);
+    if (show) show.style.display = '';
+    const lbl = document.getElementById('s5-device-label');
+    const why = document.getElementById('s5-why');
+    const txt = document.querySelector('#s5-why .proof-why__text');
+    const cap = document.getElementById('s5-caption');
+    if (lbl) lbl.textContent = s.label;
+    if (why) why.classList.remove('idle');
+    if (txt) txt.textContent = s.why;
+    if (cap) cap.innerHTML = s.cap;
+  });
+});
+
+/* ══ S07: Forgotten intent ══ */
+wireToggle('s6', {
+  off: {
+    why: "You're not near the saved place. Physical State doesn't match — the AI keeps the forgotten intent dormant. Nothing surfaces.",
+    caption: '<strong>Not near the café</strong> — nothing surfaced. Forgotten intent stays dormant.',
+    tokens: [['s6-t1', true], ['s6-t2', false], ['s6-t3', false], ['s6-t4', false]],
+  },
+  on: {
+    why: "Physical State: 50m from the saved café. Feasibility: open now, 20-min wait. Priority Weight: nothing else is urgent. All three align — the AI retrieves the forgotten intent and surfaces it without you asking.",
+    caption: '<strong>50m from the saved café</strong> — forgotten intent retrieved. Open now, 20-min wait.',
+    tokens: [['s6-t1', true], ['s6-t2', true], ['s6-t3', true], ['s6-t4', true]],
+  },
+  onToggle: function(isOn) {
+    const before = document.getElementById('s6-before-wrap');
+    const after  = document.getElementById('s6-after-wrap');
+    if (before) before.style.display = isOn ? 'none' : '';
+    if (after)  after.style.display  = isOn ? '' : 'none';
+  }
+});
+</script>
+
+</body>
+</html>
