@@ -69,6 +69,7 @@ window.GA_SLOTS = {
   'p6-per-domain-autonomy':   'trust-coupling',
 
   /* ─── Shared / cross-project hero animations ─── */
+  'cg-human':                 'human',
   'cg-why':                   'pipeline',          /* Why CG: full grammar flow */
   'cg-checklist':             'ax-patterns',       /* Checklist: rule/pattern evaluation */
   'cg-pipeline':              'pipeline',
