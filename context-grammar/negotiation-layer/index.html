@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Negotiation Layer — Phase 1 Prototype | Context Grammar</title>
+  <meta name="description" content="Interactive prototype of the Negotiation Layer: Interpretation Preview and Assumption Cards. Client-side demo showing how the Negotiation Gate surfaces its reasoning before acting.">
+  <meta property="og:title" content="Negotiation Layer — Phase 1 Prototype | Context Grammar">
+  <meta property="og:description" content="Interactive prototype of the Negotiation Layer: Interpretation Preview and Assumption Cards. Client-side demo showing how the Negotiation Gate surfaces its reasoning before acting.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://intentfirst.ai/context-grammar/negotiation-layer/">
+  <link rel="canonical" href="https://intentfirst.ai/context-grammar/negotiation-layer/">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="../../assets/css/context-grammar.css">
+  <link rel="stylesheet" href="../../assets/css/nav.css">
+  <link rel="stylesheet" href="../../assets/css/green-animation.css">
+  <link rel="stylesheet" href="../../assets/css/cg-restaurant-aside.css">
+  <link rel="stylesheet" href="../../assets/css/cg3-layout.css">
+
+  <style>
+    /* Demo-specific styles */
+    .nl-page { max-width: 800px; margin: 0 auto; padding: 0 1.5rem 5rem; }
+    .nl-hero { background: var(--gray-950); color: var(--gray-50); padding: 4rem 1.5rem 3rem; text-align: center; }
+    .nl-hero-inner { max-width: 680px; margin: 0 auto; }
+    .nl-phase-badge { display: inline-block; background: var(--gray-800); color: var(--gray-400); font-size: 0.7rem; font-family: var(--font-mono); padding: 0.25rem 0.8rem; border-radius: 4px; margin-bottom: 1.2rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    .nl-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 600; margin: 0 0 0.8rem; }
+    .nl-hero p { color: var(--gray-400); font-size: 1.05rem; margin: 0; line-height: 1.6; }
+
+    .nl-demo-box { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.8rem; margin: 2.5rem 0 1.5rem; }
+    .nl-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--gray-500); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .nl-textarea { width: 100%; box-sizing: border-box; padding: 0.9rem 1rem; font-size: 1rem; font-family: var(--font-sans, sans-serif); border: 1.5px solid var(--gray-300); border-radius: 8px; resize: vertical; min-height: 90px; background: white; color: var(--gray-900); line-height: 1.5; }
+    .nl-textarea:focus { outline: none; border-color: var(--gray-600); }
+    .nl-btn-run { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.9rem; padding: 0.65rem 1.4rem; background: var(--gray-900); color: white; border: none; border-radius: 6px; font-size: 0.9rem; font-family: var(--font-sans, sans-serif); cursor: pointer; transition: background 0.15s; }
+    .nl-btn-run:hover { background: var(--gray-700); }
+
+    .nl-result { display: none; margin-top: 1.5rem; animation: fadeIn 0.3s ease; }
+    .nl-result.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .nl-card { background: white; border: 1.5px solid var(--gray-200); border-radius: 10px; padding: 1.3rem 1.5rem; margin-bottom: 1rem; }
+    .nl-card-header { font-size: 0.7rem; font-weight: 700; color: var(--gray-500); letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 0.6rem; }
+    .nl-interp-text { font-size: 1rem; color: var(--gray-900); margin: 0 0 0.8rem; line-height: 1.55; }
+    .nl-conf-bar-wrap { height: 6px; background: var(--gray-200); border-radius: 3px; margin-bottom: 0.6rem; overflow: hidden; }
+    .nl-conf-bar { height: 100%; background: var(--gray-500); border-radius: 3px; transition: width 0.5s ease; }
+    .nl-conf-bar.high { background: #166534; }
+    .nl-conf-bar.mid { background: #92400e; }
+    .nl-conf-bar.low { background: #991b1b; }
+    .nl-meta { font-size: 0.78rem; color: var(--gray-500); font-family: var(--font-mono, monospace); margin: 0; }
+
+    .nl-assumptions-header { font-size: 0.7rem; font-weight: 700; color: var(--gray-500); letter-spacing: 0.1em; text-transform: uppercase; margin: 1.5rem 0 0.7rem; }
+    .nl-assumption { display: flex; align-items: flex-start; gap: 0.7rem; background: white; border: 1px solid var(--gray-200); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; transition: opacity 0.2s; }
+    .nl-assumption.dismissed { opacity: 0.3; }
+    .nl-assumption.dismissed .nl-assumption-text { text-decoration: line-through; }
+    .nl-assumption-text { flex: 1; font-size: 0.9rem; color: var(--gray-800); line-height: 1.45; cursor: text; min-height: 1.2em; }
+    .nl-assumption-text[contenteditable="true"]:focus { outline: 1px dashed var(--gray-400); border-radius: 3px; padding: 0 2px; }
+    .nl-system-badge { font-size: 0.65rem; color: var(--gray-400); font-family: var(--font-mono, monospace); white-space: nowrap; margin-top: 0.1rem; }
+    .nl-dismiss-btn { background: none; border: none; font-size: 1.1rem; color: var(--gray-300); cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; }
+    .nl-dismiss-btn:hover { color: var(--gray-600); }
+
+    .nl-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; flex-wrap: wrap; }
+    .nl-btn-confirm { padding: 0.65rem 1.4rem; background: var(--gray-900); color: white; border: none; border-radius: 6px; font-size: 0.875rem; font-family: var(--font-sans, sans-serif); cursor: pointer; }
+    .nl-btn-confirm:hover { background: var(--gray-700); }
+    .nl-btn-correct { padding: 0.65rem 1.4rem; background: white; color: var(--gray-700); border: 1.5px solid var(--gray-300); border-radius: 6px; font-size: 0.875rem; font-family: var(--font-sans, sans-serif); cursor: pointer; }
+    .nl-btn-correct:hover { border-color: var(--gray-600); }
+    .nl-outcome { display: none; background: var(--gray-100); border-radius: 8px; padding: 1rem 1.2rem; margin-top: 1rem; font-size: 0.9rem; color: var(--gray-700); line-height: 1.5; }
+    .nl-outcome.active { display: block; }
+
+    .nl-explain { padding: 3rem 0 0; }
+    .nl-explain h2 { font-size: 1.2rem; font-weight: 600; margin: 2rem 0 0.4rem; }
+    .nl-explain p { font-size: 0.95rem; color: var(--gray-700); line-height: 1.65; margin: 0 0 0.8rem; }
+    .nl-explain code { font-family: var(--font-mono, monospace); font-size: 0.85em; background: var(--gray-100); padding: 0.1em 0.4em; border-radius: 3px; }
+    .nl-rule-list { font-size: 0.88rem; color: var(--gray-700); line-height: 1.7; margin: 0.5rem 0 1rem 1.2rem; padding: 0; }
+    .nl-rule-list li { margin-bottom: 0.2rem; }
+
+    @media (max-width: 768px) {
+      .nl-actions { flex-direction: column; }
+      .nl-btn-confirm, .nl-btn-correct { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body data-dark-nav class="nav-has-subnav">
+
+  <header class="nl-hero">
+    <div class="nl-hero-inner">
+      <span class="nl-phase-badge">Cross-cut &middot; Negotiation Design &middot; Phase 1</span>
+      <h1>Negotiation Layer</h1>
+      <p>Before the AI acts, it shows you its interpretation. You correct it. The system learns what you actually meant.</p>
+    </div>
+  </header>
+
+  <main class="nl-page">
+
+    <section aria-label="Interactive demo">
+      <div class="nl-demo-box">
+        <label class="nl-label" for="nl-input">Type something you might say to an AI assistant</label>
+        <textarea class="nl-textarea" id="nl-input" placeholder="最近太った気がする / I've been really tired lately / Work is overwhelming this week / 家族との時間が減ってる気がする"></textarea>
+        <button class="nl-btn-run" onclick="runGate()">Run Negotiation Gate &rarr;</button>
+      </div>
+
+      <div class="nl-result" id="nl-result" aria-live="polite">
+        <div class="nl-card" id="nl-interp-card">
+          <p class="nl-card-header">Interpretation Preview</p>
+          <p class="nl-interp-text" id="nl-interp-text"></p>
+          <div class="nl-conf-bar-wrap">
+            <div class="nl-conf-bar" id="nl-conf-bar"></div>
+          </div>
+          <p class="nl-meta" id="nl-meta"></p>
+        </div>
+
+        <p class="nl-assumptions-header">Assumption Cards &mdash; edit or dismiss any premise</p>
+        <div id="nl-assumptions"></div>
+
+        <div class="nl-actions">
+          <button class="nl-btn-confirm" onclick="doConfirm()">Confirm &mdash; proceed with this interpretation</button>
+          <button class="nl-btn-correct" onclick="doCorrect()">Correct &mdash; I'll clarify</button>
+        </div>
+
+        <div class="nl-outcome" id="nl-outcome"></div>
+      </div>
+    </section>
+
+    <section class="nl-explain" aria-label="What you just saw">
+      <h2>What you just saw</h2>
+      <p><strong>Interpretation Preview</strong> shows the AI's current reading of your input before it acts. You see the confidence score and the domain it classified your input into. This is the Gate opening negotiation rather than assuming.</p>
+      <p><strong>Assumption Cards</strong> make the AI's premises visible and editable. Editable cards can be rephrased by clicking on them. Non-editable cards are system constraints (e.g., domain sensitivity cannot be overridden). Dismissed cards are flagged — the system adjusts.</p>
+      <p><strong>Confirm vs. Correct</strong> — Confirm routes through Stage 6 (Autonomy Resolution) and triggers an AX Pattern response. Correct reopens negotiation: the AI refines rather than acts.</p>
+
+      <h2>Gate firing rules in this demo</h2>
+      <p>Which UI primitive the Gate shows depends on the confidence score and domain:</p>
+      <ul class="nl-rule-list">
+        <li><code>R34</code> — Latent awareness &rarr; always negotiate as hypothesis (never act directly)</li>
+        <li><code>R37</code> — confidence &lt; 0.4 &rarr; Assumption Cards</li>
+        <li><code>R38</code> — 0.4 &le; confidence &lt; 0.8 &rarr; Interpretation Preview</li>
+        <li><code>R39</code> — confidence &ge; 0.8 + low risk + reversible &rarr; silent (no UI)</li>
+      </ul>
+
+      <h2>Phase 1 scope</h2>
+      <p>This demo implements Interpretation Preview and Assumption Cards. <strong>Priority Toggle</strong> — when two user values conflict, re-rank in the moment — is Phase 2.</p>
+      <p>The prototype is rule-based. The Decision Schema makes the AI's reasoning explicit and inspectable regardless of whether the underlying model is LLM, heuristic, or scripted.</p>
+
+      <h2>See also</h2>
+      <p><a href="/context-grammar/negotiation-gate/" style="color: inherit; text-decoration: underline;">Negotiation Gate</a> — the full Stage 5 specification, including all R34&ndash;R41 firing rules and the Autonomy Resolution formula.</p>
+    </section>
+
+  </main>
+
+  <div class="chapter-nav" data-current="" data-base="../"></div>
+  <script src="../../assets/js/chapter-nav.js"></script>
+  <script src="../../assets/js/nav.js"></script>
+  <script>initNav({ basePath: '../../', activePage: 'context-grammar', lang: 'en', showLang: true, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });</script>
+  <script src="../../assets/js/ga-slots.js"></script>
+  <script src="../../assets/js/green-animation.js" defer></script>
+
+  <script>
+  // -------------------------------------------------
+  //  PATTERN LIBRARY
+  // -------------------------------------------------
+  var PATTERNS = [
+    {
+      keywords: ['疲れ', '太った', '体重', '運動', '健康', 'tired', 'weight', 'exercise', 'health', 'sleep', '眠れ', '眠'],
+      en: 'You seem to be concerned about your health or physical state.',
+      jp: '健康や体の状態について気にされているようです。',
+      assumptions: [
+        { id: 'a1', text: 'This is about personal health, not a medical emergency', editable: true },
+        { id: 'a2', text: 'You want suggestions, not a diagnosis', editable: true },
+        { id: 'a3', text: 'Domain: Health — system sensitivity set to HIGH', editable: false }
+      ],
+      confidence: 0.72,
+      domain: 'health',
+      awareness: 'Latent'
+    },
+    {
+      keywords: ['仕事', '会議', '締め切り', '残業', 'work', 'meeting', 'deadline', 'busy', 'overwhelm', 'overload', 'stress'],
+      en: 'This looks like a work or schedule priority question.',
+      jp: '仕事やスケジュールの優先順位に関することのようです。',
+      assumptions: [
+        { id: 'b1', text: 'The situation is time-sensitive', editable: true },
+        { id: 'b2', text: 'You want help prioritizing, not just venting', editable: true }
+      ],
+      confidence: 0.81,
+      domain: 'work',
+      awareness: 'Inferred'
+    },
+    {
+      keywords: ['旅行', '計画', 'trip', 'travel', 'plan', 'vacation', '休暇', '予約'],
+      en: 'You are planning or thinking about a trip.',
+      jp: '旅行の計画または準備について考えているようです。',
+      assumptions: [
+        { id: 'c1', text: 'This is leisure travel, not work travel', editable: true },
+        { id: 'c2', text: 'You want ideas or help organizing, not booking yet', editable: true }
+      ],
+      confidence: 0.76,
+      domain: 'schedule',
+      awareness: 'Inferred'
+    },
+    {
+      keywords: ['家族', '子供', '夫', '妻', '親', 'family', 'dinner', '夕食', 'children', 'partner', 'relationship', '関係'],
+      en: 'This involves your family — a sensitive, personal domain.',
+      jp: 'ご家族に関することのようです。プライバシーを尊重して対応します。',
+      assumptions: [
+        { id: 'd1', text: 'Domain: Family — system sensitivity set to MEDIUM-HIGH', editable: false },
+        { id: 'd2', text: 'You want support or to think things through, not decisions made for you', editable: true }
+      ],
+      confidence: 0.65,
+      domain: 'family_relationship',
+      awareness: 'Latent'
+    },
+    {
+      keywords: ['お金', '買い物', '予算', 'money', 'finance', 'budget', 'buy', 'purchase', 'spend', '節約'],
+      en: 'This seems to be about finances or spending.',
+      jp: '財務や購入に関することのようです。',
+      assumptions: [
+        { id: 'e1', text: 'Domain: Finance — system sensitivity set to HIGH', editable: false },
+        { id: 'e2', text: 'You want to think it through, not commit to anything yet', editable: true }
+      ],
+      confidence: 0.70,
+      domain: 'finance',
+      awareness: 'Inferred'
+    }
+  ];
+
+  var DEFAULT_PATTERN = {
+    en: 'I detected a general request. Let me surface my assumptions so you can correct them.',
+    jp: '一般的なリクエストとして認識しました。前提を表示しますので、修正してください。',
+    assumptions: [
+      { id: 'z1', text: 'This is a low-sensitivity request', editable: true },
+      { id: 'z2', text: 'You want a direct response', editable: true }
+    ],
+    confidence: 0.45,
+    domain: 'information',
+    awareness: 'Stated'
+  };
+
+  function matchPattern(input) {
+    var lower = input.toLowerCase();
+    for (var i = 0; i < PATTERNS.length; i++) {
+      var p = PATTERNS[i];
+      for (var j = 0; j < p.keywords.length; j++) {
+        if (lower.indexOf(p.keywords[j].toLowerCase()) !== -1) return p;
+      }
+    }
+    return DEFAULT_PATTERN;
+  }
+
+  function isJapanese(text) {
+    return /[぀-ヿ一-鿿]/.test(text);
+  }
+
+  // -------------------------------------------------
+  //  GATE LOGIC
+  // -------------------------------------------------
+  var currentPattern = null;
+
+  function runGate() {
+    var input = document.getElementById('nl-input').value.trim();
+    if (!input) return;
+
+    currentPattern = matchPattern(input);
+    var jp = isJapanese(input);
+    var conf = currentPattern.confidence;
+
+    // Interpretation text
+    document.getElementById('nl-interp-text').textContent =
+      (jp && currentPattern.jp) ? currentPattern.jp : currentPattern.en;
+
+    // Confidence bar
+    var bar = document.getElementById('nl-conf-bar');
+    bar.style.width = (conf * 100) + '%';
+    bar.className = 'nl-conf-bar ' + (conf >= 0.75 ? 'high' : conf >= 0.5 ? 'mid' : 'low');
+
+    // Meta line
+    var gate = conf < 0.4 ? 'R37: show Assumption Cards' :
+               conf < 0.8 ? 'R38: show Interpretation Preview' :
+                            'R39: would proceed silently (but demo shows it anyway)';
+    document.getElementById('nl-meta').textContent =
+      'Confidence: ' + Math.round(conf * 100) + '% · Domain: ' + currentPattern.domain +
+      ' · Awareness: ' + currentPattern.awareness + ' · ' + gate;
+
+    // Assumption cards
+    var list = document.getElementById('nl-assumptions');
+    list.innerHTML = '';
+    currentPattern.assumptions.forEach(function(a) {
+      var div = document.createElement('div');
+      div.className = 'nl-assumption';
+      div.id = 'assumption-' + a.id;
+      var editable = a.editable !== false;
+      div.innerHTML =
+        '<span class="nl-assumption-text"' + (editable ? ' contenteditable="true"' : '') + '>' + escHtml(a.text) + '</span>' +
+        (!editable ? '<span class="nl-system-badge">[system]</span>' : '') +
+        (editable ? '<button class="nl-dismiss-btn" onclick="dismiss(\'' + a.id + '\')" aria-label="Dismiss">&times;</button>' : '');
+      list.appendChild(div);
+    });
+
+    // Reset and show result
+    var outcome = document.getElementById('nl-outcome');
+    outcome.className = 'nl-outcome';
+    outcome.textContent = '';
+    document.getElementById('nl-result').className = 'nl-result active';
+  }
+
+  function dismiss(id) {
+    var el = document.getElementById('assumption-' + id);
+    if (el) el.classList.toggle('dismissed');
+  }
+
+  function doConfirm() {
+    var outcome = document.getElementById('nl-outcome');
+    outcome.textContent = 'Interpretation confirmed. Gate decision: proceed. In a live system, this routes through Stage 6 (Autonomy Resolution) and triggers the appropriate AX Pattern response.';
+    outcome.className = 'nl-outcome active';
+  }
+
+  function doCorrect() {
+    var outcome = document.getElementById('nl-outcome');
+    outcome.textContent = 'Correction noted. The Gate holds — the AI does not act. Edit your input above and run the Gate again with a clearer expression.';
+    outcome.className = 'nl-outcome active';
+  }
+
+  function escHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  </script>
+</body>
+</html>
