@@ -67,8 +67,8 @@
         ja: "Now Layer"
       },
       definition: {
-        en: "Holds dynamic, real-time values from the 8 Context Tokens, such as cognitive load, physical posture, surrounding company, and immediate feasibility.",
-        ja: "コグニティブ・ロード（認知負荷）、身体的姿勢、周囲の同伴者、リアルタイムの実現可能性など、8つのContext Tokensからの動的な実数値を保持します。"
+        en: "Holds dynamic, real-time values from the 6 Situation Signals and 2 Relationship Dials, such as cognitive load, physical posture, surrounding company, and immediate feasibility.",
+        ja: "コグニティブ・ロード（認知負荷）、身体的姿勢、周囲の同伴者、リアルタイムの実現可能性など、6つのSituation Signalsと2つのRelationship Dialsからの動的な実数値を保持します。"
       },
       metaphor: {
         en: "The waiter's instant observation. 'They're rushing today.' 'They brought a child.' 'They look stressed.' No history needed, just open eyes in the moment.",
@@ -110,7 +110,7 @@
       tags: ["tokens", "situation"],
       name: {
         en: "Physical State",
-        ja: "Physical State（身体・デバイス姿勢）"
+        ja: "フィジカル・ステート（身体・デバイス姿勢）"
       },
       shortName: {
         en: "Physical State",
@@ -134,7 +134,7 @@
       tags: ["tokens", "situation"],
       name: {
         en: "Cognitive Load",
-        ja: "Cognitive Load（認知負荷）"
+        ja: "コグニティブ・ロード（認知負荷）"
       },
       shortName: {
         en: "Cognitive Load",
@@ -158,7 +158,7 @@
       tags: ["tokens", "situation"],
       name: {
         en: "Social Exposure",
-        ja: "Social Exposure (社会的露出度/周囲の状況)"
+        ja: "ソーシャル・エクスポージャー（社会的露出度）"
       },
       shortName: {
         en: "Social Exposure",
@@ -182,7 +182,7 @@
       tags: ["tokens", "situation"],
       name: {
         en: "Priority Weight",
-        ja: "Priority Weight (優先度/緊急度)"
+        ja: "プライオリティ・ウェイト（優先度・緊急度）"
       },
       shortName: {
         en: "Priority Weight",
@@ -206,7 +206,7 @@
       tags: ["tokens", "situation"],
       name: {
         en: "Form Factor",
-        ja: "Form Factor (受信デバイス形態)"
+        ja: "フォーム・ファクター（デバイス形態）"
       },
       shortName: {
         en: "Form Factor",
@@ -230,7 +230,7 @@
       tags: ["tokens", "situation"],
       name: {
         en: "Feasibility",
-        ja: "Feasibility (実行可能性)"
+        ja: "フィージビリティ（実行可能性）"
       },
       shortName: {
         en: "Feasibility",
@@ -254,7 +254,7 @@
       tags: ["dials", "relationship"],
       name: {
         en: "Autonomy Dial",
-        ja: "Autonomy Dial（自律決定ダイヤル）"
+        ja: "オートノミー・ダイヤル（自律決定ダイヤル）"
       },
       shortName: {
         en: "Autonomy Dial",
@@ -278,7 +278,7 @@
       tags: ["dials", "relationship"],
       name: {
         en: "Disclosure Dial",
-        ja: "Disclosure Dial（開示制御ダイヤル）"
+        ja: "ディスクロージャー・ダイヤル（情報開示ダイヤル）"
       },
       shortName: {
         en: "Disclosure Dial",
@@ -302,7 +302,7 @@
       tags: ["dials", "relationship"],
       name: {
         en: "Intake Disclosure (Disclosure Dial · Axis 1)",
-        ja: "Intake Disclosure（インテイク開示 · 軸1）"
+        ja: "インテイク・ディスクロージャー（情報取り込み管理 · 軸1）"
       },
       shortName: {
         en: "Intake Disclosure",
@@ -326,7 +326,7 @@
       tags: ["dials", "relationship"],
       name: {
         en: "Share Disclosure (Disclosure Dial · Axis 2)",
-        ja: "Share Disclosure（シェア開示 · 軸2）"
+        ja: "シェア・ディスクロージャー（情報共有管理 · 軸2）"
       },
       shortName: {
         en: "Share Disclosure",
@@ -1169,8 +1169,541 @@
       targetPath: "context-grammar/trust/index.html",
       anchor: "temporal-arc",
       seeAlso: ["autonomy-dial", "trust-breach"]
+    },
+    {
+      id: "negotiation-gate",
+      stage: "Stage 5",
+      category: "tokens",
+      tags: ["pipeline", "interaction"],
+      name: {
+        en: "Negotiation Gate",
+        ja: "ネゴシエーション・ゲート（意味のすり合わせ検問）"
+      },
+      shortName: {
+        en: "Negotiation Gate",
+        ja: "Negotiation Gate"
+      },
+      definition: {
+        en: "Stage 5 of the Decision Pipeline. Evaluates four axes — Confidence × Risk × Reversibility × Sensitivity — to output a Risk Profile and Gate Decision (autonomy_ceiling, required_ui_primitive). Applies the Autonomy Resolution formula: Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling). Also embodies meaning-alignment through three UI primitives: Interpretation Preview, Assumption Cards, and Priority Toggle. Governed by 8 Gate firing rules (R34–R41).",
+        ja: "意思決定パイプラインの第5段階。確信度（Confidence）× リスク（Risk）× 可逆性（Reversibility）× 感受性（Sensitivity）の4軸を評価し、リスクプロファイルとゲート判定（autonomy_ceiling、required_ui_primitive）を出力します。自律決定解決の公式「最終自律度 = min(ユーザー設定, ゲート上限)」を適用し、Interpretation Preview・Assumption Cards・Priority Toggleの3つのUIプリミティブを通じて意味のすり合わせを体現します。8つのゲート発火ルール（R34–R41）で制御されます。"
+      },
+      metaphor: {
+        en: "The waiter pausing before executing a high-stakes request. Even if you said 'bring me anything' (Auto), if you are with a client, they stop to confirm the wine brand to protect your dinner.",
+        ja: "給仕がお客様の注文を執行する前の「一瞬の立ち止まり」。たとえお客様の権限設定が「おまかせ（Auto）」であっても、大事な商談中であること（社会的露出度）を察知し、念のためワインの銘柄を確認する丁寧なすり合わせの瞬間。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "",
+      seeAlso: ["autonomy-dial", "confidence", "risk", "reversibility", "rule-engine", "silent-resolution", "approval-gate"]
+    },
+    {
+      id: "negotiation-layer",
+      category: "trust",
+      tags: ["trust", "negotiation"],
+      name: {
+        en: "Negotiation Layer",
+        ja: "ネゴシエーション・レイヤー（意思決定のすり合わせ層）"
+      },
+      shortName: {
+        en: "Negotiation Layer",
+        ja: "Negotiation Layer"
+      },
+      definition: {
+        en: "Merged into the Negotiation Gate (Stage 5). The meaning-alignment responsibility — Interpretation Preview, Assumption Cards, Priority Toggle — is now embodied by the Gate rather than a separate layer. See: Negotiation Gate.",
+        ja: "ネゴシエーション・ゲート（Stage 5）に統合されました。Interpretation Preview・Assumption Cards・Priority Toggleによる意味のすり合わせ機能は、独立したレイヤーではなくゲート自体に体現されています。「Negotiation Gate」を参照してください。"
+      },
+      metaphor: {
+        en: "The waiter repeating your order back to you. 'So that is a medium-rare steak with no onions, correct?' Ensuring both kitchen and guest are in perfect agreement before cooking.",
+        ja: "給仕が注文を復唱する瞬間。「ミディアムレアのステーキ、玉ねぎ抜きでよろしいですね？」。調理を始める前に、厨房と客が完全に一致していることを確認する対話。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "",
+      seeAlso: ["negotiation-gate", "assumption-cards", "priority-toggle"]
+    },
+    {
+      id: "priority-toggle",
+      category: "ax-patterns",
+      tags: ["pattern", "ui"],
+      name: {
+        en: "Priority Toggle",
+        ja: "プライオリティ・トグル（緊急・重要度優先スイッチ）"
+      },
+      shortName: {
+        en: "Priority Toggle",
+        ja: "Priority Toggle"
+      },
+      definition: {
+        en: "A premium UI control letting users adjust the system's focus in real time (e.g. pivoting between Health Preset and Work Focus), overriding autonomous defaults.",
+        ja: "システム全体の動作優先度やフォーカスを、ユーザーが状況に合わせてリアルタイムに直接切り替えられる、マニュアル介入用のプレミアムUIコントロール（例：「健康優先」と「仕事集中」の切り替え）。"
+      },
+      metaphor: {
+        en: "The guest telling the waiter: 'Ignore my phone calls unless it is my doctor.' Overriding the default friendly conversation rules for a specific period of time.",
+        ja: "客が給仕に「医者からの電話以外は取り次がないでくれ」と直接告げること。通常のおもてなしルールを一時的に上書きする明示的な指示。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "priority-toggle",
+      seeAlso: ["priority-weight", "negotiation-gate", "autonomy-dial"]
+    },
+    {
+      id: "rule-engine",
+      category: "tokens",
+      tags: ["pipeline"],
+      name: {
+        en: "Rule Engine",
+        ja: "Rule Engine（ルール・エンジン）"
+      },
+      shortName: {
+        en: "Rule Engine",
+        ja: "Rule Engine"
+      },
+      definition: {
+        en: "The reasoning processor (Stage 4) that converts raw Situation Signal inputs and User boundaries into adaptive design rules and contextual behaviors.",
+        ja: "生の状況シグナルとユーザーが設定した境界線を入力値とし、状況に適応したデザインルールや振る舞い（AXパターン）へと変換する中核的な推論プロセッサー（第4段階）。"
+      },
+      metaphor: {
+        en: "The kitchen recipe book combined with the head chef's experienced logic. It takes the fresh market ingredients and dietary restrictions, then decides exactly how to cook the dish tonight.",
+        ja: "厨房の秘伝レシピ集と、料理長の頭脳の組み合わせ。今日の市場から入った食材（シグナル）と客のアレルギー情報（境界線）を受け取り、今夜の料理をどのように調理するかを決定する論理回路。"
+      },
+      targetPath: "context-grammar/signals/index.html",
+      anchor: "",
+      seeAlso: ["context-tokens", "negotiation-gate"]
+    },
+    {
+      id: "risk",
+      category: "tokens",
+      tags: ["pipeline", "tokens"],
+      name: {
+        en: "Risk",
+        ja: "Risk（決定に伴うリスク値）"
+      },
+      shortName: {
+        en: "Risk",
+        ja: "Risk"
+      },
+      definition: {
+        en: "A core decision factor measuring the cost of failure if the AI's assumption is wrong, graded into Low, Medium, and High categories.",
+        ja: "AIの仮定が間違っていた場合に発生する「失敗に伴う損失の大きさ（コスト）」を測定する、交渉ゲートの重要入力パラメータ（低・中・高の3段階）。"
+      },
+      metaphor: {
+        en: "The difference between serving the wrong salad dressing (low risk, easily replaced) versus serving a dish containing nuts to a severely allergic guest (extreme high risk).",
+        ja: "サラダドレッシングの選択ミス（失敗してもすぐに替えが効く低リスク）と、ナッツアレルギーの客にナッツ入り料理を提供してしまうこと（取り返しのつかない致命的な高リスク）の違い。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "",
+      seeAlso: ["negotiation-gate", "reversibility", "confidence"]
+    },
+    {
+      id: "reversibility",
+      category: "tokens",
+      tags: ["pipeline", "tokens"],
+      name: {
+        en: "Reversibility",
+        ja: "Reversibility（決定の可逆性）"
+      },
+      shortName: {
+        en: "Reversibility",
+        ja: "Reversibility"
+      },
+      definition: {
+        en: "Measures whether an action taken by the AI can be cleanly undone or rolled back after execution (e.g., calendar reservation vs. purchasing shoes).",
+        ja: "AIが実行したアクションが、事後的にクリーンにキャンセル、または元に戻せるかどうかを表す指標（例：カレンダー予約は可逆性高、靴の購入確定は可逆性中）。"
+      },
+      metaphor: {
+        en: "The difference between booking a flexible dining room table reservation (100% reversible) versus uncorking a $300 vintage bottle of wine (completely irreversible).",
+        ja: "柔軟に変更可能なテーブル席의仮予約（いつでもノーコストでキャンセルできる高可逆性）と、3万円の限定ビンテージワインの栓を抜いてしまうこと（二度と元に戻せない不可逆性）の違い。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "",
+      seeAlso: ["negotiation-gate", "risk", "reversibility-window"]
+    },
+    {
+      id: "confidence",
+      category: "tokens",
+      tags: ["pipeline", "tokens"],
+      name: {
+        en: "Confidence",
+        ja: "Confidence（推論の確信度）"
+      },
+      shortName: {
+        en: "Confidence",
+        ja: "Confidence"
+      },
+      definition: {
+        en: "The statistical certainty or estimation accuracy of the current situation read, directly preventing the system from acting autonomously if signals are weak or blurry.",
+        ja: "現在の状況読み取り精度に関する統計的な確かさ（％）。シグナルが曖昧または不十分な場合、自律的な決定を防ぎ、「確認」へと強制降格させる安全機能。"
+      },
+      metaphor: {
+        en: "The waiter observing a regular customer from behind. If they are 95% sure it is you, they prepare your favorite coffee. If only 60% sure, they walk over to ask for your name first.",
+        ja: "給仕がお客様の背姿を見たときの確実さ。95%あなただと確信できれば、すぐにお気に入りのコーヒーを用意します。もし60%程度しか自信がなければ、勝手に注がずにまず「お名前を伺ってもよろしいですか」と挨拶しに行きます。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "",
+      seeAlso: ["negotiation-gate", "risk", "cognitive-load"]
+    },
+    {
+      id: "sensitivity",
+      category: "tokens",
+      tags: ["pipeline", "tokens"],
+      name: {
+        en: "Sensitivity",
+        ja: "Sensitivity（文化的・状況的感受性）"
+      },
+      shortName: {
+        en: "Sensitivity",
+        ja: "Sensitivity"
+      },
+      definition: {
+        en: "Measures whether the domain or immediate context contains highly sensitive personal, social, or emotional stakes requiring extra tact.",
+        ja: "該当ドメインや状況の中に、極めてデリケートな個人情報、社会的地位、または感情的な配慮（センシティビティ）が必要な要素が含まれているかどうかを測る指標。"
+      },
+      metaphor: {
+        en: "The waiter realizing you are dining with your child versus a business competitor. The tone, privacy boundaries, and menu choices must automatically adapt to protect your social stature.",
+        ja: "給仕が、あなたが今日「実の子供」と食事しているか、それとも「ビジネス上の競合他社の役員」と食事しているかを察知すること。立場を守るために、会話のトーンやプライバシーの境界が自動で調整されます。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "",
+      seeAlso: ["social-exposure", "disclosure-dial"]
+    },
+    {
+      id: "autonomy-map",
+      category: "tokens",
+      tags: ["pipeline", "relationship"],
+      name: {
+        en: "Autonomy Map",
+        ja: "Autonomy Map（自律権限割当マップ）"
+      },
+      shortName: {
+        en: "Autonomy Map",
+        ja: "Autonomy Map"
+      },
+      definition: {
+        en: "The custom matrix defining exactly where the boundary lies between delegated work and owned authority, mapped per domain and role.",
+        ja: "どのドメインのどのタスクをAIに委ね（Delegated）、どこを人間が所有（Owned）し続けるかの境界線を明確に描いた、ユーザーおよび役割別の決定権限アロケーションマップ。"
+      },
+      metaphor: {
+        en: "Your verbal agreement with the restaurant. 'You handle the table setup and water refills (Auto), but do not touch my wine glass or bring the check without me asking (Confirm).'",
+        ja: "レストランの常連様との暗黙の合意。「テーブルセットや水のお代わりは無言でやってくれて構わない（Auto）が、ワインを勝手に注いだり、私が頼む前にお会計をテーブルに置いたりはしないでほしい（Confirm）。」"
+      },
+      targetPath: "context-grammar/dials/index.html",
+      anchor: "autonomy",
+      seeAlso: ["autonomy-dial", "disclosure-matrix"]
+    },
+    {
+      id: "coordinator",
+      category: "brain",
+      tags: ["brain", "architecture"],
+      name: {
+        en: "Coordinator",
+        ja: "Coordinator（一元コーディネーター層）"
+      },
+      shortName: {
+        en: "Coordinator",
+        ja: "Coordinator"
+      },
+      definition: {
+        en: "The top-level orchestrator that reads across five parallel Brain instances simultaneously, builds unified context, and dispatches tasks to specialized child agents.",
+        ja: "並列に稼働する5つのBrainインスタンスを束ねて横断読み込みし、統一された状況文脈を構築した上で、最適な専門子エージェント（買い物、音声など）へと的確に指令を下す、中枢指令制御レイヤー。"
+      },
+      metaphor: {
+        en: "The front-of-house restaurant manager. They check reservation books, consult the kitchen, observe guest moods, and coordinate waitstaff and busboys behind the scenes.",
+        ja: "レストラン全体のフロアマネージャー（支配人）。顧客台帳をめくり、厨房の状況を聞き、客の機嫌をうかがいながら、給仕や皿洗いたちに裏側で完璧なチームプレイの指示を飛ばす司令塔。"
+      },
+      targetPath: "context-grammar/brain/index.html",
+      anchor: "home-system",
+      seeAlso: ["home-brain", "org-brain"]
+    },
+    {
+      id: "learning-returns-home",
+      category: "ax-patterns",
+      tags: ["pattern", "brain"],
+      name: {
+        en: "AX Pattern · Learning Returns Home",
+        ja: "AX Pattern · Learning Returns Home（学習の帰還帰流）"
+      },
+      shortName: {
+        en: "Learning Returns Home",
+        ja: "Learning Returns Home"
+      },
+      definition: {
+        en: "AX pattern ensuring that when a temporary Disposable Brain dissolves, its valuable long-term behavioral patterns are distilled and permanently returned to the core persistent Home/Org Brain.",
+        ja: "一時的な「使い捨て脳」のライフサイクル終了時、蓄積されたデータやノイズをすべて消去しつつ、有益な長期行動習慣や好みだけを高度に蒸留して、本尊のHome BrainまたはOrg Brainへと還流させるAX設計パターン。"
+      },
+      metaphor: {
+        en: "The temporary pop-up chef returning to the headquarters after a guest event, reporting: 'Mr. Umehara absolutely loved the special chili glaze on Day 3.' That recipe gets added to his permanent file.",
+        ja: "3日間のイベント営業を終えた臨時シェフが本店に戻り、「梅原様は3日目に出した特製チリソースを大絶賛されていた」と報告し、その調理法が本店の「梅原様パーソナルファイル」に永久登録されるプロセス。"
+      },
+      targetPath: "context-grammar/brain/index.html",
+      anchor: "disposable",
+      seeAlso: ["disposable-brain", "home-brain", "temporal-handoff"]
+    },
+    {
+      id: "federation-contract",
+      category: "tokens",
+      tags: ["pipeline", "schema"],
+      name: {
+        en: "Federation Contract",
+        ja: "Federation Contract（連合協約契約）"
+      },
+      shortName: {
+        en: "Federation Contract",
+        ja: "Federation Contract"
+      },
+      definition: {
+        en: "The standardized schema protocol (like Matter or OAuth) that enables operating systems, devices, and different vendor agents to securely share Context Schema telemetry without a single monopoly.",
+        ja: "特定のOSや巨大IT企業による独占を防ぎ、Apple、Google、Samsungなどの異なるエージェントやスマートデバイス同士が、安全にコンテキストシグナルを共有・連携し合うための標準共通規格（MatterやOAuthのような業界プロトコル）。"
+      },
+      metaphor: {
+        en: "The standard restaurant classification code. Whether you eat at an upscale French bistro or a local sushi bar, 'nut allergy' means the exact same medical reality to every kitchen.",
+        ja: "飲食業界共通のアレルギー分類コード。最高級フレンチに行こうが、街の個人経営 of the main allergy standard."
+      },
+      targetPath: "context-grammar/signals/index.html",
+      anchor: "",
+      seeAlso: ["context-tokens", "rule-engine"]
+    },
+    {
+      id: "intent",
+      category: "tokens",
+      tags: ["pipeline"],
+      name: {
+        en: "Intent",
+        ja: "Intent（意図）"
+      },
+      shortName: {
+        en: "Intent",
+        ja: "Intent"
+      },
+      definition: {
+        en: "Stage 1 of the Decision Pipeline. The real-world, situational desire that a user genuinely wants to accomplish in the immediate moment, rather than their long-term goal.",
+        ja: "意思決定パイプラインの第1段階。ユーザーが長期的な目標（JTBD）としてではなく、「いま、この瞬間」の具体的な状況の中で本当に実現したいと望んでいる生々しい生の願い。"
+      },
+      metaphor: {
+        en: "A guest looking up from an empty water glass at a restaurant. It is the immediate desire for a refill, built instantly out of thirst and the moment.",
+        ja: "レストランで空のグラスを見つめるお客様の視線。喉の渇きと状況からその瞬間その場で立ち上がる、「お水をお代わりしたい」という生々しい直接の願い。"
+      },
+      targetPath: "context-grammar/intent/index.html",
+      anchor: "",
+      seeAlso: ["explicit-intent", "implicit-intent", "intent-fidelity", "intent-shared-workflow"]
+    },
+    {
+      id: "explicit-intent",
+      category: "tokens",
+      tags: ["pipeline", "interaction"],
+      name: {
+        en: "Explicit Intent",
+        ja: "Explicit Intent（明示的な意図）"
+      },
+      shortName: {
+        en: "Explicit Intent",
+        ja: "Explicit Intent"
+      },
+      definition: {
+        en: "The direct, verbalized command or typed text explicitly given to the AI by the user, requiring no situational inference (e.g., 'Set a 20-minute timer').",
+        ja: "ユーザーが声や文字で直接AIに伝える、明確な直接指示。状況推測を必要とせず、ユーザーの言葉そのものが意図となる（例：「20分タイマーをセットして」）。"
+      },
+      metaphor: {
+        en: "A customer raising their hand and loudly calling 'Excuse me, water please!' to the waiter. The command is clear, direct, and leaves no room for guessing.",
+        ja: "お客様が手を挙げ、「すみません、お水ください！」と大きな声で給仕を呼ぶ状態。直接の指示であり、店員が推測する余地のない最も分かりやすいオーダー。"
+      },
+      targetPath: "context-grammar/intent/index.html",
+      anchor: "forms",
+      seeAlso: ["intent", "implicit-intent"]
+    },
+    {
+      id: "implicit-intent",
+      category: "tokens",
+      tags: ["pipeline", "interaction"],
+      name: {
+        en: "Implicit Intent",
+        ja: "Implicit Intent（暗示的な意図）"
+      },
+      shortName: {
+        en: "Implicit Intent",
+        ja: "Implicit Intent"
+      },
+      definition: {
+        en: "The unspoken, situational expectation derived automatically by combining current Situation Signals and Brain memory without a direct command.",
+        ja: "ユーザーが何も口にしていない状態で、「今起きている状況シグナル」と「過去の記憶（脳）」を掛け合わせ、システムがそっと先回りして察する言葉にされない期待。"
+      },
+      metaphor: {
+        en: "An attentive waiter at a high-end restaurant who notices your glass is half-empty and quietly walks over to pour water before you ever have to ask.",
+        ja: "行きつけの名店で、あなたのグラスが半分空になっていることに気づいた優秀な給仕が、呼ばれる前に静かに歩み寄ってお水を注いでくれる心地よい先回り。"
+      },
+      targetPath: "context-grammar/intent/index.html",
+      anchor: "forms",
+      seeAlso: ["intent", "explicit-intent", "active-channel", "passive-channel", "ambient-channel"]
+    },
+    {
+      id: "active-channel",
+      category: "tokens",
+      tags: ["pipeline", "interaction"],
+      name: {
+        en: "Active Channel",
+        ja: "Active Channel（行動が語る）"
+      },
+      shortName: {
+        en: "Active Channel",
+        ja: "Active Channel"
+      },
+      definition: {
+        en: "Implicit Intent Channel 2. The unspoken desire revealed instantly by the user's immediate physical actions, verbal conversation, or active state.",
+        ja: "暗示的意図の第2チャンネル。ユーザーの今の「動作」「会話」「アクティブな状態」そのものからにじみ出る、言葉にされないリアルタイムな期待。"
+      },
+      metaphor: {
+        en: "The waiter bringing warm green tea instead of ice water to a guest who enters the restaurant shivering and rubbing their hands in winter.",
+        ja: "冬の寒い日に、体をすくめ、手をこすり合わせながら入ってきたお客様に対して、給仕が氷入りの冷たい水ではなく、最初から「温かいお茶」をそっと差し出す思いやり。"
+      },
+      targetPath: "context-grammar/intent/index.html",
+      anchor: "forms",
+      seeAlso: ["implicit-intent", "passive-channel", "ambient-channel"]
+    },
+    {
+      id: "passive-channel",
+      category: "tokens",
+      tags: ["pipeline", "interaction"],
+      name: {
+        en: "Passive Channel",
+        ja: "Passive Channel（習慣が語る）"
+      },
+      shortName: {
+        en: "Passive Channel",
+        ja: "Passive Channel"
+      },
+      definition: {
+        en: "Implicit Intent Channel 3. The unspoken expectation derived from established long-term habits, calendar schedules, or recurring historical patterns.",
+        ja: "暗示的意図の第3チャンネル。蓄積された習慣、カレンダーの予定、または「いつもの」歴史的パターンと現在の合致から自動で導き出される期待。"
+      },
+      metaphor: {
+        en: "The waiter serving the regular customer's favorite vintage wine or preparing their usual anniversary surprise cake without being prompted.",
+        ja: "常連のお客様が席についた際、何も聞かずに「いつものビンテージワイン」を用意したり、記念日の登録データからサプライズケーキを無言で仕込むおもてなし。"
+      },
+      targetPath: "context-grammar/intent/index.html",
+      anchor: "forms",
+      seeAlso: ["implicit-intent", "active-channel", "ambient-channel"]
+    },
+    {
+      id: "ambient-channel",
+      category: "tokens",
+      tags: ["pipeline", "interaction"],
+      name: {
+        en: "Ambient Channel",
+        ja: "Ambient Channel（環境が語る）"
+      },
+      shortName: {
+        en: "Ambient Channel",
+        ja: "Ambient Channel"
+      },
+      definition: {
+        en: "Implicit Intent Channel 4. The silent context governed by the surrounding room, social atmosphere, or physical environment, setting boundaries on how the AI should behave.",
+        ja: "暗示的意図の第4チャンネル。周囲の部屋の明るさ、社会的な空気感、または物理的環境が語る、「静かに、暗く、邪魔をしない」といったシステムが守るべき無言の環境協約。"
+      },
+      metaphor: {
+        en: "The waiter noticing a couple deep in intimate conversation, choosing to dim the lights slightly, soften the music, and watch over them from a distance.",
+        ja: "カップルが親密な会話に没頭している空気（環境）を察し、店員がそっと店内の照明を落とし、音楽を静かにして、邪魔をしないように遠くから見守る気配り。"
+      },
+      targetPath: "context-grammar/intent/index.html",
+      anchor: "forms",
+      seeAlso: ["implicit-intent", "active-channel", "passive-channel"]
+    },
+    {
+      id: "dynamic-friction",
+      category: "trust",
+      tags: ["trust", "interaction"],
+      name: {
+        en: "Dynamic Friction",
+        ja: "Dynamic Friction（動的摩擦）"
+      },
+      shortName: {
+        en: "Dynamic Friction",
+        ja: "Dynamic Friction"
+      },
+      definition: {
+        en: "Stage 5. A deliberate, carefully calibrated micro-friction introduced to interrupt automated execution, ensuring meaningful human consent and protecting relationship boundary ceilings in high-risk zones.",
+        ja: "意思決定プロセスの重要ポイントでAIの完全自動化にあえて『一瞬のブレーキ』をかけ、人間の自律的な選択や審美的な承認を挟むことで、不気味さを防ぎ信頼（Trust）の毀損を回避するデザインパターン。"
+      },
+      metaphor: {
+        en: "The waiter pausing and lowering their voice to ask, 'Since this is your wedding anniversary dinner, shall I uncork our rare vintage wine now, or would you prefer to see the list first?'.",
+        ja: "給仕が『おまかせコース』であっても、最も高額なビンテージワインを開栓する直前、一瞬声を潜めて『こちらは本日の一番大切なワインです。今お開けしてよろしいですか、それともリストを再度ご覧になりますか？』と優しく確認を挟む上品な所作。"
+      },
+      targetPath: "context-grammar/trust/index.html",
+      anchor: "dynamic-friction",
+      seeAlso: ["trust-breach", "negotiation-gate", "reversibility"]
+    },
+    {
+      id: "protected-rituals",
+      category: "brain",
+      tags: ["brain", "relationship"],
+      name: {
+        en: "Protected Rituals",
+        ja: "Protected Rituals（保護された習慣儀式）"
+      },
+      shortName: {
+        en: "Protected Rituals",
+        ja: "Protected Rituals"
+      },
+      definition: {
+        en: "High-value personal, familial, or emotional user routines designated as absolute 'No-AI Zones', where the system is strictly barred from automating or suggesting actions to preserve human presence.",
+        ja: "効率化やAIによる先回りを『絶対に実行してはならない』と保護された、人間同士の絆、温もり、感情に紐づく大切な時間（例：親が子供へ絵本を読み聞かせする時間、夫婦で料理を作る時間など）。"
+      },
+      metaphor: {
+        en: "The chef stepping out of the kitchen and refusing to cook the guest's secret family soup, saying, 'No, this is your grandmother's recipe. I have set up the stove and chopped the onions, but only your hands must finish it tonight.'.",
+        ja: "高級ホテルの料理長が、お客様秘伝の郷土スープの最後の味付けだけは手を出さず、『これはおばあさまの味です。火を起こし野菜は刻みましたが、最後の仕上げはお客様の手で行ってください』と台所を譲る敬意。"
+      },
+      targetPath: "context-grammar/brain/index.html",
+      anchor: "protected-rituals",
+      seeAlso: ["home-brain", "disclosure-dial", "autonomy-dial"]
+    },
+    {
+      id: "assumption-cards",
+      category: "ax-patterns",
+      tags: ["pattern", "ui"],
+      name: {
+        en: "Assumption Cards",
+        ja: "Assumption Cards（仮定提示カード）"
+      },
+      shortName: {
+        en: "Assumption Cards",
+        ja: "Assumption Cards"
+      },
+      definition: {
+        en: "Stage 5 UX Pattern. Glace-first micro-cards dynamically assembled to present the AI's high-risk situation readings or inferences, letting the user confirm, reject, or adjust with a single tactile gesture.",
+        ja: "AIが状況や習慣から察した『こういう願いがあるのではないか』という推論（仮定）を、一瞬で視認できるコンパクトなUIとして提示し、人間が1タップまたは1ジェスチャーで承認・調整・却下できるようにするAXデザイン要素。"
+      },
+      metaphor: {
+        en: "The waiter sliding a small handwritten chalkboard to your side containing three seasonal chef recommendations based on your favorite flavors, letting you point to the one you want.",
+        ja: "給仕がお客様の好みに合わせて『本日のおすすめの3皿』を手書きした小さな黒板をそっとテーブル脇に差し出し、お客様が指さすだけで極上の選択を完了できるようにするスマートな気配り。"
+      },
+      targetPath: "context-grammar/negotiation-gate/index.html",
+      anchor: "",
+      seeAlso: ["negotiation-gate", "approval-gate"]
+    },
+    {
+      id: "aware-filtering",
+      category: "brain",
+      tags: ["brain", "learning"],
+      name: {
+        en: "Aware Filtering",
+        ja: "Aware Filtering（状況自律フィルター）"
+      },
+      shortName: {
+        en: "Aware Filtering",
+        ja: "Aware Filtering"
+      },
+      definition: {
+        en: "Stage 3 Background processing that selectively ignores short-term situational noise, errors, or temporary deviations, preventing them from corrupting the permanent Level 2 Learning Layer.",
+        ja: "突発的なエラーや一時的な好みの脱線（ノイズ）を自動的に学習の対象外として振り分け、永続的な『Learning Layer』にノイズが蓄積してAIの推論品質が汚染されるのを防ぐインテリジェントな背景フィルター。"
+      },
+      metaphor: {
+        en: "The sommelier ignoring the fact that you ordered a single cola on an extremely hot afternoon, refusing to write 'likes soda' in your wine profile, knowing it was just a temporary hot-day exception.",
+        ja: "うだるように暑い夏の日の午後、お客様が一杯だけ冷たいコーラを注文したのを見て、ソムリエが顧客台帳に『コーラ愛好家』などと書き残さず、あくまで『今日限りの暑さ対策の例外』としてそっと無視してくれる粋な配慮。"
+      },
+      targetPath: "context-grammar/brain/index.html",
+      anchor: "scale",
+      seeAlso: ["learning-layer", "disposable-brain"]
     }
   ];
 
   root.GLOSSARY_DB = GLOSSARY_DB;
+  if (typeof exports === 'object' && typeof module !== 'undefined') {
+    exports.GLOSSARY_DB = GLOSSARY_DB;
+    module.exports = GLOSSARY_DB;
+  }
 })(typeof window !== 'undefined' ? window : globalThis);

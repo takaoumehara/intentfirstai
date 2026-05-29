@@ -4,7 +4,7 @@
 
 Design portfolio by Takao. "Context Grammar" is a decision design language for the post-app era, targeting Samsung/Google agentic AI/OS design roles. Portfolio: 15 Substack articles, OVERVIEW, 3 projects (Living Home, Family Trip, Fluid Handoff), Token Explainer, Context Token definitions.
 
-## Core Architecture — 8-Stage Decision Pipeline + Always-On Layers
+## Core Architecture — 6-Stage Decision Pipeline + Always-On Layers
 
 **Inflow:** Human Raw Expression (not a numbered Stage)
 
@@ -12,15 +12,12 @@ Design portfolio by Takao. "Context Grammar" is a decision design language for t
 - **Stage 2 — 6 Situation Signals**: Physical State, Cognitive Load, Social Exposure, Priority Weight, Form Factor, Feasibility.
 - **Stage 3 — 2 Relationship Dials**: Autonomy Dial (Suggest → Confirm → Notify → Auto) + Disclosure Dial. Dials are set by users; Signals are read by the system.
 - **Stage 4 — Rule Engine**: 33 design rules + 8 Negotiation Gate firing rules (R34–R41).
-- **Stage 5 — Negotiation Gate**: Evaluates Confidence × Risk × Reversibility × Sensitivity. Outputs Risk Profile + Gate Decision (`autonomy_ceiling`, `required_ui_primitive`).
-- **Stage 6 — Autonomy Resolution**: `Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling)`. Core safety formula.
-- **Stage 7 — AX Patterns × Agent Action Lifecycle**: 23 patterns, each tagged with primary Lifecycle Verb(s): Inform / Recommend / Plan / Prepare / Act / Monitor / Adapt.
-- **Stage 8 — Agentic Response**: Actual UI output, notification, side effect, external API call.
+- **Stage 5 — Negotiation Gate**: Evaluates Confidence × Risk × Reversibility × Sensitivity. Outputs Risk Profile + Gate Decision (`autonomy_ceiling`, `required_ui_primitive`). `Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling)`. Meaning-alignment UI primitives: Interpretation Preview / Assumption Cards / Priority Toggle.
+- **Stage 6 — AX Patterns × Agent Action Lifecycle**: 23 patterns, each tagged with primary Lifecycle Verb(s): Inform / Recommend / Plan / Prepare / Act / Monitor / Adapt. Also delivers actual UI output, notification, side effect, external API call.
 
-**3 Always-On Layers / 常に働くレイヤー (span all 8 Stages — NOT numbered Stages):**
+**2 Always-On Layers / 常に働くレイヤー (span all 6 Stages — NOT numbered Stages):**
 - **Brain** (Memory & Learning State): 3-layer memory — Identity / Learning / Now. Referenced by every Stage; updated during Monitor/Adapt.
 - **Trust Design**: Long-term relational trust. Disclosure × Autonomy, Temporal Arc, Dynamic Friction, Trust Breach Recovery.
-- **Negotiation Design**: Moment-to-moment meaning alignment. UI primitives: Interpretation Preview / Assumption Cards / Priority Toggle.
 
 **Decision Schema (mandatory per Signal and Dial):** `{value, source, confidence, user_confirmed, fallback_behavior, implementation_readiness}`. Six source types: `explicit_user_input | system_state | behavioral_inference | sensor_signal | organizational_data | memory_learned`.
 
@@ -53,9 +50,10 @@ Every Brain has the same 3-layer anatomy: Identity / Learning / Now. P4 cast: **
 | Decision Pipeline | Tower, 5-floor, Floor N |
 | Stage N (e.g. Stage 1, Stage 5) | Floor N (e.g. Floor 1, Floor 2) |
 | Always-On Layer / 常に働くレイヤー | Cross-cut |
-| Negotiation Gate | (new — no old name) |
-| Autonomy Resolution | (new — no old name) |
+| Negotiation Gate | Negotiation Layer, Negotiation Design (as separate concept) |
+| Autonomy Resolution (folded into Stage 5 Negotiation Gate) | (was a standalone Stage 6 — now absorbed by Gate) |
 | Agent Action Lifecycle | (new — no old name) |
+| Agentic Response (folded into Stage 6 AX Patterns) | (was a standalone Stage 8 — now absorbed by AX Patterns) |
 | Recommend (Lifecycle verb) | Suggest (in Lifecycle context) |
 | Interpretation Architect | (Hero / nav / About card positioning tag) |
 | Decision System Architect | (About body / interview only — NOT on Hero) |
@@ -92,7 +90,7 @@ Every Brain has the same 3-layer anatomy: Identity / Learning / Now. P4 cast: **
 
 ## Context Grammar Knowledge Base
 
-**Before any CG-related work:** Read `context-grammar/_my-understanding.md` — canonical reference for the full framework (8-stage Pipeline, Intent v2, Signals & Dials, Negotiation Gate, Autonomy Resolution, Agent Action Lifecycle, Always-On Layers, Trust Design, Negotiation Design, Specs).
+**Before any CG-related work:** Read `context-grammar/_my-understanding.md` — canonical reference for the full framework (6-stage Pipeline, Intent v2, Signals & Dials, Negotiation Gate, Agent Action Lifecycle, Always-On Layers, Brain, Trust Design, Specs).
 
 **After adding/renaming/removing any concept:** Update `_my-understanding.md` in the same pass. Never leave it out of sync with the pages.
 
@@ -154,19 +152,49 @@ Script: `../scripts/generate_kie.py` · API Key: `../.env` as `KIE_API_KEY` · M
 
 After significant HTML/CSS/JS changes, use **OpenAI Codex** for a second-eye review (accessibility, specificity conflicts, broken links, token consistency).
 
-## Multi-Session + Cross-AI Sync (Obsidian Vault)
+## Multi-Agent Team Collaboration Protocol
+
+You are the Lead Architect. For complex tasks, delegate in parallel when subagents/tools are available and the work can be split safely.
+
+**Model/Agent selection (use only available options in current environment):**
+- Architect/Manager: task breakdown, integration, review, Obsidian tracker updates
+- Heavy Coder: larger implementations, refactors, algorithmic work
+- Fast Worker: quick edits, grep/scan, formatting, lightweight checks
+
+**Delegation flow:**
+1. Output a concise `<Delegation_Plan>` with sub-tasks, owner, expected output.
+2. Assign disjoint ownership (files/responsibility) to avoid conflicts.
+3. Keep local critical-path work in main session; delegate sidecar parallel tasks.
+4. Collect results, verify, integrate, then update trackers.
+
+**Inter-agent handoff:**
+- Before handoff, append a clear note in `Projects/intentfirst/HANDOFF.md`:
+  - what is complete
+  - what remains
+  - what exact files to review next
+
+## STRICT Multi-Session + Cross-AI Sync (Obsidian Vault)
 
 Obsidian Vault: `/Users/takao/Documents/00_Product_Develpment/Substack/Portfolio/obsidian` — single source of truth across all sessions and AIs.
 
-**Session start — read silently (no report):**
+**[CRITICAL RULE]** On every session start and task completion, read/update the vault via file tools. If a required vault write fails, stop and report blocker.
+
+**Phase 1 — Session Start (mandatory read):**
 1. `Projects/intentfirst/GLOBAL_STATUS.md` — current state across all sessions
 2. `Projects/intentfirst/SESSIONS_ACTIVE.md` — running sessions + dependencies
 3. `Projects/intentfirst/TASK_BOARD.md` — TODO / IN_PROGRESS / BLOCKED / DONE
 
-**During session — write silently (no "Obsidian: wrote to X" messages):**
+After read, output a tiny acknowledgement: `Vault synced.`
+
+**Phase 2 — During Session / Task Completion (mandatory write):**
 - Bug fix → `Knowledge/` · Decision → `Decisions/` · Task done → `TASK_BOARD.md` · Blocker → `SESSIONS_ACTIVE.md` · Dependency → `GLOBAL_STATUS.md`
 
-**`GLOBAL_STATUS.md` and `HANDOFF.md` are always current** — not just at session end. Also create/update `.claude/session-{YYYYMMDD-HHMMSS}-{task-slug}.md` and register in `ACTIVE_SESSIONS.md`.
+`GLOBAL_STATUS.md` and `HANDOFF.md` must always reflect the current real state (not end-of-session batch updates).
+
+**Phase 3 — Session Handoff ("Save Game" protocol):**
+1. Update `GLOBAL_STATUS.md` and `HANDOFF.md` to latest.
+2. Create/update `.claude/session-{YYYYMMDD-HHMMSS}-{task-slug}.md`.
+3. Output: `[System] Obsidian Vault updated. Handoff ready for the next agent.`
 
 ```
 obsidian/

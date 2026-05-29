@@ -5,74 +5,58 @@
   var PIPELINE_DATA = {
     human: {
       num: '01',
-      title: 'Human（人間）',
-      desc: '履歴、コンテキスト、ゴール、制約を持った、現実の瞬間を生きる実在の人物。',
-      bullets: ['抽象的な「ユーザー」ではない', 'パイプラインの出発点', 'コンテキストは人間の状況から始まる'],
+      title: 'Human Raw Expression（人間の生の表現）',
+      desc: '履歴、コンテキスト、ゴール、制約を持った、現実の瞬間を生きる実在の人物。Messy（ノイジー）な感情や状況の塊。',
+      bullets: ['抽象的なユーザーではなく実在の人間', 'コマンド以前の生のニーズが出発点', 'コンテキストGrammarの真の入口'],
       link: '../context-grammar/ja/index.html',
       color: 'default'
     },
-    intent: {
+    inference: {
       num: '02',
-      title: 'Intent v2（意図）',
-      desc: 'リクエストの背後にあるゴール — Detection Channel × Awareness Depthにわたって解釈される。',
-      bullets: ['明示的シグナル：話す、入力する、タップする', '暗黙的シグナル：文脈や記憶から推測される', 'Intentは入口。Interpretationがインターフェース。'],
-      link: '../context-grammar/ja/intent/index.html',
+      title: 'Simultaneous Inference（同時並列推論）',
+      desc: '明示的な意図だけでなく、6つの状況シグナルと潜在的な欲求（Latent Intent）を単一パスで同時並列に推論。',
+      bullets: ['明示的・暗黙的・潜在的意図の同時解析', '6つの状況シグナルの自動読み込み', '文脈変数のリアルタイム構造化'],
+      link: '../context-grammar/ja/signals/index.html',
       color: 'intent'
     },
-    signals: {
+    gate: {
       num: '03',
-      title: '6 Situation Signals（状況シグナル）',
-      desc: '今この瞬間に何が起きているかを記述する6つの状況シグナル。',
-      bullets: [
-        '身体的状態・認知負荷・ソーシャル露出',
-        '優先度・フォームファクタ・実現可能性',
-        '継続的に読み取られる — プロンプトは不要'
-      ],
-      link: '../context-grammar/ja/tokens/index.html',
-      color: 'grammar'
-    },
-    dials: {
-      num: '04',
-      title: '2 Relationship Dials（関係性ダイヤル）',
-      desc: 'AIにどこまで任せるか、どこまで知らせるか。ドメインごと、人ごとに設定。',
-      bullets: [
-        'Autonomy Dial：Suggest → Confirm → Notify → Auto',
-        'Disclosure Dial：AIがあなたについて何を知っているか',
-        '自律の前提は開示 — 知らせない × 任せるは成立しない'
-      ],
-      link: '../context-grammar/ja/tokens/index.html',
-      color: 'grammar'
-    },
-    'rule-engine': {
-      num: '05',
-      title: 'Rule Engine（ルールエンジン）',
-      desc: 'コンテキストを具体的なUIの振る舞いへと変換するロジック層。',
-      bullets: ['シグナルとダイヤルと記憶を読み取る', 'デバイスに依存しないUIコマンドを出力する', 'ユーザーを尊重したインターフェースの適応を支援する'],
-      link: '../context-grammar/ja/rule-engine/index.html',
-      color: 'default'
-    },
-    'negotiation-gate': {
-      num: '06',
-      title: 'Negotiation Gate（交渉ゲート）',
-      desc: '行動の前にConfidence × Risk × Reversibility × Sensitivityを評価する。',
-      bullets: ['高確信度 + 低リスク → 実行', '低確信度または高リスク → ユーザーにエスカレーション', 'Gate Decision + Autonomy Ceilingを出力'],
+      title: 'Risk & Confidence Gate（リスク＆確信度ゲート）',
+      desc: 'アクション実行前に、確信度（Confidence）× リスク × 可逆性 × センシティビティを自動評価。',
+      bullets: ['確信度×リスクの動的判定', 'ドメイン感度の自動分類', '自律度の上限（Ceiling）を安全に設定'],
       link: '../context-grammar/ja/negotiation-gate/',
-      color: 'default'
+      color: 'grammar'
     },
-    'autonomy-resolution': {
-      num: '07',
-      title: 'Autonomy Resolution（自律解決）',
-      desc: '最終自律度 = min(ユーザー設定, Gate上限)。これがコアの安全契約。',
-      bullets: ['ユーザー設定は希望値', 'Gate上限は安全制約', '最終自律度はその低い方'],
-      link: '../context-grammar/ja/negotiation-gate/#autonomy-resolution',
-      color: 'default'
+    negotiation: {
+      num: '04',
+      title: 'Negotiation Gate（交渉ゲート）',
+      desc: '意図が曖昧・リスクが高い場合、Assumption CardsやPriority Toggleで調整しながら、自律度上限を決定する。',
+      bullets: ['EditableなAssumption Cardsによる確認', '自律度上限：min(ユーザー設定, Gate上限)', '進行／プレビュー／確認／ブロックの決定'],
+      link: '../context-grammar/ja/negotiation-gate/index.html',
+      color: 'grammar'
     },
-    'ax-patterns': {
-      num: '08',
-      title: 'AX × Lifecycle（適応型UXパターン）',
-      desc: 'AIエージェントのライフサイクル全体にわたる、再利用可能な振る舞いパターン。',
-      bullets: ['Delegation（委譲：AIが代わりに実行する）', 'Escalation（エスカレーション：人間に判断や確認を求める）', 'Adaptation（適応：画面を適応させる）'],
+    autonomy: {
+      num: '06',
+      title: 'AXパターン',
+      desc: 'Negotiation Gateで解決されたレスポンスを、23種類の再利用可能なAXパターンでアクティブな画面に表現する。マルチデバイスにまたがるライフサイクル監視・適応も実行する。',
+      bullets: ['23種類のAXパターンがレスポンスを形成', '各パターンにAgent Action Lifecycleの動詞タグを付与', 'Watch/CarPlay/HUDのデバイス協調'],
       link: '../context-grammar/ja/ax-patterns/index.html',
+      color: 'brand'
+    },
+    brain: {
+      num: '🧠',
+      title: 'Brain（記憶レイヤー）',
+      desc: '3つの記憶層：Identity（属性）、Learning（学習した嗜好）、Now（現在の状態）。常に全てのステージから参照・更新される。',
+      bullets: ['Identity：誰であるか', 'Learning：何を学習したか', 'Now：今この瞬間の状態とシグナル'],
+      link: '../context-grammar/ja/brain/index.html',
+      color: 'default'
+    },
+    trust: {
+      num: '🛡️',
+      title: 'Trust（長期の信頼関係）',
+      desc: '長期的な関係性の質。Disclosure × Autonomyの連動、Temporal Arc（時間的変化）、ブレイクからの回復。',
+      bullets: ['Disclosure × Autonomy coupling', 'Temporal Arc — 関係の時間的成長', 'Trust Breach Recovery'],
+      link: '../context-grammar/ja/trust/index.html',
       color: 'brand'
     }
   };
@@ -80,10 +64,10 @@
   /* ─── STEP → PIPELINE STAGE MAPPING ─── */
   var STEP_STAGES = {
     0: ['human'],
-    1: ['human', 'intent'],
-    2: ['human', 'intent', 'signals', 'dials', 'rule-engine', 'negotiation-gate', 'autonomy-resolution', 'ax-patterns'],
-    3: ['human', 'intent', 'signals', 'dials'],
-    4: ['human', 'intent', 'signals', 'dials', 'rule-engine', 'negotiation-gate', 'autonomy-resolution', 'ax-patterns']
+    1: ['human', 'inference'],
+    2: ['human', 'inference', 'gate', 'negotiation', 'autonomy'],
+    3: ['human', 'inference', 'gate', 'negotiation'],
+    4: ['human', 'inference', 'gate', 'negotiation', 'autonomy']
   };
 
   /* ─── STATE ─── */
@@ -97,6 +81,10 @@
   var section, steps, dots, progressFill, pipeBarStages;
   var prevBtn, nextBtn, curLabel;
   var popover, popoverNum, popoverTitle, popoverDesc, popoverBullets, popoverLink, popoverClose;
+
+  function normalizeStageKey(key) {
+    return key === 'trust-design' ? 'trust' : key;
+  }
 
   /* ─── INIT ─── */
   function init() {
@@ -130,7 +118,7 @@
     // Bind pipeline cards
     section.querySelectorAll('.xp-pipe-card').forEach(function (card) {
       card.addEventListener('click', function (e) {
-        var key = card.getAttribute('data-xp-card');
+        var key = normalizeStageKey(card.getAttribute('data-xp-card'));
         if (state.openCard === key) {
           closePopover();
         } else {
@@ -258,6 +246,7 @@
 
   /* ─── OPEN POPOVER ─── */
   function openPopover(key, triggerEl) {
+    key = normalizeStageKey(key);
     var data = PIPELINE_DATA[key];
     if (!data) return;
 

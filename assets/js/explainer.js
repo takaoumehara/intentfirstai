@@ -5,74 +5,58 @@
   var PIPELINE_DATA = {
     human: {
       num: '01',
-      title: 'Human',
-      desc: 'A real person in a real moment — with history, context, goals, and constraints.',
-      bullets: ['Not an abstract user', 'The starting point of the pipeline', 'Context begins with the human situation'],
+      title: 'Human Raw Expression',
+      desc: 'A real person expressing raw, messy needs mixing concern, desire, anxiety, goals, and constraints.',
+      bullets: ['The starting point before any command prompt', 'High noise, high friction human reality', 'The entry point of the entire pipeline'],
       link: 'context-grammar/index.html',
       color: 'default'
     },
-    intent: {
+    inference: {
       num: '02',
-      title: 'Intent v2',
-      desc: 'The goal behind a request — interpreted across Detection Channel × Awareness Depth.',
-      bullets: ['Can be explicit: spoken, typed, tapped', 'Can be implicit: inferred from context and memory', 'Intent is the entry point. Interpretation is the interface.'],
-      link: 'context-grammar/intent/index.html',
+      title: 'Simultaneous Inference',
+      desc: 'The AI parallel-processes explicit intent, implicit situation signals, and latent desires in a single pass.',
+      bullets: ['Explicit, Implicit, and Latent intent parsing', 'Incorporates 6 Situation Signals automatically', 'Extracts structured context variables instantaneously'],
+      link: 'context-grammar/signals/index.html',
       color: 'intent'
     },
-    signals: {
+    gate: {
       num: '03',
-      title: '6 Situation Signals',
-      desc: 'Six signals that describe what is happening right now.',
-      bullets: [
-        'Physical state · Cognitive load · Social exposure',
-        'Priority weight · Form factor · Feasibility',
-        'Read continuously — not prompted'
-      ],
-      link: 'context-grammar/tokens/index.html',
-      color: 'grammar'
-    },
-    dials: {
-      num: '04',
-      title: '2 Relationship Dials',
-      desc: 'How much to trust AI, and how much to share. Set per domain, per person.',
-      bullets: [
-        'Autonomy Dial: Suggest → Confirm → Notify → Auto',
-        'Disclosure Dial: what AI knows about you',
-        'Prerequisite for Autonomy — knowing precedes acting'
-      ],
-      link: 'context-grammar/tokens/index.html',
-      color: 'grammar'
-    },
-    'rule-engine': {
-      num: '05',
-      title: 'Rule Engine',
-      desc: 'The logic layer that turns context into UI behavior.',
-      bullets: ['Reads signals, dials, and memory', 'Outputs device-independent UI commands', 'Helps the interface adapt respectfully'],
-      link: 'context-grammar/rule-engine/index.html',
-      color: 'default'
-    },
-    'negotiation-gate': {
-      num: '06',
-      title: 'Negotiation Gate',
-      desc: 'Evaluates Confidence × Risk × Reversibility × Sensitivity before any action.',
-      bullets: ['High confidence + low risk → proceed', 'Low confidence or high risk → escalate to user', 'Outputs Gate Decision + Autonomy Ceiling'],
+      title: 'Risk & Confidence Gate',
+      desc: 'Evaluates system Confidence, domain Sensitivity, transaction Risk, and action Reversibility.',
+      bullets: ['Confidence × Risk metric analysis', 'Domain sensitivity classification', 'Sets a safety ceiling on execution autonomy'],
       link: 'context-grammar/negotiation-gate/',
-      color: 'default'
+      color: 'grammar'
     },
-    'autonomy-resolution': {
-      num: '07',
-      title: 'Autonomy Resolution',
-      desc: 'Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling). The core safety contract.',
-      bullets: ['User setting is the preference', 'Gate ceiling is the safety constraint', 'Final autonomy is the lower of the two'],
-      link: 'context-grammar/negotiation-gate/#autonomy-resolution',
-      color: 'default'
+    negotiation: {
+      num: '04',
+      title: 'Negotiation Gate',
+      desc: 'Clarifies intent and maps understanding. Evaluates Confidence × Risk × Reversibility × Sensitivity before acting.',
+      bullets: ['Assumption Cards & Interpretation Previews', 'Sets autonomy ceiling: min(User Setting, Gate Ceiling)', 'Proceed / preview / confirm / block decision'],
+      link: 'context-grammar/negotiation-gate/index.html',
+      color: 'grammar'
     },
-    'ax-patterns': {
-      num: '08',
-      title: 'AX × Lifecycle',
-      desc: 'Reusable behavior patterns for AI experiences across the agent lifecycle.',
-      bullets: ['Delegation', 'Escalation', 'Adaptation', 'Enterprise constraints'],
+    autonomy: {
+      num: '06',
+      title: 'AX Patterns',
+      desc: 'Expresses the Gate-resolved response via 23 reusable AX patterns across active surfaces. Executes across multi-device surfaces and triggers active lifecycle loops.',
+      bullets: ['23 AX Patterns shape response behavior', 'Each pattern tagged with Agent Action Lifecycle verb', 'Device orchestration across Watch, CarPlay, HUD'],
       link: 'context-grammar/ax-patterns/index.html',
+      color: 'brand'
+    },
+    brain: {
+      num: '🧠',
+      title: 'Brain',
+      desc: 'Three-layer memory: Identity (who you are), Learning (taught preferences), Now (current state). Referenced dynamically by every stage.',
+      bullets: ['Identity (who you are)', 'Learning (taught preferences)', 'Now (current state and signals)'],
+      link: 'context-grammar/brain/index.html',
+      color: 'default'
+    },
+    trust: {
+      num: '🛡️',
+      title: 'Trust',
+      desc: 'Long-term relationship quality. Disclosure × Autonomy, Temporal Arc, Breach Recovery. Bounds autonomy ceiling.',
+      bullets: ['Disclosure × Autonomy coupling', 'Temporal Arc — relationship grows over time', 'Trust Breach Recovery'],
+      link: 'context-grammar/trust/index.html',
       color: 'brand'
     }
   };
@@ -80,10 +64,10 @@
   /* ─── STEP → PIPELINE STAGE MAPPING ─── */
   var STEP_STAGES = {
     0: ['human'],
-    1: ['human', 'intent'],
-    2: ['human', 'intent', 'signals', 'dials', 'rule-engine', 'negotiation-gate', 'autonomy-resolution', 'ax-patterns'],
-    3: ['human', 'intent', 'signals', 'dials'],
-    4: ['human', 'intent', 'signals', 'dials', 'rule-engine', 'negotiation-gate', 'autonomy-resolution', 'ax-patterns']
+    1: ['human', 'inference'],
+    2: ['human', 'inference', 'gate', 'negotiation', 'autonomy'],
+    3: ['human', 'inference', 'gate', 'negotiation'],
+    4: ['human', 'inference', 'gate', 'negotiation', 'autonomy']
   };
 
   /* ─── STATE ─── */
@@ -97,6 +81,10 @@
   var section, steps, dots, progressFill, pipeBarStages;
   var prevBtn, nextBtn, curLabel;
   var popover, popoverNum, popoverTitle, popoverDesc, popoverBullets, popoverLink, popoverClose;
+
+  function normalizeStageKey(key) {
+    return key === 'trust-design' ? 'trust' : key;
+  }
 
   /* ─── INIT ─── */
   function init() {
@@ -130,7 +118,7 @@
     // Bind pipeline cards
     section.querySelectorAll('.xp-pipe-card').forEach(function (card) {
       card.addEventListener('click', function (e) {
-        var key = card.getAttribute('data-xp-card');
+        var key = normalizeStageKey(card.getAttribute('data-xp-card'));
         if (state.openCard === key) {
           closePopover();
         } else {
@@ -258,6 +246,7 @@
 
   /* ─── OPEN POPOVER ─── */
   function openPopover(key, triggerEl) {
+    key = normalizeStageKey(key);
     var data = PIPELINE_DATA[key];
     if (!data) return;
 

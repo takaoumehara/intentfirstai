@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED** — This plan has been superseded by the Lean Model Migration (2026-05-27). The architecture is now 6 Stages + 2 Always-On Layers. See `HANDOFF.md` for the current state.
+
 # Context Grammar Pipeline v2 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -61,7 +63,7 @@ Find the `## Naming Conventions` table. Add these rows to the bottom of the tabl
 
 Confirm these appear in CLAUDE.md's banned expressions (add if missing):
 ```
-- "Tower", "Floor N", "5-floor", "Five floor" → Pipeline / Stage N / Cross-cut
+- "Tower", "Floor N", "5-floor", "Five floor" → Pipeline / Stage N / Always-On Layer
 - "Intent becomes the interface" → "Intent is the entry point. Interpretation is the interface."
 - "Tokens" / "Context Tokens" / "8 Context Tokens" → Signals & Dials / 6 Situation Signals / 2 Relationship Dials
 ```
@@ -84,7 +86,7 @@ Read `context-grammar/_my-understanding.md` first. Find any mention of "Tower", 
 **Stage 7:** AX Patterns × Agent Action Lifecycle — 23 patterns tagged with Lifecycle Verbs
 **Stage 8:** Agentic Response
 
-**Three Cross-cuts (span all 8 Stages, not numbered Stages themselves):**
+**Three Always-On Layers / 常に働くレイヤー (span all 8 Stages, not numbered Stages themselves):**
 - Brain (Memory & Learning State) — referenced by every Stage; updated during Monitor/Adapt
 - Trust Design — long-term relational trust (Disclosure × Autonomy, Temporal Arc)
 - Negotiation Design — moment-to-moment meaning alignment (UI primitives)
@@ -164,7 +166,7 @@ For each hit:
 - "Floor 1" → "Stage 1 (Intent v2)"
 - "Floor 2" → "Stage 2–3 (Signals & Dials)"
 - "Floor 3" → "Rule Engine (Stage 4)"
-- "Floor 4" → "Brain (Cross-cut)"
+- "Floor 4" → "Brain (Always-On Layer)"
 - "Floor 5" → "AX Patterns (Stage 7)"
 - "Tower" → "Decision Pipeline" or "Pipeline"
 - "5-floor" → "8-stage"
@@ -344,7 +346,7 @@ git commit -m "feat: update landing page hero to Pipeline v2 copy (JP)"
 - Modify: `index.html` (Pipeline SVG section, ~lines 1748–1820)
 - Modify: `assets/js/ga-slots.js` (popover data)
 
-**Context for implementing agent:** Read `index.html` lines 1740–1850 to understand the current SVG structure (6 stage cards). Read `assets/js/ga-slots.js` to understand the popover data format. The new SVG needs 8 stage cards + a Brain cross-cut band. Brain must NOT be a numbered stage card.
+**Context for implementing agent:** Read `index.html` lines 1740–1850 to understand the current SVG structure (6 stage cards). Read `assets/js/ga-slots.js` to understand the popover data format. The new SVG needs 8 stage cards + a Brain always-on-layer band. Brain must NOT be a numbered stage card.
 
 - [ ] **Step 1: Read the current SVG and popover structure**
 
@@ -368,7 +370,7 @@ In `index.html`, replace the Pipeline SVG cards section with 8 numbered stages. 
 08  Agentic Response    — UI output · notification · side effect
 ```
 
-Add a Brain cross-cut band as a visual element below (or above) the stage row with label "Brain (Cross-cut): Memory & Learning State — referenced by all stages". Use `font-style: italic` or a distinct styling to separate it from the numbered stages.
+Add a Brain always-on-layer band as a visual element below (or above) the stage row with label "Brain (Always-On Layer): Memory & Learning State — referenced by all stages". Use `font-style: italic` or a distinct styling to separate it from the numbered stages.
 
 - [ ] **Step 3: Update popover data in `assets/js/ga-slots.js`**
 
@@ -408,7 +410,7 @@ Final Autonomy = min(User Setting, Gate Ceiling)
 
 Open `index.html` in a browser. Verify:
 - 8 stage cards render in sequence
-- Brain cross-cut band is visible but not numbered
+- Brain always-on-layer band is visible but not numbered
 - Two new stages (Negotiation Gate, Autonomy Resolution) show popovers on hover/click
 
 - [ ] **Step 6: Commit**
@@ -1052,7 +1054,7 @@ Create the full `context-grammar/negotiation-layer/index.html` with this layout:
   <!-- Insert site navigation here (same as other CG pages) -->
 
   <header class="nl-hero">
-    <span class="nl-phase-badge">CROSS-CUT · NEGOTIATION DESIGN · PHASE 1</span>
+    <span class="nl-phase-badge">ALWAYS-ON LAYER · NEGOTIATION DESIGN · PHASE 1</span>
     <h1>Negotiation Layer</h1>
     <p>Before the AI acts, it shows you its interpretation. You correct it. The system learns.</p>
   </header>
@@ -1337,7 +1339,7 @@ After all 10 tasks above:
 - [ ] `grep -rn "Intent becomes the interface" context-grammar/ index.html ja/index.html` → zero hits
 - [ ] `grep -rn -i "\btoken\b" context-grammar/ index.html ja/index.html --include="*.html" | grep -v "tokens/\|tokens\.css\|tokens\.yaml\|tokens\.json"` → zero hits in body copy
 - [ ] Landing page hero H1 = "From human expression to agentic action."
-- [ ] Pipeline SVG shows 8 numbered stages + Brain cross-cut band
+- [ ] Pipeline SVG shows 8 numbered stages + Brain always-on-layer band
 - [ ] Intent page has triple slogan and 4×3 diagonal table
 - [ ] Signals & Dials page shows Readiness Table and Decision Schema message
 - [ ] Negotiation Gate page renders at `/context-grammar/negotiation-gate/`

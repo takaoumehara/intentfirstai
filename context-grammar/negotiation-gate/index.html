@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Negotiation Gate — Stage 5 | Context Grammar</title>
   <meta name="description"
-    content="The Negotiation Gate is Stage 5 of the Context Grammar Decision Pipeline. It evaluates Confidence × Risk × Reversibility × Sensitivity before any action, outputting an Autonomy Ceiling that Stage 6 uses to compute Final Autonomy.">
+    content="The Negotiation Gate is Stage 5 of the Context Grammar Decision Pipeline. It evaluates Confidence × Risk × Reversibility × Sensitivity before any action, outputting a Gate Decision and Autonomy Ceiling — Final Autonomy = min(User Setting, Gate Ceiling).">
   <meta property="og:title" content="Negotiation Gate — Stage 5 | Context Grammar">
   <meta property="og:description"
-    content="The Negotiation Gate is Stage 5 of the Context Grammar Decision Pipeline. It evaluates Confidence × Risk × Reversibility × Sensitivity before any action, outputting an Autonomy Ceiling that Stage 6 uses to compute Final Autonomy.">
+    content="The Negotiation Gate is Stage 5 of the Context Grammar Decision Pipeline. It evaluates Confidence × Risk × Reversibility × Sensitivity before any action, outputting a Gate Decision and Autonomy Ceiling — Final Autonomy = min(User Setting, Gate Ceiling).">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://intentfirst.ai/context-grammar/negotiation-gate/">
   <link rel="canonical" href="https://intentfirst.ai/context-grammar/negotiation-gate/">
@@ -19,9 +19,284 @@
   <link rel="stylesheet" href="../../assets/css/components.css">
   <link rel="stylesheet" href="../../assets/css/context-grammar.css">
   <link rel="stylesheet" href="../../assets/css/nav.css">
+  <link rel="stylesheet" href="../../assets/css/footer.css">
   <link rel="stylesheet" href="../../assets/css/green-animation.css">
   <link rel="stylesheet" href="../../assets/css/cg-restaurant-aside.css">
   <link rel="stylesheet" href="../../assets/css/cg3-layout.css">
+
+  <style>
+    /* UI Primitives interactive demo — migrated from negotiation-layer */
+    .ng-demo-box {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1.8rem;
+      margin: 0;
+    }
+    .ng-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-500);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .ng-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.9rem 1rem;
+      font-size: 1rem;
+      font-family: var(--font-sans, sans-serif);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      resize: vertical;
+      min-height: 90px;
+      background: white;
+      color: var(--gray-900);
+      line-height: 1.5;
+    }
+    .ng-textarea:focus {
+      outline: none;
+      border-color: var(--gray-600);
+    }
+    .ng-btn-run {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.9rem;
+      padding: 0.65rem 1.4rem;
+      background: var(--gray-900);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: var(--font-sans, sans-serif);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .ng-btn-run:hover { background: var(--gray-700); }
+    .ng-result {
+      display: none;
+      margin-top: 1.5rem;
+      animation: ngFadeIn 0.3s ease;
+    }
+    .ng-result.active { display: block; }
+    @keyframes ngFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .ng-card {
+      background: white;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 1.3rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .ng-card-header {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--gray-500);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 0 0 0.6rem;
+    }
+    .ng-interp-text {
+      font-size: 1rem;
+      color: var(--gray-900);
+      margin: 0 0 0.8rem;
+      line-height: 1.55;
+    }
+    .ng-conf-bar-wrap {
+      height: 6px;
+      background: var(--gray-200);
+      border-radius: 3px;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+    }
+    .ng-conf-bar {
+      height: 100%;
+      background: var(--gray-500);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .ng-conf-bar.high { background: #166534; }
+    .ng-conf-bar.mid  { background: #92400e; }
+    .ng-conf-bar.low  { background: #991b1b; }
+    .ng-meta {
+      font-size: 0.78rem;
+      color: var(--gray-500);
+      font-family: var(--font-mono, monospace);
+      margin: 0;
+    }
+    .ng-assumptions-header {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--gray-500);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 1.5rem 0 0.7rem;
+    }
+    .ng-assumption {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      transition: opacity 0.2s;
+    }
+    .ng-assumption.dismissed { opacity: 0.3; }
+    .ng-assumption.dismissed .ng-assumption-text { text-decoration: line-through; }
+    .ng-assumption-text {
+      flex: 1;
+      font-size: 0.9rem;
+      color: var(--gray-800);
+      line-height: 1.45;
+      cursor: text;
+      min-height: 1.2em;
+    }
+    .ng-assumption-text[contenteditable="true"]:focus {
+      outline: 1px dashed var(--gray-400);
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+    .ng-system-badge {
+      font-size: 0.65rem;
+      color: var(--gray-400);
+      font-family: var(--font-mono, monospace);
+      white-space: nowrap;
+      margin-top: 0.1rem;
+    }
+    .ng-dismiss-btn {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      color: var(--gray-300);
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .ng-dismiss-btn:hover { color: var(--gray-600); }
+    .ng-priority {
+      display: none;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      margin-top: 1rem;
+    }
+    .ng-priority.active { display: block; }
+    .ng-priority-head {
+      margin: 0 0 0.5rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-500);
+    }
+    .ng-priority-copy {
+      margin: 0 0 0.75rem;
+      font-size: 0.88rem;
+      color: var(--gray-700);
+      line-height: 1.55;
+    }
+    .ng-priority-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .ng-priority-opt {
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      background: white;
+      color: var(--gray-700);
+      font-size: 0.84rem;
+      text-align: left;
+      cursor: pointer;
+    }
+    .ng-priority-opt.active {
+      border-color: var(--gray-900);
+      color: var(--gray-900);
+    }
+    .ng-priority-note {
+      margin: 0.65rem 0 0;
+      font-size: 0.8rem;
+      color: var(--gray-500);
+      font-family: var(--font-mono, monospace);
+    }
+    .ng-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .ng-btn-confirm {
+      padding: 0.65rem 1.4rem;
+      background: var(--gray-900);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: var(--font-sans, sans-serif);
+      cursor: pointer;
+    }
+    .ng-btn-confirm:hover { background: var(--gray-700); }
+    .ng-btn-correct {
+      padding: 0.65rem 1.4rem;
+      background: white;
+      color: var(--gray-700);
+      border: 1.5px solid var(--gray-300);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: var(--font-sans, sans-serif);
+      cursor: pointer;
+    }
+    .ng-btn-correct:hover { border-color: var(--gray-600); }
+    .ng-outcome {
+      display: none;
+      background: var(--gray-100);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--gray-700);
+      line-height: 1.5;
+    }
+    .ng-outcome.active { display: block; }
+    .ng-preset-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.55rem 1rem;
+      background: white;
+      border: 1.5px solid var(--gray-300);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: var(--font-sans, sans-serif);
+      color: var(--gray-700);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .ng-preset-btn:hover {
+      border-color: var(--gray-900);
+      background: var(--gray-50);
+    }
+    .ng-preset-btn.active {
+      border-color: var(--gray-900);
+      background: var(--gray-900);
+      color: white;
+    }
+    @media (max-width: 768px) {
+      .ng-actions { flex-direction: column; }
+      .ng-btn-confirm, .ng-btn-correct { width: 100%; text-align: center; }
+      .ng-preset-btn { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+    }
+  </style>
 </head>
 
 <body data-dark-nav class="nav-has-subnav">
@@ -43,9 +318,12 @@
             </div>
             <div>
               <b>03</b>
-              <span>Stage 6: Final Autonomy = min(User Setting, Gate Ceiling)</span>
+              <span>Autonomy Resolution: Final Autonomy = min(User Setting, Gate Ceiling)</span>
             </div>
           </div>
+        </div>
+        <div class="cg3-hero-visual" aria-hidden="true">
+          <img src="../images/ISO-GREEN/CG-hero-negotiation-gate.png" alt="Negotiation Gate illustration" style="width: 100%; height: auto; max-height: 400px; object-fit: contain;">
         </div>
       </div>
     </header>
@@ -153,22 +431,101 @@
 
 gate_decision:
   proceed: boolean
-  ui_primitive: silent | confidence_signal | interpretation_preview
-               | assumption_cards | escalate | block
+  ui_primitive: none | interpretation_preview | assumption_cards | priority_toggle
   autonomy_ceiling: suggest | confirm | notify | auto
   rationale: string</code></pre>
       </div>
     </section>
 
-    <!-- Section 3: Autonomy Resolution -->
-    <section class="cg3-section" id="autonomy-resolution" aria-label="Autonomy Resolution — Stage 6">
+    <!-- Section 2b: UI Primitives — Interpretation Preview, Assumption Cards, Priority Toggle -->
+    <section class="cg3-section" id="ui-primitives" aria-label="UI Primitives — meaning-alignment interface">
       <div class="cg3-shell">
-        <h2 class="cg3-h2">Stage 6: Autonomy Resolution</h2>
-        <p>After the Gate runs, Stage 6 computes the final trust level for this specific action. The formula is the core safety contract of the entire framework:</p>
+        <p class="cg3-label">Meaning-alignment interface</p>
+        <h2 class="cg3-h2">Three UI Primitives the Gate activates.</h2>
+        <p>When the Gate decides that proceeding silently would be wrong, it surfaces one of three primitives. These are the Gate's interface to the user — the moment where AI reasoning becomes visible and correctable.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+          <div style="padding: 1.2rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Interpretation Preview</h3>
+            <p style="margin: 0 0 0.5rem; color: var(--gray-600); font-size: 0.9rem;">Before acting, the AI shows what it understood. Confidence score and domain are visible. R38 fires this when confidence is 0.4–0.8.</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--gray-500); font-style: italic;">"I'm reading this as fatigue — want me to dim the lights?"</p>
+          </div>
+          <div style="padding: 1.2rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Assumption Cards</h3>
+            <p style="margin: 0 0 0.5rem; color: var(--gray-600); font-size: 0.9rem;">The AI's premises, made visible and editable. Editable cards can be rephrased; system constraints are flagged read-only. R37 fires this when confidence &lt; 0.4.</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--gray-500); font-style: italic;">"Domain: Health — sensitivity HIGH [system]"</p>
+          </div>
+          <div style="padding: 1.2rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Priority Toggle</h3>
+            <p style="margin: 0 0 0.5rem; color: var(--gray-600); font-size: 0.9rem;">When two values are in tension, the Gate asks which leads for this moment. Activated when conflicting assumptions surface in a domain.</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--gray-500); font-style: italic;">"Protect privacy" vs. "Ensure safety" — which leads right now?</p>
+          </div>
+        </div>
+
+        <p style="margin: 0 0 1.5rem;">The meaning-alignment responsibility that was previously described as a separate "Negotiation Design" layer is embodied by the Gate. These primitives are the Gate's output when it determines that silent execution would break trust.</p>
+
+        <!-- Interactive demo -->
+        <div style="margin-bottom: 1.2rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0 0 0.3rem;">Try it: watch the Gate select a primitive</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-600); margin: 0;">Pick a preset — or type your own input — to see how confidence and domain determine which primitive fires.</p>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem;">
+          <button class="ng-preset-btn" data-scenario="health" onclick="ngRunPreset('health')">Health</button>
+          <button class="ng-preset-btn" data-scenario="work"   onclick="ngRunPreset('work')">Work</button>
+          <button class="ng-preset-btn" data-scenario="family" onclick="ngRunPreset('family')">Family</button>
+          <button class="ng-preset-btn" data-scenario="travel" onclick="ngRunPreset('travel')">Travel</button>
+        </div>
+
+        <div class="ng-demo-box">
+          <label class="ng-label" for="ng-input">Or type your own input</label>
+          <textarea class="ng-textarea" id="ng-input"
+            placeholder="最近太った気がする / I've been tired lately / Work is overwhelming"></textarea>
+          <button class="ng-btn-run" id="ng-run-btn" onclick="ngRunGate()">Run Negotiation Gate →</button>
+
+          <div class="ng-result" id="ng-result" aria-live="polite">
+            <div class="ng-card" id="ng-interp-card">
+              <p class="ng-card-header">Interpretation Preview</p>
+              <p class="ng-interp-text" id="ng-interp-text"></p>
+              <div class="ng-conf-bar-wrap">
+                <div class="ng-conf-bar" id="ng-conf-bar"></div>
+              </div>
+              <p class="ng-meta" id="ng-meta"></p>
+            </div>
+
+            <p class="ng-assumptions-header">Assumption Cards — edit or dismiss any premise</p>
+            <div id="ng-assumptions"></div>
+
+            <div class="ng-priority" id="ng-priority">
+              <p class="ng-priority-head">Priority Toggle</p>
+              <p class="ng-priority-copy" id="ng-priority-copy"></p>
+              <div class="ng-priority-toggle">
+                <button class="ng-priority-opt" id="ng-priority-left"  onclick="ngSelectPriority('left')"></button>
+                <button class="ng-priority-opt" id="ng-priority-right" onclick="ngSelectPriority('right')"></button>
+              </div>
+              <p class="ng-priority-note" id="ng-priority-note"></p>
+            </div>
+
+            <div class="ng-actions">
+              <button class="ng-btn-confirm" onclick="ngDoConfirm()">✓ Confirm</button>
+              <button class="ng-btn-correct" onclick="ngDoCorrect()">↩ Correct</button>
+            </div>
+
+            <div class="ng-outcome" id="ng-outcome"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Autonomy Resolution — folded into Stage 5 Gate -->
+    <section class="cg3-section" id="autonomy-resolution" aria-label="Autonomy Resolution — part of Stage 5">
+      <div class="cg3-shell">
+        <h2 class="cg3-h2">Autonomy Resolution: the Gate's final output.</h2>
+        <p>After the Gate evaluates and (when needed) negotiates, it computes the final trust level for this specific action. Autonomy Resolution is not a separate stage — it is the Gate's output formula:</p>
         <div style="background: var(--gray-50); border: 2px solid var(--gray-200); border-radius: 10px; padding: 2rem; margin: 1.5rem 0; text-align: center;">
           <code style="font-size: clamp(1rem, 2.5vw, 1.4rem); font-family: var(--font-mono); font-weight: 600; letter-spacing: -0.01em;">Final Autonomy = min(User Autonomy Setting, Gate Autonomy Ceiling)</code>
         </div>
-        <p>A user who has set their Autonomy Dial to "Auto" may still receive "Confirm" for a specific high-risk action if the Gate Ceiling requires it. This formula makes "the AI decides how cautious to be for each action" expressible in one line.</p>
+        <p>A user who has set their Autonomy Dial to "Auto" may still receive "Confirm" for a specific high-risk action if the Gate Ceiling requires it. This formula makes "the AI decides how cautious to be for each action" expressible in one line. The Gate computes Autonomy Resolution; the next stage (AX Patterns) decides which response pattern to execute.</p>
       </div>
     </section>
 
@@ -312,8 +669,7 @@ gate_decision:
           <p style="margin: 0;">If the Gate fires too often, you learn to ignore it — and now the Gate cannot do its job when it truly matters. <strong>Restraint is the Gate's most important behavior.</strong></p>
         </div>
 
-        <p>The Gate is not a confirmation dialog. It is a judgment. Most of the time, the judgment is: <em>proceed</em>. The firing rules and confidence thresholds are the guardrail against over-interruption. The Negotiation Layer only surfaces when the Gate determines that proceeding silently would be wrong.</p>
-        <p>See the <a href="/context-grammar/negotiation-layer/" style="color: inherit; text-decoration: underline;">Negotiation Layer prototype</a> for an interactive demonstration of when and how the Gate fires.</p>
+        <p>The Gate is not a confirmation dialog. It is a judgment. Most of the time, the judgment is: <em>proceed</em>. The firing rules and confidence thresholds are the guardrail against over-interruption. The three UI primitives — Interpretation Preview, Assumption Cards, Priority Toggle — only surface when the Gate determines that proceeding silently would be wrong.</p>
       </div>
     </section>
 
@@ -330,10 +686,251 @@ gate_decision:
 
   <div class="chapter-nav" data-current="negotiation-gate" data-base="../"></div>
   <script src="../../assets/js/chapter-nav.js"></script>
+  <script src="../../assets/js/cg-ia.js"></script>
   <script src="../../assets/js/nav.js"></script>
-  <script>initNav({ basePath: '../../', activePage: 'negotiation-gate', lang: 'en', showLang: true, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });</script>
+  <script src="../../assets/js/footer.js"></script>
+  <script>initNav({ basePath: '../../', activePage: 'negotiation-gate', lang: 'en', showLang: true, contextGrammarRoot: 'context-grammar', contextGrammarLangInside: true });
+  initFooter({ basePath: '../../', lang: 'en' });</script>
   <script src="../../assets/js/ga-slots.js"></script>
   <script src="../../assets/js/green-animation.js" defer></script>
+
+  <script>
+    // -------------------------------------------------------
+    //  UI PRIMITIVES DEMO — Negotiation Gate interactive demo
+    //  (migrated from negotiation-layer/index.html)
+    // -------------------------------------------------------
+    var NG_PATTERNS = [
+      {
+        keywords: ['疲れ', '太った', '体重', '運動', '健康', 'tired', 'weight', 'exercise', 'health', 'sleep', '眠れ', '眠'],
+        en: 'You seem to be concerned about your health or physical state.',
+        jp: '健康や体の状態について気にされているようです。',
+        assumptions: [
+          { id: 'a1', text: 'This is about personal health, not a medical emergency', editable: true },
+          { id: 'a2', text: 'You want suggestions, not a diagnosis', editable: true },
+          { id: 'a3', text: 'Domain: Health — system sensitivity set to HIGH', editable: false }
+        ],
+        conflicts: [
+          { id: 'a-conf-1', left: 'Prioritize long-term health gains', right: "Minimize disruption to today's routine" }
+        ],
+        confidence: 0.72,
+        domain: 'health',
+        awareness: 'Latent'
+      },
+      {
+        keywords: ['仕事', '会議', '締め切り', '残業', 'work', 'meeting', 'deadline', 'busy', 'overwhelm', 'overload', 'stress'],
+        en: 'This looks like a work or schedule priority question.',
+        jp: '仕事やスケジュールの優先順位に関することのようです。',
+        assumptions: [
+          { id: 'b1', text: 'The situation is time-sensitive', editable: true },
+          { id: 'b2', text: 'You want help prioritizing, not just venting', editable: true }
+        ],
+        conflicts: [
+          { id: 'b-conf-1', left: 'Move fast and reduce cognitive load now', right: 'Preserve quality and avoid risky shortcuts' }
+        ],
+        confidence: 0.81,
+        domain: 'work',
+        awareness: 'Inferred'
+      },
+      {
+        keywords: ['旅行', '計画', 'trip', 'travel', 'plan', 'vacation', '休暇', '予約'],
+        en: 'You are planning or thinking about a trip.',
+        jp: '旅行の計画または準備について考えているようです。',
+        assumptions: [
+          { id: 'c1', text: 'This is leisure travel, not work travel', editable: true },
+          { id: 'c2', text: 'You want ideas or help organizing, not booking yet', editable: true }
+        ],
+        confidence: 0.76,
+        domain: 'schedule',
+        awareness: 'Inferred'
+      },
+      {
+        keywords: ['家族', '子供', '夫', '妻', '親', 'family', 'dinner', '夕食', 'children', 'partner', 'relationship', '関係'],
+        en: 'This involves your family — a sensitive, personal domain.',
+        jp: 'ご家族に関することのようです。プライバシーを尊重して対応します。',
+        assumptions: [
+          { id: 'd1', text: 'Domain: Family — system sensitivity set to MEDIUM-HIGH', editable: false },
+          { id: 'd2', text: 'You want support or to think things through, not decisions made for you', editable: true }
+        ],
+        conflicts: [
+          { id: 'd-conf-1', left: 'Protect family privacy and autonomy', right: 'Ensure safety and well-being through intervention' }
+        ],
+        confidence: 0.65,
+        domain: 'family_relationship',
+        awareness: 'Latent'
+      },
+      {
+        keywords: ['お金', '買い物', '予算', 'money', 'finance', 'budget', 'buy', 'purchase', 'spend'],
+        en: 'This seems to be about finances or spending.',
+        jp: '財務や購入に関することのようです。',
+        assumptions: [
+          { id: 'e1', text: 'Domain: Finance — system sensitivity set to HIGH', editable: false },
+          { id: 'e2', text: 'You want to think it through, not commit to anything yet', editable: true }
+        ],
+        confidence: 0.70,
+        domain: 'finance',
+        awareness: 'Inferred'
+      }
+    ];
+
+    var NG_DEFAULT_PATTERN = {
+      en: 'I detected a general request. Let me surface my assumptions so you can correct them.',
+      jp: '一般的なリクエストとして認識しました。前提を表示しますので、修正してください。',
+      assumptions: [
+        { id: 'z1', text: 'This is a low-sensitivity request', editable: true },
+        { id: 'z2', text: 'You want a direct response', editable: true }
+      ],
+      confidence: 0.45,
+      domain: 'information',
+      awareness: 'Stated'
+    };
+
+    var NG_PRESETS = {
+      health: "I've been feeling really tired lately…",
+      work:   'Work is overwhelming this week — too many deadlines',
+      family: '家族との時間が減ってる気がする',
+      travel: 'I want to plan a family trip for spring break'
+    };
+
+    function ngMatchPattern(input) {
+      var lower = input.toLowerCase();
+      for (var i = 0; i < NG_PATTERNS.length; i++) {
+        var p = NG_PATTERNS[i];
+        for (var j = 0; j < p.keywords.length; j++) {
+          if (lower.indexOf(p.keywords[j].toLowerCase()) !== -1) return p;
+        }
+      }
+      return NG_DEFAULT_PATTERN;
+    }
+
+    function ngIsJapanese(text) {
+      return /[あ-んア-ン一-鿿]/.test(text);
+    }
+
+    function ngEscHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    var ngCurrentPattern = null;
+    var ngSelectedPriority = null;
+
+    function ngRunGate() {
+      var input = document.getElementById('ng-input').value.trim();
+      if (!input) return;
+
+      ngCurrentPattern = ngMatchPattern(input);
+      ngSelectedPriority = null;
+      var jp = ngIsJapanese(input);
+      var conf = ngCurrentPattern.confidence;
+
+      document.getElementById('ng-interp-text').textContent =
+        (jp && ngCurrentPattern.jp) ? ngCurrentPattern.jp : ngCurrentPattern.en;
+
+      var bar = document.getElementById('ng-conf-bar');
+      bar.style.width = (conf * 100) + '%';
+      bar.className = 'ng-conf-bar ' + (conf >= 0.75 ? 'high' : conf >= 0.5 ? 'mid' : 'low');
+
+      var gate = conf < 0.4 ? 'R37: show Assumption Cards' :
+                 conf < 0.8 ? 'R38: show Interpretation Preview' :
+                              'R39: would proceed silently (demo shows it anyway)';
+      document.getElementById('ng-meta').textContent =
+        'Confidence: ' + Math.round(conf * 100) + '% · Domain: ' + ngCurrentPattern.domain +
+        ' · Awareness: ' + ngCurrentPattern.awareness + ' · ' + gate;
+
+      var list = document.getElementById('ng-assumptions');
+      list.innerHTML = '';
+      ngCurrentPattern.assumptions.forEach(function (a) {
+        var div = document.createElement('div');
+        div.className = 'ng-assumption';
+        div.id = 'ng-assumption-' + a.id;
+        var editable = a.editable !== false;
+        div.innerHTML =
+          '<span class="ng-assumption-text"' + (editable ? ' contenteditable="true"' : '') + '>' + ngEscHtml(a.text) + '</span>' +
+          (!editable ? '<span class="ng-system-badge">[system]</span>' : '') +
+          (editable ? '<button class="ng-dismiss-btn" onclick="ngDismiss(\'' + a.id + '\')" aria-label="Dismiss">×</button>' : '');
+        list.appendChild(div);
+      });
+
+      ngRenderPriorityToggle(ngCurrentPattern);
+
+      var outcome = document.getElementById('ng-outcome');
+      outcome.className = 'ng-outcome';
+      outcome.textContent = '';
+      document.getElementById('ng-result').className = 'ng-result active';
+    }
+
+    function ngDismiss(id) {
+      var el = document.getElementById('ng-assumption-' + id);
+      if (el) el.classList.toggle('dismissed');
+    }
+
+    function ngRenderPriorityToggle(pattern) {
+      var wrap     = document.getElementById('ng-priority');
+      var copy     = document.getElementById('ng-priority-copy');
+      var leftBtn  = document.getElementById('ng-priority-left');
+      var rightBtn = document.getElementById('ng-priority-right');
+      var note     = document.getElementById('ng-priority-note');
+      var hasConflict = pattern && pattern.conflicts && pattern.conflicts.length > 0;
+      if (!hasConflict) {
+        wrap.className = 'ng-priority';
+        copy.textContent = leftBtn.textContent = rightBtn.textContent = note.textContent = '';
+        return;
+      }
+      var c = pattern.conflicts[0];
+      wrap.className = 'ng-priority active';
+      copy.textContent = 'Two assumptions are in tension. Choose which value takes precedence right now.';
+      leftBtn.textContent  = c.left;
+      rightBtn.textContent = c.right;
+      leftBtn.className  = 'ng-priority-opt';
+      rightBtn.className = 'ng-priority-opt';
+      note.textContent = 'No priority selected yet.';
+    }
+
+    function ngSelectPriority(side) {
+      var leftBtn  = document.getElementById('ng-priority-left');
+      var rightBtn = document.getElementById('ng-priority-right');
+      var note     = document.getElementById('ng-priority-note');
+      ngSelectedPriority = side;
+      leftBtn.className  = 'ng-priority-opt' + (side === 'left'  ? ' active' : '');
+      rightBtn.className = 'ng-priority-opt' + (side === 'right' ? ' active' : '');
+      note.textContent = 'Priority: ' + (side === 'left' ? leftBtn.textContent : rightBtn.textContent);
+    }
+
+    function ngDoConfirm() {
+      var outcome = document.getElementById('ng-outcome');
+      var prefix = ngSelectedPriority ? 'Priority locked. ' : '';
+      outcome.textContent = prefix + '✓ Interpretation confirmed. Gate decision: proceed. Autonomy Resolution applies min(User Setting, Gate Ceiling), then the appropriate AX Pattern executes.';
+      outcome.className = 'ng-outcome active';
+    }
+
+    function ngDoCorrect() {
+      var outcome = document.getElementById('ng-outcome');
+      outcome.textContent = '↩ Correction noted. The Gate holds — the AI does not act. Edit your input above and run the Gate again with a clearer expression.';
+      outcome.className = 'ng-outcome active';
+    }
+
+    function ngRunPreset(scenario) {
+      var input = NG_PRESETS[scenario];
+      if (!input) return;
+      document.getElementById('ng-input').value = input;
+      var btns = document.querySelectorAll('.ng-preset-btn');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].className = btns[i].getAttribute('data-scenario') === scenario
+          ? 'ng-preset-btn active' : 'ng-preset-btn';
+      }
+      ngRunGate();
+    }
+
+    // Auto-run health scenario on load
+    (function () {
+      var input = document.getElementById('ng-input');
+      if (input) {
+        input.value = NG_PRESETS.health;
+        var healthBtn = document.querySelector('.ng-preset-btn[data-scenario="health"]');
+        if (healthBtn) healthBtn.className = 'ng-preset-btn active';
+        ngRunGate();
+      }
+    })();
+  </script>
 </body>
 
 </html>

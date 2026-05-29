@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED** — This plan has been superseded by the Lean Model Migration (2026-05-27). The architecture is now 6 Stages + 2 Always-On Layers. See `HANDOFF.md` for the current state.
+
 # Projects Alignment Plan (Post Pipeline v2)
 
 Date: 2026-05-25
@@ -65,7 +67,7 @@ Planned updates:
 Current primary page appears to be `projects/project-06/p6-life-brain-v2.html`.
 
 Planned updates:
-- Stronger Brain cross-cut storytelling with Stage references.
+- Stronger Brain always-on-layer storytelling with Stage references.
 - Add lifecycle badges to each episode:
   - `Inform/Recommend` early,
   - `Act` only when reversibility/risk allows,

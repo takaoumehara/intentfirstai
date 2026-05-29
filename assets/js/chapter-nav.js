@@ -19,13 +19,15 @@
   // Linear reading order — Specs nests under Rule Engine but appears
   // here as the next-step continuation for "the engineering layer."
   var ORDER = [
-    { id: 'intent',     href: 'intent/index.html',       title: 'Intent',          floor: 'Floor 1' },
-    { id: 'tokens',     href: 'tokens/index.html',       title: 'Context Tokens',  floor: 'Floor 2' },
-    { id: 'brain',      href: 'brain/index.html',        title: 'Brain',           floor: 'Floor 3' },
-    { id: 'ruleengine', href: 'rule-engine/index.html',  title: 'Rule Engine',     floor: 'Floor 4' },
-    { id: 'specs',      href: 'specs/index.html',        title: 'Specs',           floor: 'Reference · under Rule Engine' },
-    { id: 'axpatterns', href: 'ax-patterns/index.html',  title: 'AX Patterns',     floor: 'Floor 5' },
-    { id: 'trust',      href: 'trust-design/index.html', title: 'Trust Design',    floor: 'Side Stream' }
+    { id: 'intent',            href: 'intent/index.html',            title: 'Intent',               titleJa: 'Intent',          floor: 'Stage 1',                             floorJa: 'Stage 1' },
+    { id: 'signals',           href: 'signals/index.html',           title: 'Situation Signals',    titleJa: '状況シグナル',    floor: 'Stage 2',                             floorJa: 'Stage 2' },
+    { id: 'dials',             href: 'dials/index.html',             title: 'Relationship Dials',   titleJa: '関係性ダイヤル',  floor: 'Stage 3',                             floorJa: 'Stage 3' },
+    { id: 'brain',             href: 'brain/index.html',             title: 'Brain',               titleJa: 'Brain',           floor: 'Always-On',                           floorJa: '常時起動' },
+    { id: 'ruleengine',        href: 'rule-engine/index.html',       title: 'Rule Engine',          titleJa: 'Rule Engine',     floor: 'Stage 4',                             floorJa: 'Stage 4' },
+    { id: 'specs',             href: 'specs/index.html',             title: 'Specs',               titleJa: 'Specs',           floor: 'Reference · under Rule Engine',       floorJa: 'リファレンス（ルールエンジンの下）' },
+    { id: 'negotiation-gate',  href: 'negotiation-gate/index.html',  title: 'Negotiation Gate',     titleJa: '交渉ゲート',      floor: 'Stage 5',                             floorJa: 'Stage 5' },
+    { id: 'axpatterns',        href: 'ax-patterns/index.html',       title: 'AX Patterns',          titleJa: 'AX Patterns',     floor: 'Stage 6',                             floorJa: 'Stage 6' },
+    { id: 'trust',             href: 'trust/index.html',             title: 'Trust Design',         titleJa: '信頼設計',        floor: 'Always-On',                           floorJa: '常時起動' }
   ];
 
   function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
@@ -34,17 +36,22 @@
     if (!target) {
       return '<div class="chapter-nav__pair-cell chapter-nav__pair-cell--empty"></div>';
     }
+    var isJa = document.documentElement.lang === 'ja' || window.location.pathname.includes('/ja/');
     var arrow = dir === 'prev' ? '←' : '→';
-    var label = dir === 'prev' ? 'Previous' : 'Next';
+    var label = isJa ? (dir === 'prev' ? '前へ' : '次へ') : (dir === 'prev' ? 'Previous' : 'Next');
+    var title = isJa ? (target.titleJa || target.title) : target.title;
+    var floor = isJa ? (target.floorJa || target.floor) : target.floor;
     return '<a href="' + base + target.href + '" class="chapter-nav__pair-cell chapter-nav__pair-cell--' + dir + '">'
       + '<span class="chapter-nav__pair-label">' + arrow + ' ' + label + '</span>'
-      + '<span class="chapter-nav__pair-floor">' + escapeAttr(target.floor) + '</span>'
-      + '<span class="chapter-nav__pair-title">' + escapeAttr(target.title) + '</span>'
+      + '<span class="chapter-nav__pair-floor">' + escapeAttr(floor) + '</span>'
+      + '<span class="chapter-nav__pair-title">' + escapeAttr(title) + '</span>'
       + '</a>';
   }
 
   function render(container) {
     var current = container.getAttribute('data-current') || '';
+    if (current === 'trust-design') current = 'trust';
+    if (current === 'tokens') current = 'signals';
     var base = container.getAttribute('data-base') || '../';
     var idx = -1;
     for (var i = 0; i < ORDER.length; i++) {

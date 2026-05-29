@@ -9,19 +9,20 @@
   const ITEMS = [
     { num: '01', label: 'Framework', href: 'context-grammar/index.html', children: [
       { label: 'Intent',       href: 'context-grammar/intent/index.html' },
-      { label: 'Tokens',       href: 'context-grammar/tokens/index.html' },
+      { label: 'Signals',      href: 'context-grammar/signals/index.html' },
+      { label: 'Dials',        href: 'context-grammar/dials/index.html' },
       { label: 'Brain',        href: 'context-grammar/brain/index.html' },
       { label: 'Rule Engine',  href: 'context-grammar/rule-engine/index.html' },
       { label: 'AX Patterns',  href: 'context-grammar/ax-patterns/index.html' },
-      { label: 'Trust Design', href: 'context-grammar/trust-design/index.html' }
+      { label: 'Trust',        href: 'context-grammar/trust/index.html' }
     ]},
     { num: '02', label: 'Projects', href: 'applied/index.html', children: [
-      { label: 'P1 · Living Home',   href: 'projects/project-01/p1-scroll.html' },
-      { label: 'P2 · Family Trip',   href: 'projects/project-02/p2-family-trip.html' },
-      { label: 'P3 · Fluid Handoff', href: 'projects/project-03/p3-scroll.html' },
-      { label: 'P4 · Claims Floor',  href: 'projects/project-04/p4-scroll.html' },
-      { label: 'P5 · The Field',     href: 'projects/project-05/p5-scroll.html' },
-      { label: 'P6 · Life Brain',    href: 'projects/project-06/p6-life-brain.html' }
+      { label: 'P1 · Living Home',   href: 'projects/project-01/index.html' },
+      { label: 'P2 · Family Trip',   href: 'projects/project-02/index.html' },
+      { label: 'P3 · Fluid Handoff', href: 'projects/project-03/index.html' },
+      { label: 'P4 · Claims Floor',  href: 'projects/project-04/index.html' },
+      { label: 'P5 · The Field',     href: 'projects/project-05/index.html' },
+      { label: 'P6 · Life Brain',    href: 'projects/project-06/index.html' }
     ]},
     { num: '03', label: 'Journal', href: 'https://intentfirst.substack.com' },
     { num: '04', label: 'About',   href: 'about/index.html' },
