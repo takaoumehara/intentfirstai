@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · iPhone · Akari's Protected Ritual | P6 Life Brain</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe { background: transparent !important; min-height: auto !important; padding: 0 !important; display: block; }
+  body.noframe .qa-frame { display: none; }
+
+  .screen {
+    position: absolute; inset: 0;
+    background: #010102; /* Linear canvas background */
+    color: #f7f8f8;
+    border-radius: inherit;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe .screen { position: relative; inset: auto; width: 100vw; min-height: 100vh; border-radius: 0; }
+
+  /* Status Bar */
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+  }
+  .status-icons { display: flex; gap: 6px; }
+
+  /* App Bar */
+  .app-bar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid #23252a;
+    background: #0f1011;
+  }
+  .app-bar__title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .ritual-badge {
+    margin-left: auto;
+    background: rgba(94, 106, 210, 0.15);
+    border: 1px solid rgba(94, 106, 210, 0.4);
+    color: #5e6ad2;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Content */
+  .content {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+
+  /* Main Card */
+  .card {
+    background: #0f1011;
+    border: 1px solid #23252a;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .card__title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+  }
+  .card__subtitle {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    color: #8a8f98;
+    margin-top: 4px;
+  }
+  .card__time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: #5e6ad2;
+    letter-spacing: 0.04em;
+    background: rgba(94, 106, 210, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Status Row */
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .status-tile {
+    background: #141516;
+    border: 1px solid #23252a;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .status-tile__label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: #8a8f98;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .status-tile__value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f7f8f8;
+  }
+  .status-tile__value--silent {
+    color: #8a8f98;
+  }
+
+  /* Log Overlay Graphic */
+  .chart-card {
+    background: #0f1011;
+    border: 1px solid #23252a;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .chart-title {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: #8a8f98;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .chart-stat {
+    font-size: 14px;
+    font-weight: 600;
+    color: #27a644; /* Success color */
+  }
+
+  /* SVG Glucose Graph (Silent background logging) */
+  .chart-svg {
+    width: 100%;
+    height: 80px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Message box */
+  .message-box {
+    background: #141516;
+    border-left: 3px solid #5e6ad2;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #d0d6e0;
+  }
+  .message-box strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Taxonomy Pills */
+  .rules-strip {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding: 16px 24px;
+    border-top: 1px solid #23252a;
+    background: #0f1011;
+    overflow-x: auto;
+  }
+  .rule-pill {
+    background: #141516;
+    border: 1px solid #23252a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: #8a8f98;
+    white-space: nowrap;
+  }
+  .rule-pill strong {
+    color: #5e6ad2;
+  }
+
+  /* Home Indicator */
+  .home-indicator {
+    width: 134px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 100px;
+    margin: 8px auto;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="qa-frame iphone15pro iphone15pro--lg">
+  <img class="iphone15pro__chrome"
+       src="../../Global_Assets/DeviceFrame/IPhone_15_Pro_Vector.svg"
+       alt="" aria-hidden="true">
+  <div class="iphone15pro__screen">
+    <div class="screen">
+      <div class="status-bar">
+        <span>21:40</span>
+        <div class="status-icons">🔋 📶 🛜</div>
+      </div>
+
+      <div class="app-bar">
+        <span class="app-bar__title">Protected Ritual</span>
+        <span class="ritual-badge">Active</span>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <div class="card__header">
+            <div>
+              <h2 class="card__title">Sunday Family Dinner</h2>
+              <span class="card__subtitle">Home · with daughter & grandkids</span>
+            </div>
+            <span class="card__time">Bi-Weekly</span>
+          </div>
+          
+          <div class="status-grid">
+            <div class="status-tile">
+              <div class="status-tile__label">Health Agent</div>
+              <div class="status-tile__value status-tile__value--silent">Passive Observe</div>
+            </div>
+            <div class="status-tile">
+              <div class="status-tile__label">Notifications</div>
+              <div class="status-tile__value status-tile__value--silent">Muted</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Glucose Log (Background)</span>
+            <span class="chart-stat">3h 14m Logged</span>
+          </div>
+          
+          <!-- Silent Glucose Curve -->
+          <svg class="chart-svg" viewBox="0 0 280 80">
+            <!-- Grid lines -->
+            <line x1="0" y1="20" x2="280" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="0" y1="50" x2="280" y2="50" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            
+            <!-- Shaded safe area -->
+            <rect x="0" y="20" width="280" height="30" fill="rgba(39, 166, 68, 0.04)" />
+            
+            <!-- Curve -->
+            <path d="M 0 35 C 40 38, 80 55, 120 58 C 160 62, 200 48, 240 45 C 260 44, 280 32, 280 30" 
+                  fill="none" stroke="#27a644" stroke-width="2"/>
+            
+            <!-- Silent markers -->
+            <circle cx="120" cy="58" r="3.5" fill="#27a644" stroke="#0f1011" stroke-width="1.5"/>
+            <circle cx="280" cy="30" r="3.5" fill="#27a644" stroke="#0f1011" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <div class="message-box">
+          Post-Ritual Status:<br>
+          <strong>3 hr 14 min · logged.</strong> No actions required. Fasting window begins at 22:30.
+        </div>
+      </div>
+
+      <div class="rules-strip">
+        <div class="rule-pill"><strong>D2</strong> Disclosure Lock</div>
+        <div class="rule-pill"><strong>A2</strong> Approval Gate Skip</div>
+        <div class="rule-pill"><strong>T4</strong> Time-Boxed</div>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+  <div class="iphone15pro__island" aria-hidden="true"></div>
+</div>
+</body>
+</html>

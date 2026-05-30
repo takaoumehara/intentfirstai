@@ -21,6 +21,10 @@
    removed after the transition settles so subsequent navs are clean. */
 (function () {
   try {
+    var theme = localStorage.getItem('cg-theme') || 'light';
+    if (!document.documentElement.hasAttribute('data-theme')) {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
     var dir = sessionStorage.getItem('cgnav-dir');
     if (!dir) return;
     sessionStorage.removeItem('cgnav-dir');
@@ -28,7 +32,7 @@
     setTimeout(function () {
       document.documentElement.classList.remove('cgnav-' + dir);
     }, 900);
-  } catch (e) { /* sessionStorage may be blocked — ignore */ }
+  } catch (e) { /* sessionStorage/localStorage may be blocked — ignore */ }
 })();
 
 function initGlossaryAndCommandK(opts) {
@@ -62,6 +66,25 @@ function initGlossaryAndCommandK(opts) {
     }
     var script = document.createElement('script');
     script.src = base + 'assets/js/glossary-db.js';
+    script.defer = true;
+    script.onload = cb;
+    script.onerror = function () { /* ignore */ };
+    document.head.appendChild(script);
+  }
+
+  function ensurePaletteIndex(cb) {
+    if (window.buildPaletteIndex) {
+      cb();
+      return;
+    }
+    var existing = document.querySelector('script[src*="assets/js/palette-index.js"]');
+    if (existing) {
+      existing.addEventListener('load', cb, { once: true });
+      existing.addEventListener('error', function () { /* ignore */ }, { once: true });
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = base + 'assets/js/palette-index.js';
     script.defer = true;
     script.onload = cb;
     script.onerror = function () { /* ignore */ };
@@ -340,17 +363,17 @@ function initGlossaryAndCommandK(opts) {
     });
   }
 
-  function initCommandK(state) {
-    if (document.querySelector('.if-cmdk-modal')) return;
-    var modal = document.createElement('div');
+  function initCommandK() {
+    if (window.__ifCommandKApi) return window.__ifCommandKApi;
+    var modal = document.createElement('dialog');
     modal.className = 'if-cmdk-modal';
     modal.setAttribute('aria-hidden', 'true');
     modal.innerHTML = ''
-      + '<div class="if-cmdk-backdrop"></div>'
-      + '<div class="if-cmdk-panel" role="dialog" aria-modal="true" aria-label="Command K">'
+      + '<div class="if-cmdk-panel" role="document">'
       + '  <div class="if-cmdk-head">'
       + '    <span class="if-cmdk-kbd">' + (lang === 'ja' ? '検索' : 'Search') + '</span>'
       + '    <input class="if-cmdk-input" type="text" autocomplete="off" placeholder="' + (lang === 'ja' ? 'ページ・用語を検索…' : 'Search pages and terms…') + '">'
+      + '    <button class="if-cmdk-close" type="button" aria-label="Close Command K">Esc</button>'
       + '  </div>'
       + '  <div class="if-cmdk-body">'
       + '    <ul class="if-cmdk-results"></ul>'
@@ -362,11 +385,13 @@ function initGlossaryAndCommandK(opts) {
     var input = modal.querySelector('.if-cmdk-input');
     var resultsEl = modal.querySelector('.if-cmdk-results');
     var previewEl = modal.querySelector('.if-cmdk-preview');
+    var closeBtn = modal.querySelector('.if-cmdk-close');
     var items = [];
     var glossaryById = {};
     var lastFocusedBeforeCmdk = null;
     var activeResults = [];
 
+    modal.setAttribute('aria-label', 'Command K');
     input.setAttribute('aria-label', lang === 'ja' ? 'ページと用語を検索' : 'Search pages and terms');
     input.setAttribute('role', 'combobox');
     input.setAttribute('aria-expanded', 'false');
@@ -407,6 +432,19 @@ function initGlossaryAndCommandK(opts) {
         });
       });
       return out;
+    }
+
+    function refreshItems() {
+      if (typeof window.buildPaletteIndex === 'function') {
+        items = window.buildPaletteIndex(lang, base);
+      } else {
+        items = buildPageItems().concat(buildGlossaryItems());
+      }
+      glossaryById = {};
+      items.forEach(function (item) {
+        if (item.type === 'glossary' && item.id) glossaryById[item.id] = item;
+      });
+      renderResults(input.value || '');
     }
 
     function score(item, q) {
@@ -513,27 +551,39 @@ function initGlossaryAndCommandK(opts) {
       renderPreview(ranked[0] || null);
     }
 
-    function closeModal() {
+    function syncClosed(restoreFocus) {
       modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
       input.setAttribute('aria-expanded', 'false');
       input.removeAttribute('aria-activedescendant');
-      if (lastFocusedBeforeCmdk && typeof lastFocusedBeforeCmdk.focus === 'function') {
+      if (restoreFocus && lastFocusedBeforeCmdk && typeof lastFocusedBeforeCmdk.focus === 'function') {
         lastFocusedBeforeCmdk.focus();
       }
     }
 
+    function closeModal() {
+      if (typeof modal.close === 'function' && modal.open) modal.close();
+      else modal.removeAttribute('open');
+      syncClosed(true);
+    }
+
     function openModal() {
       lastFocusedBeforeCmdk = document.activeElement;
+      if (typeof modal.showModal === 'function' && !modal.open) modal.showModal();
+      else modal.setAttribute('open', '');
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       input.setAttribute('aria-expanded', 'true');
       input.value = '';
-      renderResults('');
+      refreshItems();
       setTimeout(function () { input.focus(); }, 0);
     }
 
-    modal.querySelector('.if-cmdk-backdrop').addEventListener('click', closeModal);
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) closeModal();
+    });
+    modal.addEventListener('close', function () { syncClosed(true); });
+    closeBtn.addEventListener('click', closeModal);
     previewEl.addEventListener('click', function (e) {
       var pill = e.target.closest('.if-cmdk-rel-pill');
       if (!pill) return;
@@ -557,8 +607,19 @@ function initGlossaryAndCommandK(opts) {
       if (!modal.classList.contains('is-open')) return;
       if (e.key === 'Escape') closeModal();
       if (e.key === 'Tab') {
-        e.preventDefault();
-        input.focus();
+        var focusable = Array.prototype.slice.call(modal.querySelectorAll('input, button, [href], [tabindex]:not([tabindex="-1"])')).filter(function (el) {
+          return el.offsetParent !== null;
+        });
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
@@ -576,26 +637,33 @@ function initGlossaryAndCommandK(opts) {
     });
     input.addEventListener('input', function () { renderResults(input.value); });
 
-    items = buildPageItems().concat(buildGlossaryItems());
-    items.forEach(function (item) {
-      if (item.type === 'glossary' && item.id) glossaryById[item.id] = item;
-    });
-    renderResults('');
+    refreshItems();
 
     var cmdkButtons = document.querySelectorAll('.if-cmdk-toggle');
     cmdkButtons.forEach(function (btn) {
       btn.addEventListener('click', function () { openModal(); });
     });
+
+    window.__ifCommandKApi = {
+      open: openModal,
+      close: closeModal,
+      refresh: refreshItems
+    };
+    return window.__ifCommandKApi;
   }
 
   ensureGlossaryCss();
+  var commandK = initCommandK();
   ensureGlossaryDb(function () {
-    if (!window.GLOSSARY_DB || !window.GLOSSARY_DB.length) return;
-    var state = buildGlossaryMap();
-    state.pattern = buildPattern(state.terms);
-    wrapGlossaryTerms(state);
-    bindGlossaryPopover(state);
-    initCommandK(state);
+    if (window.GLOSSARY_DB && window.GLOSSARY_DB.length) {
+      var state = buildGlossaryMap();
+      state.pattern = buildPattern(state.terms);
+      wrapGlossaryTerms(state);
+      bindGlossaryPopover(state);
+    }
+    ensurePaletteIndex(function () {
+      if (commandK && typeof commandK.refresh === 'function') commandK.refresh();
+    });
   });
 }
 
@@ -624,7 +692,7 @@ function initSiteNavCompat(opts) {
   var logoBase = rootPrefix ? rootPrefix + '/' : '';
   var activeRaw = opts.activePage || '';
   var active = activeRaw === 'tokens' ? 'signals' : activeRaw;
-  var cgKeys = ['context-grammar', 'simulator', 'intent', 'signals', 'dials', 'tokens', 'trust', 'brain', 'ruleengine', 'negotiation-gate', 'negotiation-layer', 'axpatterns', 'specs'];
+  var cgKeys = ['context-grammar', 'simulator', 'intent', 'signals', 'dials', 'tokens', 'trust', 'brain', 'ruleengine', 'negotiation-gate', 'axpatterns', 'specs'];
 
   var items = [
     {
@@ -642,27 +710,35 @@ function initSiteNavCompat(opts) {
         { label: 'Brain', href: '__cg__/brain/index.html', key: 'brain' },
         { label: 'Rule Engine', href: '__cg__/rule-engine/index.html', key: 'ruleengine' },
         { label: 'Negotiation Gate', href: '__cg__/negotiation-gate/index.html', key: 'negotiation-gate' },
-        { label: 'Negotiation Layer', href: '__cg__/negotiation-layer/index.html', key: 'negotiation-layer' },
         { label: 'AX Patterns', href: '__cg__/ax-patterns/index.html', key: 'axpatterns' },
         { label: 'Specs', href: '__cg__/specs/index.html', key: 'specs' }
       ]
     },
     {
       num: '02',
-      label: 'Projects',
+      label: 'Case Study',
       href: 'projects/index.html',
       keys: ['projects'],
       children: [
         { label: 'P1', href: 'projects/project-01/index.html' },
-        { label: 'P2', href: 'projects/project-02/p2-scroll-v2.html', hidden: true }, // HIDDEN — restore by removing hidden:true
+        { label: 'P2', href: 'projects/project-02/index.html' },
         { label: 'P3', href: 'projects/project-03/index.html' },
         { label: 'P4', href: 'projects/project-04/index.html' },
-        { label: 'P5', href: 'projects/project-05/p5-scroll-v2.html', hidden: true }, // HIDDEN — restore by removing hidden:true
-        { label: 'P6', href: 'projects/project-06/p6-life-brain-v2.html', hidden: true } // HIDDEN — restore by removing hidden:true
+        { label: 'P5', href: 'projects/project-05/index.html' },
+        { label: 'P6', href: 'projects/project-06/index.html' }
       ]
     },
-    { num: '03', label: 'Journal', href: 'journal/index.html', keys: ['journal'] },
-    { num: '04', label: 'About', href: 'about/index.html', keys: ['about'] }
+    { num: '03', label: 'Writing', href: 'journal/index.html', keys: ['journal'] },
+    {
+      num: '04',
+      label: 'About',
+      href: 'about/index.html',
+      keys: ['about', 'author'],
+      children: [
+        { label: 'intentfirst', href: 'about/index.html', key: 'about' },
+        { label: 'Takao', href: 'about/author.html', key: 'author' }
+      ]
+    }
   ];
 
   function escapeHtml(s) {
@@ -738,14 +814,15 @@ function initSiteNavCompat(opts) {
     + '    <img class="logo-for-light" src="' + logoBase + 'assets/logo/IF-lockup-black.svg" alt="intentfirst" />'
     + '    <img class="logo-for-dark" src="' + logoBase + 'assets/logo/IF-lockup-white.svg" alt="" aria-hidden="true" />'
     + '  </a>'
-    + '  <button class="if-cmdk-toggle" type="button" aria-label="Open Command K">⌘K</button>'
-    + '  <button class="' + triggerClass + '" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-haspopup="dialog">'
-    + '    <span class="site-nav__dot-wrap">'
-    + '      <span class="site-nav__dot" aria-hidden="true"></span>'
-    + '      <span class="site-nav__dot-text" aria-hidden="true">Menu</span>'
-    + '    </span>'
-    + '    <span class="site-nav__close" aria-hidden="true"></span>'
-    + '  </button>'
+    + '  <div class="site-nav__tools" aria-label="Site tools">'
+    + '    <button class="' + triggerClass + '" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-haspopup="dialog">'
+    + '      <span class="site-nav__dot-wrap">'
+    + '        <span class="site-nav__dot" aria-hidden="true"></span>'
+    + '        <span class="site-nav__dot-text" aria-hidden="true">Menu</span>'
+    + '      </span>'
+    + '      <span class="site-nav__close" aria-hidden="true"></span>'
+    + '    </button>'
+    + '  </div>'
     + '</div>'
     + '<div class="site-nav__blob" aria-hidden="true"></div>'
     + '<div class="site-nav__overlay" role="dialog" aria-modal="true" aria-label="Site navigation" aria-hidden="true">'
@@ -827,7 +904,7 @@ function initSiteNavCompat(opts) {
       + '<a href="' + prefixCg('trust/index.html') + '"' + (active === 'trust' ? ' aria-current="page"' : '') + '>Trust</a>'
       + '<a href="' + prefixCg('brain/index.html') + '"' + (active === 'brain' ? ' aria-current="page"' : '') + '>Brain</a>'
       + '<a href="' + prefixCg('rule-engine/index.html') + '"' + (active === 'ruleengine' ? ' aria-current="page"' : '') + '>Rules</a>'
-      + '<a href="' + prefixCg('negotiation-layer/index.html') + '"' + (active === 'negotiation-layer' ? ' aria-current="page"' : '') + '>Negotiate</a>'
+      + '<a href="' + prefixCg('negotiation-gate/index.html') + '"' + (active === 'negotiation-gate' ? ' aria-current="page"' : '') + '>Gate</a>'
       + '<a href="' + prefixCg('ax-patterns/index.html') + '"' + (active === 'axpatterns' ? ' aria-current="page"' : '') + '>AX</a>'
       + '<a href="' + prefixCg('specs/index.html') + '"' + (active === 'specs' ? ' aria-current="page"' : '') + '>Specs</a>';
     root.appendChild(sectionNav);
@@ -1078,9 +1155,6 @@ function initSiteNavCompat(opts) {
 }
 
 function initNav(opts) {
-  initSiteNavCompat(opts);
-  return;
-
   opts = opts || {};
   var bp = opts.basePath || '';
   var activeRaw = opts.activePage || '';
@@ -1093,138 +1167,344 @@ function initNav(opts) {
   // ── Build paths ──
   var logoBlack = bp + 'assets/logo/IF-lockup-black.svg';
   var logoWhite = bp + 'assets/logo/IF-lockup-white.svg';
-  var pageRoot = bp + (lang === 'ja' ? 'ja/' : '');
 
-  // Language switch paths — toggles between /[page] and /ja/[page].
-  var currentPath = window.location.pathname;
-
-  // Page paths (relative to basePath)
-  var pages = {
-    home: pageRoot + 'index.html',
-    overview: pageRoot + 'context-grammar/index.html',
-    simulator: pageRoot + 'context-grammar/simulator/index.html',
-    intent: pageRoot + 'context-grammar/intent/index.html',
-    signals: pageRoot + 'context-grammar/signals/index.html',
-    dials: pageRoot + 'context-grammar/dials/index.html',
-    brain: pageRoot + 'context-grammar/brain/index.html',
-    ruleengine: pageRoot + 'context-grammar/rule-engine/index.html',
-    trust: pageRoot + 'context-grammar/trust/index.html',
-    specs: pageRoot + 'context-grammar/specs/index.html',
-    axpatterns: pageRoot + 'context-grammar/ax-patterns/index.html',
-    projects: pageRoot + 'projects/index.html',
-    industry: pageRoot + 'industry/index.html',
-    about: pageRoot + 'about/index.html',
-    contact: pageRoot + 'contact/index.html'
+  var prefix = function (href) {
+    if (/^(https?:|mailto:|tel:|#)/.test(href)) return href;
+    if (href.indexOf('projects/') === 0) {
+      return bp + href;
+    }
+    return bp + (lang === 'ja' ? 'ja/' : '') + href;
   };
 
-  // CG sub-pages for dropdown trigger active state + subnav
-  var cgPages = ['context-grammar', 'simulator', 'intent', 'signals', 'dials', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns'];
+  var prefixCg = function (href) {
+    if (/^(https?:|mailto:|tel:|#)/.test(href)) return href;
+    if (lang === 'ja') {
+      return bp + href.replace(/^context-grammar\//, 'context-grammar/ja/');
+    }
+    return bp + href;
+  };
+
+  var homeHref = prefix('index.html');
+  var projectsHref = prefix('projects/index.html');
+  var journalHref = prefix('journal/index.html');
+
+  // CG sub-pages for dropdown trigger active state
+  var cgPages = ['context-grammar', 'simulator', 'intent', 'signals', 'dials', 'tokens', 'brain', 'ruleengine', 'trust', 'specs', 'axpatterns', 'negotiation-gate'];
   var isCGActive = cgPages.indexOf(active) !== -1;
 
-  // ── Helper: active class ──
   function ac(page) {
     return active === page ? ' nav-active' : '';
   }
 
   // ── Language switcher URLs ──
-  // Simple approach: swap /ja/ prefix in current pathname
-  var enUrl, jaUrl;
+  var currentPath = window.location.pathname;
+  var enUrl = currentPath;
+  var jaUrl = currentPath;
   if (lang === 'ja') {
-    // Currently on JA page — EN version removes /ja/
     jaUrl = currentPath;
-    enUrl = currentPath.replace(/\/ja\//, '/');
+    if (/\/context-grammar\/ja\//.test(currentPath)) {
+      enUrl = currentPath.replace(/\/context-grammar\/ja\//, '/context-grammar/');
+    } else {
+      enUrl = currentPath.replace(/\/ja\//, '/');
+    }
   } else {
-    // Currently on EN page — JA version adds /ja/ after domain root
     enUrl = currentPath;
-    // Insert /ja/ after the first path segment that matches the site root
-    jaUrl = currentPath.replace(/^\//, '/ja/');
+    if (/\/context-grammar\//.test(currentPath) && !/\/context-grammar\/ja\//.test(currentPath)) {
+      jaUrl = currentPath.replace(/\/context-grammar\//, '/context-grammar/ja/');
+    } else {
+      if (currentPath === '/' || currentPath === '') {
+        jaUrl = '/ja/index.html';
+      } else {
+        jaUrl = '/' + 'ja' + currentPath;
+      }
+    }
   }
+
+  // ── Helper for theme-aware GG-icons ──
+  function getThemeIconHtml(iconName) {
+    var pathLight = bp + 'context-grammar/GG-icons/small/light/' + iconName + '.svg';
+    var pathDark = bp + 'context-grammar/GG-icons/small/dark/' + iconName + '.svg';
+    return ''
+      + '<img class="nav-icon nav-icon--light" src="' + pathLight + '" alt="" />'
+      + '<img class="nav-icon nav-icon--dark" src="' + pathDark + '" alt="" />';
+  }
+
+  var cgLabel = function(key) {
+    if (window.CG_IA) return window.CG_IA.label(key, lang);
+    var fallbacks = {
+      intent: 'Intent',
+      signals: 'Signals',
+      dials: 'Dials',
+      ruleengine: 'Rule Engine',
+      negotiation: 'Negotiation Gate',
+      axpatterns: 'AX Patterns',
+      brain: 'Brain',
+      trust: 'Trust Design',
+      simulator: 'Simulator',
+      specs: 'Specs',
+      'negotiation-layer': 'Negotiation Layer'
+    };
+    return fallbacks[key] || key;
+  };
+
+  var cgPath = function(key) {
+    return prefixCg(window.CG_IA ? window.CG_IA.routes[key] : 'context-grammar/' + key + '/index.html');
+  };
+
+  // ── Build mobile overlay HTML ──
+  var mobileHtml = '';
+  mobileHtml += '<a href="' + homeHref + '" class="' + ac('home') + '">Home</a>';
+  if (window.CG_IA) {
+    window.CG_IA.structure.forEach(function (block) {
+      if (block.kind === 'pin') {
+        var label = window.CG_IA.label(block.key, lang);
+        var activeC = (active === 'context-grammar') ? ' nav-active' : '';
+        mobileHtml += '<a href="' + prefixCg(window.CG_IA.routes[block.key]) + '" class="mobile-sub-link' + activeC + '">' + label + '</a>';
+      } else {
+        mobileHtml += '<div class="mobile-section-label">' + window.CG_IA.label(block.labelKey, lang) + '</div>';
+        block.items.forEach(function (key) {
+          var stage = window.CG_IA.stageFor(key);
+          var label = window.CG_IA.label(key, lang);
+          var activeC = (active === key) ? ' nav-active' : '';
+          var hint = window.CG_IA.hintFor(key, lang) ? (' <span class="nav-dd-hint">' + window.CG_IA.hintFor(key, lang) + '</span>') : '';
+          var stagePrefix = stage ? ('<span class="nav-dd-stage">' + stage + '</span> ') : '';
+          mobileHtml += '<a href="' + prefixCg(window.CG_IA.routes[key]) + '" class="mobile-sub-link' + activeC + '">' + stagePrefix + label + hint + '</a>';
+        });
+      }
+    });
+  }
+  mobileHtml += '<a href="' + projectsHref + '" class="' + ac('projects') + '">Case Studies</a>';
+  mobileHtml += '<a href="' + journalHref + '" class="' + ac('journal') + '">Writing</a>';
+  if (showLang) {
+    mobileHtml += '  <div class="nav-mobile-lang">'
+      + '    <a href="' + enUrl + '" class="' + (lang === 'en' ? 'active' : '') + '" aria-label="Switch to English">EN</a>'
+      + '    <a href="' + jaUrl + '" class="' + (lang === 'ja' ? 'active' : '') + '" aria-label="日本語に切り替え">JA</a>'
+      + '  </div>';
+  }
+
+  // ── Build shared popover HTML ──
+  var sharedDropdownHtml = '';
+  sharedDropdownHtml += '<div class="nav-shared-dropdown" id="nav-shared-dropdown" aria-hidden="true" role="menu">';
+  sharedDropdownHtml += '  <div class="nav-dropdown-slider" id="nav-dropdown-slider">';
+  
+  // PANE 1: Context Grammar
+  sharedDropdownHtml += '    <div class="nav-dropdown-pane" id="pane-cg">';
+  sharedDropdownHtml += '      <div class="nav-pane-left">';
+  sharedDropdownHtml += '        <div class="nav-pane-grid-title">' + (lang === 'ja' ? 'PIPELINE STAGES' : 'PIPELINE STAGES') + '</div>';
+  sharedDropdownHtml += '        <div class="nav-grid-2col">';
+  
+  var stages = [
+    { key: 'intent', num: '01', icon: 'intent' },
+    { key: 'signals', num: '02', icon: 'signals' },
+    { key: 'dials', num: '03', icon: 'dials' },
+    { key: 'ruleengine', num: '04', icon: 'rule-engine' },
+    { key: 'negotiation', num: '05–06', icon: 'nego-gate' },
+    { key: 'axpatterns', num: '07', icon: 'ax-pattern' }
+  ];
+  
+  stages.forEach(function(st) {
+    var activeC = (active === st.key) ? ' nav-active' : '';
+    var label = st.key === 'negotiation' ? cgLabel('negotiation') : cgLabel(st.key);
+    var desc = '';
+    if (lang === 'ja') {
+      if (st.key === 'intent') desc = '明示的な宣言、または暗黙的な推論による人間の生の欲求。';
+      else if (st.key === 'signals') desc = '環境や姿勢など、今この瞬間を捉える6つの状況シグナル。';
+      else if (st.key === 'dials') desc = '自律権限と情報開示の境界線を規定する2つの関係性ダイヤル。';
+      else if (st.key === 'ruleengine') desc = 'シグナルと許容される意思決定の境界とを照合するルール群。';
+      else if (st.key === 'negotiation') desc = '対立や摩擦を解決するためのインタラクティブな意思決定ゲート。';
+      else if (st.key === 'axpatterns') desc = 'エージェント出力時のための、視覚・物理的な対話パターン体系。';
+    } else {
+      if (st.key === 'intent') desc = 'The human\'s raw desire, declared explicitly or inferred implicitly.';
+      else if (st.key === 'signals') desc = '6 situation tokens capturing real-time posture and environment.';
+      else if (st.key === 'dials') desc = '2 relationship dials defining autonomy limits and boundaries.';
+      else if (st.key === 'ruleengine') desc = 'Core business rules matching signals to valid decision bounds.';
+      else if (st.key === 'negotiation') desc = 'Interactive verification resolving conflict and friction.';
+      else if (st.key === 'axpatterns') desc = 'Visual and physical interaction vocabulary for agent outputs.';
+    }
+    
+    sharedDropdownHtml += '          <a href="' + cgPath(st.key) + '" class="nav-dd-card' + activeC + '" role="menuitem">';
+    sharedDropdownHtml += '            <div class="nav-dd-card-icon">' + getThemeIconHtml(st.icon) + '</div>';
+    sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+    sharedDropdownHtml += '              <div class="nav-dd-card-title"><span class="nav-dd-card-stage">' + st.num + '</span>' + label + '</div>';
+    sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + desc + '</div>';
+    sharedDropdownHtml += '            </div>';
+    sharedDropdownHtml += '          </a>';
+  });
+  
+  sharedDropdownHtml += '        </div>';
+  sharedDropdownHtml += '      </div>';
+  
+  sharedDropdownHtml += '      <div class="nav-pane-right">';
+  sharedDropdownHtml += '        <div class="nav-pane-right-section">';
+  sharedDropdownHtml += '          <div class="nav-pane-right-label">' + (lang === 'ja' ? 'ALWAYS-ON' : 'ALWAYS-ON') + '</div>';
+  
+  var brainActive = (active === 'brain') ? ' nav-active' : '';
+  var brainDesc = lang === 'ja' ? '3つのレイヤーで構成されるコンテキスト記憶システム。' : '3-level context memory system (Identity, Learning, Now).';
+  sharedDropdownHtml += '          <a href="' + cgPath('brain') + '" class="nav-dd-card--compact' + brainActive + '" role="menuitem">';
+  sharedDropdownHtml += '            <div class="nav-dd-card-icon">' + getThemeIconHtml('brain') + '</div>';
+  sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+  sharedDropdownHtml += '              <div class="nav-dd-card-title">' + cgLabel('brain') + '</div>';
+  sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + brainDesc + '</div>';
+  sharedDropdownHtml += '            </div>';
+  sharedDropdownHtml += '          </a>';
+  
+  var trustActive = (active === 'trust') ? ' nav-active' : '';
+  var trustDesc = lang === 'ja' ? '人間とAIの信頼構築に関する設計規律。' : 'How AI can build trust with humans.';
+  sharedDropdownHtml += '          <a href="' + cgPath('trust') + '" class="nav-dd-card--compact' + trustActive + '" role="menuitem">';
+  sharedDropdownHtml += '            <div class="nav-dd-card-icon">' + getThemeIconHtml('trust') + '</div>';
+  sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+  sharedDropdownHtml += '              <div class="nav-dd-card-title">' + cgLabel('trust') + '</div>';
+  sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + trustDesc + '</div>';
+  sharedDropdownHtml += '            </div>';
+  sharedDropdownHtml += '          </a>';
+  
+  sharedDropdownHtml += '        </div>';
+  sharedDropdownHtml += '        <div class="nav-pane-right-section">';
+  sharedDropdownHtml += '          <div class="nav-pane-right-label">' + (lang === 'ja' ? 'REFERENCE' : 'REFERENCE') + '</div>';
+  
+  var overviewActive = (active === 'context-grammar') ? ' nav-active' : '';
+  var overviewDesc = lang === 'ja' ? 'フレームワークの全体像と導入概要。' : 'Introduction to the Context Grammar framework.';
+  sharedDropdownHtml += '          <a href="' + cgPath('framework') + '" class="nav-dd-card--compact' + overviewActive + '" role="menuitem">';
+  sharedDropdownHtml += '            <div class="nav-dd-card-icon nav-inline-icon-wrap"><svg class="nav-inline-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>';
+  sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+  sharedDropdownHtml += '              <div class="nav-dd-card-title">' + (lang === 'ja' ? 'Overview (はじめに)' : 'Overview') + '</div>';
+  sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + overviewDesc + '</div>';
+  sharedDropdownHtml += '            </div>';
+  sharedDropdownHtml += '          </a>';
+  
+  var simActive = (active === 'simulator') ? ' nav-active' : '';
+  var simDesc = lang === 'ja' ? '状況変化を追体験するインタラクティブ・シミュレーター。' : 'Morph Theater interactive context-aware simulator.';
+  sharedDropdownHtml += '          <a href="' + cgPath('simulator') + '" class="nav-dd-card--compact' + simActive + '" role="menuitem">';
+  sharedDropdownHtml += '            <div class="nav-dd-card-icon nav-inline-icon-wrap"><svg class="nav-inline-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>';
+  sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+  sharedDropdownHtml += '              <div class="nav-dd-card-title">' + cgLabel('simulator') + '</div>';
+  sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + simDesc + '</div>';
+  sharedDropdownHtml += '            </div>';
+  sharedDropdownHtml += '          </a>';
+  
+  var specsActive = (active === 'specs') ? ' nav-active' : '';
+  var specsDesc = lang === 'ja' ? '技術的なデータスキーマとアーキテクチャ仕様書。' : 'Technical schemas and architecture specifications.';
+  sharedDropdownHtml += '          <a href="' + cgPath('specs') + '" class="nav-dd-card--compact' + specsActive + '" role="menuitem">';
+  sharedDropdownHtml += '            <div class="nav-dd-card-icon nav-inline-icon-wrap"><svg class="nav-inline-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>';
+  sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+  sharedDropdownHtml += '              <div class="nav-dd-card-title">' + cgLabel('specs') + '</div>';
+  sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + specsDesc + '</div>';
+  sharedDropdownHtml += '            </div>';
+  sharedDropdownHtml += '          </a>';
+  
+  sharedDropdownHtml += '        </div>';
+  sharedDropdownHtml += '      </div>';
+  sharedDropdownHtml += '    </div>';
+  
+  // PANE 2: Case Studies
+  sharedDropdownHtml += '    <div class="nav-dropdown-pane" id="pane-projects">';
+  sharedDropdownHtml += '      <div class="nav-pane-left">';
+  sharedDropdownHtml += '        <div class="nav-pane-grid-title">' + (lang === 'ja' ? 'APPLIED CASE STUDIES' : 'APPLIED CASE STUDIES') + '</div>';
+  sharedDropdownHtml += '        <div class="nav-grid-2col">';
+  
+  var projectsList = [
+    { num: '01', key: 'p1', label: { en: 'The Living Home', ja: 'スマートホーム (P1)' }, path: 'projects/project-01/index.html', desc: { en: 'Family AI that learns who eats what and earns autonomy.', ja: '食事の好みを学習し、自律決定権を獲得していく家族AI。' } },
+    { num: '02', key: 'p2', label: { en: 'The Family Trip', ja: '家族旅行 (P2)' }, path: 'projects/project-02/index.html', desc: { en: 'Kyoto trip planner with fever crisis and TV voting.', ja: '京都旅行での急な発熱、テレビ投票などの使い捨てUI。' } },
+    { num: '03', key: 'p3', label: { en: 'Fluid Handoff', ja: 'マルチデバイス (P3)' }, path: 'projects/project-03/index.html', desc: { en: 'Experience flows seamlessly from train to family TV.', ja: '電車からテレビへと滑らかに引き継がれる購買体験。' } },
+    { num: '04', key: 'p4', label: { en: 'Project Atlas', ja: 'エンタープライズ (P4)' }, path: 'projects/project-04/index.html', desc: { en: 'Enterprise Context Grammar scaling across teams.', ja: '組織全体で文脈を共有・持続する意思決定システム。' } },
+    { num: '05', key: 'p5', label: { en: 'Cross-Surface', ja: '複数ディスプレイ (P5)' }, path: 'projects/project-05/index.html', desc: { en: 'One Brain routing context across five synced surfaces.', ja: '1つの脳から5つの連携デバイスへと文脈を最適配置。' } },
+    { num: '06', key: 'p6', label: { en: 'Life Brain', ja: 'パーソナル記憶 (P6)' }, path: 'projects/project-06/index.html', desc: { en: 'Protected rituals and memory at the personal scale.', ja: '個人の尊厳を守る儀式とパーソナルな記憶システム。' } }
+  ];
+  
+  projectsList.forEach(function(proj) {
+    var activeC = (activeRaw === ('project-' + proj.num)) ? ' nav-active' : '';
+    var labelText = lang === 'ja' ? proj.label.ja : proj.label.en;
+    var descText = lang === 'ja' ? proj.desc.ja : proj.desc.en;
+    
+    sharedDropdownHtml += '          <a href="' + prefix(proj.path) + '" class="nav-dd-card' + activeC + '" role="menuitem">';
+    sharedDropdownHtml += '            <div class="nav-dd-card-icon">' + getThemeIconHtml('case-study') + '</div>';
+    sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+    sharedDropdownHtml += '              <div class="nav-dd-card-title"><span class="nav-dd-stage--large">' + proj.num + '</span>' + labelText + '</div>';
+    sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + descText + '</div>';
+    sharedDropdownHtml += '            </div>';
+    sharedDropdownHtml += '          </a>';
+  });
+  
+  sharedDropdownHtml += '        </div>';
+  sharedDropdownHtml += '      </div>';
+  
+  sharedDropdownHtml += '      <div class="nav-pane-right">';
+  sharedDropdownHtml += '        <div class="nav-pane-right-section">';
+  sharedDropdownHtml += '          <div class="nav-pane-right-label">' + (lang === 'ja' ? 'METHODOLOGY' : 'METHODOLOGY') + '</div>';
+  
+  var casesOverviewActive = (activeRaw === 'projects') ? ' nav-active' : '';
+  var casesOverviewDesc = lang === 'ja' ? '実社会シナリオへの適用方法と設計思想の概要。' : 'Applied Context Grammar methodology overview.';
+  sharedDropdownHtml += '          <a href="' + projectsHref + '" class="nav-dd-card--compact' + casesOverviewActive + '" role="menuitem">';
+  sharedDropdownHtml += '            <div class="nav-dd-card-icon nav-inline-icon-wrap"><svg class="nav-inline-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>';
+  sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+  sharedDropdownHtml += '              <div class="nav-dd-card-title">' + (lang === 'ja' ? 'All Case Studies (概要)' : 'All Case Studies') + '</div>';
+  sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + casesOverviewDesc + '</div>';
+  sharedDropdownHtml += '            </div>';
+  sharedDropdownHtml += '          </a>';
+  
+  sharedDropdownHtml += '        </div>';
+  sharedDropdownHtml += '        <div class="nav-pane-right-section">';
+  sharedDropdownHtml += '          <div class="nav-pane-right-label">' + (lang === 'ja' ? 'AUTHOR' : 'AUTHOR') + '</div>';
+  
+  var authorActive = (activeRaw === 'about' || activeRaw === 'author') ? ' nav-active' : '';
+  var authorDesc = lang === 'ja' ? '意思決定システム設計を専門とするIA設計者。' : 'Interpretation Architect for agentic systems.';
+  sharedDropdownHtml += '          <a href="' + prefix('about/index.html') + '" class="nav-dd-card--compact' + authorActive + '" role="menuitem">';
+  sharedDropdownHtml += '            <div class="nav-dd-card-icon nav-inline-icon-wrap"><svg class="nav-inline-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>';
+  sharedDropdownHtml += '            <div class="nav-dd-card-content">';
+  sharedDropdownHtml += '              <div class="nav-dd-card-title">' + (lang === 'ja' ? 'Takao Umehara (プロフィール)' : 'Takao Umehara') + '</div>';
+  sharedDropdownHtml += '              <div class="nav-dd-card-desc">' + authorDesc + '</div>';
+  sharedDropdownHtml += '            </div>';
+  sharedDropdownHtml += '          </a>';
+  
+  sharedDropdownHtml += '        </div>';
+  sharedDropdownHtml += '      </div>';
+  sharedDropdownHtml += '    </div>';
+  
+  sharedDropdownHtml += '  </div>';
+  sharedDropdownHtml += '</div>';
 
   // ── Build nav HTML ──
   var navClass = isDarkNav ? 'nav nav--transparent' : 'nav nav--solid';
+  var cmdkHtml = ''
+    + '<button class="if-cmdk-toggle" type="button" aria-label="Open Command Palette">'
+    + '  <span>Search</span>'
+    + '  <kbd class="if-cmdk-toggle__key">⌘K</kbd>'
+    + '</button>';
 
   var html = ''
     + '<nav class="' + navClass + '" id="nav">'
     + '  <div class="nav-inner">'
-    + '    <a class="nav-logo" href="' + pages.home + '">'
+    + '    <a class="nav-logo" id="nav-logo" href="' + homeHref + '">'
     + '      <img class="nav-logo-img" id="nav-logo-img" src="' + (isDarkNav ? logoWhite : logoBlack) + '" alt="intentfirst" />'
     + '    </a>'
-    + '    <div class="nav-links">'
-    + '      <div class="nav-dropdown" id="nav-dropdown">'
-    + '        <a href="' + pages.intent + '" class="nav-dropdown-trigger' + (isCGActive ? ' nav-active' : '') + '" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-menu">'
+    + '    <div class="nav-links" id="nav-links">'
+    + '      <div class="nav-trigger-wrapper" id="nav-trigger-cg-wrap">'
+    + '        <a href="' + prefixCg('context-grammar/index.html') + '" id="nav-trigger-cg" class="nav-dropdown-trigger' + (isCGActive ? ' nav-active' : '') + '" aria-haspopup="true" aria-expanded="false" aria-controls="nav-shared-dropdown">'
     + '          Context Grammar'
+    + '          <svg class="nav-chevron-icon" viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>'
     + '        </a>'
-    + '        <div class="nav-dropdown-menu" id="nav-dropdown-menu" role="menu">'
-    + '          <a href="' + pages.overview + '" role="menuitem" class="' + ac('context-grammar') + '">Overview</a>'
-    + '          <a href="' + pages.simulator + '" role="menuitem" class="' + ac('simulator') + '">Simulator</a>'
-    + '          <a href="' + pages.intent + '" role="menuitem" class="' + ac('intent') + '">Intent</a>'
-    + '          <a href="' + pages.signals + '" role="menuitem" class="' + ac('signals') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
-    + '          <a href="' + pages.dials + '" role="menuitem" class="' + ac('dials') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
-    + '          <a href="' + pages.trust + '" role="menuitem" class="' + ac('trust') + '">' + (lang === 'ja' ? '信頼' : 'Trust') + '</a>'
-    + '          <a href="' + pages.brain + '" role="menuitem" class="' + ac('brain') + '">Brain</a>'
-    + '          <a href="' + pages.ruleengine + '" role="menuitem" class="' + ac('ruleengine') + '">Rule Engine</a>'
-    + '          <a href="' + pages.axpatterns + '" role="menuitem" class="' + ac('axpatterns') + '">AX Patterns</a>'
-    + '          <a href="' + pages.specs + '" role="menuitem" class="nav-dropdown-child' + ac('specs') + '">↳ Specs</a>'
-    + '        </div>'
     + '      </div>'
-    + '      <a href="' + pages.projects + '" class="' + ac('projects') + '">Projects</a>'
-    + '      <a href="' + pages.about + '" class="' + ac('about') + '">About</a>'
-    + '      <a href="' + pages.contact + '" class="nav-cta">Contact</a>'
+    + '      <div class="nav-trigger-wrapper" id="nav-trigger-projects-wrap">'
+    + '        <a href="' + projectsHref + '" id="nav-trigger-projects" class="nav-dropdown-trigger' + (active === 'projects' ? ' nav-active' : '') + '" aria-haspopup="true" aria-expanded="false" aria-controls="nav-shared-dropdown">'
+    + '          Case Studies'
+    + '          <svg class="nav-chevron-icon" viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>'
+    + '        </a>'
+    + '      </div>'
+    + '      <a href="' + journalHref + '" id="nav-link-journal" class="' + ac('journal') + '">Writing</a>'
+    +        cmdkHtml
     + '    </div>'
     + '    <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav-mobile-overlay">'
     + '      <span></span><span></span><span></span>'
     + '    </button>'
     + '  </div>'
-    + '</nav>';
- 
-   // ── Secondary subnav (Context Grammar pages only) ──
-   if (isCGActive) {
-     html += ''
-       + '<nav class="nav-subnav" id="nav-subnav" aria-label="Context Grammar">'
-       + '  <div class="nav-subnav-inner">'
-       + '    <span class="nav-subnav-prefix">Context Grammar</span>'
-       + '    <span class="nav-subnav-sep"></span>'
-       + '    <a href="' + pages.overview + '"' + (active === 'context-grammar' ? ' class="nav-subnav-active"' : '') + '>Overview</a>'
-       + '    <a href="' + pages.simulator + '"' + (active === 'simulator' ? ' class="nav-subnav-active"' : '') + '>Simulator</a>'
-       + '    <a href="' + pages.intent + '"' + (active === 'intent' ? ' class="nav-subnav-active"' : '') + '>Intent</a>'
-       + '    <a href="' + pages.signals + '"' + (active === 'signals' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '状況シグナル' : '<span class="cg-nav-lbl-full">Situation Signals</span><span class="cg-nav-lbl-short">Signals</span>') + '</a>'
-       + '    <a href="' + pages.dials + '"' + (active === 'dials' ? ' class="nav-subnav-active"' : '') + '>' + (lang === 'ja' ? '関係性ダイヤル' : '<span class="cg-nav-lbl-full">Relationship Dials</span><span class="cg-nav-lbl-short">Dials</span>') + '</a>'
-       + '    <a href="' + pages.trust + '"' + (active === 'trust' ? ' class="nav-subnav-active"' : '') + '>Trust</a>'
-       + '    <a href="' + pages.brain + '"' + (active === 'brain' ? ' class="nav-subnav-active"' : '') + '>Brain</a>'
-       + '    <a href="' + pages.ruleengine + '"' + (active === 'ruleengine' ? ' class="nav-subnav-active"' : '') + '>Rule Engine</a>'
-       + '    <a href="' + pages.axpatterns + '"' + (active === 'axpatterns' ? ' class="nav-subnav-active"' : '') + '>AX Patterns</a>'
-       + '    <a href="' + pages.specs + '" class="nav-subnav-child' + (active === 'specs' ? ' nav-subnav-active' : '') + '">↳ Specs</a>'
-       + '  </div>'
-       + '</nav>';
-   }
- 
-   // ── Mobile overlay ──
-   html += ''
-     + '<nav class="nav-mobile-overlay" id="nav-mobile-overlay" aria-label="Mobile navigation" aria-hidden="true">'
-     + '  <a href="' + pages.home + '" class="' + ac('home') + '">Home</a>'
-     + '  <div class="mobile-section-label">Context Grammar</div>'
-     + '  <a href="' + pages.overview + '" class="mobile-sub-link' + ac('context-grammar') + '">Overview</a>'
-     + '  <a href="' + pages.simulator + '" class="mobile-sub-link' + ac('simulator') + '">Simulator</a>'
-     + '  <a href="' + pages.intent + '" class="mobile-sub-link' + ac('intent') + '">Intent</a>'
-     + '  <a href="' + pages.signals + '" class="mobile-sub-link' + ac('signals') + '">' + (lang === 'ja' ? '状況シグナル' : 'Situation Signals') + '</a>'
-     + '  <a href="' + pages.dials + '" class="mobile-sub-link' + ac('dials') + '">' + (lang === 'ja' ? '関係性ダイヤル' : 'Relationship Dials') + '</a>'
-     + '  <a href="' + pages.trust + '" class="mobile-sub-link' + ac('trust') + '">' + (lang === 'ja' ? '信頼' : 'Trust') + '</a>'
-     + '  <a href="' + pages.brain + '" class="mobile-sub-link' + ac('brain') + '">Brain</a>'
-     + '  <a href="' + pages.ruleengine + '" class="mobile-sub-link' + ac('ruleengine') + '">Rule Engine</a>'
-     + '  <a href="' + pages.axpatterns + '" class="mobile-sub-link' + ac('axpatterns') + '">AX Patterns</a>'
-     + '  <a href="' + pages.specs + '" class="mobile-sub-link mobile-sub-link--child' + ac('specs') + '">↳ Specs</a>'
-     + '  <a href="' + pages.projects + '" class="' + ac('projects') + '">Projects</a>'
-     + '  <a href="' + pages.about + '" class="' + ac('about') + '">About</a>'
-     + '  <a href="' + pages.contact + '" class="nav-cta">Contact</a>'
-    + (showLang
-      ? '  <div class="nav-mobile-lang">'
-      + '    <a href="' + enUrl + '" class="' + (lang === 'en' ? 'active' : '') + '" aria-label="Switch to English">EN</a>'
-      + '    <a href="' + jaUrl + '" class="' + (lang === 'ja' ? 'active' : '') + '" aria-label="日本語に切り替え">JA</a>'
-      + '  </div>'
-      : '')
+    + '  <!-- Shared Dropdown Container -->'
+    +    sharedDropdownHtml
     + '</nav>';
 
-  // ── Desktop language switcher ──
+  html += '<nav class="nav-mobile-overlay" id="nav-mobile-overlay" aria-label="Mobile navigation" aria-hidden="true">'
+    +      mobileHtml
+    + '</nav>';
+
   if (showLang) {
     html += ''
       + '<div class="lang-switch" id="lang-switch" role="group" aria-label="Language">'
@@ -1235,18 +1515,19 @@ function initNav(opts) {
   }
 
   // ── Inject into page ──
-  // Insert at the very start of <body>
   document.body.insertAdjacentHTML('afterbegin', html);
-
-  // Add body class when subnav is present
-  if (isCGActive) {
-    document.body.classList.add('nav-has-subnav');
-  }
 
   // ── Cache elements ──
   var nav = document.getElementById('nav');
-  var dropdown = document.getElementById('nav-dropdown');
-  var trigger = dropdown.querySelector('.nav-dropdown-trigger');
+  var sharedDropdown = document.getElementById('nav-shared-dropdown');
+  var slider = document.getElementById('nav-dropdown-slider');
+  var triggerCgWrap = document.getElementById('nav-trigger-cg-wrap');
+  var triggerProjectsWrap = document.getElementById('nav-trigger-projects-wrap');
+  var triggerCg = document.getElementById('nav-trigger-cg');
+  var triggerProjects = document.getElementById('nav-trigger-projects');
+  var linkJournal = document.getElementById('nav-link-journal');
+  var logoLink = document.getElementById('nav-logo');
+  var cmdkButton = nav.querySelector('.if-cmdk-toggle');
   var hamburger = document.getElementById('hamburger-btn');
   var overlay = document.getElementById('nav-mobile-overlay');
 
@@ -1273,16 +1554,15 @@ function initNav(opts) {
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    // Check initial scroll position
     onScroll();
   }
 
-  // ── Auto-hide on scroll down, reveal on scroll up (project scroll pages) ──
+  // ── Auto-hide on scroll down, reveal on scroll up ──
   if (autoHide) {
     var lastY = window.scrollY;
     var hideTicking = false;
-    var hideThreshold = 100;    // px from top: always visible before this
-    var moveDelta = 6;          // min px change before acting (noise filter)
+    var hideThreshold = 100;
+    var moveDelta = 6;
 
     function onAutoHideScroll() {
       if (!hideTicking) {
@@ -1305,44 +1585,96 @@ function initNav(opts) {
     window.addEventListener('scroll', onAutoHideScroll, { passive: true });
   }
 
-  // ── Dropdown: hover + click ──
+  // ── Popover: hover + slide transitions ──
   var hoverTimeout = null;
   var closeTimeout = null;
+  var activePane = null; // 'cg' or 'projects'
 
-  function openDropdown() {
+  function openDropdown(pane) {
     clearTimeout(closeTimeout);
-    dropdown.classList.add('open');
-    trigger.setAttribute('aria-expanded', 'true');
+    
+    if (pane === 'cg') {
+      slider.style.transform = 'translateX(0)';
+      triggerCgWrap.classList.add('nav-trigger-active');
+      triggerProjectsWrap.classList.remove('nav-trigger-active');
+      triggerCg.setAttribute('aria-expanded', 'true');
+      triggerProjects.setAttribute('aria-expanded', 'false');
+      activePane = 'cg';
+    } else if (pane === 'projects') {
+      slider.style.transform = 'translateX(-50%)';
+      triggerProjectsWrap.classList.add('nav-trigger-active');
+      triggerCgWrap.classList.remove('nav-trigger-active');
+      triggerProjects.setAttribute('aria-expanded', 'true');
+      triggerCg.setAttribute('aria-expanded', 'false');
+      activePane = 'projects';
+    }
+    
+    sharedDropdown.classList.add('open');
+    sharedDropdown.setAttribute('aria-hidden', 'false');
   }
 
   function closeDropdown() {
-    dropdown.classList.remove('open');
-    trigger.setAttribute('aria-expanded', 'false');
+    sharedDropdown.classList.remove('open');
+    sharedDropdown.setAttribute('aria-hidden', 'true');
+    triggerCgWrap.classList.remove('nav-trigger-active');
+    triggerProjectsWrap.classList.remove('nav-trigger-active');
+    triggerCg.setAttribute('aria-expanded', 'false');
+    triggerProjects.setAttribute('aria-expanded', 'false');
+    activePane = null;
   }
 
   function scheduleClose() {
-    closeTimeout = setTimeout(closeDropdown, 200);
+    clearTimeout(closeTimeout);
+    closeTimeout = setTimeout(closeDropdown, 180);
   }
 
-  // Mouse hover (desktop)
-  dropdown.addEventListener('mouseenter', function () {
+  function cancelClose() {
     clearTimeout(closeTimeout);
-    hoverTimeout = setTimeout(openDropdown, 80);
-  });
+  }
 
-  dropdown.addEventListener('mouseleave', function () {
+  // Hover triggers
+  triggerCgWrap.addEventListener('mouseenter', function () {
+    cancelClose();
+    hoverTimeout = setTimeout(function() { openDropdown('cg'); }, 60);
+  });
+  triggerCgWrap.addEventListener('mouseleave', function () {
     clearTimeout(hoverTimeout);
     scheduleClose();
   });
 
-  // Close dropdown when clicking outside
+  triggerProjectsWrap.addEventListener('mouseenter', function () {
+    cancelClose();
+    hoverTimeout = setTimeout(function() { openDropdown('projects'); }, 60);
+  });
+  triggerProjectsWrap.addEventListener('mouseleave', function () {
+    clearTimeout(hoverTimeout);
+    scheduleClose();
+  });
+
+  sharedDropdown.addEventListener('mouseenter', function () {
+    cancelClose();
+  });
+  sharedDropdown.addEventListener('mouseleave', function () {
+    scheduleClose();
+  });
+
+  // Snappy instant-close triggers
+  var instantCloseEls = [logoLink, linkJournal, cmdkButton].filter(Boolean);
+  instantCloseEls.forEach(function (el) {
+    el.addEventListener('mouseenter', function () {
+      clearTimeout(hoverTimeout);
+      closeDropdown();
+    });
+  });
+
   document.addEventListener('click', function (e) {
-    if (!dropdown.contains(e.target)) {
+    if (!sharedDropdown.contains(e.target) && 
+        !triggerCgWrap.contains(e.target) && 
+        !triggerProjectsWrap.contains(e.target)) {
       closeDropdown();
     }
   });
 
-  // Close dropdown on Escape
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       closeDropdown();
@@ -1352,47 +1684,7 @@ function initNav(opts) {
     }
   });
 
-  // ── Dropdown: keyboard navigation (arrow keys on menuitems) ──
-  var dropdownMenu = document.getElementById('nav-dropdown-menu');
-  var menuItems = dropdownMenu.querySelectorAll('a[role="menuitem"]');
-
-  // Open dropdown on ArrowDown/Enter/Space from the trigger
-  trigger.addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      openDropdown();
-      if (menuItems.length) menuItems[0].focus();
-    }
-  });
-
-  // Arrow keys move focus between menuitems; Esc closes and returns focus to trigger
-  for (var mi = 0; mi < menuItems.length; mi++) {
-    (function (idx) {
-      menuItems[idx].addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          menuItems[(idx + 1) % menuItems.length].focus();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          menuItems[(idx - 1 + menuItems.length) % menuItems.length].focus();
-        } else if (e.key === 'Home') {
-          e.preventDefault();
-          menuItems[0].focus();
-        } else if (e.key === 'End') {
-          e.preventDefault();
-          menuItems[menuItems.length - 1].focus();
-        } else if (e.key === 'Escape' || e.key === 'Tab') {
-          closeDropdown();
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            trigger.focus();
-          }
-        }
-      });
-    })(mi);
-  }
-
-  // ── Hamburger / mobile menu (with focus trap) ──
+  // ── Hamburger / mobile menu ──
   var lastFocusedBeforeMenu = null;
   var overlayFocusable = null;
 
@@ -1430,7 +1722,6 @@ function initNav(opts) {
     }
   });
 
-  // Focus trap: wrap Tab / Shift+Tab within the overlay while open
   overlay.addEventListener('keydown', function (e) {
     if (e.key !== 'Tab') return;
     var focusables = getOverlayFocusable();
@@ -1446,7 +1737,6 @@ function initNav(opts) {
     }
   });
 
-  // Close mobile menu when a link is clicked
   var mobileLinks = overlay.querySelectorAll('a');
   for (var i = 0; i < mobileLinks.length; i++) {
     mobileLinks[i].addEventListener('click', function () {
@@ -1454,9 +1744,12 @@ function initNav(opts) {
     });
   }
 
+  var rootPrefix = bp.replace(/\/$/, '');
+  var cgLangInside = true;
+
   initGlossaryAndCommandK({
     rootPrefix: rootPrefix,
-    lang: navLang,
+    lang: lang,
     cgLangInside: cgLangInside
   });
 }

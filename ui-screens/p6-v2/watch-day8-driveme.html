@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · Galaxy Watch · Day 8 Drive-Me | P6 Life Brain</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    display: block;
+  }
+  body.noframe .qa-frame { display: none; }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 18px;
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+  }
+  body.noframe .face {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    inset: auto;
+  }
+
+  /* Header */
+  .face__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .face__app {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .face__app-mark {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #5e6ad2; /* Lavender accent */
+    box-shadow: 0 0 8px #5e6ad2;
+  }
+  .face__app-name {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1;
+  }
+  .face__time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  /* Interactive States */
+  .state-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+  .state {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    animation: fadeIn 300ms ease forwards;
+  }
+  .state.active {
+    display: flex;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* State 1: Gesture Ring */
+  .gesture-ring {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 2px solid #5e6ad2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+  }
+  .gesture-ring::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px dashed rgba(94, 106, 210, 0.4);
+    animation: spin 8s linear infinite;
+  }
+  .gesture-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(94, 106, 210, 0.2) 0%, transparent 70%);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .gesture-icon {
+    font-size: 32px;
+    z-index: 2;
+  }
+  .state-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .state-desc {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 4px;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 0.4; }
+  }
+
+  /* State 2: Voice prompt */
+  .voice-mic {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #0f1011;
+    border: 1px solid #23252a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5e6ad2;
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+  .voice-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin: 8px 0;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  .waveform {
+    display: flex;
+    gap: 3px;
+    height: 16px;
+    align-items: center;
+  }
+  .wave-bar {
+    width: 2px;
+    height: 4px;
+    background: #5e6ad2;
+    border-radius: 1px;
+    animation: voiceWave 1.2s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { height: 16px; animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { height: 8px; animation-delay: 0.3s; }
+  .wave-bar:nth-child(5) { height: 14px; animation-delay: 0.4s; }
+
+  @keyframes voiceWave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.8); }
+  }
+
+  /* State 3: Proposal Card */
+  .card {
+    background: #0f1011;
+    border: 1px solid #23252a;
+    border-radius: 12px;
+    padding: 10px 12px;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: #5e6ad2;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .card-metric {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: #27a644;
+  }
+  .card-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .card-details {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .card-actions {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 6px;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    height: 32px;
+    border-radius: 16px;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn--primary { background: #5e6ad2; color: #fff; }
+  .btn--secondary { background: #141516; border: 1px solid #23252a; color: rgba(255, 255, 255, 0.7); }
+
+  /* Navigation dots */
+  .dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+  }
+  .dot.active {
+    background: #5e6ad2;
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="face">
+  <!-- Header -->
+  <header class="face__header">
+    <div class="face__app">
+      <span class="face__app-mark"></span>
+      <span class="face__app-name" id="app-name">Drive-Me</span>
+    </div>
+    <time class="face__time">12:15</time>
+  </header>
+
+  <!-- States Container -->
+  <div class="state-container">
+    
+    <!-- State 1: Gesture Ring -->
+    <div class="state active" id="state-1" onclick="goToState(2)">
+      <div class="gesture-ring">
+        <span class="gesture-icon">☝️</span>
+      </div>
+      <div class="state-title">3-Finger Gesture</div>
+      <div class="state-desc">Tap to trigger Drive-Me</div>
+    </div>
+
+    <!-- State 2: Voice Cue -->
+    <div class="state" id="state-2" onclick="goToState(3)">
+      <div class="voice-mic">🎤</div>
+      <div class="waveform">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+      <div class="voice-text">"Drive me for lunch"</div>
+      <div class="state-desc">Shopping Agent listening...</div>
+    </div>
+
+    <!-- State 3: Proposal Card -->
+    <div class="state" id="state-3">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-tag">Shopping Agent</span>
+          <span class="card-metric">Nutrition+</span>
+        </div>
+        <div class="card-title">鯖の味噌煮定食 (Mackerel Set)</div>
+        <div class="card-details">¥980 · 徒歩3分 · 12:45席確保</div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn--primary" onclick="resetSequence()">Go</button>
+        <button class="btn btn--secondary" onclick="resetSequence()">Cancel</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Dots Indicator -->
+  <div class="dots">
+    <span class="dot active" onclick="goToState(1)" id="dot-1"></span>
+    <span class="dot" onclick="goToState(2)" id="dot-2"></span>
+    <span class="dot" onclick="goToState(3)" id="dot-3"></span>
+  </div>
+</div>
+
+<script>
+  let currentState = 1;
+  const appNames = {
+    1: "Gesture",
+    2: "Voice",
+    3: "Proposal"
+  };
+
+  function goToState(stateNum) {
+    document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.dot').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(`state-${stateNum}`).classList.add('active');
+    document.getElementById(`dot-${stateNum}`).classList.add('active');
+    
+    document.getElementById('app-name').innerText = appNames[stateNum];
+    currentState = stateNum;
+  }
+
+  function resetSequence() {
+    goToState(1);
+  }
+
+  // Automatic cycle for demonstration if no click
+  let autoTimer = setTimeout(() => {
+    if (currentState === 1) goToState(2);
+  }, 4000);
+
+  let autoTimer2 = setTimeout(() => {
+    if (currentState === 2) goToState(3);
+  }, 8000);
+
+  // Clear timers on user interaction
+  document.body.addEventListener('click', () => {
+    clearTimeout(autoTimer);
+    clearTimeout(autoTimer2);
+  }, { once: true });
+</script>
+</body>
+</html>

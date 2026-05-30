@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · Galaxy Watch · Family Pulse 2+2 | P2 Family Trip</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #1a1a1c;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe {
+    background: transparent !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    display: block;
+  }
+  body.noframe .qa-frame { display: none; }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 18px;
+    font-family: 'Geist', sans-serif;
+    container-type: inline-size;
+    align-items: center;
+  }
+  body.noframe .face {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    inset: auto;
+  }
+
+  /* Header */
+  .face__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px;
+    width: 100%;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+  }
+  .face__app {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .face__app-mark {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #6b8e4e; /* Olive/green accent for trip */
+    box-shadow: 0 0 8px #6b8e4e;
+  }
+  .face__app-name {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1;
+  }
+  .face__time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  /* Content area */
+  .pulse-container {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    gap: 6px;
+  }
+
+  /* 2+2 Balance Rings */
+  .pulse-rings {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .pulse-rings svg {
+    transform: rotate(-90deg);
+  }
+  .pulse-ring-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 6;
+  }
+  .pulse-ring-eli {
+    fill: none;
+    stroke: #5e6ad2; /* Eli's color: Lavender */
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 220;
+    stroke-dashoffset: calc(220 - (220 * 22) / 24); /* Eli: 22.0 hrs out of 24 max */
+    transition: stroke-dashoffset 400ms ease;
+  }
+  .pulse-ring-maya {
+    fill: none;
+    stroke: #e8a557; /* Maya's color: Orange */
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 175;
+    stroke-dashoffset: calc(175 - (175 * 21.5) / 24); /* Maya: 21.5 hrs out of 24 max */
+    transition: stroke-dashoffset 400ms ease;
+  }
+  .pulse-inner-val {
+    position: absolute;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #27a644; /* Balanced Green */
+  }
+
+  /* Detail rows */
+  .pulse-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+  }
+  .pulse-meta {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0;
+    text-align: center;
+  }
+  .pulse-meta strong {
+    font-family: 'Geist Mono', monospace;
+    color: #fff;
+  }
+
+  /* Toggle details */
+  .details-box {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: #0f1011;
+    border: 1px solid #23252a;
+    border-radius: 8px;
+    padding: 6px 10px;
+    width: 100%;
+    text-align: left;
+    margin-top: 2px;
+    animation: slideUp 200ms ease forwards;
+  }
+  .details-box.active {
+    display: flex;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9.5px;
+    font-family: 'Geist Mono', monospace;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .detail-row strong {
+    color: #fff;
+  }
+  .detail-row.eli strong { color: #5e6ad2; }
+  .detail-row.maya strong { color: #e8a557; }
+
+  /* Actions */
+  .face-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 5px;
+    width: 100%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    height: 30px;
+    border-radius: 15px;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn--primary { background: #6b8e4e; color: #fff; }
+  .btn--secondary { background: #141516; border: 1px solid #23252a; color: rgba(255, 255, 255, 0.7); }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="face">
+  <!-- Header -->
+  <header class="face__header">
+    <div class="face__app">
+      <span class="face__app-mark"></span>
+      <span class="face__app-name">Care Pulse</span>
+    </div>
+    <time class="face__time">08:15</time>
+  </header>
+
+  <!-- Pulse Container -->
+  <div class="pulse-container" id="container">
+    
+    <!-- Balance Rings -->
+    <div class="pulse-rings" onclick="toggleDetails()" title="Tap for details">
+      <svg width="72" height="72" viewBox="0 0 80 80">
+        <!-- Eli (Outer Ring) -->
+        <circle class="pulse-ring-track" cx="40" cy="40" r="35"></circle>
+        <circle class="pulse-ring-eli" cx="40" cy="40" r="35"></circle>
+        <!-- Maya (Inner Ring) -->
+        <circle class="pulse-ring-track" cx="40" cy="40" r="28"></circle>
+        <circle class="pulse-ring-maya" cx="40" cy="40" r="28"></circle>
+      </svg>
+      <div class="pulse-inner-val">±0.5h</div>
+    </div>
+
+    <!-- Summary Mode -->
+    <div id="summary-text" style="display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%;">
+      <div class="pulse-title">2+2 Contract: Balanced</div>
+      <div class="pulse-meta">
+        Eli <strong>22.0h</strong> · Maya <strong>21.5h</strong>
+      </div>
+    </div>
+
+    <!-- Expanded Details Box -->
+    <div class="details-box" id="details-box">
+      <div class="detail-row eli"><span>Eli (Toei/Forge)</span><strong>22.0h</strong></div>
+      <div class="detail-row maya"><span>Maya (Teahouse/Craft)</span><strong>21.5h</strong></div>
+      <div class="detail-row"><span>Remaining budget</span><strong>4.5h / 4.0h</strong></div>
+    </div>
+
+  </div>
+
+  <!-- Actions -->
+  <div class="face-actions">
+    <button class="btn btn--secondary" onclick="toggleDetails()" id="btn-toggle">Ledger</button>
+    <button class="btn btn--primary" onclick="alert('Care pulse acknowledged.')">Confirm</button>
+  </div>
+</div>
+
+<script>
+  function toggleDetails() {
+    const dBox = document.getElementById('details-box');
+    const sText = document.getElementById('summary-text');
+    const btn = document.getElementById('btn-toggle');
+    if (dBox.classList.contains('active')) {
+      dBox.classList.remove('active');
+      sText.style.display = 'flex';
+      btn.innerText = 'Ledger';
+    } else {
+      dBox.classList.add('active');
+      sText.style.display = 'none';
+      btn.innerText = 'Back';
+    }
+  }
+</script>
+</body>
+</html>

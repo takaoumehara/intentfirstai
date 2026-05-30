@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 05 — Cross-Surface Grammar · Copenhagen | Context Grammar</title>
+<meta name="description" content="Ines and Mateo's day inside a cross-surface context framework — attention budgets, active suppression zones, and the grammar of glanceable interfaces.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<link rel="stylesheet" href="../../assets/css/mobile-overflow-fix.css">
+<link rel="stylesheet" href="../../assets/css/nav.css">
+<link rel="stylesheet" href="../../assets/css/footer.css">
+<link rel="stylesheet" href="../../assets/css/toc-rail.css">
+<link rel="stylesheet" href="../../assets/css/bts-frame.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-iphone.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-watch.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-galaxy.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-tablet.css">
+<link rel="stylesheet" href="../../assets/css/device-frame-fridge.css">
+
+<style>
+  :root {
+    --p5-accent: #5e6ad2; /* Lavender Accent */
+    --p5-accent-soft: rgba(94, 106, 210, 0.1);
+  }
+
+  /* ===== Base styles ===== */
+  html { scroll-behavior: smooth; background: var(--bg); color: var(--text); }
+  body { overflow-x: hidden; }
+  main { display: block; }
+
+  .section {
+    padding: 80px 8vw;
+    position: relative;
+    scroll-margin-top: 24px;
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+  }
+  .section__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .section--dim { background: var(--bg-2); }
+  .section--dark { background: #0a0a0a; color: #ededed; }
+  .section--center { text-align: center; }
+
+  /* Eyebrow & Titles */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--p5-accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before { content: ''; width: 16px; height: 1px; background: currentColor; }
+  .section--center .eyebrow { justify-content: center; }
+
+  .section__title {
+    font-family: var(--font-sans);
+    font-size: clamp(28px, 3.8vw, 48px);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 16px;
+    text-wrap: balance;
+  }
+  .section--dark .section__title { color: #ededed; }
+  .section__title .accent-lavender { color: var(--p5-accent); font-weight: 500; }
+
+  .section__sub {
+    font-size: clamp(16px, 1.2vw, 18px);
+    line-height: 1.6;
+    color: var(--text-2);
+    margin-bottom: 24px;
+    max-width: 720px;
+  }
+  .section--dark .section__sub { color: rgba(240, 236, 228, 0.7); }
+
+  .section__body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-2);
+    margin-bottom: 16px;
+    max-width: 680px;
+  }
+  .section--dark .section__body { color: rgba(240, 236, 228, 0.8); }
+  .section__body strong { color: var(--text); font-weight: 600; }
+  .section--dark .section__body strong { color: #fff; }
+
+  /* Two-column layout */
+  .section--two-col .section__inner {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .col-text { max-width: 520px; }
+  .col-visual { display: flex; align-items: center; justify-content: center; position: relative; }
+
+  /* Callout */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    background: var(--p5-accent-soft);
+    border-left: 2px solid var(--p5-accent);
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+    line-height: 1.6;
+    margin-top: 20px;
+  }
+  .callout--green { background: var(--chip-green-bg); border-left-color: var(--illust-green); color: var(--chip-green-text); }
+  .callout--warn { background: rgba(239, 68, 68, 0.08); border-left-color: #ef4444; color: #ef4444; }
+
+  /* Chapter Divider */
+  .ch-divider { position: relative; width: 100%; overflow: hidden; margin: 60px 0 20px; }
+  .ch-divider img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+  .ch-divider__overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.62) 100%); }
+  .ch-divider__text { position: absolute; left: 0; right: 0; bottom: 11%; text-align: center; padding: 0 24px; }
+  .ch-divider__eyebrow { font-family: var(--font-mono); font-size: clamp(11px, 0.9vw, 14px); font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.85); margin-bottom: 14px; }
+  .ch-divider__title { font-size: clamp(34px, 4.8vw, 60px); font-weight: 500; letter-spacing: -1.6px; line-height: 1.08; color: #fff; max-width: 900px; margin: 0 auto; text-shadow: 0 4px 32px rgba(0,0,0,0.55); }
+
+  /* Backstage trigger */
+  .bk-trigger {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 14px;
+    transition: color 150ms, border-color 150ms;
+  }
+  .bk-trigger:hover { color: var(--text); border-color: var(--text-3); }
+
+  /* Embedded frames */
+  .device-frame-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Reveal animations */
+  [data-enter] {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-enter].visible { opacity: 1; transform: translateY(0); }
+
+  /* Backstage overlay styles */
+  #bk-overlay { position: fixed; inset: 0; background: #010102; z-index: 9999; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 260ms ease; overflow: hidden; }
+  #bk-overlay.open { opacity: 1; pointer-events: auto; }
+  #bk-overlay.open .bk-panel { transform: translateY(0); }
+  .bk-bar { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 24px; border-bottom: 1px solid #23252a; background: #0f1011; }
+  .bk-bar__chip { font-family: var(--font-mono); font-size: 11px; color: #5e6ad2; text-transform: uppercase; font-weight: 600; }
+  .bk-bar__controls { display: flex; gap: 8px; }
+  .bk-bar__btn { background: #141516; border: 1px solid #23252a; color: rgba(255,255,255,0.7); font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
+  .bk-bar__btn:hover { color: #fff; border-color: #3e3e44; }
+  .bk-panel { flex: 1; padding: 48px 8vw; overflow-y: auto; background: #010102; display: flex; flex-direction: column; gap: 24px; transform: translateY(20px); transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .bk-title { font-size: 28px; font-weight: 500; letter-spacing: -0.8px; line-height: 1.2; margin: 0; color: #fff; }
+  .bk-title em { font-style: normal; color: rgba(255,255,255,0.5); font-weight: 400; font-size: 18px; display: block; margin-top: 4px; }
+  .bk-section { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .bk-section__label { font-family: var(--font-mono); font-size: 10px; color: #8a8f98; text-transform: uppercase; letter-spacing: 0.08em; }
+  .bk-row { display: flex; border-bottom: 1px solid #23252a; padding: 12px 0; }
+  .bk-row:last-child { border-bottom: none; }
+  .bk-k { font-family: var(--font-mono); font-size: 11px; width: 140px; color: #8a8f98; flex-shrink: 0; }
+  .bk-v { font-size: 13px; line-height: 1.6; color: #d0d6e0; }
+
+  /* Project navigation */
+  .project-nav { margin-top: 56px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 24px; padding-top: 32px; border-top: 1px solid var(--border); text-align: left; }
+  .project-nav__back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-3); text-decoration: none; padding: 10px 14px; border: 1px solid var(--border); border-radius: 100px; transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease; white-space: nowrap; }
+  .project-nav__back:hover { color: var(--text); border-color: var(--border-hover); background: var(--bg-2); }
+  .project-nav__next { justify-self: end; text-align: right; text-decoration: none; display: flex; flex-direction: column; gap: 4px; padding: 14px 20px; border: 1px solid var(--border); border-radius: 12px; transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease; }
+  .project-nav__next:hover { border-color: var(--text); background: var(--bg-2); transform: translateX(4px); }
+  .project-nav__next-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text-3); }
+  .project-nav__next-title { font-family: var(--font-sans); font-size: clamp(16px, 1.4vw, 20px); font-weight: 500; letter-spacing: -0.3px; color: var(--text); }
+
+  @media (max-width: 960px) {
+    .section { padding: 60px 4vw; }
+    .section--two-col .section__inner { grid-template-columns: 1fr; gap: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+
+  <!-- =============================================================
+       S1 — HERO
+       ============================================================= -->
+  <section class="section section--dark section--center" id="hero" style="min-height:100vh; background: radial-gradient(ellipse at 30% 70%, rgba(94,106,210,0.15) 0%, transparent 60%), #0a0a0a;">
+    <div class="section__inner">
+      <div class="eyebrow" style="color: rgba(255,255,255,0.7); justify-content: center;">
+        Year: 2026 · 2030 <span style="margin: 0 8px;">·</span> Case Study
+      </div>
+      <h1 class="section__title" style="font-size: clamp(34px, 5.5vw, 68px); color: #fff; line-height: 1.08; max-width: 920px; margin: 0 auto 24px; font-weight: 500;">
+        Cross-Surface Grammar <span style="color:rgba(255,255,255,0.4); font-weight:300;">—</span> attention,<br>
+        suppression zones, <span class="accent-lavender">and Code Blue</span>.
+      </h1>
+      <p class="section__sub" style="margin: 0 auto 32px; font-size: 18px; line-height: 1.6; max-width: 600px; color: rgba(240, 236, 228, 0.8);">
+        Ines and Mateo's day inside a cross-surface context framework. Unified attention budgets, active suppression zones, and emergency broadcast cascades.
+      </p>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S2 — CAST
+       ============================================================= -->
+  <section class="section" id="cast">
+    <div class="section__inner">
+      <div class="eyebrow">The Cast</div>
+      <h2 class="section__title">Meet Ines & Mateo</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 36px;">
+        <div style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="font-family: var(--font-sans); font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ines Jensen (38 · CEO)</div>
+          <p class="section__body" style="margin: 0;">Co-founder of a Copenhagen biotech startup. High email volume, time-critical decisions, frequent travel. Needs work suppression during family hours.</p>
+        </div>
+        <div style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="font-family: var(--font-sans); font-size: 18px; font-weight: 600; margin-bottom: 8px;">Mateo Jensen (40 · Charge Nurse)</div>
+          <p class="section__body" style="margin: 0;">Ines's husband. Works shift cycles in ED. Managed ADHD; highly sensitive to notification noise. Relies on structured glanceable briefings.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S3 — Active Surfaces
+       ============================================================= -->
+  <section class="section section--two-col" id="setup">
+    <div class="section__inner">
+      <div class="col-text" data-enter>
+        <div class="eyebrow">Form Factors</div>
+        <h2 class="section__title">Five Surfaces, One Context</h2>
+        <p class="section__sub">How the context grammar expresses itself across the day.</p>
+        <p class="section__body">
+          Cross-Surface Grammar routes notifications across 5 surfaces (Watch, Buds, Phone, TV, Kitchen Display) based on three real-time tokens: <strong>Cognitive Load</strong>, <strong>Social Exposure</strong>, and <strong>Form Factor</strong>.
+        </p>
+      </div>
+      <div class="col-visual" data-enter>
+        <!-- Inline layout of active surfaces -->
+        <iframe class="ui-frame__iframe" style="width:100%; border:0; min-height:480px;" src="../../ui-screens/p5-v2/brain-to-surfaces-flow.html?noframe=1" loading="lazy" scrolling="no" title="Brain to Surfaces Flow"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S4 — GRAMMAR RULES (Spotlight!)
+       ============================================================= -->
+  <section class="section section--feature" id="grammar-rules" style="background: #f0e8d8; color: #0a0a0a;">
+    <div class="section__inner" style="text-align: center;">
+      <div class="eyebrow" style="color: #0a0a0a; justify-content: center;">Grammar Rules</div>
+      <h2 class="section__title" style="color: #0a0a0a; margin: 0 auto 16px;">The 3&times;5 Rules Table</h2>
+      <p class="section__sub" style="color: #62666d; margin: 0 auto 36px;">
+        Active rules mapped across three context tokens and five surfaces to resolve final display state.
+      </p>
+
+      <div style="border-radius: 12px; overflow: hidden; border: 1px solid rgba(10,10,10,0.15);">
+        <iframe class="ui-frame__iframe" style="width:100%; border:0; min-height:440px;" src="../../ui-screens/p5-v2/grammar-rules-table.html?noframe=1" loading="lazy" scrolling="no" title="Rules Table"></iframe>
+      </div>
+
+      <button class="bk-trigger" onclick="openBk('bk-tpl-rules')" style="color:#0a0a0a; border-color: rgba(10,10,10,0.3); margin-top:28px;">BACKSTAGE · System Schema</button>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S5 — CHAPTER DIVIDER 1
+       ============================================================= -->
+  <div class="ch-divider" aria-label="Chapter 02 · A Tuesday in April">
+    <img src="../../assets/img/p6/P6-ch02-morning-1600w.jpg" alt="A Tuesday in April" loading="lazy">
+    <div class="ch-divider__overlay"></div>
+    <div class="ch-divider__text">
+      <div class="ch-divider__eyebrow">Chapter 02</div>
+      <div class="ch-divider__title">A Tuesday in April.</div>
+    </div>
+  </div>
+
+  <!-- =============================================================
+       S6 — KITCHEN SUPPRESSION
+       ============================================================= -->
+  <section class="section section--two-col" id="suppression-fridge">
+    <div class="section__inner">
+      <div class="col-visual" data-enter>
+        <!-- Fridge Frame -->
+        <div class="samfh samfh--md">
+          <img class="samfh__chrome" src="../../Global_Assets/DeviceFrame/Samsung_Family_Hub_Fridge.svg" alt="" aria-hidden="true">
+          <div class="samfh__screen samfh__screen--dark">
+            <iframe class="ui-frame__iframe" src="../../ui-screens/p5-v2/hub-recipe-postit.html?noframe=1" loading="lazy" scrolling="no" title="Kitchen Suppression Hub"></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="col-text" data-enter>
+        <div class="eyebrow">18:45 · Kitchen</div>
+        <h2 class="section__title">Cooking Suppression Active</h2>
+        <p class="section__sub">Protecting home focus while cooking.</p>
+        <p class="section__body">
+          While cooking Rye Bread in the Copenhagen kitchen, the Samsung Family Hub display transitions to <strong>Suppression Active</strong> mode. 
+          Workspace emails are suppressed and deferred to Ines's phone to protect attention boundaries.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S7 — TV CO-WATCHING
+       ============================================================= -->
+  <section class="section section--two-col" id="co-watching-tv">
+    <div class="section__inner">
+      <div class="col-text" data-enter>
+        <div class="eyebrow">20:14 · Living Room</div>
+        <h2 class="section__title">TV Co-Watching Notification Silencing</h2>
+        <p class="section__sub">Shared space, public privacy.</p>
+        <p class="section__body">
+          During family movie night, the Smart TV enters <strong>Co-Watching Mode</strong>. 
+          Personal notifications for Ines and Mateo are automatically held back from the shared screen and routed to personal wearables.
+        </p>
+      </div>
+      <div class="col-visual" data-enter>
+        <!-- TV Simulation display -->
+        <iframe class="ui-frame__iframe" style="width:100%; border:0; min-height:360px;" src="../../ui-screens/p5-v2/tv-co-watching.html?noframe=1" loading="lazy" scrolling="no" title="TV Co-Watching UI"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S8 — CHAPTER DIVIDER 2
+       ============================================================= -->
+  <div class="ch-divider" aria-label="Chapter 03 · Same Day, Restored">
+    <img src="../../assets/img/p6/P6-ch02-morning-1600w.jpg" alt="Same Day, Restored" loading="lazy">
+    <div class="ch-divider__overlay"></div>
+    <div class="ch-divider__text">
+      <div class="ch-divider__eyebrow">Chapter 03</div>
+      <div class="ch-divider__title">The same day, restored.</div>
+    </div>
+  </div>
+
+  <!-- =============================================================
+       S9 — WATCH BRIEFING
+       ============================================================= -->
+  <section class="section section--two-col" id="watch-briefing">
+    <div class="section__inner">
+      <div class="col-visual" data-enter>
+        <!-- Galaxy Watch 7 frame -->
+        <div class="galaxywatch7 galaxywatch7--md">
+          <div class="galaxywatch7__screen" style="border-radius: 36%;">
+            <iframe class="ui-frame__iframe" src="../../ui-screens/p5-v2/watch-face-morning.html?noframe=1" loading="lazy" scrolling="no" title="Watch Morning UI"></iframe>
+          </div>
+          <div class="galaxywatch7__btn" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="col-text" data-enter>
+        <div class="eyebrow">07:04 · Wrist</div>
+        <h2 class="section__title">Glanceable Watch Morning Briefing</h2>
+        <p class="section__sub">Filtered alerts to align with just-woke Cognitive Load.</p>
+        <p class="section__body">
+          Ines wakes up. The watch displays only 3 high-priority notifications. 
+          The remaining 20 deferred items are held back until her cognitive load threshold rises later in the morning.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S10 — EARBUDS EXPLAINER
+       ============================================================= -->
+  <section class="section section--two-col" id="earbuds-explainer">
+    <div class="section__inner">
+      <div class="col-text" data-enter>
+        <div class="eyebrow">08:24 · Commute</div>
+        <h2 class="section__title">Earbuds Audio Briefing & Waveform</h2>
+        <p class="section__sub">Hands-free text-to-speech summary.</p>
+        <p class="section__body">
+          While commuting, Ines receives a 14-second audio summary of Slack messages and weather. 
+          The grammar formats text directly to audio, leaving her hands free and phone in pocket.
+        </p>
+      </div>
+      <div class="col-visual" data-enter>
+        <iframe class="ui-frame__iframe" style="width:100%; border:0; min-height:300px;" src="../../ui-screens/p5-v2/earbuds-explainer.html?noframe=1" loading="lazy" scrolling="no" title="Earbuds explainer"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S11 — CHAPTER DIVIDER 3
+       ============================================================= -->
+  <div class="ch-divider" aria-label="Chapter 04 · Same Grammar, Different World">
+    <img src="../../assets/img/p6/P6-ch02-morning-1600w.jpg" alt="Same Grammar, Different World" loading="lazy">
+    <div class="ch-divider__overlay"></div>
+    <div class="ch-divider__text">
+      <div class="ch-divider__eyebrow">Chapter 04</div>
+      <div class="ch-divider__title">Same grammar, different world.</div>
+    </div>
+  </div>
+
+  <!-- =============================================================
+       S12 — HOSPITAL ED CODE BLUE
+       ============================================================= -->
+  <section class="section section--two-col" id="hospital-ed">
+    <div class="section__inner">
+      <div class="col-visual" data-enter>
+        <!-- Tablet frame for ED Code Blue -->
+        <div class="ipad-kids ipad-kids--md">
+          <img class="ipad-kids__chrome" src="../../Global_Assets/DeviceFrame/ipad-kids.svg" alt="" aria-hidden="true">
+          <div class="ipad-kids__screen">
+            <iframe class="ui-frame__iframe" src="../../ui-screens/p5-v2/hospital-tablet.html?noframe=1" loading="lazy" scrolling="no" title="Hospital Tablet Code Blue UI"></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="col-text" data-enter>
+        <div class="eyebrow">Hospital Generalization</div>
+        <h2 class="section__title">Emergency Department Code Blue</h2>
+        <p class="section__sub">High-priority broadcast overriding suppression rules.</p>
+        <p class="section__body">
+          The same grammar scales to emergency wards. In a Code Blue crisis, 
+          the system overrides daily email suppression, broadcasting critical vitals and team states to ward tablets and watch screens instantly.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S13 — GLASSES HUD SPECULATIVE
+       ============================================================= -->
+  <section class="section section--two-col" id="glasses-hud">
+    <div class="section__inner">
+      <div class="col-text" data-enter>
+        <div class="eyebrow">Future spec · 2030</div>
+        <h2 class="section__title">2030 AR Glasses Peripheral Projection</h2>
+        <p class="section__sub">Gaze-aware notification suppression.</p>
+        <p class="section__body">
+          Looking forward to AR glasses. Gaze detection senses active face-to-face eye contact 
+          and automatically silences peripheral notifications to protect social moments.
+        </p>
+      </div>
+      <div class="col-visual" data-enter>
+        <iframe class="ui-frame__iframe" style="width:100%; border:0; min-height:360px;" src="../../ui-screens/p5-v2/glasses-hud.html?noframe=1" loading="lazy" scrolling="no" title="AR Glasses spec"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S14 — METRICS
+       ============================================================= -->
+  <section class="section" id="metrics">
+    <div class="section__inner" style="max-width: 880px; text-align: center; margin: 0 auto;">
+      <div class="eyebrow" style="justify-content: center;">Results</div>
+      <h2 class="section__title" style="margin-bottom: 24px;">Project Outcomes</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 36px;">
+        <div style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="font-size: 32px; font-weight: 600; color: var(--p5-accent);">99%</div>
+          <div style="font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; margin-top: 8px;">Suppression Accuracy</div>
+        </div>
+        <div style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="font-size: 32px; font-weight: 600; color: var(--p5-accent);">0</div>
+          <div style="font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; margin-top: 8px;">Workspace email leaks</div>
+        </div>
+        <div style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="font-size: 32px; font-weight: 600; color: var(--p5-accent);">14s</div>
+          <div style="font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; margin-top: 8px;">Commute Briefing Time</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================
+       S15 — CLOSE
+       ============================================================= -->
+  <section class="section section--dark section--center" id="close" style="min-height:80vh; background: radial-gradient(ellipse at 30% 70%, rgba(94,106,210,0.15) 0%, transparent 60%), #0a0a0a;">
+    <div class="section__inner">
+      <div class="eyebrow" style="color:rgba(240,236,228,0.4); justify-content: center;">Close</div>
+      <h2 class="section__title" style="color:#ededed; font-size:clamp(28px,3.6vw,52px); max-width:880px; margin:0 auto 12px; line-height:1.3;">
+        The same grammar.<br>Any surface, <span style="color:var(--p5-accent);">any stakes</span>.
+      </h2>
+      <p style="margin-top: 18px; font-size: 18px; color: rgba(240, 236, 228, 0.8);">
+        A design vocabulary built for the room, not the device.<br>
+        <strong>Ines & Mateo's day in Copenhagen.</strong>
+      </p>
+      <div style="margin-top:48px; font-family:var(--font-mono); font-size:11px; color:rgba(240,236,228,0.4); letter-spacing:0.06em;">
+        <a href="p5-scroll-v2.html" style="color:rgba(240,236,228,0.6); text-decoration:none; border-bottom:1px solid rgba(240,236,228,0.2); padding-bottom:2px;">Original Scroll Page</a>
+      </div>
+
+      <nav class="project-nav" data-enter class="d4" aria-label="Project navigation">
+        <a class="project-nav__back" href="../project-04/index.html">← Return · Project 04 · Sales Floor</a>
+        <a class="project-nav__next" href="../project-06/index.html">
+          <span class="project-nav__next-label">Next Project</span>
+          <span class="project-nav__next-title">Project 06 · Life Brain →</span>
+        </a>
+      </nav>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════
+     BACKSTAGE OVERLAY
+     ═══════════════════════════════════════════════════════════ -->
+<div id="bk-overlay" role="dialog" aria-modal="true" aria-label="Backstage — AI internals">
+  <div class="bk-bar">
+    <span class="bk-bar__chip"><span id="bk-section-name">BACKSTAGE</span></span>
+    <div class="bk-bar__controls">
+      <button class="bk-bar__btn" id="bk-prev" aria-label="Previous section">← Prev</button>
+      <button class="bk-bar__btn" id="bk-next" aria-label="Next section">Next →</button>
+      <button class="bk-bar__btn" id="bk-close" aria-label="Close backstage">ESC · Close</button>
+    </div>
+  </div>
+  <div class="bk-panel" id="bk-content-area"></div>
+</div>
+
+<template id="bk-tpl-rules">
+  <h2 class="bk-title">Cross-Surface Grammar Rules<br><em>System Schema & Tokens</em></h2>
+  <div class="bk-section">
+    <div class="bk-section__label">Tokens Schema</div>
+    <div class="bk-row"><span class="bk-k">Cognitive Load</span><span class="bk-v">Ranges from 0.0 (deep sleep) to 1.0 (emergency). Blocks low-priority events if threshold crossed.</span></div>
+    <div class="bk-row"><span class="bk-k">Social Exposure</span><span class="bk-v">Tracks co-watching, partner proximity via UWB, and eye contact to redact previews.</span></div>
+  </div>
+</template>
+
+<!-- ═══ iframe auto-resize (PORTFOLIO_GLOBAL_RULES §2.3) ═══ -->
+<script>
+(function () {
+  function resizeIframe(ifr) {
+    try {
+      var doc = ifr.contentDocument;
+      if (!doc) return;
+      var h = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+      if (h && Math.abs(parseInt(ifr.style.height || 0, 10) - h) > 4) {
+        ifr.style.height = h + 'px';
+      }
+    } catch (e) { /* cross-origin or detached: skip */ }
+  }
+  function setupAll() {
+    document.querySelectorAll('iframe.ui-frame__iframe').forEach(function (ifr) {
+      var doResize = function () { resizeIframe(ifr); };
+      if (ifr.contentDocument && ifr.contentDocument.readyState === 'complete') doResize();
+      ifr.addEventListener('load', function () {
+        doResize();
+        try {
+          var ro = new ResizeObserver(doResize);
+          if (ifr.contentDocument && ifr.contentDocument.body) ro.observe(ifr.contentDocument.body);
+        } catch (e) {}
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupAll);
+  } else { setupAll(); }
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      document.querySelectorAll('iframe.ui-frame__iframe').forEach(resizeIframe);
+    }, 80);
+  });
+})();
+</script>
+
+<!-- ═══ Section reveal IntersectionObserver ═══ -->
+<script>
+(function () {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.section').forEach(function (s) { s.classList.add('visible'); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+
+  document.querySelectorAll('.section').forEach(function (s) { io.observe(s); });
+  document.querySelectorAll('[data-enter]').forEach(function (el) { io.observe(el); });
+})();
+</script>
+
+<!-- ═══ Backstage overlay engine ═══ -->
+<script>
+(function() {
+  const overlay = document.getElementById('bk-overlay');
+  const contentArea = document.getElementById('bk-content-area');
+  const btnClose = document.getElementById('bk-close');
+  const btnPrev = document.getElementById('bk-prev');
+  const btnNext = document.getElementById('bk-next');
+  const sectionName = document.getElementById('bk-section-name');
+
+  const bkTemplates = ['bk-tpl-rules'];
+  let currentBk = 0;
+
+  function loadBk(id) {
+    const tpl = document.getElementById(id);
+    if (!tpl) return;
+    contentArea.innerHTML = '';
+    contentArea.appendChild(tpl.content.cloneNode(true));
+    currentBk = bkTemplates.indexOf(id);
+    sectionName.innerText = `Backstage · ${currentBk + 1}/${bkTemplates.length}`;
+    updateBkNav();
+  }
+
+  function updateBkNav() {
+    if (btnPrev) btnPrev.disabled = currentBk <= 0;
+    if (btnNext) btnNext.disabled = currentBk >= bkTemplates.length - 1;
+  }
+
+  window.openBk = function(id) {
+    loadBk(id);
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  function closeBk() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btnClose) btnClose.addEventListener('click', closeBk);
+  if (btnPrev)  btnPrev.addEventListener('click', () => { if (currentBk > 0) loadBk(bkTemplates[currentBk - 1]); });
+  if (btnNext)  btnNext.addEventListener('click', () => { if (currentBk < bkTemplates.length - 1) loadBk(bkTemplates[currentBk + 1]); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeBk();
+  });
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeBk(); });
+})();
+</script>
+
+<script src="../../assets/js/cg-ia.js"></script>
+
+<script src="../../assets/js/nav.js"></script>
+
+<script src="../../assets/js/footer.js"></script>
+<script>initNav({ basePath: '../../', activePage: 'p5', lang: 'en', showLang: false, autoHide: true });
+  initFooter({ basePath: '../../', lang: 'en' });</script>
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · Tablet · Decision Trace Telemetry | P5 Cross-Surface</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #010102; }
+  body {
+    font-family: 'Geist', sans-serif;
+    color: #f7f8f8;
+    display: flex;
+    padding: 20px;
+  }
+  body.noframe {
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .console {
+    width: 100%;
+    height: 100%;
+    background: #010102;
+    border: 1px solid #23252a;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: #0f1011;
+    border-right: 1px solid #23252a;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+  .sidebar-title {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: #5e6ad2;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+  .token-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .token-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+  }
+  .token-chip {
+    background: #141516;
+    border: 1px solid #23252a;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .token-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #27a644;
+    box-shadow: 0 0 6px #27a644;
+  }
+
+  /* Main Workspace */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .header {
+    border-bottom: 1px solid #23252a;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .header-status {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: #27a644;
+  }
+
+  /* Trace content */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .section-title {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    margin: 0 0 8px;
+  }
+
+  /* Flow logs */
+  .logs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .log-item {
+    background: #0f1011;
+    border: 1px solid #23252a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: 80px 1fr 100px;
+    align-items: center;
+    gap: 12px;
+  }
+  .log-time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.4);
+  }
+  .log-desc {
+    font-size: 12px;
+    color: #fff;
+  }
+  .log-action {
+    justify-self: end;
+    font-family: 'Geist Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .action--suppressed { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+  .action--redacted { background: rgba(232, 165, 87, 0.12); color: #e8a557; }
+  .action--echoed { background: rgba(39, 166, 68, 0.12); color: #27a644; }
+
+  /* Code Trace */
+  .trace-box {
+    background: #050506;
+    border: 1px solid #1a1a1c;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #a5b4fc;
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="console">
+  <!-- Sidebar (Tokens) -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Active Context</div>
+    
+    <div class="token-section">
+      <span class="token-label">Cognitive</span>
+      <div class="token-chip">
+        <span>Mateo: Focus</span>
+        <span class="token-dot"></span>
+      </div>
+      <div class="token-chip">
+        <span>Ines: Relax</span>
+        <span class="token-dot"></span>
+      </div>
+    </div>
+
+    <div class="token-section">
+      <span class="token-label">Social</span>
+      <div class="token-chip">
+        <span>Co-watching</span>
+        <span class="token-dot"></span>
+      </div>
+    </div>
+
+    <div class="token-section">
+      <span class="token-label">Active Surfaces</span>
+      <div class="token-chip"><span>Galaxy Watch 7</span></div>
+      <div class="token-chip"><span>Family Hub TV</span></div>
+      <div class="token-chip"><span>Galaxy Buds 3 Pro</span></div>
+    </div>
+  </aside>
+
+  <!-- Main Console -->
+  <main class="main">
+    <header class="header">
+      <h1 class="header-title">Context Grammar Engine trace</h1>
+      <span class="header-status">● Rules sync active</span>
+    </header>
+
+    <div class="content">
+      
+      <!-- Trace logs -->
+      <div>
+        <h2 class="section-title">Decision timeline</h2>
+        <div class="logs">
+          <div class="log-item">
+            <span class="log-time">18:45:12</span>
+            <span class="log-desc">CEO Ines's workspace email arrival</span>
+            <span class="log-action action--suppressed">Suppressed</span>
+          </div>
+          <div class="log-item">
+            <span class="log-time">18:44:30</span>
+            <span class="log-desc">Mateo's blood glucose warning</span>
+            <span class="log-action action--redacted">Redacted</span>
+          </div>
+          <div class="log-item">
+            <span class="log-time">18:40:00</span>
+            <span class="log-desc">Family Hub TV: Co-watching mode activated</span>
+            <span class="log-action action--echoed">Echoed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logic Evaluation -->
+      <div>
+        <h2 class="section-title">Rule Evaluation Trace</h2>
+        <div class="trace-box">
+          [Rule 04 Evaluated]<br>
+          Trigger: email.incoming<br>
+          Check: social_state === "co-watching" && recipient === "ines"<br>
+          Result: MATCH<br>
+          Action: suppress_surface_notification("tv") -> OK<br>
+          Action: defer_notification("phone") -> OK<br>
+          Trace: suppression_cascade_complete
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

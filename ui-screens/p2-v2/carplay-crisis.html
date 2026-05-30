@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User UI · CarPlay · Crisis Cascade | P2 Family Trip</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1a1c; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-family: 'Geist', sans-serif;
+  }
+  body.noframe {
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .carplay-container {
+    width: 100%;
+    max-width: 840px;
+    aspect-ratio: 16 / 9;
+    background: #010102; /* Linear canvas */
+    border: 6px solid #2a2a2b; /* Bezel */
+    border-radius: 16px;
+    box-shadow: 
+      0 12px 32px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+  body.noframe .carplay-container {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Left sidebar (CarPlay system bar) */
+  .system-bar {
+    width: 60px;
+    background: #0f1011;
+    border-right: 1px solid #23252a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+  .home-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: transparent;
+    cursor: pointer;
+  }
+  .system-time {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 500;
+  }
+  .system-icons {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 14px;
+  }
+
+  /* Main Workspace */
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  /* Map Panel */
+  .panel-map {
+    background: #0f1011;
+    border: 1px solid #23252a;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .map-canvas {
+    flex: 1;
+    background-image: 
+      radial-gradient(circle at 40% 50%, rgba(94, 106, 210, 0.1) 0%, transparent 60%),
+      linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+    background-size: 100% 100%, 20px 20px, 20px 20px;
+    position: relative;
+  }
+  /* Simple road lines */
+  .map-road {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .map-road--h { top: 45%; left: 0; right: 0; height: 16px; }
+  .map-road--v { left: 45%; top: 0; bottom: 0; width: 16px; }
+  .map-route {
+    position: absolute;
+    left: 45%;
+    top: 45%;
+    width: 100px;
+    height: 16px;
+    background: #5e6ad2;
+    box-shadow: 0 0 12px rgba(94, 106, 210, 0.6);
+  }
+  .map-pin {
+    position: absolute;
+    left: 54%;
+    top: 36%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+  }
+
+  /* Map overlay cards */
+  .map-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(15, 16, 17, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid #23252a;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  .map-overlay__title { font-weight: 600; color: #fff; margin-bottom: 2px; }
+  .map-overlay__desc { color: rgba(255, 255, 255, 0.6); }
+
+  /* Info Panel */
+  .panel-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Crisis Alert Box */
+  .alert-box {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .alert-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .alert-title::before { content: '⚠️'; }
+  .alert-desc {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.4;
+  }
+
+  /* Autonomy cascade list */
+  .cascade-list {
+    background: #0f1011;
+    border: 1px solid #23252a;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .cascade-header {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid #23252a;
+    padding-bottom: 6px;
+    margin-bottom: 2px;
+  }
+  .cascade-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cascade-name {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10.5px;
+    color: #f7f8f8;
+  }
+  .cascade-status {
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .status--auto { background: rgba(39, 166, 68, 0.15); color: #27a644; }
+  .status--confirm { background: rgba(94, 106, 210, 0.15); color: #5e6ad2; }
+  .status--downgraded { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+  .status-arrow { color: rgba(255,255,255,0.3); margin: 0 4px; }
+
+  /* Prompt actions */
+  .prompt-actions {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 8px;
+    margin-top: auto;
+  }
+  .btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    height: 38px;
+    border-radius: 8px;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: filter 200ms ease;
+  }
+  .btn--primary { background: #5e6ad2; color: #fff; }
+  .btn--primary:hover { filter: brightness(1.08); }
+  .btn--secondary { background: #141516; border: 1px solid #23252a; color: rgba(255, 255, 255, 0.7); }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="carplay-container">
+  <!-- System Sidebar -->
+  <div class="system-bar">
+    <div class="home-btn"></div>
+    <div class="system-time">14:32</div>
+    <div class="system-icons">
+      <span>📶</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="workspace">
+    <!-- Map Panel -->
+    <div class="panel-map">
+      <div class="map-canvas">
+        <div class="map-road map-road--h"></div>
+        <div class="map-road map-road--v"></div>
+        <div class="map-route"></div>
+        <div class="map-pin"></div>
+        
+        <div class="map-overlay">
+          <div class="map-overlay__title">Kyoto City Hospital</div>
+          <div class="map-overlay__desc">Emergency route · 6 min remaining</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="panel-info">
+      <!-- Crisis Alert -->
+      <div class="alert-box">
+        <div class="alert-title">Crisis Cascade Active</div>
+        <div class="alert-desc">Eli's temperature reached 38.8°C. Autonomy level downgraded from Auto to Confirm.</div>
+      </div>
+
+      <!-- Autonomy Downgrade List -->
+      <div class="cascade-list">
+        <div class="cascade-header">Autonomy settings</div>
+        <div class="cascade-row">
+          <span class="cascade-name">Health Agent</span>
+          <span class="cascade-status status--downgraded">Auto <span class="status-arrow">→</span> Confirm</span>
+        </div>
+        <div class="cascade-row">
+          <span class="cascade-name">Location Agent</span>
+          <span class="cascade-status status--downgraded">Auto <span class="status-arrow">→</span> Confirm</span>
+        </div>
+        <div class="cascade-row">
+          <span class="cascade-name">Shopping Agent</span>
+          <span class="cascade-status status--downgraded">Auto <span class="status-arrow">→</span> Confirm</span>
+        </div>
+      </div>
+
+      <!-- Action prompt -->
+      <div class="prompt-actions">
+        <button class="btn btn--primary" onclick="alert('Rerouting Confirmed')">Confirm Route Divert</button>
+        <button class="btn btn--secondary" onclick="alert('Divert Cancelled')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

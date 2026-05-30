@@ -152,11 +152,12 @@
   // ─── Projects section (jump between scroll narratives) ──
   // Detect current project from panelTitle (e.g., "Project 01 · Living Home" → "p1")
   const PROJECTS = [
-    { id: 'p1', num: '01', title: 'Living Home',    href: '/projects/project-01/p1-scroll.html' },
-    { id: 'p2', num: '02', title: 'Family Trip',    href: '/projects/project-02/p2-family-trip.html' },
-    { id: 'p3', num: '03', title: 'Fluid Handoff',  href: '/projects/project-03/p3-scroll.html' },
-    { id: 'p4', num: '04', title: 'Sales Floor',    href: '/projects/project-04/p4-scroll.html' },
-    { id: 'p5', num: '05', title: 'Control Tower',  href: '/projects/project-05/p5-scroll.html' }
+    { id: 'p1', num: '01', title: 'Living Home',    href: '../project-01/index.html' },
+    { id: 'p2', num: '02', title: 'Family Trip',    href: '../project-02/index.html' },
+    { id: 'p3', num: '03', title: 'Fluid Handoff',  href: '../project-03/index.html' },
+    { id: 'p4', num: '04', title: 'Sales Floor',    href: '../project-04/index.html' },
+    { id: 'p5', num: '05', title: 'Control Tower',  href: '../project-05/index.html' },
+    { id: 'p6', num: '06', title: 'Life Brain',      href: '../project-06/index.html' }
   ];
   const currentMatch = (cfg.panelTitle || '').match(/Project\s+0(\d)/i);
   const currentId = currentMatch ? 'p' + currentMatch[1] : null;
@@ -506,4 +507,35 @@
   document.addEventListener('click', (e) => {
     if (!root.contains(e.target)) root.classList.remove('is-open');
   });
+
+  // ─── Initialize Tabs Component (.ui-tabs) ───
+  function initTabs() {
+    const tabsContainers = document.querySelectorAll('.ui-tabs');
+    tabsContainers.forEach(container => {
+      const buttons = container.querySelectorAll('.ui-tabs__btn');
+      const panels = container.querySelectorAll('.ui-tabs__panel');
+      
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-tab');
+          
+          buttons.forEach(b => b.classList.remove('active'));
+          panels.forEach(p => p.classList.remove('active'));
+          
+          btn.classList.add('active');
+          const activePanel = container.querySelector(`.ui-tabs__panel[data-panel="${targetId}"]`);
+          if (activePanel) {
+            activePanel.classList.add('active');
+          }
+        });
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTabs);
+  } else {
+    initTabs();
+  }
 })();
+

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept UI · 2030 Contact Lens HUD | P6 Life Brain</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: #010102; /* Linear canvas */
+    color: #f7f8f8;
+    font-family: 'Geist', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  body.noframe {
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .hud-container {
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 16 / 9;
+    background: radial-gradient(circle at center, rgba(15, 16, 17, 0.6) 0%, #010102 100%);
+    border: 1px solid #23252a;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Lens HUD graphic grid */
+  .hud-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle, rgba(255,255,255,0.015) 1px, transparent 1px),
+      radial-gradient(circle, rgba(94, 106, 210, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px, 120px 120px;
+    background-position: center;
+  }
+
+  /* Reticle / Eye focus */
+  .reticle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 1px dashed rgba(94, 106, 210, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .reticle::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(94, 106, 210, 0.4);
+    box-shadow: 0 0 8px #5e6ad2;
+  }
+  .reticle-bracket {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .reticle-bracket--tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
+  .reticle-bracket--tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
+  .reticle-bracket--bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
+  .reticle-bracket--br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
+
+  /* Peripheral HUD readouts */
+  .readout {
+    position: absolute;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .readout--top-left { top: 20px; left: 24px; }
+  .readout--top-right { top: 20px; right: 24px; text-align: right; }
+  .readout--bottom-left { bottom: 20px; left: 24px; }
+  .readout--bottom-right { bottom: 20px; right: 24px; text-align: right; }
+
+  .readout strong {
+    color: #5e6ad2;
+  }
+
+  /* Floating UI / Whisper mode projection */
+  .projection {
+    position: absolute;
+    left: 54%;
+    top: 35%;
+    background: rgba(15, 16, 17, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(94, 106, 210, 0.3);
+    border-radius: 8px;
+    padding: 12px 14px;
+    width: 220px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .proj-header {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Geist Mono', monospace;
+    font-size: 8px;
+    color: #5e6ad2;
+    margin-bottom: 6px;
+    letter-spacing: 0.06em;
+  }
+  .proj-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .proj-desc {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Compass line overlay */
+  .compass-line {
+    position: absolute;
+    bottom: 45px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.08) 80%, transparent 100%);
+  }
+</style>
+</head>
+<body>
+<script>if(new URLSearchParams(location.search).get('noframe')==='1')document.body.classList.add('noframe');</script>
+
+<div class="hud-container">
+  <div class="hud-grid"></div>
+
+  <!-- Reticle -->
+  <div class="reticle">
+    <div class="reticle-bracket reticle-bracket--tl"></div>
+    <div class="reticle-bracket reticle-bracket--tr"></div>
+    <div class="reticle-bracket reticle-bracket--bl"></div>
+    <div class="reticle-bracket reticle-bracket--br"></div>
+  </div>
+
+  <!-- Left/Right indicators -->
+  <div class="readout readout--top-left">
+    System: <strong>Eye_OS_v6</strong><br>
+    Battery: 88%
+  </div>
+  <div class="readout readout--top-right">
+    Time: 22:00:14<br>
+    Lat: 35.6586° N
+  </div>
+  <div class="readout readout--bottom-left">
+    Focal: 2.4m<br>
+    Mode: <strong>Whisper</strong>
+  </div>
+  <div class="readout readout--bottom-right">
+    Cognitive Load: Low<br>
+    Context: Walk
+  </div>
+
+  <!-- Floating screen project -->
+  <div class="projection">
+    <div class="proj-header">
+      <span>Saved · 3mo</span>
+      <span>3m walk</span>
+    </div>
+    <div class="proj-title">Rosa's Coffee Lab</div>
+    <div class="proj-desc">Instagram で3ヶ月前に保存しました。22:30まで営業。</div>
+  </div>
+
+  <!-- Compass -->
+  <div class="compass-line"></div>
+</div>
+</body>
+</html>

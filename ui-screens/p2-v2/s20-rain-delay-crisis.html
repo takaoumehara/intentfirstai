@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S20 · User UI · Rain & Train Delay Crisis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_screen.css">
+<style>
+  body {
+    background: #f8fafc;
+    color: #0f172a;
+    --bg:           #ffffff;
+    --bg-2:         #f8fafc;
+    --bg-3:         #f1f5f9;
+    --text:         #0f172a;
+    --text-2:       #475569;
+    --text-3:       #64748b;
+    --text-4:       #94a3b8;
+    --border:       #e2e8f0;
+    --border-soft:  #f1f5f9;
+    --border-strong:#cbd5e1;
+  }
+  body.noframe {
+    background: transparent;
+  }
+
+  /* ── Rain Header / Alert ── */
+  .alert-header {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert-header__icon {
+    font-size: 20px;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .alert-header__content {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .alert-header__title {
+    font-weight: 700;
+    color: #991b1b;
+    margin-bottom: 2px;
+  }
+  .alert-header__desc {
+    color: #7f1d1d;
+  }
+
+  /* ── Token Status Overview ── */
+  .tokens-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .token-tag {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    white-space: nowrap;
+  }
+  .token-tag--alert {
+    background: #fff7ed;
+    border-color: #ffedd5;
+    color: #c2410c;
+  }
+
+  /* ── Autonomy Banner ── */
+  .autonomy-bar {
+    background: #fff8f6;
+    border: 1px dashed rgba(194,65,12,0.3);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .autonomy-bar__label {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: #c2410c;
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .autonomy-bar__dial {
+    display: flex;
+    gap: 3px;
+  }
+  .autonomy-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e2e8f0;
+  }
+  .autonomy-dot--active {
+    background: #c2410c;
+  }
+
+  /* ── Option Card ── */
+  .proposal-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -2px rgba(0,0,0,0.02);
+    overflow: hidden;
+  }
+  .proposal-card__badge {
+    background: #eff6ff;
+    border-bottom: 1px solid #dbeafe;
+    padding: 8px 14px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #1d4ed8;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+  .proposal-card__content {
+    padding: 14px;
+  }
+  .proposal-card__title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+    color: #0f172a;
+  }
+  .proposal-card__desc {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .proposal-card__timeline {
+    border-left: 2px solid #e2e8f0;
+    padding-left: 12px;
+    margin-left: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .time-point {
+    position: relative;
+  }
+  .time-point::before {
+    content: '';
+    position: absolute;
+    left: -17px;
+    top: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+  }
+  .time-point--active::before {
+    background: #1d4ed8;
+    box-shadow: 0 0 0 2px #eff6ff;
+  }
+  .time-point__time {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+  }
+  .time-point__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .time-point__desc {
+    font-size: 11.5px;
+    color: #64748b;
+    margin-top: 1px;
+  }
+
+  .proposal-card__footer {
+    padding: 12px 14px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 8px;
+  }
+
+  /* ── Care contract widget ── */
+  .care-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+    color: #166534;
+  }
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <span>14:40</span>
+  <span class="status-bar__icons mono">LTE · 82%</span>
+</div>
+
+<main class="screen">
+
+  <div class="screen__eyebrow reveal" data-d="1">
+    <span class="dot dot--pulse dot--warn"></span>
+    Today · JR Kanazawa Line
+  </div>
+
+  <h1 class="screen__title reveal" data-d="2">
+    Train delayed 70 min. Rainy.
+  </h1>
+
+  <p class="screen__sub reveal" data-d="3">
+    JMA has issued a heavy rain warning. Kenroku-en garden visit is no longer feasible.
+  </p>
+
+  <!-- Alert Banner -->
+  <div class="alert-header reveal" data-d="4">
+    <span class="alert-header__icon">☔</span>
+    <div class="alert-header__content">
+      <div class="alert-header__title">JR Hokuriku Main Line Delay</div>
+      <div class="alert-header__desc">Kanazawa → Kyoto trains running 70 mins behind schedule due to rain.</div>
+    </div>
+  </div>
+
+  <!-- Tokens List -->
+  <div class="tokens-strip reveal" data-d="5">
+    <span class="token-tag token-tag--alert">⚡ Cognitive Load: High (Kids)</span>
+    <span class="token-tag token-tag--alert">📉 Feasibility: 0.12 (Garden)</span>
+    <span class="token-tag">⚖️ Priority: Comfort &gt; Outdoors</span>
+  </div>
+
+  <!-- Autonomy downgrade notification -->
+  <div class="autonomy-bar reveal" data-d="6">
+    <span class="autonomy-bar__label">Autonomy Dial: Confirm Mode</span>
+    <div class="autonomy-bar__dial">
+      <span class="autonomy-dot"></span>
+      <span class="autonomy-dot autonomy-dot--active"></span>
+      <span class="autonomy-dot"></span>
+      <span class="autonomy-dot"></span>
+    </div>
+  </div>
+
+  <!-- Proposal Card -->
+  <div class="proposal-card reveal" data-d="7">
+    <div class="proposal-card__badge">Proposed Recovery Plan</div>
+    <div class="proposal-card__content">
+      <div class="proposal-card__title">Pivot to Station Lounge + Early Departure</div>
+      <div class="proposal-card__desc">
+        Skip Kenroku-en walk. Access Kanazawa station premium lounge now (free juice/snacks for kids) and board the next available express train to Kyoto.
+      </div>
+      
+      <div class="proposal-card__timeline">
+        <div class="time-point time-point--active">
+          <div class="time-point__time">14:50 - 16:00</div>
+          <div class="time-point__label">Kanazawa Station VIP Lounge</div>
+          <div class="time-point__desc">Pre-reserved family lounge booth · Comfort priority</div>
+        </div>
+        <div class="time-point">
+          <div class="time-point__time">16:12 - 18:30</div>
+          <div class="time-point__label">JR Thunderbird 32 to Kyoto</div>
+          <div class="time-point__desc">Family carriage rows 8A-8D reserved</div>
+        </div>
+      </div>
+
+      <div class="care-badge">
+        ✓ Care Contract: Maya & Eli rest levels preserved
+      </div>
+    </div>
+    
+    <div class="proposal-card__footer">
+      <button class="btn btn--primary btn--row">Approve Pivot</button>
+      <button class="btn btn--row">Keep Itinerary</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="home-indicator"></div>
+
+<script>
+  if (new URLSearchParams(location.search).has('noframe')) document.body.classList.add('noframe');
+</script>
+</body>
+</html>
