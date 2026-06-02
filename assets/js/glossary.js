@@ -172,6 +172,7 @@
   }
 
   function onTermActivate(triggerEl) {
+    return; // Glossary term popover disabled site-wide (2026-06-02)
     const slug = triggerEl.getAttribute('data-term');
     if (activeTerm === triggerEl && popover && popover.getAttribute('data-open') === 'true') {
       closePopover();

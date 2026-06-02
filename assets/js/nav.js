@@ -658,8 +658,9 @@ function initGlossaryAndCommandK(opts) {
     if (window.GLOSSARY_DB && window.GLOSSARY_DB.length) {
       var state = buildGlossaryMap();
       state.pattern = buildPattern(state.terms);
-      wrapGlossaryTerms(state);
-      bindGlossaryPopover(state);
+      // Glossary hover/term-popover disabled site-wide (2026-06-02). Command-K stays active.
+      // wrapGlossaryTerms(state);
+      // bindGlossaryPopover(state);
     }
     ensurePaletteIndex(function () {
       if (commandK && typeof commandK.refresh === 'function') commandK.refresh();
@@ -1233,8 +1234,8 @@ function initNav(opts) {
     if (window.CG_IA) return window.CG_IA.label(key, lang);
     var fallbacks = {
       intent: 'Intent',
-      signals: 'Signals',
-      dials: 'Dials',
+      signals: 'Situation Signals',
+      dials: 'Relationship Dials',
       ruleengine: 'Rule Engine',
       negotiation: 'Negotiation Gate',
       axpatterns: 'AX Patterns',
@@ -1248,7 +1249,11 @@ function initNav(opts) {
   };
 
   var cgPath = function(key) {
-    return prefixCg(window.CG_IA ? window.CG_IA.routes[key] : 'context-grammar/' + key + '/index.html');
+    var r = window.CG_IA ? window.CG_IA.routes[key] : key + '/index.html';
+    if (r.indexOf('context-grammar/') === 0) {
+      r = r.slice('context-grammar/'.length);
+    }
+    return prefixCg(r);
   };
 
   // ── Build mobile overlay HTML ──
@@ -1315,7 +1320,7 @@ function initNav(opts) {
       else if (st.key === 'axpatterns') desc = 'エージェント出力時のための、視覚・物理的な対話パターン体系。';
     } else {
       if (st.key === 'intent') desc = 'The human\'s raw desire, declared explicitly or inferred implicitly.';
-      else if (st.key === 'signals') desc = '6 situation tokens capturing real-time posture and environment.';
+      else if (st.key === 'signals') desc = '6 situation signals capturing real-time posture and environment.';
       else if (st.key === 'dials') desc = '2 relationship dials defining autonomy limits and boundaries.';
       else if (st.key === 'ruleengine') desc = 'Core business rules matching signals to valid decision bounds.';
       else if (st.key === 'negotiation') desc = 'Interactive verification resolving conflict and friction.';
