@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数学ヒーロー道場 — 連立方程式 & 合同の証明</title>
+<style>
+  /* ============================================================
+     数学ヒーロー道場  —  中学3年生向け インタラクティブ教材
+     外部依存ゼロ / 音は Web Audio API で生成 / 1ファイル完結
+     ============================================================ */
+
+  :root{
+    --bg:#0e1228;
+    --bg2:#161b3a;
+    --card:#1d244f;
+    --card2:#252d63;
+    --ink:#eef1ff;
+    --muted:#a9b0e0;
+    --line:rgba(255,255,255,.12);
+    --green:#34e0a1;
+    --green-d:#16b07c;
+    --blue:#4ea8ff;
+    --pink:#ff6fae;
+    --yellow:#ffd54a;
+    --purple:#a98bff;
+    --red:#ff6b6b;
+    --shadow:0 18px 50px rgba(0,0,0,.45);
+    --r:20px;
+    --font:"Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",
+           "Segoe UI",system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:var(--font);color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 80% -10%, rgba(78,168,255,.18), transparent 60%),
+      radial-gradient(1000px 600px at 0% 100%, rgba(255,111,174,.16), transparent 55%),
+      var(--bg);
+    line-height:1.75;-webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{line-height:1.3;margin:0}
+  p{margin:0 0 1em}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px}
+
+  /* ---------- 進捗バー（上部固定） ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(14,18,40,.82);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{display:flex;align-items:center;gap:14px;height:60px}
+  .brand{font-weight:800;font-size:17px;letter-spacing:.02em;white-space:nowrap}
+  .brand .spark{color:var(--yellow)}
+  .xp-wrap{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+  .xp-track{flex:1;height:12px;border-radius:99px;background:#0a0e22;
+    border:1px solid var(--line);overflow:hidden}
+  .xp-fill{height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--green),var(--blue));
+    transition:width .6s cubic-bezier(.2,.9,.2,1)}
+  .xp-label{font-size:13px;color:var(--muted);font-weight:700;white-space:nowrap}
+  .sound-btn{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    width:42px;height:42px;border-radius:12px;font-size:18px;cursor:pointer;
+    display:grid;place-items:center;transition:.2s}
+  .sound-btn:hover{background:var(--card2);transform:translateY(-2px)}
+
+  /* ---------- 共通カード ---------- */
+  .section{padding:64px 0;border-bottom:1px solid var(--line)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:800;letter-spacing:.08em;
+    color:var(--bg);background:var(--yellow);
+    padding:6px 12px;border-radius:99px;margin-bottom:18px}
+  .h2{font-size:clamp(26px,5vw,40px);font-weight:900;letter-spacing:-.01em;margin-bottom:10px}
+  .lead{font-size:clamp(16px,2.4vw,19px);color:var(--muted);max-width:640px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:26px;box-shadow:var(--shadow)}
+  .card+.card{margin-top:20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
+
+  /* ---------- ヒーロー ---------- */
+  .hero{padding:70px 0 50px;text-align:center;position:relative}
+  .hero h1{font-size:clamp(32px,8vw,62px);font-weight:900;letter-spacing:-.02em;
+    background:linear-gradient(120deg,#fff 10%,var(--blue) 45%,var(--green) 80%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    margin-bottom:18px}
+  .hero .sub{font-size:clamp(16px,3vw,21px);color:var(--muted);margin-bottom:30px}
+  .hero .sub b{color:var(--ink)}
+
+  /* レーダーチャート（結果再現） */
+  .radar-box{display:flex;gap:26px;align-items:center;justify-content:center;
+    flex-wrap:wrap;margin:34px auto 8px;max-width:720px}
+  .radar-legend{text-align:left;font-size:15px}
+  .radar-legend .row{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .dot{width:12px;height:12px;border-radius:4px;flex:none}
+  .badge-strong{color:var(--green);font-weight:800}
+  .badge-grow{color:var(--yellow);font-weight:800}
+
+  /* ---------- ボタン ---------- */
+  .btn{display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+    border:none;border-radius:14px;font-family:var(--font);font-weight:800;
+    font-size:16px;padding:14px 24px;color:#06231a;
+    background:linear-gradient(120deg,var(--green),var(--blue));
+    box-shadow:0 10px 26px rgba(52,224,161,.3);transition:.18s}
+  .btn:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(52,224,161,.42)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:var(--card2);color:var(--ink);box-shadow:none;
+    border:1px solid var(--line)}
+  .btn.ghost:hover{background:#2c356f}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:28px}
+
+  /* ---------- ステップ説明 ---------- */
+  .step{display:flex;gap:16px;align-items:flex-start;padding:16px 0;
+    border-top:1px dashed var(--line)}
+  .step:first-child{border-top:none}
+  .step-num{flex:none;width:36px;height:36px;border-radius:11px;
+    display:grid;place-items:center;font-weight:900;font-size:17px;
+    background:var(--card2);color:var(--green)}
+  .step h4{margin:2px 0 6px;font-size:18px}
+  .step p{margin:0;color:var(--muted);font-size:15.5px}
+  .formula{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    background:#0b1130;border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;display:inline-block;font-size:18px;color:#dfe7ff;
+    margin:6px 0}
+  .hi{color:var(--yellow);font-weight:800}
+  .hi2{color:var(--pink);font-weight:800}
+  .hi3{color:var(--green);font-weight:800}
+
+  /* ---------- うんちく（豆知識） ---------- */
+  .trivia{margin:22px 0;border-radius:var(--r);overflow:hidden;
+    border:1px solid rgba(169,139,255,.45);
+    background:linear-gradient(180deg,rgba(169,139,255,.14),rgba(169,139,255,.04))}
+  .trivia-head{display:flex;align-items:center;gap:10px;
+    padding:12px 18px;background:rgba(169,139,255,.18);font-weight:800;
+    color:#e6ddff;font-size:14px;letter-spacing:.04em}
+  .trivia-body{padding:16px 18px;color:#e9e4ff;font-size:15.5px}
+  .trivia .big{font-size:22px}
+
+  /* ---------- 天秤アニメ ---------- */
+  .stage{background:linear-gradient(180deg,#0c1334,#0a0f28);
+    border:1px solid var(--line);border-radius:18px;padding:22px;
+    text-align:center;position:relative;overflow:hidden}
+  .stage-title{font-weight:800;font-size:15px;color:var(--muted);margin-bottom:6px;
+    letter-spacing:.04em}
+
+  /* インタラクティブ：りんご・みかん */
+  .fruit-prob{display:flex;flex-direction:column;gap:14px;align-items:center}
+  .scale-line{font-size:clamp(17px,4vw,24px);font-weight:800;display:flex;
+    align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+  .emoji{font-size:1.25em}
+  .reveal-box{min-height:54px;display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+  .ans-chip{opacity:0;transform:translateY(14px) scale(.8);
+    background:var(--card2);border:1px solid var(--green);border-radius:14px;
+    padding:10px 18px;font-weight:900;font-size:20px;color:var(--green);
+    transition:.5s cubic-bezier(.2,1.4,.3,1)}
+  .ans-chip.show{opacity:1;transform:none}
+
+  /* 加減法アニメーション表示器 */
+  .elim{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:clamp(15px,3.6vw,20px);
+    text-align:left;display:inline-block;background:#0b1130;border:1px solid var(--line);
+    border-radius:14px;padding:18px 22px;line-height:2.1;position:relative}
+  .elim .ln{display:block;transition:.4s;opacity:.32}
+  .elim .ln.on{opacity:1;color:#fff}
+  .elim .ln.fade{opacity:.32}
+  .strike{position:relative}
+  .strike.cut::after{content:"";position:absolute;left:-2px;right:-2px;top:50%;
+    height:3px;background:var(--red);transform:scaleX(0);transform-origin:left;
+    animation:cut .5s forwards;border-radius:2px}
+  @keyframes cut{to{transform:scaleX(1)}}
+  .pop{animation:pop .5s}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+
+  /* ---------- 合同 三角形アニメ ---------- */
+  .tri-stage{position:relative;height:260px;background:#0b1130;border:1px solid var(--line);
+    border-radius:18px;overflow:hidden}
+  .tri-stage svg{width:100%;height:100%}
+  .movetri{transition:transform 1.4s cubic-bezier(.5,0,.2,1)}
+  .cond-tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+  .cond-tab{cursor:pointer;border:1px solid var(--line);background:var(--card2);
+    color:var(--ink);border-radius:99px;padding:9px 16px;font-weight:800;font-size:14px;
+    transition:.18s}
+  .cond-tab.active{background:linear-gradient(120deg,var(--green),var(--blue));color:#06231a;
+    border-color:transparent}
+  .cond-tab:hover{transform:translateY(-2px)}
+
+  /* ---------- 証明ビルダー ---------- */
+  .proof-pool,.proof-slot{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .pchip{cursor:grab;user-select:none;background:var(--card2);border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;font-size:15px;font-weight:600;
+    display:flex;align-items:center;gap:10px;transition:.15s}
+  .pchip:hover{border-color:var(--green);transform:translateX(4px)}
+  .pchip .ord{font-weight:900;color:var(--muted);font-size:13px;min-width:20px}
+  .pchip.correct{border-color:var(--green);background:rgba(52,224,161,.14)}
+  .pchip.wrong{border-color:var(--red);background:rgba(255,107,107,.14);animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .slot-label{font-size:13px;color:var(--muted);font-weight:800;letter-spacing:.05em;margin-top:6px}
+
+  /* ---------- クイズ ---------- */
+  .quiz{margin-top:14px}
+  .q-text{font-size:18px;font-weight:800;margin-bottom:14px}
+  .opts{display:grid;gap:10px}
+  .opt{cursor:pointer;text-align:left;border:1px solid var(--line);background:var(--card2);
+    color:var(--ink);border-radius:14px;padding:14px 16px;font-size:16px;font-weight:600;
+    font-family:var(--font);transition:.15s;display:flex;align-items:center;gap:12px}
+  .opt:hover{border-color:var(--blue);transform:translateY(-2px)}
+  .opt .key{width:28px;height:28px;border-radius:8px;background:#0b1130;display:grid;
+    place-items:center;font-weight:900;flex:none}
+  .opt.right{border-color:var(--green);background:rgba(52,224,161,.16)}
+  .opt.bad{border-color:var(--red);background:rgba(255,107,107,.16)}
+  .opt:disabled{cursor:default}
+  .q-feedback{margin-top:14px;font-weight:700;font-size:15.5px;min-height:24px}
+  .q-feedback.ok{color:var(--green)}
+  .q-feedback.no{color:var(--red)}
+
+  /* ---------- 紙吹雪 ---------- */
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:90}
+
+  /* ---------- トースト ---------- */
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);
+    background:var(--card2);border:1px solid var(--green);border-radius:14px;
+    padding:14px 22px;font-weight:800;box-shadow:var(--shadow);z-index:95;
+    transition:.4s cubic-bezier(.2,1.3,.3,1);display:flex;align-items:center;gap:10px}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* ---------- バッジ ---------- */
+  .badges{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}
+  .badge{width:108px;text-align:center;opacity:.32;filter:grayscale(1);transition:.5s}
+  .badge.earned{opacity:1;filter:none;animation:pop .6s}
+  .badge .ic{font-size:42px}
+  .badge .nm{font-size:13px;font-weight:800;margin-top:4px}
+
+  .float-emoji{position:fixed;pointer-events:none;font-size:30px;z-index:88;
+    animation:floatup 1.1s ease-out forwards}
+  @keyframes floatup{to{transform:translateY(-90px) scale(1.4);opacity:0}}
+
+  .mini{font-size:13.5px;color:var(--muted)}
+  .tag{display:inline-block;font-size:12px;font-weight:800;padding:3px 9px;border-radius:8px;
+    background:var(--card2);border:1px solid var(--line);color:var(--muted);margin-bottom:10px}
+  .center{text-align:center}
+  hr.soft{border:none;border-top:1px dashed var(--line);margin:22px 0}
+</style>
+</head>
+<body>
+
+<!-- ============ 上部バー ============ -->
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand">⚔️ 数学ヒーロー<span class="spark">道場</span></div>
+    <div class="xp-wrap">
+      <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+      <div class="xp-label"><span id="xpNow">0</span> XP</div>
+    </div>
+    <button class="sound-btn" id="soundBtn" title="音のオン/オフ">🔊</button>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<!-- ============ ヒーロー ============ -->
+<header class="hero">
+  <div class="wrap">
+    <div class="tag">中学3年生 / きみ専用トレーニング</div>
+    <h1>苦手は、伸びしろだ。</h1>
+    <p class="sub">テスト結果を読んだよ。きみが次に強くなれるのは<br>
+      <b>「連立方程式」</b>と<b>「三角形の合同・証明」</b>の2つ。<br>
+      ここをアニメと音でクリアして、ヒーローになろう。</p>
+
+    <!-- 結果レーダー再現 -->
+    <div class="radar-box">
+      <svg width="240" height="240" viewBox="0 0 240 240" aria-label="到達度レーダーチャート">
+        <!-- グリッド -->
+        <g fill="none" stroke="rgba(255,255,255,.16)">
+          <polygon points="120,20 220,120 120,220 20,120"/>
+          <polygon points="120,45 195,120 120,195 45,120"/>
+          <polygon points="120,70 170,120 120,170 70,120"/>
+          <polygon points="120,95 145,120 120,145 95,120"/>
+          <line x1="120" y1="20" x2="120" y2="220"/>
+          <line x1="20" y1="120" x2="220" y2="120"/>
+        </g>
+        <!-- きみのスコア（上=図形やや低 / 右=関数強 / 下=データ強 / 左=数と式中） -->
+        <polygon points="120,78 188,120 120,196 70,120"
+          fill="rgba(78,168,255,.22)" stroke="var(--blue)" stroke-width="3"
+          stroke-linejoin="round"/>
+        <g fill="#fff" font-size="13" font-weight="800" text-anchor="middle">
+          <text x="120" y="13">図形 📐</text>
+          <text x="232" y="124">関数</text>
+          <text x="120" y="236">データ</text>
+          <text x="10" y="124">数と式</text>
+        </g>
+        <circle cx="120" cy="78" r="5" fill="var(--yellow)"/>
+        <circle cx="70" cy="120" r="5" fill="var(--yellow)"/>
+        <circle cx="188" cy="120" r="5" fill="var(--green)"/>
+        <circle cx="120" cy="196" r="5" fill="var(--green)"/>
+      </svg>
+      <div class="radar-legend">
+        <div class="row"><span class="dot" style="background:var(--green)"></span>
+          <span><span class="badge-strong">得意 💪</span> データの活用（確率・箱ひげ図）・関数</span></div>
+        <div class="row"><span class="dot" style="background:var(--yellow)"></span>
+          <span><span class="badge-grow">伸びしろ 🚀</span> 数と式（連立方程式）・図形（合同の証明）</span></div>
+        <div class="row mini">※ 黄色の2つを、これから一緒に攻略するよ。</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="go('m1')">① 連立方程式へ ⚖️</button>
+      <button class="btn ghost" onclick="go('m2')">② 合同の証明へ 📐</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     モジュール1：連立方程式
+     ============================================================ -->
+<section class="section" id="m1">
+  <div class="wrap">
+    <span class="eyebrow">⚖️ ステージ 1</span>
+    <h2 class="h2">連立方程式 — 2つのナゾを同時に解く</h2>
+    <p class="lead">わからない数が2つ（xとy）あっても大丈夫。
+      ヒントの式も2つあれば、必ず1組の答えにたどり着ける。その「魔法のやり方」を体で覚えよう。</p>
+
+    <!-- イメージをつかむ：天秤りんご -->
+    <div class="card" style="margin-top:26px">
+      <h3 style="font-size:20px;margin-bottom:6px">まずはイメージ：くだもの当てゲーム 🍎🍊</h3>
+      <p class="mini">値段のわからないりんご🍎とみかん🍊。ヒントは2つ。さあ、1個いくら？</p>
+      <div class="stage" style="margin-top:14px">
+        <div class="fruit-prob">
+          <div class="scale-line">
+            <span class="emoji">🍎🍎</span> ＋ <span class="emoji">🍊🍊🍊</span>
+            <span class="hi">＝ 320円</span>
+          </div>
+          <div class="scale-line">
+            <span class="emoji">🍎</span> ＋ <span class="emoji">🍊🍊</span>
+            <span class="hi2">＝ 190円</span>
+          </div>
+          <div class="reveal-box" id="fruitAns">
+            <div class="ans-chip" id="chipApple">🍎 = ？</div>
+            <div class="ans-chip" id="chipOrange">🍊 = ？</div>
+          </div>
+          <button class="btn" id="fruitBtn" onclick="solveFruit()">答えをのぞいてみる 👀</button>
+        </div>
+      </div>
+      <p class="mini" style="margin-top:12px">🍎をx、🍊をyと名前をつけると…
+        <span class="formula">2x + 3y = 320</span> と <span class="formula">x + 2y = 190</span>。
+        これが「連立方程式」。次に解き方を2つ覚えよう。</p>
+    </div>
+
+    <!-- うんちく1 -->
+    <div class="trivia">
+      <div class="trivia-head">🧠 数学うんちく #1 — 連立方程式は2000年前からある</div>
+      <div class="trivia-body">
+        じつは連立方程式、<b>約2000年前の古代中国</b>の数学書『九章算術』にもう登場してる。
+        お米の収穫を当てる文章題として解かれていたんだ。さらに、きみがこれから習う「加減法」を
+        スゴ技に進化させたのが大数学者 <b>ガウス</b>。コンピューターが何百個もの式を一瞬で解くときも、
+        その仕組みは<span class="big">きみが今やる計算と同じ</span>。
+        つまり——いま学ぶこの1ページは、最先端AIの計算とつながってる。
+      </div>
+    </div>
+
+    <!-- 解き方① 加減法 アニメ -->
+    <div class="card">
+      <span class="tag">解き方 その1</span>
+      <h3 style="font-size:21px">加減法 — そろえて消す ✂️</h3>
+      <p class="mini">同じ文字の数（係数）をそろえて、式どうしを<span class="hi3">たし算・ひき算</span>すると、文字が1つ消える！</p>
+
+      <div class="grid2" style="margin-top:14px">
+        <div class="stage">
+          <div class="stage-title">▶ ボタンで1ステップずつ</div>
+          <div class="elim" id="elimBox">
+            <span class="ln on" data-s="0">①　2x + 3y = 320</span>
+            <span class="ln on" data-s="0">②　 x + 2y = 190</span>
+            <span class="ln" data-s="1">②×2　2x + 4y = 380</span>
+            <span class="ln" data-s="2">①−②×2 で <span class="strike" id="cutX">2x</span> が消える</span>
+            <span class="ln" data-s="3">　−y = −60 → <span class="hi3">y = 60</span> 🍊</span>
+            <span class="ln" data-s="4">②へ代入 → x + 120 = 190</span>
+            <span class="ln" data-s="5"><span class="hi">x = 70</span> 🍎　できた！</span>
+          </div>
+        </div>
+        <div>
+          <div class="step"><div class="step-num">1</div><div>
+            <h4>係数をそろえる</h4>
+            <p>消したい文字を決める（ここはx）。②を2倍して、xの数を両方「2」にそろえる。</p></div></div>
+          <div class="step"><div class="step-num">2</div><div>
+            <h4>ひき算して消す</h4>
+            <p>①−（②×2）。<span class="hi2">2x − 2x = 0</span> でxが消える。残るのはyだけ。</p></div></div>
+          <div class="step"><div class="step-num">3</div><div>
+            <h4>残った文字を解く</h4>
+            <p>−y = −60 → <span class="hi3">y = 60</span>。みかんは60円だ！</p></div></div>
+          <div class="step"><div class="step-num">4</div><div>
+            <h4>もう片方にもどす</h4>
+            <p>yを②に代入してxを出す → <span class="hi">x = 70</span>。りんごは70円。</p></div></div>
+          <div class="btn-row" style="justify-content:flex-start;margin-top:14px">
+            <button class="btn" id="elimNext" onclick="elimStep()">つぎへ ▶</button>
+            <button class="btn ghost" onclick="elimReset()">最初から</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 解き方② 代入法 -->
+    <div class="card">
+      <span class="tag">解き方 その2</span>
+      <h3 style="font-size:21px">代入法 — 1つを式ごとはめ込む 🧩</h3>
+      <p class="mini">片方の式を「x =〜」の形にして、その<span class="hi3">かたまりごと</span>もう片方に入れる。</p>
+      <div class="step"><div class="step-num">1</div><div>
+        <h4>かんたんな式を変形</h4>
+        <p>②「x + 2y = 190」を <span class="formula">x = 190 − 2y</span> にする。</p></div></div>
+      <div class="step"><div class="step-num">2</div><div>
+        <h4>まるごと代入</h4>
+        <p>①のxの場所に「190 − 2y」をはめ込む →
+          <span class="formula">2(190 − 2y) + 3y = 320</span></p></div></div>
+      <div class="step"><div class="step-num">3</div><div>
+        <h4>計算して解く</h4>
+        <p>380 − 4y + 3y = 320 → −y = −60 → <span class="hi3">y = 60</span> → <span class="hi">x = 70</span>。
+          加減法と<b>同じ答え</b>になる。やり方は2つ、ゴールは1つ！</p></div></div>
+      <p class="mini">💡 コツ：「x＝」や「y＝」の形がすぐ作れそうなら<b>代入法</b>、
+        係数がそろえやすいなら<b>加減法</b>。問題を見て速いほうを選べると上級者。</p>
+    </div>
+
+    <!-- 文章題のつくり方 -->
+    <div class="card">
+      <span class="tag">いちばんの山場</span>
+      <h3 style="font-size:21px">文章題 → 式に変える 3つの呪文 ✨</h3>
+      <p class="mini">テストで点を落としやすいのはココ。でも手順はいつも同じだよ。</p>
+      <div class="step"><div class="step-num">1</div><div>
+        <h4>「？」に名前をつける</h4>
+        <p>求めたいものを <span class="hi">x</span>・<span class="hi2">y</span> にする。
+          「大人 x 人、子ども y 人」のように。</p></div></div>
+      <div class="step"><div class="step-num">2</div><div>
+        <h4>関係を2本の式に</h4>
+        <p>「合計の人数」で1本、「合計の金額」でもう1本。
+          数えられる関係を見つけたら、それが式になる。</p></div></div>
+      <div class="step"><div class="step-num">3</div><div>
+        <h4>解いて、日本語で答える</h4>
+        <p>連立を解いたら「大人7人、子ども5人」と<b>単位つき</b>で答える。これで満点。</p></div></div>
+    </div>
+
+    <!-- クイズ1 -->
+    <div class="card" id="quiz1">
+      <span class="tag">⚡ ミニ実戦</span>
+      <h3 style="font-size:20px">クイズ：消えるのはどっち？</h3>
+      <div class="quiz" data-quiz="1">
+        <div class="q-text">「3x + 2y = 12」と「3x − y = 3」。<br>
+          そのまま①−②をすると、消える文字はどっち？（XP +20）</div>
+        <div class="opts">
+          <button class="opt" data-correct="1"><span class="key">A</span> x が消える</button>
+          <button class="opt"><span class="key">B</span> y が消える</button>
+          <button class="opt"><span class="key">C</span> どっちも消えない</button>
+        </div>
+        <div class="q-feedback"></div>
+      </div>
+    </div>
+
+    <div class="card" id="quiz2">
+      <div class="quiz" data-quiz="2">
+        <div class="q-text">上のクイズで①−②をすると「3y = 9」。<br>
+          y はいくつ？（XP +20）</div>
+        <div class="opts">
+          <button class="opt"><span class="key">A</span> y = 1</button>
+          <button class="opt" data-correct="1"><span class="key">B</span> y = 3</button>
+          <button class="opt"><span class="key">C</span> y = 9</button>
+        </div>
+        <div class="q-feedback"></div>
+      </div>
+    </div>
+
+    <div class="center" style="margin-top:26px">
+      <button class="btn" onclick="go('m2')">ステージ1クリア！② 合同の証明へ 📐</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     モジュール2：三角形の合同・証明
+     ============================================================ -->
+<section class="section" id="m2">
+  <div class="wrap">
+    <span class="eyebrow">📐 ステージ 2</span>
+    <h2 class="h2">三角形の合同 — 「ぴったり重なる」を証明する</h2>
+    <p class="lead">2つの三角形が「形も大きさも完全に同じ（＝合同）」だと、どう示せばいい？
+      じつは<b>3つのチェック項目</b>のどれか1つを満たせばOK。まずは目で見て納得しよう。</p>
+
+    <!-- 合同を見る -->
+    <div class="card" style="margin-top:26px">
+      <h3 style="font-size:20px;margin-bottom:4px">アニメ：本当にぴったり重なるの？ 🎬</h3>
+      <p class="mini">右の三角形を、回して・動かして、左にスッと重ねるよ。ボタンを押してみて。</p>
+      <div class="tri-stage" style="margin-top:14px">
+        <svg viewBox="0 0 400 260">
+          <!-- 固定の三角形 ABC -->
+          <polygon points="70,200 70,80 170,200" fill="rgba(78,168,255,.22)"
+            stroke="var(--blue)" stroke-width="3"/>
+          <text x="58" y="216" fill="#fff" font-size="14" font-weight="800">A</text>
+          <text x="58" y="76" fill="#fff" font-size="14" font-weight="800">B</text>
+          <text x="176" y="216" fill="#fff" font-size="14" font-weight="800">C</text>
+          <!-- 動かす三角形 DEF -->
+          <g id="moveTri" class="movetri">
+            <polygon points="330,60 250,60 330,160" fill="rgba(52,224,161,.28)"
+              stroke="var(--green)" stroke-width="3"/>
+            <text x="336" y="60" fill="#fff" font-size="14" font-weight="800">D</text>
+            <text x="236" y="60" fill="#fff" font-size="14" font-weight="800">E</text>
+            <text x="336" y="172" fill="#fff" font-size="14" font-weight="800">F</text>
+          </g>
+        </svg>
+      </div>
+      <div class="btn-row" style="justify-content:flex-start;margin-top:14px">
+        <button class="btn" id="overlapBtn" onclick="overlapTri()">ぴったり重ねる ▶</button>
+        <button class="btn ghost" onclick="resetTri()">もどす</button>
+      </div>
+      <p class="mini" id="overlapMsg" style="margin-top:8px">
+        重なったら「△ABC ≡ △DEF」。この「≡」が合同の記号だよ。</p>
+    </div>
+
+    <!-- うんちく2 -->
+    <div class="trivia">
+      <div class="trivia-head">🧠 数学うんちく #2 — 証明は「ゲームのルール」みたいなもの</div>
+      <div class="trivia-body">
+        証明をはじめて作ったのは<b>約2300年前のギリシャ人、ユークリッド</b>。
+        彼の本『原論』は、聖書の次に世界で読まれた本とも言われる超ロングセラー。
+        証明のすごいところは——<b>「なんとなく正しい」じゃなく「ぜったい正しい」を作れる</b>こと。
+        サッカーがルールの上で成り立つように、数学はこの証明ルールの上で成り立ってる。
+        きみは今、その2300年前のゲームを遊んでるんだ。
+      </div>
+    </div>
+
+    <!-- 合同条件3つ -->
+    <div class="card">
+      <span class="tag">最重要・暗記ポイント</span>
+      <h3 style="font-size:21px">合同条件は3つだけ 🃏</h3>
+      <p class="mini">下のカードを押すと、どこが等しいか光るよ。声に出して覚えよう。</p>
+      <div class="cond-tabs">
+        <button class="cond-tab active" data-cond="sss" onclick="showCond('sss',this)">① 3組の辺</button>
+        <button class="cond-tab" data-cond="sas" onclick="showCond('sas',this)">② 2辺とその間の角</button>
+        <button class="cond-tab" data-cond="asa" onclick="showCond('asa',this)">③ 1辺とその両はしの角</button>
+      </div>
+      <div class="tri-stage" style="height:230px">
+        <svg viewBox="0 0 400 230" id="condSvg">
+          <polygon points="80,190 80,60 200,190" fill="rgba(255,255,255,.04)"
+            stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+          <!-- 辺 -->
+          <line id="e-ab" x1="80" y1="190" x2="80" y2="60" stroke="var(--blue)" stroke-width="3"/>
+          <line id="e-bc" x1="80" y1="60" x2="200" y2="190" stroke="var(--blue)" stroke-width="3"/>
+          <line id="e-ca" x1="200" y1="190" x2="80" y2="190" stroke="var(--blue)" stroke-width="3"/>
+          <!-- 角マーカー -->
+          <circle id="a-a" cx="80" cy="190" r="14" fill="none" stroke="var(--pink)" stroke-width="3" opacity="0"/>
+          <circle id="a-c" cx="200" cy="190" r="14" fill="none" stroke="var(--pink)" stroke-width="3" opacity="0"/>
+          <circle id="a-b" cx="80" cy="60" r="14" fill="none" stroke="var(--pink)" stroke-width="3" opacity="0"/>
+          <text x="64" y="200" fill="#fff" font-size="14" font-weight="800">A</text>
+          <text x="66" y="56" fill="#fff" font-size="14" font-weight="800">B</text>
+          <text x="206" y="200" fill="#fff" font-size="14" font-weight="800">C</text>
+          <text id="condText" x="250" y="120" fill="#fff" font-size="15" font-weight="800"></text>
+        </svg>
+      </div>
+      <p class="mini" id="condCaption" style="margin-top:10px"></p>
+      <div class="trivia" style="border-color:rgba(255,213,74,.5);
+        background:linear-gradient(180deg,rgba(255,213,74,.12),rgba(255,213,74,.03))">
+        <div class="trivia-head" style="background:rgba(255,213,74,.2);color:#3a2f00">
+          ⚠️ ひっかけ注意</div>
+        <div class="trivia-body" style="color:#ffeeb0">
+          「2辺と<b>間じゃない角</b>」や「3つの角だけ」では合同を<b>言いきれない</b>。
+          角が3つ同じでも、大きさちがいの三角形（＝相似）がありうるからね。
+          だから合同条件は<b>上の3つだけ</b>と覚えよう。
+        </div>
+      </div>
+    </div>
+
+    <!-- 証明の型 -->
+    <div class="card">
+      <span class="tag">証明の書き方</span>
+      <h3 style="font-size:21px">証明は「型」にはめるだけ 📝</h3>
+      <p class="mini">作文みたいに自由に書くんじゃない。下の<b>5ステップの型</b>に流しこむだけ。</p>
+      <div class="step"><div class="step-num">1</div><div>
+        <h4>仮定と結論を確認</h4>
+        <p>「何が分かっていて（仮定）」「何を言いたいか（結論）」を最初にハッキリさせる。</p></div></div>
+      <div class="step"><div class="step-num">2</div><div>
+        <h4>どの2つの三角形か宣言</h4>
+        <p>「△ABCと△DEFにおいて」と書きはじめる。</p></div></div>
+      <div class="step"><div class="step-num">3</div><div>
+        <h4>等しい所を3つ、理由つきで並べる</h4>
+        <p>「仮定より」「共通だから」「対頂角は等しいから」など、<b>根拠</b>をそえて3つ書く。</p></div></div>
+      <div class="step"><div class="step-num">4</div><div>
+        <h4>合同条件を宣言</h4>
+        <p>「2組の辺とその間の角がそれぞれ等しいので」→「△ABC ≡ △DEF」。</p></div></div>
+      <div class="step"><div class="step-num">5</div><div>
+        <h4>結論を書く</h4>
+        <p>合同からいえること（対応する辺・角が等しい等）を書いて完成。</p></div></div>
+    </div>
+
+    <!-- 証明ビルダー -->
+    <div class="card" id="proofGame">
+      <span class="tag">🎮 証明パズル</span>
+      <h3 style="font-size:20px">バラバラの証明を、正しい順に並べよう</h3>
+      <p class="mini">下の5枚を<b>上から正しい順</b>になるよう、クリックで「証明エリア」に送ろう。
+        全部そろえたら判定！（XP +30）</p>
+
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <div class="slot-label">📦 バラバラの手がかり（クリックで送る）</div>
+          <div class="proof-pool" id="proofPool"></div>
+        </div>
+        <div>
+          <div class="slot-label">✅ 証明エリア（上から順番に）</div>
+          <div class="proof-slot" id="proofSlot"></div>
+        </div>
+      </div>
+      <div class="btn-row" style="justify-content:flex-start;margin-top:16px">
+        <button class="btn" onclick="checkProof()">この順番で判定する 🔍</button>
+        <button class="btn ghost" onclick="resetProof()">並べ直す</button>
+      </div>
+      <div class="q-feedback" id="proofFb"></div>
+    </div>
+
+    <!-- 平行四辺形 -->
+    <div class="card">
+      <span class="tag">よく出る応用</span>
+      <h3 style="font-size:21px">平行四辺形は「合同の宝庫」 ◇</h3>
+      <p class="mini">対角線を引くと、合同な三角形が現れる。だから平行四辺形の性質は、
+        合同の証明で次々と示せる。</p>
+      <div class="grid2">
+        <div class="step" style="border:none;padding-top:0"><div class="step-num">✓</div><div>
+          <h4>2組の対辺は等しい</h4><p>向かい合う辺の長さが同じ。</p></div></div>
+        <div class="step" style="border:none;padding-top:0"><div class="step-num">✓</div><div>
+          <h4>2組の対角は等しい</h4><p>向かい合う角が同じ。</p></div></div>
+        <div class="step" style="border:none;padding-top:0"><div class="step-num">✓</div><div>
+          <h4>対角線はそれぞれの中点で交わる</h4><p>交点で半分ずつに分かれる。</p></div></div>
+        <div class="step" style="border:none;padding-top:0"><div class="step-num">✓</div><div>
+          <h4>1組の対辺が平行で等しい→平行四辺形</h4><p>逆向きの判定にも使える。</p></div></div>
+      </div>
+      <p class="mini">💡 証明の「等しい根拠」として<b>「平行線の錯角は等しい」「共通の辺」</b>が
+        超ひんぱんに出る。この2つは口ぐせにしておこう。</p>
+    </div>
+
+    <!-- クイズ2 -->
+    <div class="card">
+      <span class="tag">⚡ ミニ実戦</span>
+      <div class="quiz" data-quiz="3">
+        <div class="q-text">「2組の辺と、その<b>間の角</b>がそれぞれ等しい」。<br>
+          この合同条件の名前は？（XP +20）</div>
+        <div class="opts">
+          <button class="opt"><span class="key">A</span> 3組の辺がそれぞれ等しい</button>
+          <button class="opt" data-correct="1"><span class="key">B</span> 2組の辺とその間の角がそれぞれ等しい</button>
+          <button class="opt"><span class="key">C</span> 1辺とその両はしの角がそれぞれ等しい</button>
+        </div>
+        <div class="q-feedback"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="quiz" data-quiz="4">
+        <div class="q-text">図形の証明で、向かい合ってできた角（×印どうし）が等しい理由は？（XP +20）</div>
+        <div class="opts">
+          <button class="opt"><span class="key">A</span> 同位角は等しい</button>
+          <button class="opt" data-correct="1"><span class="key">B</span> 対頂角は等しい</button>
+          <button class="opt"><span class="key">C</span> 共通の角だから</button>
+        </div>
+        <div class="q-feedback"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ゴール ============ -->
+<section class="section" id="goal" style="border-bottom:none">
+  <div class="wrap center">
+    <span class="eyebrow">🏁 ゴール</span>
+    <h2 class="h2">きみの今日のバッジ</h2>
+    <p class="lead" style="margin:0 auto">クイズやパズルをクリアするとバッジが光る。全部集めてみよう。</p>
+    <div class="badges" style="justify-content:center">
+      <div class="badge" id="bg-elim"><div class="ic">⚖️</div><div class="nm">加減法マスター</div></div>
+      <div class="badge" id="bg-sub"><div class="ic">🧩</div><div class="nm">代入法マスター</div></div>
+      <div class="badge" id="bg-cong"><div class="ic">📐</div><div class="nm">合同条件マスター</div></div>
+      <div class="badge" id="bg-proof"><div class="ic">📝</div><div class="nm">証明ビルダー</div></div>
+      <div class="badge" id="bg-hero"><div class="ic">⚔️</div><div class="nm">数学ヒーロー</div></div>
+    </div>
+
+    <div class="trivia" style="text-align:left;margin-top:34px">
+      <div class="trivia-head">🧠 最後のうんちく — なぜ数学は「楽しい」のか</div>
+      <div class="trivia-body">
+        連立方程式も合同の証明も、ぜんぶ<b>「見えないものを、確実に言い当てる力」</b>だ。
+        りんごの値段、星までの距離、ゲームの当たり確率、AIの中の計算——
+        世界は「まだ分からないこと」だらけ。でも数学を持つきみは、
+        ヒントを式にして、<b>論理だけで答えにたどり着ける</b>。
+        それは魔法みたいだけど、誰でも練習で手に入る本物の力。
+        今日きみが消した「苦手」は、もう武器になった。⚔️
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="go('m1')">⚖️ もう一回 連立方程式</button>
+      <button class="btn ghost" onclick="go('m2')">📐 もう一回 合同の証明</button>
+    </div>
+    <p class="mini" style="margin-top:24px">作った人より：苦手は「まだ出会ってないだけ」。何回でも遊んでね。</p>
+  </div>
+</section>
+
+<script>
+/* =====================================================================
+   サウンド（Web Audio API — 音声ファイル不要でビープ/和音を合成）
+   ===================================================================== */
+let actx=null, soundOn=true;
+function ac(){ if(!actx){ try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return actx; }
+function tone(freq,dur,type='sine',vol=.25,when=0){
+  if(!soundOn) return; const a=ac(); if(!a) return;
+  const o=a.createOscillator(), g=a.createGain();
+  o.type=type; o.frequency.value=freq;
+  const t=a.currentTime+when;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+0.02);
+}
+const S={
+  click(){ tone(420,.08,'triangle',.18); },
+  step(){ tone(540,.12,'sine',.2); tone(810,.12,'sine',.12,.02); },
+  right(){ [523,659,784,1046].forEach((f,i)=>tone(f,.5,'sine',.22,i*0.09)); },
+  wrong(){ tone(180,.25,'sawtooth',.18); tone(150,.3,'sawtooth',.16,.06); },
+  reveal(){ tone(660,.18,'sine',.2); tone(990,.3,'sine',.16,.08); },
+  badge(){ [659,880,1318].forEach((f,i)=>tone(f,.6,'triangle',.22,i*0.12)); },
+  win(){ [523,659,784,1046,1318].forEach((f,i)=>tone(f,.6,'sine',.22,i*0.1)); }
+};
+document.getElementById('soundBtn').addEventListener('click',function(){
+  soundOn=!soundOn; this.textContent=soundOn?'🔊':'🔇';
+  if(soundOn){ ac(); S.click(); }
+});
+// 最初のユーザー操作で AudioContext を起こす（モバイル対策）
+document.addEventListener('click',()=>{ const a=ac(); if(a&&a.state==='suspended')a.resume(); },{once:true});
+
+/* =====================================================================
+   XP・進捗・トースト・バッジ
+   ===================================================================== */
+let xp=0; const XP_MAX=210;
+function addXP(n,msg){
+  xp=Math.min(XP_MAX,xp+n);
+  document.getElementById('xpNow').textContent=xp;
+  document.getElementById('xpFill').style.width=(xp/XP_MAX*100)+'%';
+  if(msg) toast(msg);
+  if(xp>=XP_MAX) earnBadge('bg-hero');
+}
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show'); clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2200);
+}
+const earned={};
+function earnBadge(id){
+  if(earned[id]) return; earned[id]=true;
+  const el=document.getElementById(id); if(el){ el.classList.add('earned'); }
+  S.badge(); confetti();
+}
+function go(id){ S.click(); document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+
+function floatEmoji(x,y,e){
+  const s=document.createElement('div'); s.className='float-emoji'; s.textContent=e;
+  s.style.left=(x-15)+'px'; s.style.top=(y-15)+'px';
+  document.body.appendChild(s); setTimeout(()=>s.remove(),1100);
+}
+
+/* =====================================================================
+   くだもの問題（リビール）
+   ===================================================================== */
+function solveFruit(){
+  S.reveal();
+  const a=document.getElementById('chipApple'), o=document.getElementById('chipOrange');
+  a.textContent='🍎 = 70円'; o.textContent='🍊 = 60円';
+  setTimeout(()=>a.classList.add('show'),60);
+  setTimeout(()=>{o.classList.add('show'); toast('正解！式にすると必ず解ける 🎉');},420);
+  document.getElementById('fruitBtn').style.display='none';
+}
+
+/* =====================================================================
+   加減法 ステップアニメ
+   ===================================================================== */
+let elimS=0; const ELIM_MAX=5;
+function elimStep(){
+  if(elimS>=ELIM_MAX){ return; }
+  elimS++;
+  document.querySelectorAll('#elimBox .ln').forEach(ln=>{
+    if(+ln.dataset.s<=elimS){ ln.classList.add('on'); if(+ln.dataset.s===elimS) ln.classList.add('pop'); }
+  });
+  if(elimS===2){ const c=document.getElementById('cutX'); c.classList.add('cut'); }
+  S.step();
+  if(elimS>=ELIM_MAX){
+    document.getElementById('elimNext').textContent='クリア ✓';
+    earnBadge('bg-elim'); earnBadge('bg-sub');
+    addXP(30,'加減法・代入法マスター！ +30XP ⚖️🧩');
+  }
+}
+function elimReset(){
+  elimS=0; document.getElementById('elimNext').textContent='つぎへ ▶';
+  document.querySelectorAll('#elimBox .ln').forEach(ln=>{
+    if(+ln.dataset.s>0) ln.classList.remove('on');
+    ln.classList.remove('pop');
+  });
+  document.getElementById('cutX').classList.remove('cut');
+  S.click();
+}
+
+/* =====================================================================
+   三角形 合同：重ねるアニメ
+   ===================================================================== */
+function overlapTri(){
+  const g=document.getElementById('moveTri');
+  // DEF を回転・移動して ABC にぴったり重ねる
+  g.style.transformOrigin='290px 110px';
+  g.style.transform='translate(-200px,90px) rotate(90deg) scale(1)';
+  S.step();
+  setTimeout(()=>{
+    document.getElementById('overlapMsg').innerHTML=
+      '✨ ぴったり重なった！ これが <b>△ABC ≡ △DEF</b>（合同）。形も大きさも完全に同じ。';
+    S.right(); confetti(); toast('合同を目で確認！ 👀');
+  },1450);
+  document.getElementById('overlapBtn').style.display='none';
+}
+function resetTri(){
+  const g=document.getElementById('moveTri'); g.style.transform='none';
+  document.getElementById('overlapBtn').style.display='';
+  document.getElementById('overlapMsg').innerHTML='重なったら「△ABC ≡ △DEF」。この「≡」が合同の記号だよ。';
+  S.click();
+}
+
+/* =====================================================================
+   合同条件の可視化
+   ===================================================================== */
+const CONDS={
+  sss:{edges:['e-ab','e-bc','e-ca'],angles:[],
+    txt:'3つの辺が\nすべて等しい',
+    cap:'① 3組の辺がそれぞれ等しい — 辺の長さ3つが一致すれば、形は1つに決まる。'},
+  sas:{edges:['e-ab','e-ca'],angles:['a-a'],
+    txt:'2辺＋\nその間の角',
+    cap:'② 2組の辺とその間の角がそれぞれ等しい — 「間の角」がカギ。辺・角・辺の順でサンドイッチ。'},
+  asa:{edges:['e-ca'],angles:['a-a','a-c'],
+    txt:'1辺＋\n両はしの角',
+    cap:'③ 1組の辺とその両はしの角がそれぞれ等しい — 辺1つと、その両端の角2つ。'}
+};
+function showCond(key,btn){
+  S.click();
+  document.querySelectorAll('.cond-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const all=['e-ab','e-bc','e-ca'], allA=['a-a','a-b','a-c'];
+  all.forEach(id=>{const e=document.getElementById(id); e.setAttribute('stroke','var(--blue)'); e.setAttribute('stroke-width','3');});
+  allA.forEach(id=>document.getElementById(id).setAttribute('opacity','0'));
+  const c=CONDS[key];
+  c.edges.forEach(id=>{const e=document.getElementById(id);
+    e.setAttribute('stroke','var(--green)'); e.setAttribute('stroke-width','7');});
+  c.angles.forEach(id=>document.getElementById(id).setAttribute('opacity','1'));
+  // ラベル
+  const t=document.getElementById('condText'); t.innerHTML='';
+  c.txt.split('\n').forEach((line,i)=>{
+    const ts=document.createElementNS('http://www.w3.org/2000/svg','tspan');
+    ts.setAttribute('x','250'); ts.setAttribute('dy', i===0?0:20); ts.textContent=line;
+    t.appendChild(ts);
+  });
+  document.getElementById('condCaption').textContent=c.cap;
+}
+
+/* =====================================================================
+   証明ビルダー（並べ替えパズル）
+   ===================================================================== */
+const PROOF=[
+  {id:0,t:'△ABC と △DEF において'},
+  {id:1,t:'仮定より　AB ＝ DE'},
+  {id:2,t:'仮定より　BC ＝ EF'},
+  {id:3,t:'2組の辺とその間の角が等しいので（∠B ＝ ∠E も仮定より）'},
+  {id:4,t:'△ABC ≡ △DEF（結論）'}
+];
+let slot=[];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function renderProof(){
+  const pool=document.getElementById('proofPool'), sl=document.getElementById('proofSlot');
+  pool.innerHTML=''; sl.innerHTML='';
+  PROOF_SHUFFLED.filter(p=>!slot.includes(p.id)).forEach(p=>{
+    const d=document.createElement('div'); d.className='pchip';
+    d.innerHTML='<span class="ord">＋</span>'+p.t;
+    d.onclick=()=>{ slot.push(p.id); S.step(); renderProof(); };
+    pool.appendChild(d);
+  });
+  slot.forEach((id,i)=>{
+    const p=PROOF.find(x=>x.id===id);
+    const d=document.createElement('div'); d.className='pchip';
+    d.innerHTML='<span class="ord">'+(i+1)+'</span>'+p.t;
+    d.onclick=()=>{ slot.splice(i,1); S.click(); renderProof(); };
+    sl.appendChild(d);
+  });
+}
+let PROOF_SHUFFLED=shuffle(PROOF);
+function resetProof(){ slot=[]; PROOF_SHUFFLED=shuffle(PROOF);
+  document.getElementById('proofFb').textContent=''; renderProof(); S.click(); }
+function checkProof(){
+  const fb=document.getElementById('proofFb');
+  if(slot.length<PROOF.length){ fb.className='q-feedback no'; fb.textContent='まだ全部入ってないよ。残りも証明エリアへ。'; S.wrong(); return; }
+  const ok=slot.every((id,i)=>id===i);
+  const chips=document.querySelectorAll('#proofSlot .pchip');
+  if(ok){
+    chips.forEach(c=>c.classList.add('correct'));
+    fb.className='q-feedback ok'; fb.textContent='完ぺき！これが証明の「型」。仮定→宣言→根拠→合同条件→結論の順 🎉';
+    S.right(); confetti(); earnBadge('bg-proof'); addXP(30,'証明ビルダー クリア！ +30XP 📝');
+  }else{
+    chips.forEach((c,i)=>{ if(slot[i]!==i) c.classList.add('wrong'); });
+    fb.className='q-feedback no'; fb.textContent='順番がちがうみたい。まず「△ABCと△DEFにおいて」から始めるよ。赤いカードを直そう。';
+    S.wrong();
+    setTimeout(()=>chips.forEach(c=>c.classList.remove('wrong')),700);
+  }
+}
+
+/* =====================================================================
+   クイズ共通
+   ===================================================================== */
+const quizDone={};
+document.querySelectorAll('.quiz').forEach(q=>{
+  const qid=q.dataset.quiz;
+  q.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click',e=>{
+      if(quizDone[qid]) return;
+      const fb=q.querySelector('.q-feedback');
+      const correct=opt.dataset.correct==='1';
+      if(correct){
+        quizDone[qid]=true;
+        opt.classList.add('right');
+        q.querySelectorAll('.opt').forEach(o=>o.disabled=true);
+        fb.className='q-feedback ok'; fb.textContent='正解！ +20XP 🎉';
+        S.right();
+        const r=opt.getBoundingClientRect(); floatEmoji(r.right-20,r.top+10,'⭐');
+        addXP(20);
+        // バッジ判定
+        if(qid==='3'||qid==='4'){
+          if(quizDone['3']&&quizDone['4']) earnBadge('bg-cong');
+        }
+        confettiSmall();
+      }else{
+        opt.classList.add('bad');
+        opt.disabled=true;
+        fb.className='q-feedback no'; fb.textContent='おしい！ もう一度考えてみよう。';
+        S.wrong();
+      }
+    });
+  });
+});
+
+/* =====================================================================
+   紙吹雪
+   ===================================================================== */
+const cv=document.getElementById('confetti'), cx=cv.getContext('2d');
+function fit(){ cv.width=innerWidth; cv.height=innerHeight; }
+fit(); addEventListener('resize',fit);
+let parts=[];
+const COLORS=['#34e0a1','#4ea8ff','#ff6fae','#ffd54a','#a98bff'];
+function confetti(){ burst(140); }
+function confettiSmall(){ burst(50); }
+function burst(n){
+  for(let i=0;i<n;i++){
+    parts.push({x:innerWidth/2+(Math.random()-.5)*220, y:innerHeight*0.35,
+      vx:(Math.random()-.5)*9, vy:Math.random()*-11-3,
+      g:0.32+Math.random()*0.12, s:6+Math.random()*7,
+      c:COLORS[i%COLORS.length], rot:Math.random()*6, vr:(Math.random()-.5)*0.4,
+      life:90+Math.random()*40});
+  }
+  if(!raf) loop();
+}
+let raf=null;
+function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  parts.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life--;
+    cx.save(); cx.translate(p.x,p.y); cx.rotate(p.rot);
+    cx.fillStyle=p.c; cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6); cx.restore();
+  });
+  parts=parts.filter(p=>p.life>0 && p.y<cv.height+40);
+  if(parts.length){ raf=requestAnimationFrame(loop); }
+  else { cx.clearRect(0,0,cv.width,cv.height); raf=null; }
+}
+
+/* 初期化 */
+showCond('sss',document.querySelector('.cond-tab'));
+renderProof();
+</script>
+</body>
+</html>
