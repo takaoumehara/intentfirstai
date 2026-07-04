@@ -383,10 +383,12 @@ body::before {
   100% { opacity: 1; transform: translateY(0)    scale(1); }
 }
 
-.tv-nav-hint {
-  position: absolute;
-  bottom: 14px;
-  right: 22px;
+.tv-nav-hint,
+.detail-nav-hint {
+  display: none;
+}
+
+.tv-keyboard-hint {
   font-family: 'Geist Mono', ui-monospace, monospace;
   font-size: 10px;
   font-weight: 500;
@@ -394,9 +396,13 @@ body::before {
   color: var(--text-3);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  margin-top: 8px;
+  min-height: 22px;
+  white-space: nowrap;
 }
-.tv-nav-hint kbd {
+.tv-keyboard-hint kbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -411,6 +417,15 @@ body::before {
   font-weight: 500;
   color: var(--text-2);
 }
+.tv-keyboard-hint-browse,
+.tv-keyboard-hint-detail {
+  align-items: center;
+  gap: 10px;
+}
+.tv-keyboard-hint-browse { display: inline-flex; }
+.tv-keyboard-hint-detail { display: none; }
+.tv-wrapper.detail-mode .tv-keyboard-hint-browse { display: none; }
+.tv-wrapper.detail-mode .tv-keyboard-hint-detail { display: inline-flex; }
 
 /* ═══ TV DETAIL OVERLAY ═══ */
 .tv-detail {
@@ -638,36 +653,6 @@ body::before {
   text-transform: uppercase;
 }
 
-.detail-nav-hint {
-  position: absolute;
-  bottom: 14px;
-  left: 0; right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  font-family: 'Geist Mono', ui-monospace, monospace;
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  color: var(--text-3);
-  pointer-events: none;
-  z-index: 5;
-}
-.detail-nav-hint kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 20px;
-  padding: 0 5px;
-  border-radius: 4px;
-  background: var(--surface);
-  border: 1px solid var(--line-2);
-  font-family: inherit;
-  font-size: 9px;
-  font-weight: 500;
-  color: var(--text-2);
-}
 .detail-nav-hint-item { display: flex; align-items: center; gap: 4px; }
 
 /* ═══ TV CELEBRATION ═══ */
@@ -1581,6 +1566,17 @@ body.noframe .steps { display: none; }
     <div class="tv-bezel"></div>
     <div class="tv-stand"></div>
     <div class="frame-label" style="margin-top:10px;">Chromecast · Living Room TV</div>
+    <div class="tv-keyboard-hint" aria-label="TV keyboard controls">
+      <span class="tv-keyboard-hint-browse">
+        <kbd>↑↓←→</kbd> Browse
+        <kbd>OK</kbd> Open
+      </span>
+      <span class="tv-keyboard-hint-detail">
+        <kbd>← →</kbd> Photos
+        <kbd>↑ ↓</kbd> Scroll
+        <kbd>OK</kbd> Close
+      </span>
+    </div>
   </div>
 
   <!-- ═══ PHONE — canonical iPhone 15 Pro frame ═══ -->
@@ -2108,6 +2104,7 @@ function showDetail() {
     `<div class="td-size-info"><span class="icon-nav">✓</span>${p.sizeNote}</div>`;
 
   document.getElementById('tvDetail').classList.add('visible');
+  document.getElementById('tvWrapper').classList.add('detail-mode');
 }
 
 function switchThumb(idx) {
@@ -2125,6 +2122,7 @@ function closeDetail() {
     setStep(1);
   }
   document.getElementById('tvDetail').classList.remove('visible');
+  document.getElementById('tvWrapper').classList.remove('detail-mode');
 }
 
 function addToBag() {
@@ -2207,6 +2205,7 @@ function startHandoffToAmara() {
   // Close any overlays
   document.getElementById('tvCelebrate').classList.remove('visible');
   document.getElementById('tvDetail').classList.remove('visible');
+  document.getElementById('tvWrapper').classList.remove('detail-mode');
   resetBuy();
 
   // 1. Shelf out — apply handoff-out to all Marcus cards
